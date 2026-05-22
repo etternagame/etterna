@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
 #include <string>
 #include <vector>
 
-#include "base/mac/foundation_util.h"
-#include "base/mac/scoped_cftyperef.h"
+#include "base/apple/bridging.h"
+#include "base/apple/scoped_cftyperef.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/sys_string_conversions.h"
 #include "gtest/gtest.h"
@@ -56,7 +56,7 @@ void ExpectProcessIsRunning(pid_t pid, std::string& last_arg) {
         break;
       }
       if (inner_tries > 0) {
-        SleepNanoseconds(1E6);  // 1 millisecond
+        SleepNanoseconds(1E7);  // 10 milliseconds
       }
     } while (inner_tries--);
     ASSERT_TRUE(success);
@@ -120,11 +120,14 @@ TEST(ServiceManagement, SubmitRemoveJob) {
     NSDictionary* job_dictionary_ns = @{
       @LAUNCH_JOBKEY_LABEL : @"org.chromium.crashpad.test.service_management",
       @LAUNCH_JOBKEY_RUNATLOAD : @YES,
-      @LAUNCH_JOBKEY_PROGRAMARGUMENTS :
-          @[ @"/bin/sh", @"-c", shell_script_ns, ],
+      @LAUNCH_JOBKEY_PROGRAMARGUMENTS : @[
+        @"/bin/sh",
+        @"-c",
+        shell_script_ns,
+      ],
     };
     CFDictionaryRef job_dictionary_cf =
-        base::mac::NSToCFCast(job_dictionary_ns);
+        base::apple::NSToCFPtrCast(job_dictionary_ns);
 
     // The job may be left over from a failed previous run.
     if (ServiceManagementIsJobLoaded(kJobLabel)) {

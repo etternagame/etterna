@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
 #include "snapshot/sanitized/memory_snapshot_sanitized.h"
 
 #include <string.h>
+
+#include "util/linux/pac_helper.h"
 
 namespace crashpad {
 namespace internal {
@@ -62,8 +64,9 @@ class MemorySanitizer : public MemorySnapshot::Delegate {
     auto words =
         reinterpret_cast<Pointer*>(static_cast<char*>(data) + aligned_offset);
     for (size_t index = 0; index < word_count; ++index) {
-      if (words[index] > MemorySnapshotSanitized::kSmallWordMax &&
-          !ranges_->Contains(words[index])) {
+      auto word = StripPACBits(words[index]);
+      if (word > MemorySnapshotSanitized::kSmallWordMax &&
+          !ranges_->Contains(word)) {
         words[index] = defaced;
       }
     }

@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 
 #include <string.h>
 
-#include <memory>
-
+#include "base/containers/heap_array.h"
 #include "base/memory/page_size.h"
 #include "build/build_config.h"
 #include "gtest/gtest.h"
@@ -30,14 +29,15 @@
 #include "util/misc/from_pointer_cast.h"
 #include "util/process/process_memory_native.h"
 
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #include "test/mac/mach_multiprocess.h"
-#endif  // defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_APPLE)
 
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 #include "test/linux/fake_ptrace_connection.h"
 #include "util/linux/direct_ptrace_connection.h"
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
 namespace crashpad {
 namespace test {
@@ -47,7 +47,7 @@ namespace {
 // port which requires root or a code signing entitlement. To account for this
 // we implement an adaptor class that wraps MachMultiprocess on macOS, because
 // it shares the child's task port, and makes it behave like MultiprocessExec.
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 class MultiprocessAdaptor : public MachMultiprocess {
  public:
   void SetChildTestMainFunction(const std::string& function_name) {
@@ -102,24 +102,22 @@ class MultiprocessAdaptor : public MultiprocessExec {
 
   void MultiprocessParent() override { Parent(); }
 };
-#endif  // defined(OS_APPLE)
+#endif  // BUILDFLAG(IS_APPLE)
 
-void DoChildReadTestSetup(size_t* region_size,
-                          std::unique_ptr<char[]>* region) {
-  *region_size = 4 * base::GetPageSize();
-  region->reset(new char[*region_size]);
-  for (size_t index = 0; index < *region_size; ++index) {
-    (*region)[index] = static_cast<char>(index % 256);
+base::HeapArray<char> DoChildReadTestSetup() {
+  auto region = base::HeapArray<char>::Uninit(4 * base::GetPageSize());
+  for (size_t index = 0; index < region.size(); ++index) {
+    region[index] = static_cast<char>(index % 256);
   }
+  return region;
 }
 
 CRASHPAD_CHILD_TEST_MAIN(ReadTestChild) {
-  size_t region_size;
-  std::unique_ptr<char[]> region;
-  DoChildReadTestSetup(&region_size, &region);
+  auto region = DoChildReadTestSetup();
+  auto region_size = region.size();
   FileHandle out = MultiprocessAdaptor::OutputHandle();
   CheckedWriteFile(out, &region_size, sizeof(region_size));
-  VMAddress address = FromPointerCast<VMAddress>(region.get());
+  VMAddress address = FromPointerCast<VMAddress>(region.data());
   CheckedWriteFile(out, &address, sizeof(address));
   CheckedReadFileAtEOF(MultiprocessAdaptor::InputHandle());
   return 0;
@@ -135,12 +133,10 @@ class ReadTest : public MultiprocessAdaptor {
   ReadTest& operator=(const ReadTest&) = delete;
 
   void RunAgainstSelf() {
-    size_t region_size;
-    std::unique_ptr<char[]> region;
-    DoChildReadTestSetup(&region_size, &region);
+    auto region = DoChildReadTestSetup();
     DoTest(GetSelfProcess(),
-           region_size,
-           FromPointerCast<VMAddress>(region.get()));
+           region.size(),
+           FromPointerCast<VMAddress>(region.data()));
   }
 
   void RunAgainstChild() { Run(); }
@@ -156,59 +152,60 @@ class ReadTest : public MultiprocessAdaptor {
   }
 
   void DoTest(ProcessType process, size_t region_size, VMAddress address) {
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
     FakePtraceConnection connection;
     ASSERT_TRUE(connection.Initialize(process));
     ProcessMemoryLinux memory(&connection);
 #else
     ProcessMemoryNative memory;
     ASSERT_TRUE(memory.Initialize(process));
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
-    std::unique_ptr<char[]> result(new char[region_size]);
+    auto result = base::HeapArray<char>::Uninit(region_size);
 
     // Ensure that the entire region can be read.
-    ASSERT_TRUE(memory.Read(address, region_size, result.get()));
-    for (size_t i = 0; i < region_size; ++i) {
+    ASSERT_TRUE(memory.Read(address, result.size(), result.data()));
+    for (size_t i = 0; i < result.size(); ++i) {
       EXPECT_EQ(result[i], static_cast<char>(i % 256));
     }
 
     // Ensure that a read of length 0 succeeds and doesn’t touch the result.
-    memset(result.get(), '\0', region_size);
-    ASSERT_TRUE(memory.Read(address, 0, result.get()));
-    for (size_t i = 0; i < region_size; ++i) {
+    memset(result.data(), '\0', result.size());
+    ASSERT_TRUE(memory.Read(address, 0, result.data()));
+    for (size_t i = 0; i < result.size(); ++i) {
       EXPECT_EQ(result[i], 0);
     }
 
     // Ensure that a read starting at an unaligned address works.
-    ASSERT_TRUE(memory.Read(address + 1, region_size - 1, result.get()));
-    for (size_t i = 0; i < region_size - 1; ++i) {
+    ASSERT_TRUE(memory.Read(address + 1, result.size() - 1, result.data()));
+    for (size_t i = 0; i < result.size() - 1; ++i) {
       EXPECT_EQ(result[i], static_cast<char>((i + 1) % 256));
     }
 
     // Ensure that a read ending at an unaligned address works.
-    ASSERT_TRUE(memory.Read(address, region_size - 1, result.get()));
-    for (size_t i = 0; i < region_size - 1; ++i) {
+    ASSERT_TRUE(memory.Read(address, result.size() - 1, result.data()));
+    for (size_t i = 0; i < result.size() - 1; ++i) {
       EXPECT_EQ(result[i], static_cast<char>(i % 256));
     }
 
     // Ensure that a read starting and ending at unaligned addresses works.
-    ASSERT_TRUE(memory.Read(address + 1, region_size - 2, result.get()));
-    for (size_t i = 0; i < region_size - 2; ++i) {
+    ASSERT_TRUE(memory.Read(address + 1, result.size() - 2, result.data()));
+    for (size_t i = 0; i < result.size() - 2; ++i) {
       EXPECT_EQ(result[i], static_cast<char>((i + 1) % 256));
     }
 
     // Ensure that a read of exactly one page works.
     size_t page_size = base::GetPageSize();
-    ASSERT_GE(region_size, page_size + page_size);
-    ASSERT_TRUE(memory.Read(address + page_size, page_size, result.get()));
+    ASSERT_GE(result.size(), page_size + page_size);
+    ASSERT_TRUE(memory.Read(address + page_size, page_size, result.data()));
     for (size_t i = 0; i < page_size; ++i) {
       EXPECT_EQ(result[i], static_cast<char>((i + page_size) % 256));
     }
 
     // Ensure that reading exactly a single byte works.
     result[1] = 'J';
-    ASSERT_TRUE(memory.Read(address + 2, 1, result.get()));
+    ASSERT_TRUE(memory.Read(address + 2, 1, result.data()));
     EXPECT_EQ(result[0], 2);
     EXPECT_EQ(result[1], 'J');
   }
@@ -343,14 +340,15 @@ class ReadCStringTest : public MultiprocessAdaptor {
               VMAddress local_empty_address,
               VMAddress local_short_address,
               VMAddress long_string_address) {
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
     FakePtraceConnection connection;
     ASSERT_TRUE(connection.Initialize(process));
     ProcessMemoryLinux memory(&connection);
 #else
     ProcessMemoryNative memory;
     ASSERT_TRUE(memory.Initialize(process));
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
     Compare(memory, const_empty_address, kConstCharEmpty);
     Compare(memory, const_short_address, kConstCharShort);
@@ -421,26 +419,26 @@ class ReadUnmappedTest : public MultiprocessAdaptor {
   }
 
   void DoTest(ProcessType process, VMAddress address) {
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
     DirectPtraceConnection connection;
     ASSERT_TRUE(connection.Initialize(process));
     ProcessMemoryLinux memory(&connection);
 #else
     ProcessMemoryNative memory;
     ASSERT_TRUE(memory.Initialize(process));
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
     VMAddress page_addr1 = address;
     VMAddress page_addr2 = page_addr1 + base::GetPageSize();
 
-    std::unique_ptr<char[]> result(new char[base::GetPageSize() * 2]);
-    EXPECT_TRUE(memory.Read(page_addr1, base::GetPageSize(), result.get()));
-    EXPECT_TRUE(memory.Read(page_addr2 - 1, 1, result.get()));
+    auto result = base::HeapArray<char>::Uninit(base::GetPageSize() * 2);
+    EXPECT_TRUE(memory.Read(page_addr1, base::GetPageSize(), result.data()));
+    EXPECT_TRUE(memory.Read(page_addr2 - 1, 1, result.data()));
 
-    EXPECT_FALSE(
-        memory.Read(page_addr1, base::GetPageSize() * 2, result.get()));
-    EXPECT_FALSE(memory.Read(page_addr2, base::GetPageSize(), result.get()));
-    EXPECT_FALSE(memory.Read(page_addr2 - 1, 2, result.get()));
+    EXPECT_FALSE(memory.Read(page_addr1, result.size(), result.data()));
+    EXPECT_FALSE(memory.Read(page_addr2, base::GetPageSize(), result.data()));
+    EXPECT_FALSE(memory.Read(page_addr2 - 1, 2, result.data()));
   }
 };
 
@@ -554,14 +552,15 @@ class ReadCStringUnmappedTest : public MultiprocessAdaptor {
 
   void DoTest(ProcessType process,
               const std::vector<StringDataInChildProcess>& strings) {
-#if defined(OS_ANDROID) || defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
     DirectPtraceConnection connection;
     ASSERT_TRUE(connection.Initialize(process));
     ProcessMemoryLinux memory(&connection);
 #else
     ProcessMemoryNative memory;
     ASSERT_TRUE(memory.Initialize(process));
-#endif  // OS_ANDROID || OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_ANDROID) || BUILDFLAG(IS_LINUX) ||
+        // BUILDFLAG(IS_CHROMEOS)
 
     std::string result;
     result.reserve(kChildProcessStringLength + 1);

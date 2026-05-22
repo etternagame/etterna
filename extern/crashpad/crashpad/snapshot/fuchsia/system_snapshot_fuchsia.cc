@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ void SystemSnapshotFuchsia::Initialize(const timeval* snapshot_time) {
   static constexpr const char kArch[] = "x86_64";
 #elif defined(ARCH_CPU_ARM64)
   static constexpr const char kArch[] = "aarch64";
+#elif defined(ARCH_CPU_RISCV64)
+  static constexpr const char kArch[] = "riscv64";
 #else
   static constexpr const char kArch[] = "unknown";
 #endif
@@ -61,6 +63,8 @@ CPUArchitecture SystemSnapshotFuchsia::GetCPUArchitecture() const {
   return kCPUArchitectureX86_64;
 #elif defined(ARCH_CPU_ARM64)
   return kCPUArchitectureARM64;
+#elif defined(ARCH_CPU_RISCV64)
+  return kCPUArchitectureRISCV64;
 #else
 #error Port
 #endif
@@ -71,7 +75,7 @@ uint32_t SystemSnapshotFuchsia::CPURevision() const {
 #if defined(ARCH_CPU_X86_64)
   return cpuid_.Revision();
 #else
-  // TODO(fuchsia/DX-712): Read actual revision.
+  // TODO: https://fxbug.dev/42133257 - Read actual revision.
   return 0;
 #endif
 }
@@ -86,7 +90,7 @@ std::string SystemSnapshotFuchsia::CPUVendor() const {
 #if defined(ARCH_CPU_X86_64)
   return cpuid_.Vendor();
 #else
-  // TODO(fuchsia/DX-712): Read actual vendor.
+  // TODO: https://fxbug.dev/42133257 - Read actual vendor.
   return std::string();
 #endif
 }
@@ -105,7 +109,6 @@ uint32_t SystemSnapshotFuchsia::CPUX86Signature() const {
   return cpuid_.Signature();
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -115,7 +118,6 @@ uint64_t SystemSnapshotFuchsia::CPUX86Features() const {
   return cpuid_.Features();
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -125,7 +127,6 @@ uint64_t SystemSnapshotFuchsia::CPUX86ExtendedFeatures() const {
   return cpuid_.ExtendedFeatures();
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -134,7 +135,6 @@ uint32_t SystemSnapshotFuchsia::CPUX86Leaf7Features() const {
   return cpuid_.Leaf7Features();
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -144,7 +144,6 @@ bool SystemSnapshotFuchsia::CPUX86SupportsDAZ() const {
   return cpuid_.SupportsDAZ();
 #else
   NOTREACHED();
-  return false;
 #endif
 }
 
@@ -189,7 +188,7 @@ bool SystemSnapshotFuchsia::NXEnabled() const {
 #if defined(ARCH_CPU_X86_64)
   return cpuid_.NXEnabled();
 #else
-  // TODO(fuchsia/DX-712): Read actual NX bit value.
+  // TODO: https://fxbug.dev/42133257 - Read actual NX bit value.
   return false;
 #endif
 }

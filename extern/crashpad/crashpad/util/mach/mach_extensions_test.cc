@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 #include "util/mach/mach_extensions.h"
 
-#include "base/mac/scoped_mach_port.h"
+#include "base/apple/scoped_mach_port.h"
 #include "build/build_config.h"
 #include "gtest/gtest.h"
 #include "test/mac/mach_errors.h"
@@ -25,12 +25,13 @@ namespace test {
 namespace {
 
 TEST(MachExtensions, MachThreadSelf) {
-  base::mac::ScopedMachSendRight thread_self(mach_thread_self());
+  base::apple::ScopedMachSendRight thread_self(mach_thread_self());
   EXPECT_EQ(MachThreadSelf(), thread_self);
 }
 
 TEST(MachExtensions, NewMachPort_Receive) {
-  base::mac::ScopedMachReceiveRight port(NewMachPort(MACH_PORT_RIGHT_RECEIVE));
+  base::apple::ScopedMachReceiveRight port(
+      NewMachPort(MACH_PORT_RIGHT_RECEIVE));
   ASSERT_NE(port, kMachPortNull);
 
   mach_port_type_t type;
@@ -41,7 +42,7 @@ TEST(MachExtensions, NewMachPort_Receive) {
 }
 
 TEST(MachExtensions, NewMachPort_PortSet) {
-  base::mac::ScopedMachPortSet port(NewMachPort(MACH_PORT_RIGHT_PORT_SET));
+  base::apple::ScopedMachPortSet port(NewMachPort(MACH_PORT_RIGHT_PORT_SET));
   ASSERT_NE(port, kMachPortNull);
 
   mach_port_type_t type;
@@ -52,7 +53,7 @@ TEST(MachExtensions, NewMachPort_PortSet) {
 }
 
 TEST(MachExtensions, NewMachPort_DeadName) {
-  base::mac::ScopedMachSendRight port(NewMachPort(MACH_PORT_RIGHT_DEAD_NAME));
+  base::apple::ScopedMachSendRight port(NewMachPort(MACH_PORT_RIGHT_DEAD_NAME));
   ASSERT_NE(port, kMachPortNull);
 
   mach_port_type_t type;
@@ -80,11 +81,11 @@ TEST(MachExtensions, ExcMaskAll) {
   EXPECT_FALSE(exc_mask_all & EXC_MASK_CRASH);
   EXPECT_FALSE(exc_mask_all & EXC_MASK_CORPSE_NOTIFY);
 
-#if defined(OS_IOS)
+#if BUILDFLAG(IS_IOS)
   // Assume at least iOS 7 (≅ OS X 10.9).
   EXPECT_TRUE(exc_mask_all & EXC_MASK_RESOURCE);
   EXPECT_TRUE(exc_mask_all & EXC_MASK_GUARD);
-#else  // OS_IOS
+#else  // BUILDFLAG(IS_IOS)
   const int macos_version_number = MacOSVersionNumber();
   if (macos_version_number >= 10'08'00) {
     EXPECT_TRUE(exc_mask_all & EXC_MASK_RESOURCE);
@@ -97,7 +98,7 @@ TEST(MachExtensions, ExcMaskAll) {
   } else {
     EXPECT_FALSE(exc_mask_all & EXC_MASK_GUARD);
   }
-#endif  // OS_IOS
+#endif  // BUILDFLAG(IS_IOS)
 
   // Bit 0 should not be set.
   EXPECT_FALSE(ExcMaskAll() & 1);
@@ -112,12 +113,12 @@ TEST(MachExtensions, ExcMaskValid) {
 
   EXPECT_TRUE(exc_mask_valid & EXC_MASK_CRASH);
 
-#if defined(OS_IOS)
+#if BUILDFLAG(IS_IOS)
   // Assume at least iOS 9 (≅ OS X 10.11).
   EXPECT_TRUE(exc_mask_valid & EXC_MASK_RESOURCE);
   EXPECT_TRUE(exc_mask_valid & EXC_MASK_GUARD);
   EXPECT_TRUE(exc_mask_valid & EXC_MASK_CORPSE_NOTIFY);
-#else  // OS_IOS
+#else  // BUILDFLAG(IS_IOS)
   const int macos_version_number = MacOSVersionNumber();
   if (macos_version_number >= 10'08'00) {
     EXPECT_TRUE(exc_mask_valid & EXC_MASK_RESOURCE);
@@ -136,7 +137,7 @@ TEST(MachExtensions, ExcMaskValid) {
   } else {
     EXPECT_FALSE(exc_mask_valid & EXC_MASK_CORPSE_NOTIFY);
   }
-#endif  // OS_IOS
+#endif  // BUILDFLAG(IS_IOS)
 
   // Bit 0 should not be set.
   EXPECT_FALSE(ExcMaskValid() & 1);

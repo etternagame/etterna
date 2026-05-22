@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,13 +17,14 @@
 
 #include <sys/types.h>
 
+#include <functional>
 #include <string>
 
 #include "build/build_config.h"
 
-#if defined(OS_POSIX)
+#if BUILDFLAG(IS_POSIX)
 #include "base/files/scoped_file.h"
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #include <windows.h>
 #include "util/win/scoped_handle.h"
 #endif
@@ -34,7 +35,7 @@ class FilePath;
 
 namespace crashpad {
 
-#if defined(OS_POSIX) || DOXYGEN
+#if BUILDFLAG(IS_POSIX) || DOXYGEN
 
 //! \brief Platform-specific alias for a low-level file handle.
 using FileHandle = int;
@@ -51,7 +52,7 @@ using FileOperationResult = ssize_t;
 //! \brief A value that can never be a valid FileHandle.
 const FileHandle kInvalidFileHandle = -1;
 
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 
 using FileHandle = HANDLE;
 using FileOffset = LONGLONG;
@@ -132,7 +133,7 @@ enum class StdioStream {
 
 namespace internal {
 
-#if defined(OS_POSIX) || DOXYGEN
+#if BUILDFLAG(IS_POSIX) || DOXYGEN
 
 //! \brief The name of the native read function used by ReadFile().
 //!
@@ -148,7 +149,7 @@ constexpr char kNativeReadFunctionName[] = "read";
 //! \sa kNativeReadFunctionName
 constexpr char kNativeWriteFunctionName[] = "write";
 
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 
 constexpr char kNativeReadFunctionName[] = "ReadFile";
 constexpr char kNativeWriteFunctionName[] = "WriteFile";
@@ -162,30 +163,11 @@ constexpr char kNativeWriteFunctionName[] = "WriteFile";
 //! intended to be used more generally. Use ReadFileExactly(),
 //! LoggingReadFileExactly(), CheckedReadFileExactly(), or
 //! FileReaderInterface::ReadExactly() instead.
-class ReadExactlyInternal {
- public:
-  ReadExactlyInternal(const ReadExactlyInternal&) = delete;
-  ReadExactlyInternal& operator=(const ReadExactlyInternal&) = delete;
-
-  //! \brief Calls Read(), retrying following a short read, ensuring that
-  //!     exactly \a size bytes are read.
-  //!
-  //! \return `true` on success. `false` if the underlying Read() fails or if
-  //!     fewer than \a size bytes were read. When returning `false`, if \a
-  //!     can_log is `true`, logs a message.
-  bool ReadExactly(void* buffer, size_t size, bool can_log);
-
- protected:
-  ReadExactlyInternal() {}
-  ~ReadExactlyInternal() {}
-
- private:
-  //! \brief Wraps a read operation, such as ReadFile().
-  //!
-  //! \return The number of bytes read and placed into \a buffer, or `-1` on
-  //!     error. When returning `-1`, if \a can_log is `true`, logs a message.
-  virtual FileOperationResult Read(void* buffer, size_t size, bool can_log) = 0;
-};
+bool ReadExactly(
+    std::function<FileOperationResult(bool, void*, size_t)> read_function,
+    bool can_log,
+    void* buffer,
+    size_t size);
 
 //! \brief The internal implementation of WriteFile() and its wrappers.
 //!
@@ -252,7 +234,9 @@ FileOperationResult NativeWriteFile(FileHandle file,
 //!
 //! \sa WriteFile
 //! \sa ReadFileExactly
+//! \sa ReadFileUntil
 //! \sa LoggingReadFileExactly
+//! \sa LoggingReadFileUntil
 //! \sa CheckedReadFileExactly
 //! \sa CheckedReadFileAtEOF
 FileOperationResult ReadFile(FileHandle file, void* buffer, size_t size);
@@ -273,32 +257,61 @@ FileOperationResult ReadFile(FileHandle file, void* buffer, size_t size);
 bool WriteFile(FileHandle file, const void* buffer, size_t size);
 
 //! \brief Wraps ReadFile(), retrying following a short read, ensuring that
-//!     exactly \a size bytes are read.
+//!     exactly \a size bytes are read. Does not log on failure.
 //!
-//! \return `true` on success. If the underlying ReadFile() fails, or if fewer
-//!     than \a size bytes were read, this function logs a message and
-//!     returns `false`.
+//! \return `true` on success. Returns `false` if the underlying ReadFile()
+//!     fails or if fewer than \a size bytes were read.
 //!
 //! \sa LoggingWriteFile
 //! \sa ReadFile
+//! \sa ReadFileUntil
 //! \sa LoggingReadFileExactly
+//! \sa LoggingReadFileUntil
 //! \sa CheckedReadFileExactly
 //! \sa CheckedReadFileAtEOF
 bool ReadFileExactly(FileHandle file, void* buffer, size_t size);
 
-//! \brief Wraps ReadFile(), retrying following a short read, ensuring that
-//!     exactly \a size bytes are read.
+//! \brief Wraps ReadFile(), retrying following a short read. Does not log on
+//!     failure.
 //!
-//! \return `true` on success. If the underlying ReadFile() fails, or if fewer
-//!     than \a size bytes were read, this function logs a message and
-//!     returns `false`.
+//! \returns The number of bytes read or `-1` if the underlying ReadFile()
+//!     fails.
+//!
+//! \sa ReadFile
+//! \sa ReadFileExactly
+//! \sa LoggingReadFileExactly
+//! \sa LoggingReadFileUntil
+FileOperationResult ReadFileUntil(FileHandle file, void* buffer, size_t size);
+
+//! \brief Wraps ReadFile(), retrying following a short read, ensuring that
+//!     exactly \a size bytes are read. Logs an error on failure.
+//!
+//! \return `true` on success. Returns `false` if the underlying ReadFile()
+//!     fails or if fewer than \a size bytes were read.
 //!
 //! \sa LoggingWriteFile
 //! \sa ReadFile
 //! \sa ReadFileExactly
+//! \sa ReadFileUntil
+//! \sa LoggingReadFileUntil
 //! \sa CheckedReadFileExactly
 //! \sa CheckedReadFileAtEOF
 bool LoggingReadFileExactly(FileHandle file, void* buffer, size_t size);
+
+//! \brief Wraps ReadFile(), retrying following a short read. Logs an error on
+//!     failure.
+//!
+//! \returns The number of bytes read or `-1` if the underlying ReadFile()
+//!     fails.
+//!
+//! \sa ReadFileExactly
+//! \sa ReadFileUntil
+//! \sa LoggingReadFileExactly
+//! \sa CheckedReadFileExactly
+//! \sa CheckedReadFileAtEOF
+FileOperationResult LoggingReadFileUntil(FileHandle file,
+                                         void* buffer,
+                                         size_t size);
 
 //! \brief Wraps WriteFile(), ensuring that exactly \a size bytes are written.
 //!
@@ -422,7 +435,7 @@ FileHandle LoggingOpenFileForWrite(const base::FilePath& path,
                                    FileWriteMode mode,
                                    FilePermissions permissions);
 
-#if defined(OS_LINUX) || defined(OS_CHROMEOS)
+#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 //! \brief Opens an in-memory file for input and output.
 //!
 //! This function first attempts to open the file with `memfd_create()`. If
@@ -444,7 +457,7 @@ FileHandle LoggingOpenFileForWrite(const base::FilePath& path,
 //! \sa LoggingOpenFileForWrite
 //! \sa LoggingOpenFileForReadAndWrite
 FileHandle LoggingOpenMemoryFileForReadAndWrite(const base::FilePath& name);
-#endif  // OS_LINUX || OS_CHROMEOS
+#endif  // BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS)
 
 //! \brief Wraps OpenFileForReadAndWrite(), logging an error if the operation
 //!     fails.
@@ -461,7 +474,7 @@ FileHandle LoggingOpenFileForReadAndWrite(const base::FilePath& path,
 // Fuchsia does not currently support any sort of file locking. See
 // https://crashpad.chromium.org/bug/196 and
 // https://crashpad.chromium.org/bug/217.
-#if !defined(OS_FUCHSIA)
+#if CRASHPAD_FLOCK_ALWAYS_SUPPORTED
 
 //! \brief Locks the given \a file using `flock()` on POSIX or `LockFileEx()` on
 //!     Windows.
@@ -500,7 +513,7 @@ FileLockingResult LoggingLockFile(FileHandle file,
 //! \return `true` on success, or `false` and a message will be logged.
 bool LoggingUnlockFile(FileHandle file);
 
-#endif  // !OS_FUCHSIA
+#endif  // CRASHPAD_FLOCK_ALWAYS_SUPPORTED
 
 //! \brief Wraps `lseek()` or `SetFilePointerEx()`. Logs an error if the
 //!     operation fails.

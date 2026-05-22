@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -86,7 +86,6 @@ SystemSnapshotMac::SystemSnapshotMac()
       os_version_major_(0),
       os_version_minor_(0),
       os_version_bugfix_(0),
-      os_server_(false),
       initialized_() {
 }
 
@@ -107,7 +106,6 @@ void SystemSnapshotMac::Initialize(ProcessReaderMac* process_reader,
                          &os_version_minor_,
                          &os_version_bugfix_,
                          &os_version_build_,
-                         &os_server_,
                          &os_version_string);
 
   std::string uname_string;
@@ -207,7 +205,6 @@ uint32_t SystemSnapshotMac::CPUX86Signature() const {
   return ReadIntSysctlByName<uint32_t>("machdep.cpu.signature", 0);
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -218,7 +215,6 @@ uint64_t SystemSnapshotMac::CPUX86Features() const {
   return ReadIntSysctlByName<uint64_t>("machdep.cpu.feature_bits", 0);
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -229,7 +225,6 @@ uint64_t SystemSnapshotMac::CPUX86ExtendedFeatures() const {
   return ReadIntSysctlByName<uint64_t>("machdep.cpu.extfeature_bits", 0);
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -254,7 +249,6 @@ uint32_t SystemSnapshotMac::CPUX86Leaf7Features() const {
   return ebx;
 #else
   NOTREACHED();
-  return 0;
 #endif
 }
 
@@ -293,7 +287,6 @@ bool SystemSnapshotMac::CPUX86SupportsDAZ() const {
   return fxsave.mxcsr_mask & (1 << 6);
 #else
   NOTREACHED();
-  return false;
 #endif
 }
 
@@ -304,7 +297,7 @@ SystemSnapshot::OperatingSystem SystemSnapshotMac::GetOperatingSystem() const {
 
 bool SystemSnapshotMac::OSServer() const {
   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
-  return os_server_;
+  return false;
 }
 
 void SystemSnapshotMac::OSVersion(int* major,
@@ -388,6 +381,20 @@ void SystemSnapshotMac::TimeZone(DaylightSavingTimeStatus* dst_status,
                      daylight_offset_seconds,
                      standard_name,
                      daylight_name);
+}
+
+uint64_t SystemSnapshotMac::AddressMask() const {
+  uint64_t mask = 0;
+#if defined(ARCH_CPU_ARM64)
+  // `machdep.virtual_address_size` is the number of addressable bits in
+  // userspace virtual addresses
+  uint8_t addressable_bits =
+      CastIntSysctlByName<uint8_t>("machdep.virtual_address_size", 0);
+  if (addressable_bits) {
+    mask = ~((1UL << addressable_bits) - 1);
+  }
+#endif
+  return mask;
 }
 
 }  // namespace internal

@@ -1,4 +1,4 @@
-// Copyright 2019 The Crashpad Authors. All rights reserved.
+// Copyright 2019 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -38,8 +38,8 @@ class LogOutputStream : public OutputStreamInterface {
     //!
     //! \param buf the buffer to write to the log. More bytes than are in |buf|
     //!     may be written, e.g. to convey metadata.
-    //! \return the number of bytes written, or a negative error code.
-    virtual int Log(const char* buf) = 0;
+    //! \return `true` if the |buf| was successfully written.
+    virtual bool Log(const char* buf) = 0;
 
     //! \brief Returns the maximum number of bytes to allow writing to this log.
     virtual size_t OutputCap() = 0;

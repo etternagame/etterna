@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@
 namespace crashpad {
 
 class Settings;
+class SettingsReader;
 
 //! \brief An interface for managing a collection of crash report files and
 //!     metadata associated with the crash reports.
@@ -129,8 +130,6 @@ class CrashReportDatabase {
 
     //! \brief Adds an attachment to the report.
     //!
-    //! \note This function is not yet implemented on macOS.
-    //!
     //! \param[in] name The key and name for the attachment, which will be
     //!     included in the http upload. The attachment will not appear in the
     //!     minidump report. \a name should only use characters from the set
@@ -174,8 +173,6 @@ class CrashReportDatabase {
 
     //! \brief Obtains a mapping of names to file readers for any attachments
     //!     for the report.
-    //!
-    //! This is not implemented on macOS.
     std::map<std::string, FileReader*> GetAttachments() const {
       return attachment_map_;
     }
@@ -270,6 +267,16 @@ class CrashReportDatabase {
   static std::unique_ptr<CrashReportDatabase> InitializeWithoutCreating(
       const base::FilePath& path);
 
+  //! \brief Given a database path, return a read-only view of its settings.
+  //!
+  //! \param[in] path A path to the database. If the database does not exist, or
+  //!     the settings file does not exist, the returned reader will fail its
+  //!     read methods.
+  //!
+  //! \return A SettingsReader.
+  static std::unique_ptr<SettingsReader> GetSettingsReaderForDatabasePath(
+      const base::FilePath& path);
+
   //! \brief Returns the Settings object for this database.
   //!
   //! \return A weak pointer to the Settings object, which is owned by the
@@ -332,13 +339,21 @@ class CrashReportDatabase {
   virtual OperationStatus GetCompletedReports(std::vector<Report>* reports) = 0;
 
   //! \brief Obtains and locks a report object for uploading to a collection
-  //!     server.
+  //!     server. On iOS the file lock is released and mutual-exclusion is kept
+  //!     via a file attribute.
   //!
   //! Callers should upload the crash report using the FileReader provided.
   //! Callers should then call RecordUploadComplete() to record a successful
   //! upload. If RecordUploadComplete() is not called, the upload attempt will
   //! be recorded as unsuccessful and the report lock released when \a report is
   //! destroyed.
+  //!
+  //! On iOS, holding a lock during a slow upload can lead to watchdog kills if
+  //! the app is suspended mid-upload. Instead, if the client can obtain the
+  //! lock, the database sets a lock-time file attribute and releases the lock.
+  //! The attribute is cleared when the upload is completed. The lock-time
+  //! attribute can be used to prevent file access from other processes, or to
+  //! discard reports that likely were terminated mid-upload.
   //!
   //! \param[in] uuid The unique identifier for the crash report record.
   //! \param[out] report A crash report record for the report to be uploaded.
@@ -400,9 +415,11 @@ class CrashReportDatabase {
   virtual OperationStatus RequestUpload(const UUID& uuid) = 0;
 
   //! \brief Cleans the database of expired lockfiles, metadata without report
-  //!     files, and report files without metadata.
+  //!     files, report files without metadata, and attachments without report
+  //!     files.
   //!
-  //! This method does nothing on the macOS implementations of the database.
+  //! As the macOS implementation does not use  lock or metadata files, the
+  //! cleaning is limited to attachments without report files.
   //!
   //! \param[in] lockfile_ttl The number of seconds at which lockfiles or new
   //!     report files are considered expired.
@@ -410,7 +427,31 @@ class CrashReportDatabase {
   virtual int CleanDatabase(time_t lockfile_ttl) { return 0; }
 
  protected:
-  CrashReportDatabase() {}
+  CrashReportDatabase() = default;
+
+  //! \brief The path to the database passed to Initialize.
+  //!
+  //! \return The filepath of the database;
+  virtual base::FilePath DatabasePath() = 0;
+
+  //! \brief Build a filepath for the root attachments directory.
+  //!
+  //! \return The filepath to the attachments directory.
+  base::FilePath AttachmentsRootPath();
+
+  //! \brief  Build a filepath for the directory for the report to hold
+  //!     attachments.
+  //!
+  //! \param[in] uuid The unique identifier for the crash report record.
+  //!
+  //! \return The filepath to the report attachments directory.
+  base::FilePath AttachmentsPath(const UUID& uuid);
+
+  //! \brief Attempts to remove any attachments associated with the given
+  //!     report UUID. There may not be any, so failing is not an error.
+  //!
+  //! \param[in] uuid The unique identifier for the crash report record.
+  void RemoveAttachmentsByUUID(const UUID& uuid);
 
  private:
   //! \brief Adjusts a crash report record’s metadata to account for an upload

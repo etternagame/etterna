@@ -1,4 +1,4 @@
-// Copyright 2019 The Crashpad Authors. All rights reserved.
+// Copyright 2019 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -124,7 +124,7 @@ TEST(Socket, RecvClosesFileDescriptors) {
   for (size_t index = 0; index < UnixCredentialSocket::kMaxSendRecvMsgFDs;
        ++index) {
     recv_fds[index].reset();
-    char c;
+    char c = 0;
     EXPECT_EQ(
         HANDLE_EINTR(send(send_fds[index].get(), &c, sizeof(c), MSG_NOSIGNAL)),
         -1);

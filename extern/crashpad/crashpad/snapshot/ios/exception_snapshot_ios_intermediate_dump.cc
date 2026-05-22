@@ -1,4 +1,4 @@
-// Copyright 2020 The Crashpad Authors. All rights reserved.
+// Copyright 2020 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
 
 #include "snapshot/ios/exception_snapshot_ios_intermediate_dump.h"
 
+#include "base/apple/mach_logging.h"
+#include "base/check_op.h"
 #include "base/logging.h"
-#include "base/mac/mach_logging.h"
 #include "snapshot/cpu_context.h"
 #include "snapshot/ios/intermediate_dump_reader_util.h"
 #include "snapshot/mac/cpu_context_mac.h"
@@ -66,6 +67,13 @@ using Key = IntermediateDumpKey;
 
 ExceptionSnapshotIOSIntermediateDump::ExceptionSnapshotIOSIntermediateDump()
     : ExceptionSnapshot(),
+#if defined(ARCH_CPU_X86_64)
+      context_x86_64_(),
+#elif defined(ARCH_CPU_ARM64)
+      context_arm64_(),
+#else
+#error Port to your CPU architecture
+#endif
       context_(),
       codes_(),
       thread_id_(0),
@@ -131,9 +139,42 @@ bool ExceptionSnapshotIOSIntermediateDump::InitializeFromSignal(
 #endif
   }
 
-  GetDataValueFromMap(exception_data, Key::kSignalNumber, &exception_);
-  GetDataValueFromMap(exception_data, Key::kSignalCode, &exception_info_);
+  exception_ = EXC_SOFT_SIGNAL;
+  GetDataValueFromMap(exception_data, Key::kSignalNumber, &exception_info_);
   GetDataValueFromMap(exception_data, Key::kSignalAddress, &exception_address_);
+
+  codes_.push_back(exception_);
+  codes_.push_back(exception_info_);
+  uint32_t code;
+  GetDataValueFromMap(exception_data, Key::kSignalCode, &code);
+  codes_.push_back(code);
+
+  const IOSIntermediateDumpList* thread_context_memory_regions =
+      GetListFromMap(exception_data, Key::kThreadContextMemoryRegions);
+  if (thread_context_memory_regions) {
+    for (auto& region : *thread_context_memory_regions) {
+      vm_address_t address;
+      const IOSIntermediateDumpData* region_data =
+          region->GetAsData(Key::kThreadContextMemoryRegionData);
+      if (!region_data)
+        continue;
+      if (GetDataValueFromMap(
+              region.get(), Key::kThreadContextMemoryRegionAddress, &address)) {
+        const std::vector<uint8_t>& bytes = region_data->bytes();
+        vm_size_t data_size = bytes.size();
+        if (data_size == 0)
+          continue;
+
+        const vm_address_t data =
+            reinterpret_cast<const vm_address_t>(bytes.data());
+
+        auto memory =
+            std::make_unique<internal::MemorySnapshotIOSIntermediateDump>();
+        memory->Initialize(address, data, data_size);
+        extra_memory_.push_back(std::move(memory));
+      }
+    }
+  }
 
   INITIALIZATION_STATE_SET_VALID(initialized_);
   return true;
@@ -162,18 +203,21 @@ bool ExceptionSnapshotIOSIntermediateDump::InitializeFromMachException(
     const std::vector<uint8_t>& bytes = code_dump->bytes();
     const mach_exception_data_type_t* code =
         reinterpret_cast<const mach_exception_data_type_t*>(bytes.data());
-    if (bytes.size() == 0 || !code) {
+    if (bytes.size() == 0 ||
+        bytes.size() % sizeof(mach_exception_data_type_t) != 0 || !code) {
       LOG(ERROR) << "Invalid mach exception code.";
     } else {
-      // TODO: rationalize with the macOS implementation.
       mach_msg_type_number_t code_count =
           bytes.size() / sizeof(mach_exception_data_type_t);
       for (mach_msg_type_number_t code_index = 0; code_index < code_count;
            ++code_index) {
         codes_.push_back(code[code_index]);
       }
+      DCHECK_GE(code_count, 1u);
       exception_info_ = code[0];
-      exception_address_ = code[1];
+      if (code_count >= 2) {
+        exception_address_ = code[1];
+      }
     }
   }
 
@@ -200,8 +244,7 @@ bool ExceptionSnapshotIOSIntermediateDump::InitializeFromNSException(
   INITIALIZATION_STATE_SET_INITIALIZING(initialized_);
   DCHECK(exception_data);
 
-  exception_ = EXC_SOFTWARE;
-  exception_info_ = 0xDEADC0DE; /* uncaught NSException */
+  exception_ = kMachExceptionFromNSException;
 
   if (!GetDataValueFromMap(exception_data, Key::kThreadID, &thread_id_)) {
     LOG(ERROR) << "Exceptions require a thread id.";
@@ -265,8 +308,11 @@ const std::vector<uint64_t>& ExceptionSnapshotIOSIntermediateDump::Codes()
 
 std::vector<const MemorySnapshot*>
 ExceptionSnapshotIOSIntermediateDump::ExtraMemory() const {
-  INITIALIZATION_STATE_DCHECK_VALID(initialized_);
-  return std::vector<const MemorySnapshot*>();
+  std::vector<const MemorySnapshot*> extra_memory;
+  for (const auto& memory : extra_memory_) {
+    extra_memory.push_back(memory.get());
+  }
+  return extra_memory;
 }
 
 void ExceptionSnapshotIOSIntermediateDump::LoadContextFromThread(
@@ -294,36 +340,40 @@ void ExceptionSnapshotIOSIntermediateDump::LoadContextFromThread(
     const IOSIntermediateDumpData* state_dump =
         GetDataFromMap(exception_data, Key::kState);
     if (state_dump) {
-      const std::vector<uint8_t>& bytes = state_dump->bytes();
+      std::vector<uint8_t> bytes = state_dump->bytes();
       size_t actual_length = bytes.size();
       size_t expected_length = ThreadStateLengthForFlavor(flavor);
-      // TODO(justincohen): Consider zero-ing out bytes if actual_length is
-      // shorter than expected_length, and tolerating actual_length longer than
-      // expected_length.
-      if (expected_length == actual_length) {
-        const ConstThreadState state =
-            reinterpret_cast<const ConstThreadState>(bytes.data());
-        mach_msg_type_number_t state_count = bytes.size() / sizeof(uint32_t);
+      if (actual_length < expected_length) {
+        // Zero out bytes if actual_length is shorter than expected_length.
+        bytes.resize(expected_length, 0);
+        actual_length = bytes.size();
+        LOG(WARNING) << "Exception context length " << actual_length
+                     << " shorter than expected length " << expected_length;
+      }
+      const ConstThreadState state =
+          reinterpret_cast<const ConstThreadState>(bytes.data());
+      // Tolerating actual_length longer than expected_length by setting
+      // state_count based on expected_length, not bytes.size().
+      mach_msg_type_number_t state_count = expected_length / sizeof(uint32_t);
 #if defined(ARCH_CPU_X86_64)
-        InitializeCPUContextX86_64(&context_x86_64_,
-                                   flavor,
-                                   state,
-                                   state_count,
-                                   &thread_state,
-                                   &float_state,
-                                   &debug_state);
+      InitializeCPUContextX86_64(&context_x86_64_,
+                                 flavor,
+                                 state,
+                                 state_count,
+                                 &thread_state,
+                                 &float_state,
+                                 &debug_state);
 #elif defined(ARCH_CPU_ARM64)
-        InitializeCPUContextARM64(&context_arm64_,
-                                  flavor,
-                                  state,
-                                  state_count,
-                                  &thread_state,
-                                  &float_state,
-                                  &debug_state);
+      InitializeCPUContextARM64(&context_arm64_,
+                                flavor,
+                                state,
+                                state_count,
+                                &thread_state,
+                                &float_state,
+                                &debug_state);
 #else
 #error Port to your CPU architecture
 #endif
-      }
     }
   }
 
@@ -370,11 +420,9 @@ void ExceptionSnapshotIOSIntermediateDump::
   }
 
 #if defined(ARCH_CPU_X86_64)
-  context_x86_64_ = {};
   context_x86_64_.rip = frames[0];  // instruction pointer
   context_x86_64_.rsp = frames[1];
 #elif defined(ARCH_CPU_ARM64)
-  context_arm64_ = {};
   context_arm64_.sp = 0;
   context_arm64_.pc = frames[0];
   context_arm64_.regs[30] = frames[1];  // link register

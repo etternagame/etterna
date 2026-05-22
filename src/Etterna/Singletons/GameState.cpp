@@ -34,14 +34,22 @@
 
 #include <algorithm>
 
+#if !(defined(__linux__) && defined(__aarch64__)) && !defined(SUPPORT_DISCORD_SDK)
+#error Something went wrong - Discord Social SDK should be supported on "all" platforms except for Linux arm64
+#endif
+
+#ifdef SUPPORT_DISCORD_SDK
 #define DISCORDPP_IMPLEMENTATION
 #include "discordpp.h"
+#endif
 
 // global and accessible from anywhere in our program
 GameState* GAMESTATE = nullptr;
 
+#ifdef SUPPORT_DISCORD_SDK
 discordpp::Client* DISCORD = nullptr;
 static const auto discord_appid = 378543094531883009;
+#endif
 
 class GameStateMessageHandler : public MessageSubscriber
 {
@@ -717,7 +725,9 @@ GameState::Update(float fDelta)
 
 	m_pPlayerState->Update(fDelta);
 
+#ifdef SUPPORT_DISCORD_SDK
 	discordpp::RunCallbacks();
+#endif
 }
 
 void
@@ -1276,6 +1286,7 @@ GetNextEnabledMultiPlayer(MultiPlayer mp)
 void
 GameState::discordInit()
 {
+#ifdef SUPPORT_DISCORD_SDK
 	if (DISCORD != nullptr) {
 		Locator::getLogger()->warn("Tried to initialize Discord twice. Skipped");
 		return;
@@ -1300,6 +1311,9 @@ GameState::discordInit()
 	  discordpp::LoggingSeverity::None);
 
 	updateDiscordPresenceMenu();
+#else
+	Locator::getLogger()->warn("Discord presence not available for this platform");
+#endif
 }
 
 void
@@ -1308,6 +1322,7 @@ GameState::updateDiscordPresence(const std::string& details,
 								 const uint64_t startTime,
 								 const uint64_t endTime)
 {
+#ifdef SUPPORT_DISCORD_SDK
 	Locator::getLogger()->info("Updating Discord Rich Presence (Gameplay/Eval)");
 	if (DISCORD == nullptr) {
 		discordInit();
@@ -1357,11 +1372,16 @@ GameState::updateDiscordPresence(const std::string& details,
 									   result.Error());
 		}
 	});
+#else
+	Locator::getLogger()->warn(
+	  "Discord presence not available for this platform");
+#endif
 }
 
 void
 GameState::updateDiscordPresenceMenu()
 {
+#ifdef SUPPORT_DISCORD_SDK
 	Locator::getLogger()->info("Updating Discord Rich Presence (Menu)");
 	if (DISCORD == nullptr) {
 		discordInit();
@@ -1422,6 +1442,10 @@ GameState::updateDiscordPresenceMenu()
 									   result.Error());
 		}
 	});
+#else
+	Locator::getLogger()->warn(
+	  "Discord presence not available for this platform");
+#endif
 }
 
 void

@@ -12,17 +12,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cfg: # some jobs disabled because we have too many
-          - { os: ubuntu-22.04, apt: g++-8,    cxx: g++-8,      cc: gcc-8,    dist: false, archstr: "x64"}
-          #- { os: ubuntu-22.04, apt: g++-9,    cxx: g++-9,      cc: gcc-9,    dist: false, archstr: "x64"}
-          - { os: ubuntu-22.04, apt: g++-10,   cxx: g++-10,     cc: gcc-10,   dist: false, archstr: "x64"}
-          - { os: ubuntu-22.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false, archstr: "x64"}
-          - { os: ubuntu-22.04, apt: clang-9,  cxx: clang++-9,  cc: clang-9,  dist: false, archstr: "x64"}
-          #- { os: ubuntu-22.04, apt: clang-10, cxx: clang++-10, cc: clang-10, dist: false, archstr: "x64"}
-          #- { os: ubuntu-22.04, apt: clang-11, cxx: clang++-11, cc: clang-11, dist: false, archstr: "x64"}
-          - { os: ubuntu-22.04, apt: clang-12, cxx: clang++-12, cc: clang-12, dist: true, archstr: "x64"}
-          - { os: ubuntu-22.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "x64"}
-          - { os: ubuntu-22.04-arm, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "aarch64"}
+        cfg:
+          - { os: ubuntu-24.04, apt: g++-11,   cxx: g++-11,     cc: gcc-11,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: g++-12,   cxx: g++-12,     cc: gcc-12,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: g++-14,   cxx: g++-14,     cc: gcc-14,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: true, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-17, cxx: clang++-17, cc: clang-17, dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-18, cxx: clang++-18, cc: clang-18, dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04-arm, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "aarch64"}
 
     steps:
       - name: Checkout Etterna
@@ -36,14 +34,24 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.apt }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
       - name: Install OpenSSL 3.5
         run: mkdir -p tmp/openssl && cd tmp/openssl && wget https://github.com/openssl/openssl/releases/download/openssl-3.5.1/openssl-3.5.1.tar.gz && tar -xf openssl-3.5.1.tar.gz && cd openssl-3.5.1 && ./Configure --prefix="${HOME}/toolchain" && make -j `nproc` && make test -j `nproc` && sudo make install
       - name: Generate CMake
         run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DOPENSSL_ROOT_DIR=~/toolchain/ ..
         env:
-          CXX: ${{matrix.cfg.cpp-version}}
+          CXX: ${{matrix.cfg.cxx}}
+          CC: ${{matrix.cfg.cc}}
 
       - name: Build Project
         run: cd main/build && ninja
@@ -56,7 +64,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: "Etterna - Linux x64"
+          name: "Etterna - Linux ${{matrix.cfg.archstr}}"
           path: '${{github.workspace}}/main/build/*.tar.gz'
 
       - name: Update Environment Variables
@@ -82,7 +90,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols Linux x64 - ${{github.sha}}
+          name: Etterna Symbols Linux ${{matrix.cfg.archstr}} - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -123,8 +131,17 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja openssl
+        run: brew install cmake nasm yasm ninja openssl
 
       - name: Setup Python 3
         uses: actions/setup-python@v6
@@ -207,7 +224,7 @@ jobs:
           #- { os: macos-13,     name: "Ventura", dist: true} # rendered useless by GHA
           #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
           #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
-          - { os: macos-15,     name: "Sequoia", dist: true}
+          - { os: macos-15-intel,     name: "Sequoia", dist: true}
 
     steps:
 
@@ -222,13 +239,17 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
-      - name: Install homebrew packages
-        run: brew install cmake nasm ninja openssl
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
 
-      - name: Setup Python 2.7
-        uses: MatteoH2O1999/setup-python@v6
-        with:
-          python-version: '2.7'
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
+      - name: Install homebrew packages
+        run: brew install cmake nasm yasm ninja openssl
 
       - name: Setup Python 3
         uses: actions/setup-python@v6
@@ -325,6 +346,15 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install homebrew packages
         run: brew install cmake nasm ninja openssl && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 
@@ -392,12 +422,12 @@ jobs:
         if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
         with:
           files: ${{github.workspace}}/main/build/*.dmg
-  windows: # Windows x64 and x86 build matrix
+  windows: # Windows x64 (RIP x86) build matrix
     strategy:
       fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
         cfg:
-        - { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        #- { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
         - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
@@ -413,6 +443,15 @@ jobs:
         with:
           repository: etternagame/CrashpadTools
           path: tools
+
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
 
       - name: Checkout DirectX SDK
         uses: actions/checkout@v3
@@ -430,24 +469,6 @@ jobs:
         with:
           python-version: '3.12'
           
-      - name: Setup Python 2.7
-        uses: MatteoH2O1999/setup-python@v6
-        with:
-          python-version: '2.7'
-
-      - name: Install chocolatey packages (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install ninja nsis -y --x86
-
-      # the last win32 curl version is 8.15.0
-      - name: Install curl (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install curl -y --x86 --version=8.15.0
-      
-      - name: Install openSSL (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install openssl -y --x86
-
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
         run: choco install ninja nsis curl -y

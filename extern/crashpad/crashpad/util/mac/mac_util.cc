@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +14,18 @@
 
 #include "util/mac/mac_util.h"
 
-#include <Availability.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
-#include <string.h>
 #include <sys/types.h>
-#include <sys/utsname.h>
 
+#include <string_view>
+
+#include "base/apple/foundation_util.h"
+#include "base/apple/scoped_cftyperef.h"
 #include "base/check_op.h"
 #include "base/logging.h"
-#include "base/mac/foundation_util.h"
-#include "base/mac/scoped_cftyperef.h"
 #include "base/mac/scoped_ioobject.h"
-#include "base/notreached.h"
 #include "base/strings/string_number_conversions.h"
-#include "base/strings/string_piece.h"
 #include "base/strings/stringprintf.h"
 #include "base/strings/sys_string_conversions.h"
 #include "build/build_config.h"
@@ -45,7 +42,6 @@ extern "C" {
 // TryCFCopy*VersionDictionary() helpers to account for the possibility that
 // they may not be present at runtime.
 CFDictionaryRef _CFCopySystemVersionDictionary() WEAK_IMPORT;
-CFDictionaryRef _CFCopyServerVersionDictionary() WEAK_IMPORT;
 
 // Don’t use these constants with CFDictionaryGetValue() directly, use them with
 // the TryCFDictionaryGetValue() wrapper to account for the possibility that
@@ -61,57 +57,11 @@ extern const CFStringRef _kCFSystemVersionBuildVersionKey WEAK_IMPORT;
 
 namespace {
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_13_4
-// Returns the running system’s Darwin major version. Don’t call this, it’s an
-// implementation detail and its result is meant to be cached by
-// MacOSVersionNumber().
-//
-// This is very similar to Chromium’s base/mac/mac_util.mm
-// DarwinMajorVersionInternal().
-int DarwinMajorVersion() {
-  // base::OperatingSystemVersionNumbers calls Gestalt(), which is a
-  // higher-level function than is needed. It might perform unnecessary
-  // operations. On 10.6, it was observed to be able to spawn threads (see
-  // https://crbug.com/53200). It might also read files or perform other
-  // blocking operations. Actually, nobody really knows for sure just what
-  // Gestalt() might do, or what it might be taught to do in the future.
-  //
-  // uname(), on the other hand, is implemented as a simple series of sysctl()
-  // system calls to obtain the relevant data from the kernel. The data is
-  // compiled right into the kernel, so no threads or blocking or other funny
-  // business is necessary.
-
-  utsname uname_info;
-  int rv = uname(&uname_info);
-  PCHECK(rv == 0) << "uname";
-
-  DCHECK_EQ(strcmp(uname_info.sysname, "Darwin"), 0) << "unexpected sysname "
-                                                     << uname_info.sysname;
-
-  char* dot = strchr(uname_info.release, '.');
-  CHECK(dot);
-
-  int darwin_major_version = 0;
-  CHECK(base::StringToInt(
-      base::StringPiece(uname_info.release, dot - uname_info.release),
-      &darwin_major_version));
-
-  return darwin_major_version;
-}
-#endif  // DT < 10.13.4
-
 // Helpers for the weak-imported private CoreFoundation internals.
 
 CFDictionaryRef TryCFCopySystemVersionDictionary() {
   if (_CFCopySystemVersionDictionary) {
     return _CFCopySystemVersionDictionary();
-  }
-  return nullptr;
-}
-
-CFDictionaryRef TryCFCopyServerVersionDictionary() {
-  if (_CFCopyServerVersionDictionary) {
-    return _CFCopyServerVersionDictionary();
   }
   return nullptr;
 }
@@ -139,7 +89,7 @@ bool StringToVersionNumbers(const std::string& version,
     LOG(ERROR) << "version has unexpected format";
     return false;
   }
-  if (!base::StringToInt(base::StringPiece(&version[0], first_dot), major)) {
+  if (!base::StringToInt(std::string_view(&version[0], first_dot), major)) {
     LOG(ERROR) << "version has unexpected format";
     return false;
   }
@@ -152,9 +102,9 @@ bool StringToVersionNumbers(const std::string& version,
     second_dot = version.length();
   }
 
-  if (!base::StringToInt(base::StringPiece(&version[first_dot + 1],
-                                           second_dot - first_dot - 1),
-                         minor)) {
+  if (!base::StringToInt(
+          std::string_view(&version[first_dot + 1], second_dot - first_dot - 1),
+          minor)) {
     LOG(ERROR) << "version has unexpected format";
     return false;
   }
@@ -162,8 +112,8 @@ bool StringToVersionNumbers(const std::string& version,
   if (second_dot == version.length()) {
     *bugfix = 0;
   } else if (!base::StringToInt(
-                 base::StringPiece(&version[second_dot + 1],
-                                   version.length() - second_dot - 1),
+                 std::string_view(&version[second_dot + 1],
+                                  version.length() - second_dot - 1),
                  bugfix)) {
     LOG(ERROR) << "version has unexpected format";
     return false;
@@ -174,9 +124,9 @@ bool StringToVersionNumbers(const std::string& version,
 
 std::string IORegistryEntryDataPropertyAsString(io_registry_entry_t entry,
                                                 CFStringRef key) {
-  base::ScopedCFTypeRef<CFTypeRef> property(
+  base::apple::ScopedCFTypeRef<CFTypeRef> property(
       IORegistryEntryCreateCFProperty(entry, key, kCFAllocatorDefault, 0));
-  CFDataRef data = base::mac::CFCast<CFDataRef>(property);
+  CFDataRef data = base::apple::CFCast<CFDataRef>(property.get());
   if (data && CFDataGetLength(data) > 0) {
     return reinterpret_cast<const char*>(CFDataGetBytePtr(data));
   }
@@ -194,45 +144,24 @@ int MacOSVersionNumber() {
     // version from the kernel without having to open any files or spin up any
     // threads, but it’s only available in macOS 10.13.4 and later.
     std::string macos_version_number_string = ReadStringSysctlByName(
-        "kern.osproductversion",
-        __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_13_4);
-    if (!macos_version_number_string.empty()) {
-      int major;
-      int minor;
-      int bugfix;
-      if (StringToVersionNumbers(
-              macos_version_number_string, &major, &minor, &bugfix)) {
-        DCHECK_GE(major, 10);
-        DCHECK_LE(major, 99);
-        DCHECK_GE(minor, 0);
-        DCHECK_LE(minor, 99);
-        DCHECK_GE(bugfix, 0);
-        DCHECK_LE(bugfix, 99);
-        return major * 1'00'00 + minor * 1'00 + bugfix;
-      }
-    }
+        "kern.osproductversion", true);
+    DCHECK(!macos_version_number_string.empty());
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= __MAC_10_13_4
-    // On macOS 10.13.4 and later, the sysctlbyname above should have been
-    // successful.
-    NOTREACHED();
-    return -1;
-#else  // DT >= 10.13.4
-    // The Darwin major version is always 4 greater than the macOS minor version
-    // for Darwin versions beginning with 6, corresponding to Mac OS X 10.2,
-    // through Darwin 19, corresponding to macOS 10.15.
-    int darwin_major_version = DarwinMajorVersion();
-    DCHECK_GE(darwin_major_version, 6);
-    DCHECK_LE(darwin_major_version, 19);
+    int major;
+    int minor;
+    int bugfix;
+    bool success = StringToVersionNumbers(
+            macos_version_number_string, &major, &minor, &bugfix);
+    DCHECK(success);
 
-    int macos_version_number = 10'00'00 + (darwin_major_version - 4) * 1'00;
+    DCHECK_GE(major, 10);
+    DCHECK_LE(major, 99);
+    DCHECK_GE(minor, 0);
+    DCHECK_LE(minor, 99);
+    DCHECK_GE(bugfix, 0);
+    DCHECK_LE(bugfix, 99);
 
-    // On macOS 10.13.4 and later, the sysctlbyname above should have been
-    // successful.
-    DCHECK_LT(macos_version_number, 10'13'04);
-
-    return macos_version_number;
-#endif  // DT >= 10.13.4
+    return major * 1'00'00 + minor * 1'00 + bugfix;
   }();
 
   return macos_version_number;
@@ -242,25 +171,19 @@ bool MacOSVersionComponents(int* major,
                             int* minor,
                             int* bugfix,
                             std::string* build,
-                            bool* server,
                             std::string* version_string) {
-  base::ScopedCFTypeRef<CFDictionaryRef> dictionary(
-      TryCFCopyServerVersionDictionary());
-  if (dictionary) {
-    *server = true;
-  } else {
-    dictionary.reset(TryCFCopySystemVersionDictionary());
-    if (!dictionary) {
-      LOG(ERROR) << "_CFCopySystemVersionDictionary failed";
-      return false;
-    }
-    *server = false;
+  base::apple::ScopedCFTypeRef<CFDictionaryRef> dictionary(
+      TryCFCopySystemVersionDictionary());
+  if (!dictionary) {
+    LOG(ERROR) << "_CFCopySystemVersionDictionary failed";
+    return false;
   }
 
   bool success = true;
 
-  CFStringRef version_cf = base::mac::CFCast<CFStringRef>(
-      TryCFDictionaryGetValue(dictionary, _kCFSystemVersionProductVersionKey));
+  CFStringRef version_cf =
+      base::apple::CFCast<CFStringRef>(TryCFDictionaryGetValue(
+          dictionary.get(), _kCFSystemVersionProductVersionKey));
   std::string version;
   if (!version_cf) {
     LOG(ERROR) << "version_cf not found";
@@ -279,8 +202,9 @@ bool MacOSVersionComponents(int* major,
     }
   }
 
-  CFStringRef build_cf = base::mac::CFCast<CFStringRef>(
-      TryCFDictionaryGetValue(dictionary, _kCFSystemVersionBuildVersionKey));
+  CFStringRef build_cf =
+      base::apple::CFCast<CFStringRef>(TryCFDictionaryGetValue(
+          dictionary.get(), _kCFSystemVersionBuildVersionKey));
   if (!build_cf) {
     LOG(ERROR) << "build_cf not found";
     success = false;
@@ -288,8 +212,9 @@ bool MacOSVersionComponents(int* major,
     build->assign(base::SysCFStringRefToUTF8(build_cf));
   }
 
-  CFStringRef product_cf = base::mac::CFCast<CFStringRef>(
-      TryCFDictionaryGetValue(dictionary, _kCFSystemVersionProductNameKey));
+  CFStringRef product_cf =
+      base::apple::CFCast<CFStringRef>(TryCFDictionaryGetValue(
+          dictionary.get(), _kCFSystemVersionProductNameKey));
   std::string product;
   if (!product_cf) {
     LOG(ERROR) << "product_cf not found";
@@ -299,8 +224,9 @@ bool MacOSVersionComponents(int* major,
   }
 
   // This key is not required, and in fact is normally not present.
-  CFStringRef extra_cf = base::mac::CFCast<CFStringRef>(TryCFDictionaryGetValue(
-      dictionary, _kCFSystemVersionProductVersionExtraKey));
+  CFStringRef extra_cf =
+      base::apple::CFCast<CFStringRef>(TryCFDictionaryGetValue(
+          dictionary.get(), _kCFSystemVersionProductVersionExtraKey));
   std::string extra;
   if (extra_cf) {
     extra = base::SysCFStringRefToUTF8(extra_cf);
@@ -324,22 +250,24 @@ bool MacOSVersionComponents(int* major,
 
 void MacModelAndBoard(std::string* model, std::string* board_id) {
   base::mac::ScopedIOObject<io_service_t> platform_expert(
-      IOServiceGetMatchingService(kIOMasterPortDefault,
+      IOServiceGetMatchingService(kIOMainPortDefault,
                                   IOServiceMatching("IOPlatformExpertDevice")));
   if (platform_expert) {
-    model->assign(
-        IORegistryEntryDataPropertyAsString(platform_expert, CFSTR("model")));
+    model->assign(IORegistryEntryDataPropertyAsString(platform_expert.get(),
+                                                      CFSTR("model")));
 #if defined(ARCH_CPU_X86_FAMILY)
-    CFStringRef kBoardProperty = CFSTR("board-id");
+    board_id->assign(IORegistryEntryDataPropertyAsString(platform_expert.get(),
+                                                         CFSTR("board-id")));
 #elif defined(ARCH_CPU_ARM64)
-    // TODO(https://crashpad.chromium.org/bug/352): When production arm64
-    // hardware is available, determine whether board-id works and switch to it
-    // if feasible, otherwise, determine whether target-type remains a viable
-    // alternative.
-    CFStringRef kBoardProperty = CFSTR("target-type");
+    board_id->assign(IORegistryEntryDataPropertyAsString(
+        platform_expert.get(), CFSTR("target-sub-type")));
+    if (board_id->empty()) {
+      board_id->assign(IORegistryEntryDataPropertyAsString(
+          platform_expert.get(), CFSTR("target-type")));
+    }
+#else
+#error Port.
 #endif
-    board_id->assign(IORegistryEntryDataPropertyAsString(platform_expert,
-                                                         kBoardProperty));
   } else {
     model->clear();
     board_id->clear();

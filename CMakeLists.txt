@@ -43,6 +43,16 @@ add_executable(Etterna)
 # Project Compile Options
 set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed)")
 
+# Discord doesn't seem to provide Linux arm64 binaries...
+set(SUPPORT_DISCORD_SDK ON)
+if(UNIX AND NOT APPLE)
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+    if(_proc MATCHES "^(arm64|aarch64)$")
+        message(WARNING "Discord Social SDK not supported for this platform")
+        set(SUPPORT_DISCORD_SDK OFF)
+    endif()
+endif()
+
 ## Setting Target Properties
 ### Set a different name for each output binary depending on what build configuration is.
 ### Usually it is separated by directory, but since we have the same directory for every
@@ -100,7 +110,12 @@ target_link_libraries(Etterna PRIVATE rapidjson)
 target_link_libraries(Etterna PRIVATE jwt-cpp)
 target_link_libraries(Etterna PRIVATE websocketpp)
 target_link_libraries(Etterna PRIVATE libluajit)
-target_link_libraries(Etterna PRIVATE discord)
+
+if(SUPPORT_DISCORD_SDK)
+    add_compile_definitions(SUPPORT_DISCORD_SDK)
+    target_link_libraries(Etterna PRIVATE discord)
+endif()
+
 target_link_libraries(Etterna PRIVATE muFFT)
 target_link_libraries(Etterna PRIVATE glfw)
 target_link_libraries(Etterna PRIVATE ogg)
@@ -115,7 +130,8 @@ target_link_libraries(Etterna PRIVATE plog::plog)
 target_link_libraries(Etterna PRIVATE nowide::nowide)
 target_link_libraries(Etterna PRIVATE ghc_filesystem)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+if(_proc MATCHES "^(arm64|aarch64)$")
   target_link_libraries(Etterna PRIVATE sse2neon)
 endif()
 

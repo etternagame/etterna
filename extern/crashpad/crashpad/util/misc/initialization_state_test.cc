@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "base/compiler_specific.h"
 #include "base/memory/free_deleter.h"
 #include "gtest/gtest.h"
 
@@ -59,6 +60,10 @@ TEST(InitializationState, InitializationState) {
   // buffer that’s still valid and its destructor was called directly, this
   // approximates use-after-free without risking that the memory formerly used
   // for the InitializationState object has been repurposed.
+
+  // (Though this is still UB and MSan does not like this)
+  MSAN_UNPOISON(initialization_state, sizeof(*initialization_state));
+
   EXPECT_FALSE(initialization_state->is_uninitialized());
   EXPECT_FALSE(initialization_state->is_valid());
 }

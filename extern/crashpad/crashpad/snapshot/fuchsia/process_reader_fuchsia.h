@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -75,6 +75,10 @@ class ProcessReaderFuchsia {
     //! \brief The raw architecture-specific `zx_thread_state_general_regs_t` as
     //!     returned by `zx_thread_read_state()`.
     zx_thread_state_general_regs_t general_registers = {};
+
+    //! \brief The raw architecture-specific `zx_thread_state_fp_regs_t` as
+    //!     returned by `zx_thread_read_state()`.
+    zx_thread_state_fp_regs_t fp_registers = {};
 
     //! \brief The raw architecture-specific `zx_thread_state_vector_regs_t` as
     //!     returned by `zx_thread_read_state()`.

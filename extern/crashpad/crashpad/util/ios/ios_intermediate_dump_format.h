@@ -1,4 +1,4 @@
-// Copyright 2021 The Crashpad Authors. All rights reserved.
+// Copyright 2021 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 
 #ifndef CRASHPAD_UTIL_IOS_IOS_INTERMEDIATE_DUMP_FORMAT_H_
 #define CRASHPAD_UTIL_IOS_IOS_INTERMEDIATE_DUMP_FORMAT_H_
+
+#include <stdint.h>
 
 namespace crashpad {
 namespace internal {
@@ -54,6 +56,12 @@ namespace internal {
     TD(kAnnotationsCrashInfoMessage1, 3016) \
     TD(kAnnotationsCrashInfoMessage2, 3017) \
     TD(kAnnotationsDyldErrorString, 3018) \
+    TD(kModuleExtraMemoryRegions, 3019) \
+    TD(kModuleExtraMemoryRegionAddress, 3020) \
+    TD(kModuleExtraMemoryRegionData, 3021) \
+    TD(kModuleIntermediateDumpExtraMemoryRegions, 3022) \
+    TD(kModuleIntermediateDumpExtraMemoryRegionAddress, 3023) \
+    TD(kModuleIntermediateDumpExtraMemoryRegionData, 3024) \
   TD(kProcessInfo, 4000) \
     TD(kParentPID, 4001) \
     TD(kPID, 4002) \
@@ -83,6 +91,8 @@ namespace internal {
     TD(kFree, 5017) \
     TD(kInactive, 5018) \
     TD(kWired, 5019) \
+    TD(kAddressMask, 5020) \
+    TD(kCrashpadUptime, 5021) \
   TD(kThreads, 6000) \
     TD(kDebugState, 6001) \
     TD(kFloatState, 6002) \
@@ -97,9 +107,9 @@ namespace internal {
     TD(kThreadContextMemoryRegions, 6011) \
     TD(kThreadContextMemoryRegionAddress, 6012) \
     TD(kThreadContextMemoryRegionData, 6013) \
+    TD(kThreadName, 6014) \
   TD(kMaxValue, 65535) \
 // clang-format on
-
 
 //! \brief They key for items in the intermediate dump file.
 //!

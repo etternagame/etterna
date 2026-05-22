@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -157,7 +157,7 @@ class TestMultiprocessClosePipe final : public Multiprocess {
         who_closes_(who_closes),
         what_closes_(what_closes) {
     // Fails under "threadsafe" mode on macOS 10.11.
-    testing::GTEST_FLAG(death_test_style) = "fast";
+    GTEST_FLAG_SET(death_test_style, "fast");
   }
 
   TestMultiprocessClosePipe(const TestMultiprocessClosePipe&) = delete;

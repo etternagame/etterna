@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# Copyright 2022 The Crashpad Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -eu
+
+OS="$(uname -s)"
+THIS_DIR="$(dirname "${0}")"
+
+print_help() {
+cat <<EOF >&2
+No ninja binary is available for this system.
+Try building your own binary by doing:
+  cd ~
+  git clone https://github.com/ninja-build/ninja.git
+  cd ninja && ./configure.py --bootstrap
+Then add ~/ninja/ to your PATH.
+EOF
+}
+
+case "${OS}" in
+  Linux)
+    exec "${THIS_DIR}/linux/ninja" "$@";;
+  Darwin)
+    ARCH="$(uname -m)"
+    case "${ARCH}" in
+      x86_64)
+        exec "${THIS_DIR}/mac-amd64/ninja" "$@";;
+      arm64)
+        exec "${THIS_DIR}/mac-arm64/ninja" "$@";;
+      *)
+        echo "Unsupported architecture ${ARCH}" >&2
+        print_help
+        exit 1;;
+    esac
+    ;;
+  *)
+    echo "Unsupported OS ${OS}" >&2
+    print_help
+    exit 1;;
+esac

@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,6 +18,46 @@
 #include "client/crashpad_info.h"
 
 namespace crashpad {
+
+template <typename T>
+T* AnnotationList::IteratorBase<T>::operator*() const {
+  CHECK_NE(curr_, tail_);
+  return curr_;
+}
+
+template <typename T>
+T* AnnotationList::IteratorBase<T>::operator->() const {
+  CHECK_NE(curr_, tail_);
+  return curr_;
+}
+
+template <typename T>
+AnnotationList::IteratorBase<T>& AnnotationList::IteratorBase<T>::operator++() {
+  CHECK_NE(curr_, tail_);
+  curr_ = curr_->GetLinkNode();
+  return *this;
+}
+
+template <typename T>
+AnnotationList::IteratorBase<T> AnnotationList::IteratorBase<T>::operator++(
+    int) {
+  T* const old_curr = curr_;
+  ++(*this);
+  return IteratorBase(old_curr, tail_);
+}
+
+template <typename T>
+bool AnnotationList::IteratorBase<T>::operator!=(
+    const IteratorBase& other) const {
+  return !(*this == other);
+}
+
+template <typename T>
+AnnotationList::IteratorBase<T>::IteratorBase(T* head, const Annotation* tail)
+    : curr_(head), tail_(tail) {}
+
+template class AnnotationList::IteratorBase<Annotation>;
+template class AnnotationList::IteratorBase<const Annotation>;
 
 AnnotationList::AnnotationList()
     : tail_pointer_(&tail_),
@@ -65,33 +105,20 @@ void AnnotationList::Add(Annotation* annotation) {
   }
 }
 
-AnnotationList::Iterator::Iterator(Annotation* head, const Annotation* tail)
-    : curr_(head), tail_(tail) {}
-
-AnnotationList::Iterator::~Iterator() = default;
-
-Annotation* AnnotationList::Iterator::operator*() const {
-  CHECK_NE(curr_, tail_);
-  return curr_;
-}
-
-AnnotationList::Iterator& AnnotationList::Iterator::operator++() {
-  CHECK_NE(curr_, tail_);
-  curr_ = curr_->link_node();
-  return *this;
-}
-
-bool AnnotationList::Iterator::operator==(
-    const AnnotationList::Iterator& other) const {
-  return curr_ == other.curr_;
-}
-
 AnnotationList::Iterator AnnotationList::begin() {
-  return Iterator(head_.link_node(), tail_pointer_);
+  return Iterator(head_.GetLinkNode(), tail_pointer_);
+}
+
+AnnotationList::ConstIterator AnnotationList::cbegin() const {
+  return ConstIterator(head_.GetLinkNode(), tail_pointer_);
 }
 
 AnnotationList::Iterator AnnotationList::end() {
   return Iterator(&tail_, tail_pointer_);
+}
+
+AnnotationList::ConstIterator AnnotationList::cend() const {
+  return ConstIterator(&tail_, tail_pointer_);
 }
 
 }  // namespace crashpad

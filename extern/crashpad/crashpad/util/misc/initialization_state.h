@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -56,6 +56,7 @@ class InitializationState {
   };
 
   InitializationState() : state_(kStateUninitialized) {}
+  explicit InitializationState(State state) : state_(state) {}
 
   InitializationState(const InitializationState&) = delete;
   InitializationState& operator=(const InitializationState&) = delete;

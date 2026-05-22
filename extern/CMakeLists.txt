@@ -33,10 +33,12 @@ target_include_directories(websocketpp INTERFACE websocketpp)
 target_link_libraries(websocketpp INTERFACE asio)
 
 ## discord-rpc
-set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
-add_subdirectory(discord)
-
+if(SUPPORT_DISCORD_SDK)
+    set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
+    add_subdirectory(discord)
+    list(APPEND EXT_TARGETS discord)
+endif()
 ## plog
 set(PLOG_BUILD_SAMPLES OFF)
 add_subdirectory(plog)
@@ -48,11 +50,11 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 add_subdirectory(miniz)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+if(_proc MATCHES "^(arm64|aarch64)$")
     # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
     add_subdirectory(sse2neon)
 endif()
-
 
 set(JWT_SSL_LIBRARY OpenSSL)
 add_subdirectory(jwt-cpp-0.6.0)
@@ -85,7 +87,7 @@ endif()
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
-    discord muFFT
+    muFFT
     zlib libmad pcre
     ogg vorbis glfw
     fmt)

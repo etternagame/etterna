@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 #include <sddl.h>
 #include <stddef.h>
 
-#include "base/cxx17_backports.h"
+#include <iterator>
+
+#include "base/check.h"
 #include "base/logging.h"
 #include "util/win/exception_handler_server.h"
 #include "util/win/loader_lock.h"
@@ -209,8 +211,7 @@ const void* GetFallbackSecurityDescriptorForNamedPipeInstance(size_t* size) {
               ACL_REVISION,  // AclRevision.
               0,  // Sbz1.
               sizeof(kSecDescBlob.sacl),  // AclSize.
-              static_cast<WORD>(
-                  base::size(kSecDescBlob.sacl.ace)),  // AceCount.
+              static_cast<WORD>(std::size(kSecDescBlob.sacl.ace)),  // AceCount.
               0,  // Sbz2.
           },
 
@@ -231,8 +232,8 @@ const void* GetFallbackSecurityDescriptorForNamedPipeInstance(size_t* size) {
                   {
                       SID_REVISION,  // Revision.
                                      // SubAuthorityCount.
-                      static_cast<BYTE>(base::size(
-                          kSecDescBlob.sacl.ace[0].sid.SubAuthority)),
+                      static_cast<BYTE>(
+                          std::size(kSecDescBlob.sacl.ace[0].sid.SubAuthority)),
                       // IdentifierAuthority.
                       {SECURITY_MANDATORY_LABEL_AUTHORITY},
                       {SECURITY_MANDATORY_UNTRUSTED_RID},  // SubAuthority.

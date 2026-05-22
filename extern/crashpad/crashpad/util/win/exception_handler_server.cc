@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@
 #include <string.h>
 #include <sys/types.h>
 
+#include <iterator>
 #include <utility>
 
-#include "base/cxx17_backports.h"
+#include "base/check.h"
+#include "base/containers/heap_array.h"
 #include "base/logging.h"
 #include "base/numerics/safe_conversions.h"
 #include "base/rand_util.h"
@@ -269,16 +271,16 @@ void ExceptionHandlerServer::InitializeWithInheritedDataForInitialClient(
   first_pipe_instance_.reset(initial_client_data.first_pipe_instance());
 
   // TODO(scottmg): Vista+. Might need to pass through or possibly find an Nt*.
-  size_t bytes = sizeof(wchar_t) * _MAX_PATH + sizeof(FILE_NAME_INFO);
-  std::unique_ptr<uint8_t[]> data(new uint8_t[bytes]);
+  auto data = base::HeapArray<uint8_t>::Uninit(sizeof(wchar_t) * _MAX_PATH +
+                                               sizeof(FILE_NAME_INFO));
   if (!GetFileInformationByHandleEx(first_pipe_instance_.get(),
                                     FileNameInfo,
-                                    data.get(),
-                                    static_cast<DWORD>(bytes))) {
+                                    data.data(),
+                                    static_cast<DWORD>(data.size()))) {
     PLOG(FATAL) << "GetFileInformationByHandleEx";
   }
   FILE_NAME_INFO* file_name_info =
-      reinterpret_cast<FILE_NAME_INFO*>(data.get());
+      reinterpret_cast<FILE_NAME_INFO*>(data.data());
   pipe_name_ =
       L"\\\\.\\pipe" + std::wstring(file_name_info->FileName,
                                     file_name_info->FileNameLength /
@@ -306,7 +308,7 @@ void ExceptionHandlerServer::InitializeWithInheritedDataForInitialClient(
 void ExceptionHandlerServer::Run(Delegate* delegate) {
   uint64_t shutdown_token = base::RandUint64();
   ScopedKernelHANDLE thread_handles[kPipeInstances];
-  for (size_t i = 0; i < base::size(thread_handles); ++i) {
+  for (size_t i = 0; i < std::size(thread_handles); ++i) {
     HANDLE pipe;
     if (first_pipe_instance_.is_valid()) {
       pipe = first_pipe_instance_.release();
@@ -358,7 +360,7 @@ void ExceptionHandlerServer::Run(Delegate* delegate) {
   }
 
   // Signal to the named pipe instances that they should terminate.
-  for (size_t i = 0; i < base::size(thread_handles); ++i) {
+  for (size_t i = 0; i < std::size(thread_handles); ++i) {
     ClientToServerMessage message;
     memset(&message, 0, sizeof(message));
     message.type = ClientToServerMessage::kShutdown;

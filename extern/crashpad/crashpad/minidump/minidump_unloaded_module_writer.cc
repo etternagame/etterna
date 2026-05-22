@@ -1,4 +1,4 @@
-// Copyright 2016 The Crashpad Authors. All rights reserved.
+// Copyright 2016 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <limits>
 #include <utility>
 
+#include "base/check_op.h"
 #include "minidump/minidump_writer_util.h"
 #include "util/file/file_writer.h"
 #include "util/numeric/in_range_cast.h"

@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -80,7 +80,7 @@ enum MinidumpContextX86Flags : uint32_t {
   //! \brief Indicates the validity of non-control integer registers
   //!     (`CONTEXT_INTEGER`).
   //!
-  //! The `edi`, `esi`, `ebx`, `edx`, `ecx, and `eax` fields are valid.
+  //! The `edi`, `esi`, `ebx`, `edx`, `ecx`, and `eax` fields are valid.
   kMinidumpContextX86Integer = kMinidumpContextX86 | 0x00000002,
 
   //! \brief Indicates the validity of non-control segment registers
@@ -122,10 +122,9 @@ enum MinidumpContextX86Flags : uint32_t {
 
   //! \brief Indicates the validity of all registers except `xsave` data.
   //!     (`CONTEXT_ALL`).
-  kMinidumpContextX86All = kMinidumpContextX86Full |
-                           kMinidumpContextX86FloatingPoint |
-                           kMinidumpContextX86Debug |
-                           kMinidumpContextX86Extended,
+  kMinidumpContextX86All =
+      kMinidumpContextX86Full | kMinidumpContextX86FloatingPoint |
+      kMinidumpContextX86Debug | kMinidumpContextX86Extended,
 };
 
 //! \brief A 32-bit x86 CPU context (register state) carried in a minidump file.
@@ -225,7 +224,7 @@ enum MinidumpContextAMD64Flags : uint32_t {
   //! \brief Indicates the validity of `xsave` data (`CONTEXT_XSTATE`).
   //!
   //! The context contains `xsave` data. This is used with an extended context
-  //! structure not currently defined here.
+  //! structure which is partly implemented for CET state only.
   kMinidumpContextAMD64Xstate = kMinidumpContextAMD64 | 0x00000040,
 
   //! \brief Indicates the validity of control, integer, and floating-point
@@ -384,6 +383,51 @@ struct MinidumpContextARM {
   //! \brief This space is unused. It is included for compatibility with
   //!     breakpad (which also doesn't use it).
   uint32_t extra[8];
+};
+
+//! \brief CONTEXT_CHUNK
+struct MinidumpContextChunk {
+  int32_t offset;
+  uint32_t size;
+};
+
+//! \brief CONTEXT_EX
+struct MinidumpContextExHeader {
+  MinidumpContextChunk all;
+  MinidumpContextChunk legacy;
+  MinidumpContextChunk xstate;
+};
+
+//! \brief XSAVE_AREA_HEADER
+struct MinidumpXSaveAreaHeader {
+  uint64_t mask;
+  uint64_t compaction_mask;
+  uint64_t xsave_header_reserved[6];
+};
+
+//! \brief Offset of first xsave feature in the full extended context.
+//!
+//! This is used to calculate the final size of the extended context, and
+//! can be validated by calling InitializeContext2 with one XSTATE feature,
+//! and LocateXStateFeature to determine the first offset.
+//! Also see “MANAGING STATE USING THE XSAVE FEATURE SET”, Ch. 13, Intel SDM.
+constexpr uint32_t kMinidumpAMD64XSaveOffset = 0x550;
+
+//! \brief Offset of first xsave feature within the extended context area.
+//!
+//! 0x240 is the size of the legacy area (512) + the xsave header(64 bytes)
+//! Intel SDM 13.4.1. This is not where the item is in the extended compacted
+//! context, but is the offset recorded in the minidump. It needs to be correct
+//! there. See https://windows-internals.com/cet-on-windows/ for some discussion
+//! “CONTEXT_XSTATE: Extended processor state chunk. The state is stored in the
+//! same format the XSAVE operation stores it with exception of the first 512
+//! bytes, i.e. starting from XSAVE_AREA_HEADER.” This may vary by cpuid.
+constexpr uint32_t kXSaveAreaFirstOffset = 0x240;
+
+//! \brief XSAVE_CET_U_FORMAT
+struct MinidumpAMD64XSaveFormatCetU {
+  uint64_t cetmsr;
+  uint64_t ssp;
 };
 
 //! \brief 64-bit ARM-specifc flags for MinidumpContextARM64::context_flags.
@@ -590,6 +634,56 @@ struct MinidumpContextMIPS64 {
   uint64_t fpcsr;
   //! \brief FPU implementation register.
   uint64_t fir;
+};
+
+//! \brief 64-bit RISCV-specific flags for
+//! MinidumpContextRISCV64::context_flags.
+enum MinidumpContextRISCV64Flags : uint32_t {
+  //! \brief Identifies the context structure as RISCV64.
+  kMinidumpContextRISCV64 = 0x08000000,
+
+  //! \brief Indicates the validity of integer registers.
+  //!
+  //! Registers 'pc' and `x1`-`x31` are valid.
+  kMinidumpContextRISCV64Integer = kMinidumpContextRISCV64 | 0x00000001,
+
+  //! \brief Indicates the validity of floating point registers.
+  //!
+  //! Floating point registers `f0`-`f31` are valid.
+  kMinidumpContextRISCV64FloatingPoint = kMinidumpContextRISCV64 | 0x00000002,
+
+  //! \brief Indicates the validity of all registers.
+  kMinidumpContextRISCV64All = kMinidumpContextRISCV64Integer |
+                               kMinidumpContextRISCV64FloatingPoint,
+};
+
+//! \brief A 64-bit RISC-V CPU context (register state) carried in a minidump
+//! file.
+//!
+//! This structure is versioned. Increment |kVersion| when changing this
+//! structure.
+struct MinidumpContextRISCV64 {
+
+  //! \brief The structure’s currently-defined version number.
+  static constexpr uint32_t kVersion = 1;
+
+  //! \brief Indicates the validity of fields in this structure.
+  uint32_t context_flags;
+
+  //! \brief The structure’s version number.
+  uint32_t version;
+
+  //! \brief The program counter register.
+  uint64_t pc;
+
+  //! \brief The integer registers, x1 through x31.
+  uint64_t regs[31];
+
+  //! \brief The floating point registers.
+  uint64_t fpregs[32];
+
+  //! \brief The floating point control and status register.
+  uint32_t fcsr;
 };
 
 }  // namespace crashpad

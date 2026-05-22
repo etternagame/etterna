@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -93,6 +93,11 @@ enum MinidumpStreamType : uint32_t {
   //! \sa MemoryInfoListStream
   kMinidumpStreamTypeMemoryInfoList = MemoryInfoListStream,
 
+  //! \brief The stream type for MINIDUMP_THREAD_NAME_LIST.
+  //!
+  //! \sa ThreadNamesStream
+  kMinidumpStreamTypeThreadNameList = ThreadNamesStream,
+
   //! \brief The last reserved minidump stream.
   //!
   //! \sa MemoryInfoListStream
@@ -111,7 +116,7 @@ enum MinidumpStreamType : uint32_t {
 //!     file.
 //!
 //! \sa MINIDUMP_STRING
-struct ALIGNAS(4) PACKED MinidumpUTF8String {
+struct alignas(4) PACKED MinidumpUTF8String {
   // The field names do not conform to typical style, they match the names used
   // in MINIDUMP_STRING. This makes it easier to operate on MINIDUMP_STRING (for
   // UTF-16 strings) and MinidumpUTF8String using templates.
@@ -130,7 +135,7 @@ struct ALIGNAS(4) PACKED MinidumpUTF8String {
 //! \brief A variable-length array of bytes carried within a minidump file.
 //!     The data have no intrinsic type and should be interpreted according
 //!     to their referencing context.
-struct ALIGNAS(4) PACKED MinidumpByteArray {
+struct alignas(4) PACKED MinidumpByteArray {
   //! \brief The length of the #data field.
   uint32_t length;
 
@@ -205,6 +210,9 @@ enum MinidumpCPUArchitecture : uint16_t {
   //! \deprecated Use #kMinidumpCPUArchitectureARM64 instead.
   kMinidumpCPUArchitectureARM64Breakpad = 0x8003,
 
+  //! \brief Used by Breakpad for 64-bit RISC-V.
+  kMinidumpCPUArchitectureRISCV64Breakpad = 0x8006,
+
   //! \brief Unknown CPU architecture.
   kMinidumpCPUArchitectureUnknown = PROCESSOR_ARCHITECTURE_UNKNOWN,
 };
@@ -265,7 +273,7 @@ enum MinidumpOS : uint32_t {
 };
 
 //! \brief A list of ::RVA pointers.
-struct ALIGNAS(4) PACKED MinidumpRVAList {
+struct alignas(4) PACKED MinidumpRVAList {
   //! \brief The number of children present in the #children array.
   uint32_t count;
 
@@ -274,7 +282,7 @@ struct ALIGNAS(4) PACKED MinidumpRVAList {
 };
 
 //! \brief A key-value pair.
-struct ALIGNAS(4) PACKED MinidumpSimpleStringDictionaryEntry {
+struct alignas(4) PACKED MinidumpSimpleStringDictionaryEntry {
   //! \brief ::RVA of a MinidumpUTF8String containing the key of a key-value
   //!     pair.
   RVA key;
@@ -285,7 +293,7 @@ struct ALIGNAS(4) PACKED MinidumpSimpleStringDictionaryEntry {
 };
 
 //! \brief A list of key-value pairs.
-struct ALIGNAS(4) PACKED MinidumpSimpleStringDictionary {
+struct alignas(4) PACKED MinidumpSimpleStringDictionary {
   //! \brief The number of key-value pairs present.
   uint32_t count;
 
@@ -294,7 +302,7 @@ struct ALIGNAS(4) PACKED MinidumpSimpleStringDictionary {
 };
 
 //! \brief A typed annotation object.
-struct ALIGNAS(4) PACKED MinidumpAnnotation {
+struct alignas(4) PACKED MinidumpAnnotation {
   //! \brief ::RVA of a MinidumpUTF8String containing the name of the
   //!     annotation.
   RVA name;
@@ -311,7 +319,7 @@ struct ALIGNAS(4) PACKED MinidumpAnnotation {
 };
 
 //! \brief A list of annotation objects.
-struct ALIGNAS(4) PACKED MinidumpAnnotationList {
+struct alignas(4) PACKED MinidumpAnnotationList {
   //! \brief The number of annotation objects present.
   uint32_t count;
 
@@ -334,7 +342,7 @@ struct ALIGNAS(4) PACKED MinidumpAnnotationList {
 //! fields are valid or not.
 //!
 //! \sa MinidumpModuleCrashpadInfoList
-struct ALIGNAS(4) PACKED MinidumpModuleCrashpadInfo {
+struct alignas(4) PACKED MinidumpModuleCrashpadInfo {
   //! \brief The structure’s currently-defined version number.
   //!
   //! \sa version
@@ -384,7 +392,7 @@ struct ALIGNAS(4) PACKED MinidumpModuleCrashpadInfo {
 //! \brief A link between a MINIDUMP_MODULE structure and additional
 //!     Crashpad-specific information about a module carried within a minidump
 //!     file.
-struct ALIGNAS(4) PACKED MinidumpModuleCrashpadInfoLink {
+struct alignas(4) PACKED MinidumpModuleCrashpadInfoLink {
   //! \brief A link to a MINIDUMP_MODULE structure in the module list stream.
   //!
   //! This field is an index into MINIDUMP_MODULE_LIST::Modules. This field’s
@@ -411,7 +419,7 @@ struct ALIGNAS(4) PACKED MinidumpModuleCrashpadInfoLink {
 //! structure carried within the minidump file will necessarily have
 //! Crashpad-specific information provided by a MinidumpModuleCrashpadInfo
 //! structure.
-struct ALIGNAS(4) PACKED MinidumpModuleCrashpadInfoList {
+struct alignas(4) PACKED MinidumpModuleCrashpadInfoList {
   //! \brief The number of children present in the #modules array.
   uint32_t count;
 
@@ -430,7 +438,7 @@ struct ALIGNAS(4) PACKED MinidumpModuleCrashpadInfoList {
 //! structure. Revise #kVersion and document each field’s validity based on
 //! #version, so that newer parsers will be able to determine whether the added
 //! fields are valid or not.
-struct ALIGNAS(4) PACKED MinidumpCrashpadInfo {
+struct alignas(4) PACKED MinidumpCrashpadInfo {
   // UUID has a constructor, which makes it non-POD, which makes this structure
   // non-POD. In order for the default constructor to zero-initialize other
   // members, an explicit constructor must be provided.
@@ -439,8 +447,9 @@ struct ALIGNAS(4) PACKED MinidumpCrashpadInfo {
         report_id(),
         client_id(),
         simple_annotations(),
-        module_list() {
-  }
+        module_list(),
+        reserved(),
+        address_mask() {}
 
   //! \brief The structure’s currently-defined version number.
   //!
@@ -494,6 +503,28 @@ struct ALIGNAS(4) PACKED MinidumpCrashpadInfo {
   //!
   //! This field is present when #version is at least `1`.
   MINIDUMP_LOCATION_DESCRIPTOR module_list;
+
+  //! \brief This field is always `0`.
+  uint32_t reserved;
+
+  //! \brief A mask indicating the range of valid addresses for a pointer.
+  //!
+  //! ARM64 supports MTE, TBI and PAC masking, generally in the upper bits of
+  //! a pointer. This mask can be used by LLDB to mimic ptrauth_strip and strip
+  //! the pointer authentication codes. To recover `pointer` in userland on
+  //! Darwin, `pointer & (~mask)`. In the case of code running in high memory,
+  //! where bit 55 is set (indicating that all of the high bits should be set
+  //! to 1), `pointer | mask`. See ABIMacOSX_arm64::FixAddress for more details
+  //! here:
+  //! https://github.com/llvm/llvm-project/blob/001d18664f8bcf63af64f10688809f7681dfbf0b/lldb/source/Plugins/ABI/AArch64/ABIMacOSX_arm64.cpp#L817-L830
+  //!
+  //! If the platform does not support pointer authentication, or the range of
+  //! valid addressees for a pointer was inaccessible, this field will be 0 and
+  //! should be ignored.
+  //!
+  //! This field is present when #version is at least `1`, if the size of the
+  //! structure is large enough to accommodate it.
+  uint64_t address_mask;
 };
 
 #if defined(COMPILER_MSVC)

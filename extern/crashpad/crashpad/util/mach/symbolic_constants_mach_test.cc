@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,15 +18,16 @@
 #include <string.h>
 #include <sys/types.h>
 
-#include "base/cxx17_backports.h"
-#include "base/strings/string_piece.h"
+#include <iterator>
+#include <string_view>
+
 #include "base/strings/stringprintf.h"
 #include "gtest/gtest.h"
 #include "util/mach/mach_extensions.h"
 #include "util/misc/implicit_cast.h"
 
 #define NUL_TEST_DATA(string) \
-  { string, base::size(string) - 1 }
+  { string, std::size(string) - 1 }
 
 namespace crashpad {
 namespace test {
@@ -97,7 +98,7 @@ void TestSomethingToString(typename Traits::ValueType value,
 }
 
 template <typename Traits>
-void TestStringToSomething(const base::StringPiece& string,
+void TestStringToSomething(std::string_view string,
                            StringToSymbolicConstantOptions options,
                            bool expect_result,
                            typename Traits::ValueType expect_value) {
@@ -143,7 +144,7 @@ struct ConvertExceptionTraits {
       SymbolicConstantToStringOptions options) {
     return ExceptionToString(value, options);
   }
-  static bool StringToSomething(const base::StringPiece& string,
+  static bool StringToSomething(std::string_view string,
                                 StringToSymbolicConstantOptions options,
                                 ValueType* value) {
     return StringToException(string, options, value);
@@ -160,7 +161,7 @@ void TestExceptionToString(exception_type_t value,
 }
 
 TEST(SymbolicConstantsMach, ExceptionToString) {
-  for (size_t index = 0; index < base::size(kExceptionTestData); ++index) {
+  for (size_t index = 0; index < std::size(kExceptionTestData); ++index) {
     SCOPED_TRACE(base::StringPrintf("index %zu", index));
     TestExceptionToString(kExceptionTestData[index].exception,
                           kExceptionTestData[index].full_name,
@@ -179,7 +180,7 @@ TEST(SymbolicConstantsMach, ExceptionToString) {
   }
 }
 
-void TestStringToException(const base::StringPiece& string,
+void TestStringToException(std::string_view string,
                            StringToSymbolicConstantOptions options,
                            bool expect_result,
                            exception_type_t expect_value) {
@@ -188,11 +189,11 @@ void TestStringToException(const base::StringPiece& string,
 }
 
 TEST(SymbolicConstantsMach, StringToException) {
-  for (size_t option_index = 0; option_index < base::size(kNormalOptions);
+  for (size_t option_index = 0; option_index < std::size(kNormalOptions);
        ++option_index) {
     SCOPED_TRACE(base::StringPrintf("option_index %zu", option_index));
     StringToSymbolicConstantOptions options = kNormalOptions[option_index];
-    for (size_t index = 0; index < base::size(kExceptionTestData); ++index) {
+    for (size_t index = 0; index < std::size(kExceptionTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       exception_type_t exception = kExceptionTestData[index].exception;
       {
@@ -230,7 +231,7 @@ TEST(SymbolicConstantsMach, StringToException) {
         "",
     };
 
-    for (size_t index = 0; index < base::size(kNegativeTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNegativeTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       TestStringToException(kNegativeTestData[index], options, false, 0);
     }
@@ -251,10 +252,10 @@ TEST(SymbolicConstantsMach, StringToException) {
         NUL_TEST_DATA("1\0002"),
     };
 
-    for (size_t index = 0; index < base::size(kNULTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNULTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
-      base::StringPiece string(kNULTestData[index].string,
-                               kNULTestData[index].length);
+      std::string_view string(kNULTestData[index].string,
+                              kNULTestData[index].length);
       TestStringToException(string, options, false, 0);
     }
   }
@@ -262,14 +263,14 @@ TEST(SymbolicConstantsMach, StringToException) {
   // Ensure that a NUL is not required at the end of the string.
   {
     SCOPED_TRACE("trailing_NUL_full");
-    TestStringToException(base::StringPiece("EXC_BREAKPOINTED", 14),
+    TestStringToException(std::string_view("EXC_BREAKPOINTED", 14),
                           kAllowFullName,
                           true,
                           EXC_BREAKPOINT);
   }
   {
     SCOPED_TRACE("trailing_NUL_short");
-    TestStringToException(base::StringPiece("BREAKPOINTED", 10),
+    TestStringToException(std::string_view("BREAKPOINTED", 10),
                           kAllowShortName,
                           true,
                           EXC_BREAKPOINT);
@@ -317,7 +318,7 @@ struct ConvertExceptionMaskTraits {
       SymbolicConstantToStringOptions options) {
     return ExceptionMaskToString(value, options);
   }
-  static bool StringToSomething(const base::StringPiece& string,
+  static bool StringToSomething(std::string_view string,
                                 StringToSymbolicConstantOptions options,
                                 ValueType* value) {
     return StringToExceptionMask(string, options, value);
@@ -334,7 +335,7 @@ void TestExceptionMaskToString(exception_mask_t value,
 }
 
 TEST(SymbolicConstantsMach, ExceptionMaskToString) {
-  for (size_t index = 0; index < base::size(kExceptionMaskTestData); ++index) {
+  for (size_t index = 0; index < std::size(kExceptionMaskTestData); ++index) {
     SCOPED_TRACE(base::StringPrintf("index %zu", index));
     TestExceptionMaskToString(kExceptionMaskTestData[index].exception_mask,
                               kExceptionMaskTestData[index].full_name,
@@ -360,7 +361,7 @@ TEST(SymbolicConstantsMach, ExceptionMaskToString) {
             "CRASH|GUARD");
 }
 
-void TestStringToExceptionMask(const base::StringPiece& string,
+void TestStringToExceptionMask(std::string_view string,
                                StringToSymbolicConstantOptions options,
                                bool expect_result,
                                exception_mask_t expect_value) {
@@ -389,20 +390,19 @@ TEST(SymbolicConstantsMach, StringToExceptionMask) {
       kAllowFullName | kAllowShortName | kAllowNumber | kAllowOr,
   };
 
-  for (size_t option_index = 0; option_index < base::size(kOptions);
+  for (size_t option_index = 0; option_index < std::size(kOptions);
        ++option_index) {
     SCOPED_TRACE(base::StringPrintf("option_index %zu", option_index));
     StringToSymbolicConstantOptions options = kOptions[option_index];
-    for (size_t index = 0; index < base::size(kExceptionMaskTestData);
-         ++index) {
+    for (size_t index = 0; index < std::size(kExceptionMaskTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       exception_mask_t exception_mask =
           kExceptionMaskTestData[index].exception_mask;
       {
         SCOPED_TRACE("full_name");
-        base::StringPiece full_name(kExceptionMaskTestData[index].full_name);
-        bool has_number = full_name.find("0x", 0) != base::StringPiece::npos;
-        bool has_or = full_name.find('|', 0) != base::StringPiece::npos;
+        std::string_view full_name(kExceptionMaskTestData[index].full_name);
+        bool has_number = full_name.find("0x", 0) != std::string_view::npos;
+        bool has_or = full_name.find('|', 0) != std::string_view::npos;
         bool allowed_characteristics =
             (has_number ? (options & kAllowNumber) : true) &&
             (has_or ? (options & kAllowOr) : true);
@@ -415,9 +415,9 @@ TEST(SymbolicConstantsMach, StringToExceptionMask) {
       }
       {
         SCOPED_TRACE("short_name");
-        base::StringPiece short_name(kExceptionMaskTestData[index].short_name);
-        bool has_number = short_name.find("0x", 0) != base::StringPiece::npos;
-        bool has_or = short_name.find('|', 0) != base::StringPiece::npos;
+        std::string_view short_name(kExceptionMaskTestData[index].short_name);
+        bool has_number = short_name.find("0x", 0) != std::string_view::npos;
+        bool has_or = short_name.find('|', 0) != std::string_view::npos;
         bool allowed_characteristics =
             (has_number ? (options & kAllowNumber) : true) &&
             (has_or ? (options & kAllowOr) : true);
@@ -445,7 +445,7 @@ TEST(SymbolicConstantsMach, StringToExceptionMask) {
         "",
     };
 
-    for (size_t index = 0; index < base::size(kNegativeTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNegativeTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       TestStringToExceptionMask(kNegativeTestData[index], options, false, 0);
     }
@@ -471,10 +471,10 @@ TEST(SymbolicConstantsMach, StringToExceptionMask) {
         NUL_TEST_DATA("ARITHMETIC|\0EMULATION"),
     };
 
-    for (size_t index = 0; index < base::size(kNULTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNULTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
-      base::StringPiece string(kNULTestData[index].string,
-                               kNULTestData[index].length);
+      std::string_view string(kNULTestData[index].string,
+                              kNULTestData[index].length);
       TestStringToExceptionMask(string, options, false, 0);
     }
   }
@@ -506,7 +506,7 @@ TEST(SymbolicConstantsMach, StringToExceptionMask) {
        EXC_MASK_SYSCALL | 0x100},
     };
 
-  for (size_t index = 0; index < base::size(kNonCanonicalTestData); ++index) {
+  for (size_t index = 0; index < std::size(kNonCanonicalTestData); ++index) {
     SCOPED_TRACE(base::StringPrintf("index %zu", index));
     TestStringToExceptionMask(kNonCanonicalTestData[index].string,
                               kNonCanonicalTestData[index].options,
@@ -517,14 +517,14 @@ TEST(SymbolicConstantsMach, StringToExceptionMask) {
   // Ensure that a NUL is not required at the end of the string.
   {
     SCOPED_TRACE("trailing_NUL_full");
-    TestStringToExceptionMask(base::StringPiece("EXC_MASK_BREAKPOINTED", 19),
+    TestStringToExceptionMask(std::string_view("EXC_MASK_BREAKPOINTED", 19),
                               kAllowFullName,
                               true,
                               EXC_MASK_BREAKPOINT);
   }
   {
     SCOPED_TRACE("trailing_NUL_short");
-    TestStringToExceptionMask(base::StringPiece("BREAKPOINTED", 10),
+    TestStringToExceptionMask(std::string_view("BREAKPOINTED", 10),
                               kAllowShortName,
                               true,
                               EXC_MASK_BREAKPOINT);
@@ -560,7 +560,7 @@ struct ConvertExceptionBehaviorTraits {
       SymbolicConstantToStringOptions options) {
     return ExceptionBehaviorToString(value, options);
   }
-  static bool StringToSomething(const base::StringPiece& string,
+  static bool StringToSomething(std::string_view string,
                                 StringToSymbolicConstantOptions options,
                                 ValueType* value) {
     return StringToExceptionBehavior(string, options, value);
@@ -577,7 +577,7 @@ void TestExceptionBehaviorToString(exception_behavior_t value,
 }
 
 TEST(SymbolicConstantsMach, ExceptionBehaviorToString) {
-  for (size_t index = 0; index < base::size(kExceptionBehaviorTestData);
+  for (size_t index = 0; index < std::size(kExceptionBehaviorTestData);
        ++index) {
     SCOPED_TRACE(base::StringPrintf("index %zu", index));
     TestExceptionBehaviorToString(kExceptionBehaviorTestData[index].behavior,
@@ -598,7 +598,7 @@ TEST(SymbolicConstantsMach, ExceptionBehaviorToString) {
   }
 }
 
-void TestStringToExceptionBehavior(const base::StringPiece& string,
+void TestStringToExceptionBehavior(std::string_view string,
                                    StringToSymbolicConstantOptions options,
                                    bool expect_result,
                                    exception_behavior_t expect_value) {
@@ -607,11 +607,11 @@ void TestStringToExceptionBehavior(const base::StringPiece& string,
 }
 
 TEST(SymbolicConstantsMach, StringToExceptionBehavior) {
-  for (size_t option_index = 0; option_index < base::size(kNormalOptions);
+  for (size_t option_index = 0; option_index < std::size(kNormalOptions);
        ++option_index) {
     SCOPED_TRACE(base::StringPrintf("option_index %zu", option_index));
     StringToSymbolicConstantOptions options = kNormalOptions[option_index];
-    for (size_t index = 0; index < base::size(kExceptionBehaviorTestData);
+    for (size_t index = 0; index < std::size(kExceptionBehaviorTestData);
          ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       exception_behavior_t behavior =
@@ -657,7 +657,7 @@ TEST(SymbolicConstantsMach, StringToExceptionBehavior) {
         "",
     };
 
-    for (size_t index = 0; index < base::size(kNegativeTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNegativeTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       TestStringToExceptionBehavior(
           kNegativeTestData[index], options, false, 0);
@@ -683,10 +683,10 @@ TEST(SymbolicConstantsMach, StringToExceptionBehavior) {
         NUL_TEST_DATA("STATE_IDENTITY|\0MACH"),
     };
 
-    for (size_t index = 0; index < base::size(kNULTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNULTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
-      base::StringPiece string(kNULTestData[index].string,
-                               kNULTestData[index].length);
+      std::string_view string(kNULTestData[index].string,
+                              kNULTestData[index].length);
       TestStringToExceptionBehavior(string, options, false, 0);
     }
   }
@@ -720,7 +720,7 @@ TEST(SymbolicConstantsMach, StringToExceptionBehavior) {
        implicit_cast<exception_behavior_t>(MACH_EXCEPTION_CODES | 0x2)},
   };
 
-  for (size_t index = 0; index < base::size(kNonCanonicalTestData); ++index) {
+  for (size_t index = 0; index < std::size(kNonCanonicalTestData); ++index) {
     SCOPED_TRACE(base::StringPrintf("index %zu", index));
     TestStringToExceptionBehavior(kNonCanonicalTestData[index].string,
                                   kNonCanonicalTestData[index].options,
@@ -731,21 +731,21 @@ TEST(SymbolicConstantsMach, StringToExceptionBehavior) {
   // Ensure that a NUL is not required at the end of the string.
   {
     SCOPED_TRACE("trailing_NUL_full");
-    TestStringToExceptionBehavior(base::StringPiece("EXCEPTION_DEFAULTS", 17),
+    TestStringToExceptionBehavior(std::string_view("EXCEPTION_DEFAULTS", 17),
                                   kAllowFullName,
                                   true,
                                   EXCEPTION_DEFAULT);
   }
   {
     SCOPED_TRACE("trailing_NUL_short");
-    TestStringToExceptionBehavior(base::StringPiece("DEFAULTS", 7),
+    TestStringToExceptionBehavior(std::string_view("DEFAULTS", 7),
                                   kAllowShortName,
                                   true,
                                   EXCEPTION_DEFAULT);
   }
   {
     SCOPED_TRACE("trailing_NUL_full_mach");
-    base::StringPiece string("EXCEPTION_DEFAULT|MACH_EXCEPTION_CODESS", 38);
+    std::string_view string("EXCEPTION_DEFAULT|MACH_EXCEPTION_CODESS", 38);
     TestStringToExceptionBehavior(string,
                                   kAllowFullName | kAllowOr,
                                   true,
@@ -753,7 +753,7 @@ TEST(SymbolicConstantsMach, StringToExceptionBehavior) {
   }
   {
     SCOPED_TRACE("trailing_NUL_short_mach");
-    TestStringToExceptionBehavior(base::StringPiece("DEFAULT|MACH_", 12),
+    TestStringToExceptionBehavior(std::string_view("DEFAULT|MACH_", 12),
                                   kAllowShortName | kAllowOr,
                                   true,
                                   EXCEPTION_DEFAULT | MACH_EXCEPTION_CODES);
@@ -820,7 +820,7 @@ struct ConvertThreadStateFlavorTraits {
       SymbolicConstantToStringOptions options) {
     return ThreadStateFlavorToString(value, options);
   }
-  static bool StringToSomething(const base::StringPiece& string,
+  static bool StringToSomething(std::string_view string,
                                 StringToSymbolicConstantOptions options,
                                 ValueType* value) {
     return StringToThreadStateFlavor(string, options, value);
@@ -837,7 +837,7 @@ void TestThreadStateFlavorToString(exception_type_t value,
 }
 
 TEST(SymbolicConstantsMach, ThreadStateFlavorToString) {
-  for (size_t index = 0; index < base::size(kThreadStateFlavorTestData);
+  for (size_t index = 0; index < std::size(kThreadStateFlavorTestData);
        ++index) {
     SCOPED_TRACE(base::StringPrintf("index %zu", index));
     TestThreadStateFlavorToString(kThreadStateFlavorTestData[index].flavor,
@@ -870,7 +870,7 @@ TEST(SymbolicConstantsMach, ThreadStateFlavorToString) {
   }
 }
 
-void TestStringToThreadStateFlavor(const base::StringPiece& string,
+void TestStringToThreadStateFlavor(std::string_view string,
                                    StringToSymbolicConstantOptions options,
                                    bool expect_result,
                                    thread_state_flavor_t expect_value) {
@@ -879,11 +879,11 @@ void TestStringToThreadStateFlavor(const base::StringPiece& string,
 }
 
 TEST(SymbolicConstantsMach, StringToThreadStateFlavor) {
-  for (size_t option_index = 0; option_index < base::size(kNormalOptions);
+  for (size_t option_index = 0; option_index < std::size(kNormalOptions);
        ++option_index) {
     SCOPED_TRACE(base::StringPrintf("option_index %zu", option_index));
     StringToSymbolicConstantOptions options = kNormalOptions[option_index];
-    for (size_t index = 0; index < base::size(kThreadStateFlavorTestData);
+    for (size_t index = 0; index < std::size(kThreadStateFlavorTestData);
          ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       thread_state_flavor_t flavor = kThreadStateFlavorTestData[index].flavor;
@@ -953,7 +953,7 @@ TEST(SymbolicConstantsMach, StringToThreadStateFlavor) {
 #endif
     };
 
-    for (size_t index = 0; index < base::size(kNegativeTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNegativeTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
       TestStringToThreadStateFlavor(
           kNegativeTestData[index], options, false, 0);
@@ -1019,10 +1019,10 @@ TEST(SymbolicConstantsMach, StringToThreadStateFlavor) {
 #endif
     };
 
-    for (size_t index = 0; index < base::size(kNULTestData); ++index) {
+    for (size_t index = 0; index < std::size(kNULTestData); ++index) {
       SCOPED_TRACE(base::StringPrintf("index %zu", index));
-      base::StringPiece string(kNULTestData[index].string,
-                               kNULTestData[index].length);
+      std::string_view string(kNULTestData[index].string,
+                              kNULTestData[index].length);
       TestStringToThreadStateFlavor(string, options, false, 0);
     }
   }
@@ -1030,27 +1030,25 @@ TEST(SymbolicConstantsMach, StringToThreadStateFlavor) {
   // Ensure that a NUL is not required at the end of the string.
   {
     SCOPED_TRACE("trailing_NUL_full");
-    TestStringToThreadStateFlavor(base::StringPiece("THREAD_STATE_NONER", 17),
+    TestStringToThreadStateFlavor(std::string_view("THREAD_STATE_NONER", 17),
                                   kAllowFullName,
                                   true,
                                   THREAD_STATE_NONE);
   }
   {
     SCOPED_TRACE("trailing_NUL_short");
-    TestStringToThreadStateFlavor(base::StringPiece("NONER", 4),
-                                  kAllowShortName,
-                                  true,
-                                  THREAD_STATE_NONE);
+    TestStringToThreadStateFlavor(
+        std::string_view("NONER", 4), kAllowShortName, true, THREAD_STATE_NONE);
   }
   {
     SCOPED_TRACE("trailing_NUL_full_new");
-    base::StringPiece string("THREAD_STATE_FLAVOR_LIST_NEWS", 28);
+    std::string_view string("THREAD_STATE_FLAVOR_LIST_NEWS", 28);
     TestStringToThreadStateFlavor(
         string, kAllowFullName, true, THREAD_STATE_FLAVOR_LIST_NEW);
   }
   {
     SCOPED_TRACE("trailing_NUL_short_new");
-    TestStringToThreadStateFlavor(base::StringPiece("FLAVOR_LIST_NEWS", 15),
+    TestStringToThreadStateFlavor(std::string_view("FLAVOR_LIST_NEWS", 15),
                                   kAllowShortName,
                                   true,
                                   THREAD_STATE_FLAVOR_LIST_NEW);

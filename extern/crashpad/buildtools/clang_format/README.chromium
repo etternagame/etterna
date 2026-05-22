@@ -1,12 +1,12 @@
 Name: clang-format
 Short Name: clang-format
-URL: http://llvm.org/viewvc/llvm-project/cfe/trunk/tools/clang-format/
-Version: 8.0.0
-Date: 15 November 2018
-Revision: See DEPS
-License: University of Illinois/NCSA Open Source License
-License File: NOT_SHIPPED
+URL: https://github.com/llvm/llvm-project/tree/main/clang/tools/clang-format
+Version: llvmorg-17-init-4759-g547e3456
+Date: 21 March 2023
+Revision: llvmorg-17-init-4759-g547e3456
+License: Apache 2.0 / University of Illinois/NCSA Open Source License
 Security Critical: No
+Shipped: no
 
 Description:
 A tool for formatting C++ code to style.

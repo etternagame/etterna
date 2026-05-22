@@ -1,4 +1,4 @@
-# Copyright 2015 The Chromium Authors. All rights reserved.
+# Copyright 2015 The Chromium Authors
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -105,15 +105,15 @@ template("create_signed_bundle") {
 
     # Bundle ID should respect rfc1034 and replace _ with -.
     _xcode_product_bundle_id =
-        string_replace("$ios_app_bundle_id_prefix.googletest.$_output_name",
-                       "_",
-                       "-")
+        string_replace("$ios_app_bundle_id_prefix.$_output_name", "_", "-")
 
     xcode_extra_attributes = {
       IPHONEOS_DEPLOYMENT_TARGET = ios_deployment_target
-      CODE_SIGN_STYLE = "Manual"
-      CODE_SIGN_IDENTITY = ""
       PRODUCT_BUNDLE_IDENTIFIER = _xcode_product_bundle_id
+      CODE_SIGNING_REQUIRED = "NO"
+      CODE_SIGNING_ALLOWED = "NO"
+      CODE_SIGN_IDENTITY = ""
+      DONT_GENERATE_INFOPLIST_FILE = "YES"
 
       if (defined(invoker.xcode_extra_attributes)) {
         forward_variables_from(invoker.xcode_extra_attributes, "*")
@@ -220,7 +220,20 @@ template("ios_app_bundle") {
   if (defined(invoker.info_plist)) {
     _plist_templates += [ invoker.info_plist ]
   }
-  _plist_extra_substitutions = []
+
+  if (defined(invoker.bundle_identifier)) {
+    _bundle_identifier = invoker.bundle_identifier
+    assert(_bundle_identifier == string_replace(_bundle_identifier, "_", "-"),
+           "$target_name: bundle_identifier does not respect rfc1034: " +
+               _bundle_identifier)
+  } else {
+    # Bundle identifier should respect rfc1034, so replace "_" with "-".
+    _bundle_identifier = "$ios_app_bundle_id_prefix.googletest." +
+                         string_replace(_output_name, "_", "-")
+  }
+
+  _plist_extra_substitutions = [ "BUNDLE_IDENTIFIER=$_bundle_identifier" ]
+
   if (defined(invoker.extra_substitutions)) {
     _plist_extra_substitutions += invoker.extra_substitutions
   }
@@ -548,6 +561,10 @@ template("ios_xcuitest_test_runner_bundle") {
     ]
   }
 
+  # Bundle identifier should respect rfc1034, so replace "_" with "-".
+  _bundle_identifier = "$ios_app_bundle_id_prefix.chrome." +
+                       string_replace(_output_name, "_", "-")
+
   _info_plist_target = _target_name + "_info_plist"
   _info_plist_bundle = _target_name + "_info_plist_bundle"
   info_plist(_info_plist_target) {
@@ -563,6 +580,7 @@ template("ios_xcuitest_test_runner_bundle") {
       # "CFBundleName".
       "//third_party/mini_chromium/mini_chromium/build/ios/XCTRunnerAddition+Info.plist",
     ]
+    extra_substitutions = [ "BUNDLE_IDENTIFIER=$_bundle_identifier" ]
   }
 
   bundle_data(_info_plist_bundle) {
@@ -603,6 +621,26 @@ template("ios_xcuitest_test_runner_bundle") {
       "$ios_sdk_platform_path/Developer/Library/Frameworks/XCTest.framework",
       "$ios_sdk_platform_path/Developer/Library/PrivateFrameworks/XCTAutomationSupport.framework",
     ]
+
+    if (xcode_version_int >= 1300) {
+      extra_system_frameworks += [
+        "$ios_sdk_platform_path/Developer/Library/PrivateFrameworks/XCTestCore.framework",
+        "$ios_sdk_platform_path/Developer/Library/PrivateFrameworks/XCUnit.framework",
+        "$ios_sdk_platform_path/Developer/usr/lib/libXCTestSwiftSupport.dylib",
+      ]
+
+      # Xcode 16.3 moved XCUIAutomation.framework
+      if (xcode_version_int < 1630) {
+        extra_system_frameworks += [ "$ios_sdk_platform_path/Developer/Library/PrivateFrameworks/XCUIAutomation.framework" ]
+      } else {
+        extra_system_frameworks += [ "$ios_sdk_platform_path/Developer/Library/Frameworks/XCUIAutomation.framework" ]
+      }
+    }
+
+    # XCTestSupport framework is required as of Xcode 14.3 or later.
+    if (xcode_version_int >= 1430) {
+      extra_system_frameworks += [ "$ios_sdk_platform_path/Developer/Library/PrivateFrameworks/XCTestSupport.framework" ]
+    }
 
     bundle_deps = []
     if (defined(invoker.bundle_deps)) {
@@ -651,5 +689,11 @@ template("ios_xcuitest_test") {
     output_name = _xcuitest_runner_output
     xctest_bundle = _xcuitest_module_target + "_bundle"
     forward_variables_from(invoker, [ "bundle_deps" ])
+  }
+}
+
+template("ios_test_runner_xcuitest") {
+  ios_xcuitest_test(target_name) {
+    forward_variables_from(invoker, "*", [ "data_deps" ])
   }
 }

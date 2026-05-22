@@ -1,42 +1,3 @@
-# Crashpad needs google's depot_tools to be in the system path.
-# "gclient" is a binary known to be apart of depot_tools.
-find_program(DEPOT_TOOLS_EXIST gclient)
-if(DEPOT_TOOLS_EXIST AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
-	message(WARNING " depot_tools were not found. Crashpad will be disabled. If you would like to build crashpad,\n"
-					" please ensure depot_tools have been added to your system path. Install instructions are at:\n"
-					" https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up")
-	return()
-endif()
-
-# Check linux to ensure necessary tools exist to build crashpad
-if(UNIX AND NOT APPLE)
-	# clang++ must be detected on linux only.
-	find_program(CLANG_EXISTS clang++)
-	if(NOT CLANG_EXISTS AND NOT $ENV{CI})
-		message(WARNING " clang++ was not found. Crashpad will be disabled. If you would like to build crashpad,\n"
-						" please ensure you have clang installed via your package manager. clang++ is a requiremnt\n"
-						" setup by crashpad.")
-		return()
-	endif()
-	# Python2 must be detected on linux only. depot_tools provides a python2 interpreter on windows,
-	# and python2 comes standards on mac.
-	find_package(Python2 COMPONENTS Interpreter)
-	if(NOT Python2_FOUND AND NOT $ENV{CI}) # Not required on CI, as it's prepared in ci-workflow.yml
-		message(WARNING " python2 was not found. Crashpad will be disabled. If you would like to build crashpad,\n"
-						" please ensure you have python2 installed via your package manager.")
-		return()
-	endif()
-endif()
-
-# Google uses depot_tools to download and build crashpad. We will do the same.
-# This file make assumptions about where crashpad is located. Chromium uses depot_tools
-# to download and setup a directory for the crashpad/breakpad/chromium tools. We do not
-# follow suit exactly, in that we assume crashpad is already available locally. We
-# placed it in libs/crashpad. Inside that directory is exactly what would be expected if
-# "fetch crashpad" was run in the "libs/crashpad" directory, but we remove the .git folers
-# inside the downloaded "libs/crashpad/{buildtools,crashpad}" as we want it in the current,
-# source tree, and not as a submodule/subtree.
-include(ExternalProject)
 include(FetchContent)
 
 # Here we only download depot_tools by using FetchContent. If the developer has
@@ -51,21 +12,64 @@ FetchContent_Declare(depot_tools
 	GIT_SHALLOW TRUE)
 FetchContent_MakeAvailable(depot_tools)
 FetchContent_GetProperties(depot_tools SOURCE_DIR DEPOT_TOOLS_DIR)
-
 list(APPEND CMAKE_PROGRAM_PATH ${DEPOT_TOOLS_DIR})
-find_program(EXE_DEPOT_GN gn)
-find_program(EXE_DEPOT_NINJA ninja)
-find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools)
-find_program(EXE_DEPOT_GIT git) # TODO: I'm not sure this grabs the "right" version of git; investigate here if shennanigans arise.
+
+if(WIN32)
+	set(GCLIENT ${DEPOT_TOOLS_DIR}/gclient.bat)
+else()
+	set(GCLIENT ${DEPOT_TOOLS_DIR}/gclient)
+endif()
 
 # Crashpad source and build folders
 set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/crashpad)
 set(BINARY_DIR ${PROJECT_BINARY_DIR}/gn_crashpad)
 
-# Assume 64bit, change to 32 if necessary
+# Check linux to ensure necessary tools exist to build crashpad
+if(UNIX AND NOT APPLE)
+	# clang++ must be detected on linux only.
+	find_program(CLANG_EXISTS clang++)
+	if(NOT CLANG_EXISTS AND NOT $ENV{CI})
+		message(WARNING " clang++ was not found. Crashpad will be disabled. If you would like to build crashpad,\n"
+						" please ensure you have clang installed via your package manager. clang++ is a requiremnt\n"
+						" setup by crashpad.")
+		return()
+	endif()
+endif()
+
+# Google uses depot_tools to download and build crashpad. We will do the same.
+# This file make assumptions about where crashpad is located. Chromium uses depot_tools
+# to download and setup a directory for the crashpad/breakpad/chromium tools. We do not
+# follow suit exactly, in that we assume crashpad is already available locally. We
+# placed it in libs/crashpad. Inside that directory is exactly what would be expected if
+# "fetch crashpad" was run in the "libs/crashpad" directory, but we remove the .git folers
+# inside the downloaded "libs/crashpad/{buildtools,crashpad}" as we want it in the current,
+# source tree, and not as a submodule/subtree.
+include(ExternalProject)
+
+# these tools should be loaded by CI or the user themselves
+find_program(EXE_DEPOT_GN gn REQUIRED)
+find_program(EXE_DEPOT_NINJA ninja REQUIRED)
+find_program(EXE_DEPOT_UPDATE_DEPOT_TOOLS update_depot_tools REQUIRED)
+find_program(EXE_DEPOT_GIT git REQUIRED) # TODO: I'm not sure this grabs the "right" version of git; investigate here if shennanigans arise.
+
 set(GN_TARGET_CPU x64)
-if(CMAKE_SIZEOF_VOID_P EQUAL 4) # If 32bit
-	set(GN_TARGET_CPU x86)
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+    set(GN_TARGET_CPU x86)
+else()
+    string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+
+    if(CMAKE_GENERATOR_PLATFORM)
+        string(TOLOWER "${CMAKE_GENERATOR_PLATFORM}" _plat)
+    else()
+        set(_plat "")
+    endif()
+
+    if(_proc MATCHES "^(arm64|aarch64)$" OR _plat MATCHES "arm64")
+        set(GN_TARGET_CPU arm64)
+    elseif(_proc MATCHES "^(x86_64|amd64|x64)$" OR _plat MATCHES "x64")
+        set(GN_TARGET_CPU x64)
+    endif()
 endif()
 
 # Lists of the expected output libraries

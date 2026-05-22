@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -237,6 +237,8 @@ std::string UserAgent() {
 #elif defined(ARCH_CPU_BIG_ENDIAN)
     static constexpr char arch[] = "aarch64_be";
 #endif
+#elif defined (ARCH_CPU_RISCV64)
+    static constexpr char arch[] = "riscv64";
 #else
 #error Port
 #endif
@@ -522,6 +524,10 @@ size_t HTTPTransportLibcurl::WriteResponseBody(char* buffer,
                                                size_t size,
                                                size_t nitems,
                                                void* userdata) {
+#if defined(MEMORY_SANITIZER)
+  // Work around an MSAN false-positive in passing `userdata`.
+  __msan_unpoison(&userdata, sizeof(userdata));
+#endif
   std::string* response_body = reinterpret_cast<std::string*>(userdata);
 
   // This libcurl callback mimics the silly stdio-style fread() interface: size

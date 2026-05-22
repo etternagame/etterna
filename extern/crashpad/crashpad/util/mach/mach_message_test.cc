@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 #include <unistd.h>
 
-#include "base/mac/scoped_mach_port.h"
-#include "base/macros.h"
+#include <tuple>
+
+#include "base/apple/scoped_mach_port.h"
+#include "build/build_config.h"
 #include "gtest/gtest.h"
 #include "test/mac/mach_errors.h"
 #include "util/mach/mach_extensions.h"
@@ -114,7 +116,7 @@ TEST(MachMessage, MachMessageDestroyReceivedPort) {
   ASSERT_NE(port, kMachPortNull);
   EXPECT_TRUE(MachMessageDestroyReceivedPort(port, MACH_MSG_TYPE_PORT_RECEIVE));
 
-  base::mac::ScopedMachReceiveRight receive(
+  base::apple::ScopedMachReceiveRight receive(
       NewMachPort(MACH_PORT_RIGHT_RECEIVE));
   mach_msg_type_name_t right_type;
   kern_return_t kr = mach_port_extract_right(mach_task_self(),
@@ -154,14 +156,15 @@ TEST(MachMessage, MachMessageDestroyReceivedPort) {
   ASSERT_EQ(right_type,
             implicit_cast<mach_msg_type_name_t>(MACH_MSG_TYPE_PORT_SEND));
   EXPECT_TRUE(MachMessageDestroyReceivedPort(port, MACH_MSG_TYPE_PORT_RECEIVE));
-  ignore_result(receive.release());
+  std::ignore = receive.release();
   EXPECT_TRUE(MachMessageDestroyReceivedPort(port, MACH_MSG_TYPE_PORT_SEND));
 }
 
-#if defined(OS_MAC)
+#if BUILDFLAG(IS_MAC)
 
 TEST(MachMessage, AuditPIDFromMachMessageTrailer) {
-  base::mac::ScopedMachReceiveRight port(NewMachPort(MACH_PORT_RIGHT_RECEIVE));
+  base::apple::ScopedMachReceiveRight port(
+      NewMachPort(MACH_PORT_RIGHT_RECEIVE));
   ASSERT_NE(port, kMachPortNull);
 
   mach_msg_empty_send_t send = {};
@@ -200,7 +203,7 @@ TEST(MachMessage, AuditPIDFromMachMessageTrailer) {
   EXPECT_EQ(AuditPIDFromMachMessageTrailer(&receive.trailer), getpid());
 }
 
-#endif  // OS_MAC
+#endif  // BUILDFLAG(IS_MAC)
 
 }  // namespace
 }  // namespace test

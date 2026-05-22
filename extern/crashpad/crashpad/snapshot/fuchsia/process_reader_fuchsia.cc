@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
 
 #include <lib/zx/thread.h>
 #include <link.h>
+#include <zircon/status.h>
 #include <zircon/syscalls.h>
 
+#include "base/check_op.h"
 #include "base/fuchsia/fuchsia_logging.h"
 #include "base/logging.h"
 #include "util/fuchsia/koid_utilities.h"
@@ -40,18 +42,18 @@ void GetStackRegions(
   uint64_t sp;
 #if defined(ARCH_CPU_X86_64)
   sp = regs.rsp;
-#elif defined(ARCH_CPU_ARM64)
+#elif defined(ARCH_CPU_ARM64) || defined(ARCH_CPU_RISCV64)
   sp = regs.sp;
 #else
 #error Port
 #endif
 
-  // TODO(fxbug.dev/74897): make this work for stack overflows, e.g., by looking
-  // up using the initial stack pointer (sp) when the thread was created. Right
-  // now, it gets the stack by getting the mapping that contains the current sp.
-  // But in the case of stack overflows, the current sp is by definition outside
-  // of the stack so the mapping returned is not the stack and fails the type
-  // check, at least on arm64.
+  // TODO(fxbug.dev/42154629): make this work for stack overflows, e.g., by
+  // looking up using the initial stack pointer (sp) when the thread was
+  // created. Right now, it gets the stack by getting the mapping that contains
+  // the current sp. But in the case of stack overflows, the current sp is by
+  // definition outside of the stack so the mapping returned is not the stack
+  // and fails the type check, at least on arm64.
   zx_info_maps_t range_with_sp;
   if (!memory_map.FindMappingForAddress(sp, &range_with_sp)) {
     LOG(ERROR) << "stack pointer not found in mapping";
@@ -175,7 +177,8 @@ void ProcessReaderFuchsia::InitializeModules() {
   zx_status_t status = process_->get_property(
       ZX_PROP_PROCESS_DEBUG_ADDR, &debug_address, sizeof(debug_address));
   if (status != ZX_OK || debug_address == 0) {
-    LOG(ERROR) << "zx_object_get_property ZX_PROP_PROCESS_DEBUG_ADDR";
+    ZX_LOG(ERROR, status)
+        << "zx_object_get_property ZX_PROP_PROCESS_DEBUG_ADDR";
     return;
   }
 
@@ -234,8 +237,8 @@ void ProcessReaderFuchsia::InitializeModules() {
     // Crashpad needs to use the same module name at run time for symbol
     // resolution to work properly.
     //
-    // TODO(fuchsia/DX-1234): once Crashpad switches to elf-search, the
-    // following overwrites won't be necessary as only shared libraries will
+    // TODO: https://fxbug.dev/42138764 - once Crashpad switches to elf-search,
+    // the following overwrites won't be necessary as only shared libraries will
     // have a soname at runtime, just like at build time.
     //
     // * For shared libraries, the soname is used as module name at build time,
@@ -265,7 +268,6 @@ void ProcessReaderFuchsia::InitializeModules() {
     if (dsoname.empty()) {
       // This value must be kept in sync with what is used at build time to
       // index symbols for executables and loadable modules.
-      // See fuchsia/DX-1193 for more details.
       module.name = "<_>";
       module.type = ModuleSnapshot::kModuleTypeExecutable;
     } else {
@@ -345,6 +347,19 @@ void ProcessReaderFuchsia::InitializeThreads() {
           GetStackRegions(general_regs, *memory_map, &thread.stack_regions);
         }
       }
+
+// Floating point registers are in the vector context for ARM.
+#if !defined(ARCH_CPU_ARM64)
+      zx_thread_state_fp_regs_t fp_regs;
+      status = thread_handles[i].read_state(
+          ZX_THREAD_STATE_FP_REGS, &fp_regs, sizeof(fp_regs));
+      if (status != ZX_OK) {
+        ZX_LOG(WARNING, status)
+            << "zx_thread_read_state(ZX_THREAD_STATE_FP_REGS)";
+      } else {
+        thread.fp_registers = fp_regs;
+      }
+#endif
 
       zx_thread_state_vector_regs_t vector_regs;
       status = thread_handles[i].read_state(

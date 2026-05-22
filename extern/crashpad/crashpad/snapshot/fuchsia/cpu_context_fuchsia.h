@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,13 +29,14 @@ namespace internal {
 //! \brief Initializes a CPUContextX86_64 structure from native context
 //!     structures on Fuchsia.
 //!
-//! Floating point registers are currently initialized to zero.
 //! Segment registers are currently initialized to zero.
 //!
 //! \param[in] thread_context The native thread context.
+//! \param[in] float_context The native floating point context.
 //! \param[out] context The CPUContextX86_64 structure to initialize.
-void InitializeCPUContextX86_64_NoFloatingPoint(
+void InitializeCPUContextX86_64(
     const zx_thread_state_general_regs_t& thread_context,
+    const zx_thread_state_fp_regs_t& float_context,
     CPUContextX86_64* context);
 
 #endif  // ARCH_CPU_X86_64 || DOXYGEN
@@ -55,6 +56,21 @@ void InitializeCPUContextARM64(
     CPUContextARM64* context);
 
 #endif  // ARCH_CPU_ARM64 || DOXYGEN
+
+#if defined(ARCH_CPU_RISCV64) || DOXYGEN
+
+//! \brief Initializes a CPUContextRISCV64 structure from native context
+//!     structures on Fuchsia.
+//!
+//! \param[in] thread_context The native thread context.
+//! \param[in] float_context The native floating point context.
+//! \param[out] context The CPUContextRISCV64 structure to initialize.
+void InitializeCPUContextRISCV64(
+    const zx_thread_state_general_regs_t& thread_context,
+    const zx_thread_state_fp_regs_t& float_context,
+    CPUContextRISCV64* context);
+
+#endif  // ARCH_CPU_RISCV64 || DOXYGEN
 
 }  // namespace internal
 }  // namespace crashpad

@@ -1,4 +1,4 @@
-// Copyright (c) 2009 The Chromium Authors. All rights reserved.
+// Copyright 2009 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -23,24 +23,17 @@
 
 #include "build/build_config.h"
 
-#if defined(OS_POSIX)
-
-#if (defined(_INTTYPES_H) || defined(_INTTYPES_H_)) && !defined(PRId64)
+#if BUILDFLAG(IS_POSIX) && \
+    (defined(_INTTYPES_H) || defined(_INTTYPES_H_)) && !defined(PRId64)
 #error "inttypes.h has already been included before this header file, but "
 #error "without __STDC_FORMAT_MACROS defined."
 #endif
 
-#if !defined(__STDC_FORMAT_MACROS)
+#if BUILDFLAG(IS_POSIX) && !defined(__STDC_FORMAT_MACROS)
 #define __STDC_FORMAT_MACROS
 #endif
 
 #include <inttypes.h>
-
-// GCC will concatenate wide and narrow strings correctly, so nothing needs to
-// be done here.
-#define WidePRId64 PRId64
-#define WidePRIu64 PRIu64
-#define WidePRIx64 PRIx64
 
 #if !defined(PRIuS)
 #define PRIuS "zu"
@@ -50,7 +43,7 @@
 // architectures and Apple does not provides standard format macros and
 // recommends casting. This has many drawbacks, so instead define macros
 // for formatting those types.
-#if defined(OS_APPLE)
+#if BUILDFLAG(IS_APPLE)
 #if defined(ARCH_CPU_64_BITS)
 #if !defined(PRIdNS)
 #define PRIdNS "ld"
@@ -72,30 +65,6 @@
 #define PRIxNS "x"
 #endif
 #endif
-#endif  // defined(OS_APPLE)
-
-#else  // OS_WIN
-
-#if !defined(PRId64)
-#define PRId64 "I64d"
-#endif
-
-#if !defined(PRIu64)
-#define PRIu64 "I64u"
-#endif
-
-#if !defined(PRIx64)
-#define PRIx64 "I64x"
-#endif
-
-#define WidePRId64 L"I64d"
-#define WidePRIu64 L"I64u"
-#define WidePRIx64 L"I64x"
-
-#if !defined(PRIuS)
-#define PRIuS "Iu"
-#endif
-
-#endif
+#endif  // BUILDFLAG(IS_APPLE)
 
 #endif  // BASE_FORMAT_MACROS_H_

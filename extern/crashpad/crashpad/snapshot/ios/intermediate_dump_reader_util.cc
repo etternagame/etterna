@@ -1,4 +1,4 @@
-// Copyright 2021 The Crashpad Authors. All rights reserved.
+// Copyright 2021 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 #include "snapshot/ios/intermediate_dump_reader_util.h"
 
+#include "base/logging.h"
 #include "util/ios/ios_intermediate_dump_data.h"
 #include "util/ios/ios_intermediate_dump_map.h"
 #include "util/misc/metrics.h"

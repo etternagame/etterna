@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
 #include "client/settings.h"
 
 #include <stdint.h>
+#include <string.h>
 
 #include <limits>
 
 #include "base/logging.h"
+#include "base/notreached.h"
 #include "base/posix/eintr_wrapper.h"
+#include "build/build_config.h"
 #include "util/file/filesystem.h"
 #include "util/numeric/in_range_cast.h"
 
 namespace crashpad {
 
-#if defined(OS_FUCHSIA)
+#if !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
 
 Settings::ScopedLockedFileHandle::ScopedLockedFileHandle()
     : handle_(kInvalidFileHandle), lockfile_path_() {
@@ -68,7 +71,36 @@ void Settings::ScopedLockedFileHandle::Destroy() {
   }
 }
 
-#else // OS_FUCHSIA
+#else  // !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
+
+#if BUILDFLAG(IS_IOS)
+
+Settings::ScopedLockedFileHandle::ScopedLockedFileHandle(
+    const FileHandle& value)
+    : ScopedGeneric(value) {
+  ios_background_task_ = std::make_unique<internal::ScopedBackgroundTask>(
+      "ScopedLockedFileHandle");
+}
+
+Settings::ScopedLockedFileHandle::ScopedLockedFileHandle(
+    Settings::ScopedLockedFileHandle&& rvalue) {
+  ios_background_task_.reset(rvalue.ios_background_task_.release());
+  reset(rvalue.release());
+}
+
+Settings::ScopedLockedFileHandle& Settings::ScopedLockedFileHandle::operator=(
+    Settings::ScopedLockedFileHandle&& rvalue) {
+  ios_background_task_.reset(rvalue.ios_background_task_.release());
+  reset(rvalue.release());
+  return *this;
+}
+
+Settings::ScopedLockedFileHandle::~ScopedLockedFileHandle() {
+  // Call reset() to ensure the lock is released before the ios_background_task.
+  reset();
+}
+
+#endif  // BUILDFLAG(IS_IOS)
 
 namespace internal {
 
@@ -82,10 +114,14 @@ void ScopedLockedFileHandleTraits::Free(FileHandle handle) {
 
 }  // namespace internal
 
-#endif  // OS_FUCHSIA
+#endif  // BUILDFLAG(IS_FUCHSIA)
 
-struct Settings::Data {
+struct SettingsReader::Data {
   static constexpr uint32_t kSettingsMagic = 'CPds';
+
+  // Version number only used for incompatible changes to Data. Do not change
+  // this when adding additional fields at the end. Modifying `kSettingsVersion`
+  // will wipe away the entire struct when reading from other versions.
   static constexpr uint32_t kSettingsVersion = 1;
 
   enum Options : uint32_t {
@@ -107,25 +143,17 @@ struct Settings::Data {
   UUID client_id;
 };
 
-Settings::Settings() = default;
+SettingsReader::SettingsReader(const base::FilePath& file_path)
+    : SettingsReader(file_path, InitializationState::kStateValid) {}
 
-Settings::~Settings() = default;
+SettingsReader::SettingsReader(const base::FilePath& file_path,
+                               InitializationState::State state)
+    : file_path_(file_path), initialized_(state) {}
 
-bool Settings::Initialize(const base::FilePath& file_path) {
-  DCHECK(initialized_.is_uninitialized());
-  initialized_.set_invalid();
-  file_path_ = file_path;
+SettingsReader::~SettingsReader() = default;
 
-  Data settings;
-  if (!OpenForWritingAndReadSettings(&settings).is_valid())
-    return false;
-
-  initialized_.set_valid();
-  return true;
-}
-
-bool Settings::GetClientID(UUID* client_id) {
-  DCHECK(initialized_.is_valid());
+bool SettingsReader::GetClientID(UUID* client_id) {
+  DCHECK(initialized().is_valid());
 
   Data settings;
   if (!OpenAndReadSettings(&settings))
@@ -135,8 +163,8 @@ bool Settings::GetClientID(UUID* client_id) {
   return true;
 }
 
-bool Settings::GetUploadsEnabled(bool* enabled) {
-  DCHECK(initialized_.is_valid());
+bool SettingsReader::GetUploadsEnabled(bool* enabled) {
+  DCHECK(initialized().is_valid());
 
   Data settings;
   if (!OpenAndReadSettings(&settings))
@@ -146,8 +174,86 @@ bool Settings::GetUploadsEnabled(bool* enabled) {
   return true;
 }
 
+bool SettingsReader::GetLastUploadAttemptTime(time_t* time) {
+  DCHECK(initialized().is_valid());
+
+  Data settings;
+  if (!OpenAndReadSettings(&settings))
+    return false;
+
+  *time = InRangeCast<time_t>(settings.last_upload_attempt_time,
+                              std::numeric_limits<time_t>::max());
+  return true;
+}
+
+bool SettingsReader::OpenAndReadSettings(Data* out_data) {
+  ScopedFileHandle handle(LoggingOpenFileForRead(file_path_));
+  return handle.is_valid() && ReadSettings(handle.get(), out_data, true);
+}
+
+bool SettingsReader::ReadSettings(FileHandle handle,
+                                  Data* out_data,
+                                  bool log_read_error) {
+  if (LoggingSeekFile(handle, 0, SEEK_SET) != 0) {
+    return false;
+  }
+
+  // This clears `out_data` so that any bytes not read from disk are zero
+  // initialized. This is expected when reading from an older settings file with
+  // fewer fields.
+  memset(out_data, 0, sizeof(*out_data));
+
+  const FileOperationResult read_result =
+      log_read_error ? LoggingReadFileUntil(handle, out_data, sizeof(*out_data))
+                     : ReadFileUntil(handle, out_data, sizeof(*out_data));
+
+  if (read_result <= 0) {
+    return false;
+  }
+
+  // Newer versions of crashpad may add fields to Data, but all versions have
+  // the data members up to `client_id`. Do not attempt to understand a smaller
+  // struct read.
+  const size_t min_size =
+      offsetof(Data, client_id) + sizeof(out_data->client_id);
+  if (static_cast<size_t>(read_result) < min_size) {
+    LOG(ERROR) << "Settings file too small: minimum " << min_size
+               << ", observed " << read_result;
+    return false;
+  }
+
+  if (out_data->magic != Data::kSettingsMagic) {
+    LOG(ERROR) << "Settings magic is not " << Data::kSettingsMagic;
+    return false;
+  }
+
+  if (out_data->version != Data::kSettingsVersion) {
+    LOG(ERROR) << "Settings version is not " << Data::kSettingsVersion;
+    return false;
+  }
+
+  return true;
+}
+
+Settings::Settings(const base::FilePath& path)
+    : SettingsReader(path, InitializationState::kStateUninitialized) {}
+
+Settings::~Settings() = default;
+
+bool Settings::Initialize() {
+  DCHECK(initialized().is_uninitialized());
+  initialized().set_invalid();
+
+  Data settings;
+  if (!OpenForWritingAndReadSettings(&settings).is_valid())
+    return false;
+
+  initialized().set_valid();
+  return true;
+}
+
 bool Settings::SetUploadsEnabled(bool enabled) {
-  DCHECK(initialized_.is_valid());
+  DCHECK(initialized().is_valid());
 
   Data settings;
   ScopedLockedFileHandle handle = OpenForWritingAndReadSettings(&settings);
@@ -162,20 +268,8 @@ bool Settings::SetUploadsEnabled(bool enabled) {
   return WriteSettings(handle.get(), settings);
 }
 
-bool Settings::GetLastUploadAttemptTime(time_t* time) {
-  DCHECK(initialized_.is_valid());
-
-  Data settings;
-  if (!OpenAndReadSettings(&settings))
-    return false;
-
-  *time = InRangeCast<time_t>(settings.last_upload_attempt_time,
-                              std::numeric_limits<time_t>::max());
-  return true;
-}
-
 bool Settings::SetLastUploadAttemptTime(time_t time) {
-  DCHECK(initialized_.is_valid());
+  DCHECK(initialized().is_valid());
 
   Data settings;
   ScopedLockedFileHandle handle = OpenForWritingAndReadSettings(&settings);
@@ -187,25 +281,54 @@ bool Settings::SetLastUploadAttemptTime(time_t time) {
   return WriteSettings(handle.get(), settings);
 }
 
+#if !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
+// static
+bool Settings::IsLockExpired(const base::FilePath& file_path,
+                             time_t lockfile_ttl) {
+  time_t now = time(nullptr);
+  base::FilePath lock_path(file_path.value() + Settings::kLockfileExtension);
+  ScopedFileHandle lock_fd(LoggingOpenFileForRead(lock_path));
+  time_t lock_timestamp;
+  if (!LoggingReadFileExactly(
+          lock_fd.get(), &lock_timestamp, sizeof(lock_timestamp))) {
+    return false;
+  }
+  return now >= lock_timestamp + lockfile_ttl;
+}
+#endif  // !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
+
 // static
 Settings::ScopedLockedFileHandle Settings::MakeScopedLockedFileHandle(
-    FileHandle file,
+    const internal::MakeScopedLockedFileHandleOptions& options,
     FileLocking locking,
     const base::FilePath& file_path) {
-  ScopedFileHandle scoped(file);
-#if defined(OS_FUCHSIA)
-  base::FilePath lockfile_path(file_path.value() + ".__lock__");
+#if !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
+  base::FilePath lockfile_path(file_path.value() +
+                               Settings::kLockfileExtension);
+  ScopedFileHandle lockfile_scoped(
+      LoggingOpenFileForWrite(lockfile_path,
+                              FileWriteMode::kCreateOrFail,
+                              FilePermissions::kWorldReadable));
+  if (!lockfile_scoped.is_valid()) {
+    return ScopedLockedFileHandle();
+  }
+  time_t now = time(nullptr);
+  if (!LoggingWriteFile(lockfile_scoped.get(), &now, sizeof(now))) {
+    return ScopedLockedFileHandle();
+  }
+  ScopedFileHandle scoped(GetHandleFromOptions(file_path, options));
   if (scoped.is_valid()) {
-    ScopedFileHandle lockfile_scoped(
-        LoggingOpenFileForWrite(lockfile_path,
-                                FileWriteMode::kCreateOrFail,
-                                FilePermissions::kWorldReadable));
-    // This is a lightweight attempt to try to catch racy behavior.
-    DCHECK(lockfile_scoped.is_valid());
     return ScopedLockedFileHandle(scoped.release(), lockfile_path);
   }
-  return ScopedLockedFileHandle(scoped.release(), base::FilePath());
+  bool success = LoggingRemoveFile(lockfile_path);
+  DCHECK(success);
+  return ScopedLockedFileHandle();
 #else
+  ScopedFileHandle scoped(GetHandleFromOptions(file_path, options));
+  // It's important to create the ScopedLockedFileHandle before calling
+  // LoggingLockFile on iOS, so a ScopedBackgroundTask is created *before*
+  // the LoggingLockFile call below.
+  ScopedLockedFileHandle handle(kInvalidFileHandle);
   if (scoped.is_valid()) {
     if (LoggingLockFile(
             scoped.get(), locking, FileLockingBlocking::kBlocking) !=
@@ -213,33 +336,57 @@ Settings::ScopedLockedFileHandle Settings::MakeScopedLockedFileHandle(
       scoped.reset();
     }
   }
-  return ScopedLockedFileHandle(scoped.release());
-#endif
+  handle.reset(scoped.release());
+  return handle;
+#endif  // !CRASHPAD_FLOCK_ALWAYS_SUPPORTED
 }
 
-Settings::ScopedLockedFileHandle Settings::OpenForReading() {
-  return MakeScopedLockedFileHandle(
-      LoggingOpenFileForRead(file_path()), FileLocking::kShared, file_path());
+// static
+FileHandle Settings::GetHandleFromOptions(
+    const base::FilePath& file_path,
+    const internal::MakeScopedLockedFileHandleOptions& options) {
+  switch (options.function_enum) {
+    case internal::FileOpenFunction::kLoggingOpenFileForRead:
+      return LoggingOpenFileForRead(file_path);
+    case internal::FileOpenFunction::kLoggingOpenFileForReadAndWrite:
+      return LoggingOpenFileForReadAndWrite(
+          file_path, options.mode, options.permissions);
+    case internal::FileOpenFunction::kOpenFileForReadAndWrite:
+      return OpenFileForReadAndWrite(
+          file_path, options.mode, options.permissions);
+  }
+  NOTREACHED();
+}
+
+Settings::ScopedLockedFileHandle Settings::OpenForReading() const {
+  internal::MakeScopedLockedFileHandleOptions options;
+  options.function_enum = internal::FileOpenFunction::kLoggingOpenFileForRead;
+  return MakeScopedLockedFileHandle(options, FileLocking::kShared, file_path());
 }
 
 Settings::ScopedLockedFileHandle Settings::OpenForReadingAndWriting(
     FileWriteMode mode, bool log_open_error) {
   DCHECK(mode != FileWriteMode::kTruncateOrCreate);
 
-  FileHandle handle;
+  internal::MakeScopedLockedFileHandleOptions options;
+  options.mode = mode;
+  options.permissions = FilePermissions::kOwnerOnly;
   if (log_open_error) {
-    handle = LoggingOpenFileForReadAndWrite(
-        file_path(), mode, FilePermissions::kOwnerOnly);
+    options.function_enum =
+        internal::FileOpenFunction::kLoggingOpenFileForReadAndWrite;
   } else {
-    handle = OpenFileForReadAndWrite(
-        file_path(), mode, FilePermissions::kOwnerOnly);
+    options.function_enum =
+        internal::FileOpenFunction::kOpenFileForReadAndWrite;
   }
 
   return MakeScopedLockedFileHandle(
-      handle, FileLocking::kExclusive, file_path());
+      options, FileLocking::kExclusive, file_path());
 }
 
 bool Settings::OpenAndReadSettings(Data* out_data) {
+  // Because this implementation distinguishes between a failure to open and a
+  // failure to read the settings file, it cannot simply invoke
+  // SettingsReader::OpenAndReadSettings.
   ScopedLockedFileHandle handle = OpenForReading();
   if (!handle.is_valid())
     return false;
@@ -258,7 +405,7 @@ Settings::ScopedLockedFileHandle Settings::OpenForWritingAndReadSettings(
     Data* out_data) {
   ScopedLockedFileHandle handle;
   bool created = false;
-  if (!initialized_.is_valid()) {
+  if (!initialized().is_valid()) {
     // If this object is initializing, it hasn’t seen a settings file already,
     // so go easy on errors. Creating a new settings file for the first time
     // shouldn’t spew log messages.
@@ -303,33 +450,6 @@ Settings::ScopedLockedFileHandle Settings::OpenForWritingAndReadSettings(
   }
 
   return handle;
-}
-
-bool Settings::ReadSettings(FileHandle handle,
-                            Data* out_data,
-                            bool log_read_error) {
-  if (LoggingSeekFile(handle, 0, SEEK_SET) != 0)
-    return false;
-
-  bool read_result =
-      log_read_error
-          ? LoggingReadFileExactly(handle, out_data, sizeof(*out_data))
-          : ReadFileExactly(handle, out_data, sizeof(*out_data));
-
-  if (!read_result)
-    return false;
-
-  if (out_data->magic != Data::kSettingsMagic) {
-    LOG(ERROR) << "Settings magic is not " << Data::kSettingsMagic;
-    return false;
-  }
-
-  if (out_data->version != Data::kSettingsVersion) {
-    LOG(ERROR) << "Settings version is not " << Data::kSettingsVersion;
-    return false;
-  }
-
-  return true;
 }
 
 bool Settings::WriteSettings(FileHandle handle, const Data& data) {

@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
 #include <iterator>
 #include <set>
 
-#include "base/mac/mach_logging.h"
-#include "base/mac/scoped_mach_port.h"
+#include "base/apple/mach_logging.h"
+#include "base/apple/scoped_mach_port.h"
 #include "util/posix/process_info.h"
 
 namespace crashpad {
@@ -154,7 +154,7 @@ task_t TaskForPID(pid_t pid) {
     return TASK_NULL;
   }
 
-  base::mac::ScopedMachSendRight task_owner(task);
+  base::apple::ScopedMachSendRight task_owner(task);
 
   if (!TaskForPIDCheck(task)) {
     return TASK_NULL;

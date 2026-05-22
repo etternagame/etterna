@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -63,6 +63,7 @@ void InitializeCPUContextARM(CPUContext* context, uint32_t seed);
 void InitializeCPUContextARM64(CPUContext* context, uint32_t seed);
 void InitializeCPUContextMIPS(CPUContext* context, uint32_t seed);
 void InitializeCPUContextMIPS64(CPUContext* context, uint32_t seed);
+void InitializeCPUContextRISCV64(CPUContext* context, uint32_t seed);
 //! \}
 
 }  // namespace test

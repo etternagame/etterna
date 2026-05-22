@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 #include "snapshot/cpu_context.h"
+#include "util/linux/pac_helper.h"
 #include "util/numeric/safe_assignment.h"
 
 namespace crashpad {
@@ -61,7 +62,8 @@ class StackReferencesAddressRange : public MemorySnapshot::Delegate {
                                             aligned_sp_offset);
     size_t word_count = (size - aligned_sp_offset) / sizeof(Pointer);
     for (size_t index = 0; index < word_count; ++index) {
-      if (words[index] >= low_ && words[index] < high_) {
+      auto word = StripPACBits(words[index]);
+      if (word >= low_ && word < high_) {
         return true;
       }
     }

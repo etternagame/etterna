@@ -1,4 +1,4 @@
-// Copyright 2021 The Crashpad Authors. All rights reserved.
+// Copyright 2021 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,9 @@
 
 #include <mach-o/loader.h>
 #include <mach/mach.h>
-#include <signal.h>
 #include <sys/types.h>
+
+#include <map>
 
 #include "client/crashpad_info.h"
 #include "util/ios/ios_intermediate_dump_writer.h"
@@ -46,13 +47,20 @@ class InProcessIntermediateDumpHandler final {
   //! \brief Write ProcessSnapshot data to the intermediate dump.
   //!
   //! \param[in] writer The dump writer
-  static void WriteProcessInfo(IOSIntermediateDumpWriter* writer);
+  //! \param[in] annotations The simple map annotations.
+  static void WriteProcessInfo(
+      IOSIntermediateDumpWriter* writer,
+      const std::map<std::string, std::string>& annotations);
 
   //! \brief Write SystemSnapshot data to the intermediate dump.
   //!
   //! \param[in] writer The dump writer
+  //! \param[in] system_data An object containing various system data points.
+  //! \param[in] report_time_nanos Report creation time in nanoseconds as
+  //!     returned by ClockMonotonicNanoseconds().
   static void WriteSystemInfo(IOSIntermediateDumpWriter* writer,
-                              const IOSSystemDataCollector& system_data);
+                              const IOSSystemDataCollector& system_data,
+                              uint64_t report_time_nanos);
 
   //! \brief Write ThreadSnapshot data to the intermediate dump.
   //!
@@ -94,11 +102,10 @@ class InProcessIntermediateDumpHandler final {
   //! \brief Write an ExceptionSnapshot from a mach exception to the
   //!     intermediate dump.
   //!
-  //!  Only one of the WriteExceptionFromSignal, WriteExceptionFromMachException
-  //!  and WriteExceptionFromNSException should be called per intermediate dump.
+  //! Only one of the WriteExceptionFromSignal, WriteExceptionFromMachException
+  //! and WriteExceptionFromNSException should be called per intermediate dump.
   //!
   //! \param[in] writer The dump writer
-  //! \param[in] system_data An object containing various system data points.
   //! \param[in] behavior
   //! \param[in] thread
   //! \param[in] exception
@@ -134,14 +141,25 @@ class InProcessIntermediateDumpHandler final {
                                        bool is_dyld);
 
   //! \brief Extract and write Apple crashreporter_annotations_t data and
-  //!     Crashpad annotations.
-  static void WriteDataSegmentAnnotations(IOSIntermediateDumpWriter* writer,
-                                          const segment_command_64* segment_ptr,
-                                          vm_size_t slide);
+  //!     Crashpad annotations. Note that \a segment_vm_read_ptr has already
+  //!     been read via vm_read and may be dereferenced without a ScopedVMRead.
+  static void WriteDataSegmentAnnotations(
+      IOSIntermediateDumpWriter* writer,
+      const segment_command_64* segment_vm_read_ptr,
+      vm_size_t slide);
 
   //! \brief Write Crashpad annotations list.
   static void WriteCrashpadAnnotationsList(IOSIntermediateDumpWriter* writer,
                                            CrashpadInfo* crashpad_info);
+
+  //! \brief Write Crashpad extra memory data.
+  static void WriteCrashpadExtraMemoryRanges(IOSIntermediateDumpWriter* writer,
+                                             CrashpadInfo* crashpad_info);
+
+  //! \brief Write Crashpad intermediate dump extra memory data.
+  static void WriteCrashpadIntermediateDumpExtraMemoryRanges(
+      IOSIntermediateDumpWriter* writer,
+      CrashpadInfo* crashpad_info);
 };
 
 }  // namespace internal

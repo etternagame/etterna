@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #include <string.h>
 
 #include <algorithm>
-#include <memory>
+#include <iterator>
 
-#include "base/cxx17_backports.h"
+#include "base/containers/heap_array.h"
 #include "base/logging.h"
 #include "base/strings/stringprintf.h"
 #include "client/crashpad_info.h"
@@ -183,17 +183,17 @@ bool PEImageReader::DebugDirectoryInformation(UUID* uuid,
         continue;
       }
 
-      std::unique_ptr<char[]> data(new char[debug_directory.SizeOfData]);
+      auto data = base::HeapArray<char>::Uninit(debug_directory.SizeOfData);
       if (!module_subrange_reader_.ReadMemory(
               Address() + debug_directory.AddressOfRawData,
-              debug_directory.SizeOfData,
-              data.get())) {
+              data.size(),
+              data.data())) {
         LOG(WARNING) << "could not read debug directory from "
                      << module_subrange_reader_.name();
         return false;
       }
 
-      if (*reinterpret_cast<DWORD*>(data.get()) !=
+      if (*reinterpret_cast<DWORD*>(data.data()) !=
           CodeViewRecordPDB70::kSignature) {
         LOG(WARNING) << "encountered non-7.0 CodeView debug record in "
                      << module_subrange_reader_.name();
@@ -201,7 +201,7 @@ bool PEImageReader::DebugDirectoryInformation(UUID* uuid,
       }
 
       CodeViewRecordPDB70* codeview =
-          reinterpret_cast<CodeViewRecordPDB70*>(data.get());
+          reinterpret_cast<CodeViewRecordPDB70*>(data.data());
       *uuid = codeview->uuid;
       *age = codeview->age;
       // This is a NUL-terminated string encoded in the codepage of the system
@@ -288,7 +288,7 @@ bool PEImageReader::VSFixedFileInfo(
       version_info.wType != 0 ||
       wcsncmp(version_info.szKey,
               L"VS_VERSION_INFO",
-              base::size(version_info.szKey)) != 0) {
+              std::size(version_info.szKey)) != 0) {
     LOG(WARNING) << "unexpected VS_VERSIONINFO in "
                  << module_subrange_reader_.name();
     return false;

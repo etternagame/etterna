@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@
 
 #include <limits>
 
+#include "base/apple/mach_logging.h"
+#include "base/apple/scoped_mach_vm.h"
+#include "base/check_op.h"
 #include "base/logging.h"
-#include "base/mac/mach_logging.h"
-#include "base/mac/scoped_mach_vm.h"
 #include "util/mach/mach_message.h"
 
 namespace crashpad {
@@ -83,7 +84,7 @@ class MachMessageBuffer {
   }
 
  private:
-  base::mac::ScopedMachVM vm_;
+  base::apple::ScopedMachVM vm_;
 };
 
 // Wraps MachMessageWithDeadline(), using a MachMessageBuffer argument which

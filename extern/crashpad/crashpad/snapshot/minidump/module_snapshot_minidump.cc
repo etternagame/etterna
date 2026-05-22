@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <iterator>
+
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/notreached.h"
 #include "minidump/minidump_extensions.h"
@@ -100,7 +103,7 @@ bool ModuleSnapshotMinidump::InitializeModuleCodeView(
   signature = *reinterpret_cast<uint32_t*>(cv_record.data());
 
   if (signature == CodeViewRecordPDB70::kSignature) {
-    if (cv_record.size() < offsetof(CodeViewRecordPDB70, pdb_name)) {
+    if (cv_record.size() < offsetof(CodeViewRecordPDB70, pdb_name) + 1) {
       LOG(ERROR) << "CodeView record in module marked as PDB70 but too small";
       return false;
     }
@@ -111,8 +114,14 @@ bool ModuleSnapshotMinidump::InitializeModuleCodeView(
     age_ = cv_record_pdb70->age;
     uuid_ = cv_record_pdb70->uuid;
 
+    if (cv_record.back() != '\0') {
+      LOG(ERROR) << "CodeView record marked as PDB70 missing NUL-terminator in "
+                    "pdb_name";
+      return false;
+    }
+
     std::copy(cv_record.begin() + offsetof(CodeViewRecordPDB70, pdb_name),
-              cv_record.end(),
+              cv_record.end() - 1,
               std::back_inserter(debug_file_name_));
     return true;
   }
@@ -222,14 +231,12 @@ std::set<CheckedRange<uint64_t>> ModuleSnapshotMinidump::ExtraMemoryRanges()
     const {
   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
   NOTREACHED();  // https://crashpad.chromium.org/bug/10
-  return std::set<CheckedRange<uint64_t>>();
 }
 
 std::vector<const UserMinidumpStream*>
 ModuleSnapshotMinidump::CustomMinidumpStreams() const {
   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
   NOTREACHED();  // https://crashpad.chromium.org/bug/10
-  return std::vector<const UserMinidumpStream*>();
 }
 
 bool ModuleSnapshotMinidump::InitializeModuleCrashpadInfo(

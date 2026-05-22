@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ LinuxVMAddress GetTLS() {
       : "=r"(tls)
       :
       : "$3");
+#elif defined(ARCH_CPU_RISCV64)
+  asm("mv %0, tp" : "=r"(tls));
 #else
 #error Port.
 #endif  // ARCH_CPU_ARMEL

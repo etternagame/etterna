@@ -8,13 +8,13 @@ target_include_directories(discord INTERFACE include)
 # Platform-specific Social SDK library paths
 if(WIN32)
     set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/discord_partner_sdk.lib")
-    set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/discord_partner_sdk.dll")
+    #set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/discord_partner_sdk.dll")
 elseif(APPLE)
     set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.dylib")
-    set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.dylib")
+    #set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.dylib")
 else() # Linux
     set(DISCORD_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.so")
-    set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.so")
+    #set(DISCORD_SHARED_LIB "${CMAKE_CURRENT_SOURCE_DIR}/lib/release/libdiscord_partner_sdk.so")
 endif()
 
 message(DISCORD_LIB_PATH="${DISCORD_LIB_PATH}")
