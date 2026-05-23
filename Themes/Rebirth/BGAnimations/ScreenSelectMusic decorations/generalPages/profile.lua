@@ -1026,6 +1026,11 @@ local function createList()
                 StartupCommand = smallTextInitFunctions.Right[i],
                 MouseOverCommand = cHover,
                 MouseOutCommand = cUnHover,
+                ModifiedGroupsMessageCommand = function(self)
+                    -- update the numbers when sortmode changes
+                    -- because the numbers are based on sortmode sometimes
+                    self:playcommand("Set")
+                end,
             }
         end
 
