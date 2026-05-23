@@ -2214,7 +2214,7 @@ function WHEELDATA.RefreshStats(self)
                 if curcount ~= nil then
                     self.TotalStats.clearPerGrade[grade] = curcount + count
                 else
-                    self.TotalStats.clearPerGrade[grade] = 1
+                    self.TotalStats.clearPerGrade[grade] = count
                 end
             end
         end
