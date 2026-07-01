@@ -75,6 +75,12 @@ add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
 
+if(WITH_VULKAN)
+    add_subdirectory(vk-bootstrap)
+    add_subdirectory(VulkanMemoryAllocator)
+    list(APPEND EXT_TARGETS vk-bootstrap VulkanMemoryAllocator)
+endif()
+
 # Only enable crashpad if the user wants it.
 if(WITH_CRASHPAD)
     add_subdirectory(crashpad)
