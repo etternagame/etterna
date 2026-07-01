@@ -808,6 +808,13 @@ class Actor : public MessageSubscriber
 	virtual void SetUpdateRate(float /*unused*/) {}
 	virtual auto GetUpdateRate() -> float { return 1.0F; }
 
+	void SetShaders(const std::string& vertexShaderPath,
+					const std::string& fragmentShaderPath);
+	void ResetShaders() { m_CustomShaders = 0; }
+	bool GetShaderPersistence() const { return m_ShaderPersistence; }
+	void SetShaderPersistence(bool persist) { m_ShaderPersistence = persist; }
+	std::vector<uint8_t> m_VertexShaderArgs, m_FragmentShaderArgs;
+
 	std::unique_ptr<LuaClass> m_pLuaInstance;
 
   protected:
@@ -939,6 +946,8 @@ class Actor : public MessageSubscriber
 	static std::vector<float> g_vfCurrentBGMBeatPlayer;
 	static std::vector<float> g_vfCurrentBGMBeatPlayerNoOffset;
 
+	intptr_t m_CustomShaders = 0;
+	bool m_ShaderPersistence = false;
   private:
 	// commands
 	std::map<std::string, apActorCommands> m_mapNameToCommands;
