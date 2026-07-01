@@ -416,6 +416,18 @@ class RageDisplay
 	virtual void SetSphereEnvironmentMapping(TextureUnit tu, bool b) = 0;
 	virtual void SetCelShaded(int stage) = 0;
 
+	virtual intptr_t CreateGraphicsPipeline(
+	  const std::string& vertexShaderPath,
+	  const std::string& fragmentShaderPath) {
+		return 0;
+	}
+	virtual void ReloadPipelines() {}
+	virtual void SetGraphicsPipeline(
+	  intptr_t pipeline,
+	  const std::vector<uint8_t>& vertexShaderArgs,
+	  const std::vector<uint8_t>& fragShaderArgs,
+	  bool persist) {}
+
 	virtual auto CreateCompiledGeometry() -> RageCompiledGeometry* = 0;
 	virtual void DeleteCompiledGeometry(RageCompiledGeometry* p) = 0;
 
@@ -464,7 +476,7 @@ class RageDisplay
 		return nullptr;
 	} // allocates a surface.  Caller must delete it.
 
-  protected:
+protected:
 	virtual void DrawQuadsInternal(const RageSpriteVertex v[],
 								   int iNumVerts) = 0;
 	virtual void DrawQuadStripInternal(const RageSpriteVertex v[],
