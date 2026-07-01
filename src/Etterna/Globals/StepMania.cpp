@@ -29,6 +29,11 @@
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Globals/GameLoop.h"
+#include "RageUtil/Graphics/Display/Display.h"
+
+#if defined(WITH_VULKAN)
+#include "RageUtil/Graphics/RendererVK/RendererVK.h"
+#endif
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -639,7 +644,7 @@ struct VideoCardDefaults
 	  // Default graphics settings used for all cards that don't match above.
 	  // This must be the very last entry!
 	  "",
-	  "opengl,d3d",
+	  "opengl,d3d,vulkan",
 	  640,
 	  480,
 	  32,
@@ -808,7 +813,16 @@ CreateDisplay()
 #if defined(SUPPORT_D3D)
 				pRet = new RageDisplay_D3D;
 #endif
-			} else if (CompareNoCase(sRenderer, "null") == 0) {
+			}
+#if defined(WITH_VULKAN)
+#if !defined(__APPLE__)
+			else if (CompareNoCase(sRenderer, "vulkan") == 0) {
+				pRet =
+				  new DisplayAdapter::Display(std::make_unique<RendererVK>());
+			}
+#endif
+#endif
+			else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;
 			} else {
 				RageException::Throw(

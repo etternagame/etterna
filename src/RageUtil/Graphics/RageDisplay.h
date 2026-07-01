@@ -268,6 +268,9 @@ struct RageTextureLock
 class RageDisplay
 {
 	friend class RageTexture;
+#ifdef WITH_VULKAN
+	friend class RendererVK;
+#endif
 
   public:
 	struct RagePixelFormatDesc
