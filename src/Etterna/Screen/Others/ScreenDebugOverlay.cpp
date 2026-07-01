@@ -1166,6 +1166,7 @@ class DebugLineReloadTheme : public IDebugLine
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		THEME->ReloadMetrics();
+		DISPLAY->ReloadPipelines();
 		TEXTUREMAN->ReloadAll();
 		NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 		CodeDetector::RefreshCacheItems();
