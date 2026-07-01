@@ -283,7 +283,7 @@ ScreenOptionsManageProfiles::HandleScreenMessage(const ScreenMessage& SM)
 					SCREENMAN->SetNewScreen(this->m_sName); // reload
 					break;
 				case ProfileAction_Delete: {
-					auto deltxt = fmt::format(HOW_TO_DELETE.GetValue(), pProfile->m_sProfileID);
+					auto deltxt = fmt::format(fmt::runtime(HOW_TO_DELETE.GetValue()), pProfile->m_sProfileID);
 					ScreenTextEntry::TextEntry(
 					  SM_GainFocus, deltxt, "", 0);
 				} break;

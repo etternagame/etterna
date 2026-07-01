@@ -2,6 +2,7 @@
 #define RAGE_SOUND_READER_MERGE
 
 #include "RageSoundReader.h"
+#include <vector>
 
 /** @brief Chain different sounds together. */
 class RageSoundReader_Merge : public RageSoundReader

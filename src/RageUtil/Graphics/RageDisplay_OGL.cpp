@@ -492,12 +492,12 @@ RageDisplay_Legacy::Init(VideoModeParams&& p,
 	// Log driver details
 	g_pWind->LogDebugInformation();
 	{
-		Locator::getLogger()->info("OGL Vendor: {}", glGetString(GL_VENDOR));
-		Locator::getLogger()->info("OGL Renderer: {}", glGetString(GL_RENDERER));
-		Locator::getLogger()->info("OGL Version: {}", glGetString(GL_VERSION));
+		Locator::getLogger()->info("OGL Vendor: {}", reinterpret_cast<const char*>(glGetString(GL_VENDOR)));
+		Locator::getLogger()->info("OGL Renderer: {}", reinterpret_cast<const char*>(glGetString(GL_RENDERER)));
+		Locator::getLogger()->info("OGL Version: {}", reinterpret_cast<const char*>(glGetString(GL_VERSION)));
 		Locator::getLogger()->info("OGL Max texture size: {}", GetMaxTextureSize());
 		Locator::getLogger()->info("OGL Texture units: {}", g_iMaxTextureUnits);
-		Locator::getLogger()->info("GLU Version: {}", gluGetString(GLU_VERSION));
+		Locator::getLogger()->info("GLU Version: {}", reinterpret_cast<const char*>(gluGetString(GLU_VERSION)));
 
 		/* Pretty-print the extension string: */
 		Locator::getLogger()->info("OGL Extensions:");
@@ -2405,8 +2405,8 @@ RageDisplay_Legacy::CreateTexture(RagePixelFormat pixfmt,
 		pImg->h,
 		GLToString(glImageFormat).c_str(),
 		GLToString(glImageType).c_str(),
-		pixfmt,
-		SurfacePixFmt);
+		static_cast<int>(pixfmt),
+		static_cast<int>(SurfacePixFmt));
 
 	DebugFlushGLErrors();
 

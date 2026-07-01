@@ -385,7 +385,7 @@ HighScore::DebugString() const -> std::string {
 	  GetSkillsetSSR(Skill_Overall),
 	  GetSSRNormPercent(),
 	  GetChordCohesion(),
-	  GetGrade(),
+	  static_cast<int>(GetGrade()),
 	  GetDateTime().GetString());
 }
 

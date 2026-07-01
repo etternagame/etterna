@@ -567,7 +567,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			} catch (websocketpp::http::exception& e) {
 				Locator::getLogger()->warn("Failed to create ettp connection due to exception: "
 						  "{} --- {}",
-						  e.m_error_code,
+						  static_cast<int>(e.m_error_code),
 						  e.what());
 			}
 		}
@@ -605,7 +605,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			} catch (websocketpp::http::exception& e) {
 				Locator::getLogger()->warn("Failed to create ettp connection due to exception: "
 						  "{} --- {}",
-						  e.m_error_code,
+						  static_cast<int>(e.m_error_code),
 						  e.what());
 			}
 		}

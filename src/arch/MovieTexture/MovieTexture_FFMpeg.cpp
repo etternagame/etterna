@@ -98,7 +98,7 @@ RageMovieTextureDriver_FFMpeg::AVCodecCreateCompatibleSurface(
 
 	Locator::getLogger()->trace("Texture pixel format: {} {} ({}bpp, {:08x} {:08x} {:08x} {:08x})",
 			   iAVTexfmt,
-			   fmtout,
+			   static_cast<int>(fmtout),
 			   pfd->bpp,
 			   pfd->masks[0],
 			   pfd->masks[1],
@@ -358,8 +358,8 @@ MovieDecoder_FFMpeg::GetFrame(RageSurface* pSurface)
 			Locator::getLogger()->warn("Cannot initialize sws conversion context for ({},{}) {}->{}",
 			  GetWidth(),
 			  GetHeight(),
-			  m_pStream->codec->pix_fmt,
-			  m_AVTexfmt);
+			  static_cast<int>(m_pStream->codec->pix_fmt),
+			  static_cast<int>(m_AVTexfmt));
 			return;
 		}
 	}

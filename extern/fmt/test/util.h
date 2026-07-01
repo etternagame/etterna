@@ -1,17 +1,16 @@
 // Formatting library for C++ - test utilities
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
 
 #include <cstdarg>
 #include <cstdio>
+#include <locale>
 #include <string>
 
 #include "fmt/os.h"
-
-enum { BUFFER_SIZE = 256 };
 
 #ifdef _MSC_VER
 #  define FMT_VSNPRINTF vsprintf_s
@@ -27,58 +26,47 @@ void safe_sprintf(char (&buffer)[SIZE], const char* format, ...) {
   va_end(args);
 }
 
-// Increment a number in a string.
-void increment(char* s);
-
-std::string get_system_error(int error_code);
-
-extern const char* const FILE_CONTENT;
+extern const char* const file_content;
 
 // Opens a buffered file for reading.
-fmt::buffered_file open_buffered_file(FILE** fp = nullptr);
+auto open_buffered_file(FILE** fp = nullptr) -> fmt::buffered_file;
 
-inline FILE* safe_fopen(const char* filename, const char* mode) {
-#if defined(_WIN32) && !defined(__MINGW32__)
-  // Fix MSVC warning about "unsafe" fopen.
-  FILE* f = 0;
-  errno = fopen_s(&f, filename, mode);
-  return f;
-#else
-  return std::fopen(filename, mode);
-#endif
-}
-
-template <typename Char> class BasicTestString {
+template <typename Char> class basic_test_string {
  private:
   std::basic_string<Char> value_;
 
-  static const Char EMPTY[];
+  static const Char empty[];
 
  public:
-  explicit BasicTestString(const Char* value = EMPTY) : value_(value) {}
+  explicit basic_test_string(const Char* value = empty) : value_(value) {}
 
-  const std::basic_string<Char>& value() const { return value_; }
+  auto value() const -> const std::basic_string<Char>& { return value_; }
 };
 
-template <typename Char> const Char BasicTestString<Char>::EMPTY[] = {0};
+template <typename Char> const Char basic_test_string<Char>::empty[] = {0};
 
-typedef BasicTestString<char> TestString;
-typedef BasicTestString<wchar_t> TestWString;
+using test_string = basic_test_string<char>;
+using test_wstring = basic_test_string<wchar_t>;
 
 template <typename Char>
-std::basic_ostream<Char>& operator<<(std::basic_ostream<Char>& os,
-                                     const BasicTestString<Char>& s) {
+auto operator<<(std::basic_ostream<Char>& os, const basic_test_string<Char>& s)
+    -> std::basic_ostream<Char>& {
   os << s.value();
   return os;
 }
 
-class Date {
+class date {
   int year_, month_, day_;
 
  public:
-  Date(int year, int month, int day) : year_(year), month_(month), day_(day) {}
+  date(int year, int month, int day) : year_(year), month_(month), day_(day) {}
 
-  int year() const { return year_; }
-  int month() const { return month_; }
-  int day() const { return day_; }
+  auto year() const -> int { return year_; }
+  auto month() const -> int { return month_; }
+  auto day() const -> int { return day_; }
 };
+
+// Returns a locale with the given name if available or classic locale
+// otherwise.
+auto get_locale(const char* name, const char* alt_name = nullptr)
+    -> std::locale;

@@ -64,8 +64,8 @@ protected:
 private:
 	template <typename... Args> inline std::string safe_format(const std::string_view log, const Args& ... args) {
 		try {
-			return fmt::format(log, args...);
-		} catch (fmt::v7::format_error& e) {
+			return fmt::format(fmt::runtime(log), args...);
+		} catch (fmt::format_error& e) {
 			std::string msg("There was an error formatting the next log "
 							"message - Report to developers: ");
 			msg.append(e.what());

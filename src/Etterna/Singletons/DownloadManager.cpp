@@ -152,10 +152,10 @@ curl_easy_setopt_log_err(CURL *handle, CURLoption option, T param)
 		//"Error setting curl option %d(%s): %s(%d)", option,
 		// curl_easy_option_by_id(option)->name, curl_easy_strerror(ret), ret);
 		Locator::getLogger()->warn("Error setting curl option {}({}): {}({})",
-								   option,
+								   static_cast<int>(option),
 								   "",
 								   curl_easy_strerror(ret),
-								   ret);
+								   static_cast<int>(ret));
 }
 
 std::atomic<bool> QUIT_OTHER_THREADS_FLAG = false;
@@ -1850,7 +1850,7 @@ startSequentialFavoriteUpload()
 		  "Starting sequential favorite upload process - "
 		  "{} favorites split into chunks of {}",
 		  DLMAN->FavoriteUploadSequentialQueue.size(),
-		  UPLOAD_FAVORITE_BULK_CHUNK_SIZE);
+		  UPLOAD_FAVORITE_BULK_CHUNK_SIZE.Get());
 		uploadFavoritesSequentially();
 	}
 }
@@ -2513,7 +2513,7 @@ startSequentialGoalUpload()
 		Locator::getLogger()->info("Starting sequential goal upload process - "
 								   "{} goals split into chunks of {}",
 								   DLMAN->GoalUploadSequentialQueue.size(),
-								   UPLOAD_GOAL_BULK_CHUNK_SIZE);
+								   UPLOAD_GOAL_BULK_CHUNK_SIZE.Get());
 		uploadGoalsSequentially();
 	}
 }
@@ -3066,7 +3066,7 @@ void
 DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int id)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLIST;
-	const auto CALL_PATH = fmt::format(API_PLAYLIST, id);
+	const auto CALL_PATH = fmt::format(fmt::runtime(API_PLAYLIST), id);
 
 	Locator::getLogger()->info(
 	  "Generating GetPlaylistRequest for playlist id {}", id);
@@ -3742,7 +3742,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				Locator::getLogger()->info(
 				  "Score {} will upload as invalid due to Transform {}",
 				  hs->GetScoreKey(),
-				  tf);
+				  static_cast<int>(tf));
 		}
 
 		// invalidate if any turns are on other than Mirror (shuffle)
@@ -3757,7 +3757,7 @@ ScoreToJSON(HighScore* hs, bool includeReplayData, Document::AllocatorType& allo
 				Locator::getLogger()->info(
 				  "Score {} will upload as invalid due to Turn {}",
 				  hs->GetScoreKey(),
-				  t);
+				  static_cast<int>(t));
 		}
 
 		// invalidate if invert is turned on at all
@@ -4497,7 +4497,7 @@ startSequentialScoreUpload()
 		  "Starting sequential score upload process - {} "
 		  "scores split into chunks of {}",
 		  DLMAN->ScoreUploadSequentialQueue.size(),
-		  UPLOAD_SCORE_BULK_CHUNK_SIZE);
+		  UPLOAD_SCORE_BULK_CHUNK_SIZE.Get());
 		uploadScoresSequentially();
 	}
 }
@@ -4714,7 +4714,7 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 								   LuaReference& callback)
 {
 	constexpr auto& CALL_ENDPOINT = API_GET_SCORE;
-	const auto CALL_PATH = fmt::format(API_GET_SCORE, scoreid);
+	const auto CALL_PATH = fmt::format(fmt::runtime(API_GET_SCORE), scoreid);
 
 	Locator::getLogger()->info(
 	  "Generating GetReplayData request for scoreid {} - {}", scoreid, chartkey);
@@ -5069,7 +5069,7 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 										 LuaReference& ref)
 {
 	constexpr auto& CALL_ENDPOINT = API_CHART_LEADERBOARD;
-	const auto CALL_PATH = fmt::format(API_CHART_LEADERBOARD, chartkey);
+	const auto CALL_PATH = fmt::format(fmt::runtime(API_CHART_LEADERBOARD), chartkey);
 
 	Locator::getLogger()->info("Generating GetChartLeaderboard request for {}",
 							   chartkey);
@@ -5293,7 +5293,7 @@ void
 DownloadManager::RequestTop25(Skillset ss)
 {
 	constexpr auto& CALL_ENDPOINT = API_USER_SCORES;
-	const auto CALL_PATH = fmt::format(API_USER_SCORES, sessionUser);
+	const auto CALL_PATH = fmt::format(fmt::runtime(API_USER_SCORES), sessionUser);
 	
 	std::string ssstr = "";
 	switch (ss) {
@@ -5430,7 +5430,7 @@ DownloadManager::RefreshUserData()
 		return;
 
 	constexpr auto& CALL_ENDPOINT = API_USER;
-	const auto CALL_PATH = fmt::format(API_USER, sessionUser);
+	const auto CALL_PATH = fmt::format(fmt::runtime(API_USER), sessionUser);
 
 	Locator::getLogger()->info("Refreshing UserData for {}", sessionUser);
 

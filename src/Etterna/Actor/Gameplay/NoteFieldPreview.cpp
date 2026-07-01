@@ -19,6 +19,7 @@
 #include <RageUtil/Graphics/RageDisplay.h>
 
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 

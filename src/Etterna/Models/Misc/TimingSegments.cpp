@@ -121,7 +121,7 @@ SpeedSegment::DebugPrint() const
 			   GetBeat(),
 			   GetRatio(),
 			   GetDelay(),
-			   GetUnit());
+			   static_cast<int>(GetUnit()));
 }
 
 void

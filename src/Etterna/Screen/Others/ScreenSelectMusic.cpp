@@ -904,7 +904,7 @@ ScreenSelectMusic::UpdateSelectButton(PlayerNumber pn, bool bSelectIsDown)
 void
 ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 {
-	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
+	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", static_cast<int>(pn), dir);
 
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 

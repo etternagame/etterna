@@ -25,7 +25,7 @@ void showCrashDialog(const char* message){
             "Please send that file to the developers, and they can find out what happened!\n\n"
             "Crash Reason: {}";
 
-    MessageBox(nullptr, fmt::format(error_message, message).c_str(), "Crash Message", MB_OK | MB_ICONERROR | MB_TASKMODAL);
+    MessageBox(nullptr, fmt::format(fmt::runtime(error_message), message).c_str(), "Crash Message", MB_OK | MB_ICONERROR | MB_TASKMODAL);
 }
 
 #endif

@@ -1,6 +1,6 @@
 // Formatting library for C++ - mocks of POSIX functions
 //
-// Copyright (c) 2012 - present, Victor Zverovich
+// Copyright (c) 2012 - present, Victor Zverovich and {fmt} contributors
 // All rights reserved.
 //
 // For the license information refer to format.h.
@@ -30,15 +30,13 @@ namespace test {
 
 #ifndef _MSC_VER
 // Size type for read and write.
-typedef size_t size_t;
-typedef ssize_t ssize_t;
+using size_t = size_t;
+using ssize_t = ssize_t;
 int open(const char* path, int oflag, int mode);
 int fstat(int fd, struct stat* buf);
 #else
-typedef unsigned size_t;
-typedef int ssize_t;
-errno_t sopen_s(int* pfh, const char* filename, int oflag, int shflag,
-                int pmode);
+using size_t = unsigned;
+using ssize_t = int;
 #endif
 
 #ifndef _WIN32
