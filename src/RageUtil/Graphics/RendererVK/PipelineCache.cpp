@@ -3,9 +3,8 @@
 #include "RageUtil/File/RageFile.h"
 
 void
-PipelineCache::Init()
+PipelineCache::Init(vk::raii::Device& device)
 {
-	assert(m_Device != nullptr);
 	assert(m_TextureLayout != nullptr);
 	assert(m_DescriptorSetLayout != nullptr);
 
@@ -20,7 +19,7 @@ PipelineCache::Init()
 		createInfo.setInitialData<uint8_t>(persistedData);
 	}
 
-	m_DriverCache = vk::raii::PipelineCache(*m_Device, createInfo);
+	m_DriverCache = vk::raii::PipelineCache(device, createInfo);
 }
 
 void
@@ -39,23 +38,22 @@ PipelineCache::WriteToDisk()
 }
 
 void
-PipelineCache::ReloadPipelines()
+PipelineCache::ReloadPipelines(vk::raii::Device& device)
 {
-	assert(m_Device != nullptr);
-	m_Device->waitIdle();
+	device.waitIdle();
 
 	for (auto& pipeline : m_Pipelines) {
 		CreateGraphicsPipeline(
-		  pipeline.VertexShaderPath, pipeline.FragmentShaderPath, true);
+		  device, pipeline.VertexShaderPath, pipeline.FragmentShaderPath, true);
 	}
 }
 
 intptr_t
-PipelineCache::CreateGraphicsPipeline(const std::string& vertexShaderPath,
+PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
+									  const std::string& vertexShaderPath,
 									  const std::string& fragmentShaderPath,
 									  bool reload)
 {
-	assert(m_Device != nullptr);
 	assert(m_TextureLayout != nullptr);
 	assert(m_DescriptorSetLayout != nullptr);
 
@@ -76,9 +74,9 @@ PipelineCache::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 	info.FragmentShaderPath = fragmentShaderPath;
 
 	auto fragmentShader =
-	  LoadShaderFromFile(fragmentShaderPath, *m_Device, ShaderType_Fragment);
+	  LoadShaderFromFile(fragmentShaderPath, device, ShaderType_Fragment);
 	auto vertexShader =
-	  LoadShaderFromFile(vertexShaderPath, *m_Device, ShaderType_Vertex);
+	  LoadShaderFromFile(vertexShaderPath, device, ShaderType_Vertex);
 
 	vk::PipelineShaderStageCreateInfo vertexShaderStageInfo{};
 	vertexShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
@@ -141,7 +139,7 @@ PipelineCache::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
 
 	info.PipelineLayout =
-	  vk::raii::PipelineLayout(*m_Device, pipelineLayoutInfo);
+	  vk::raii::PipelineLayout(device, pipelineLayoutInfo);
 
 	vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
 	colorBlendAttachment.blendEnable = VK_FALSE;
@@ -183,7 +181,7 @@ PipelineCache::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 	pipelineInfo.pColorBlendState = &colorBlending;
 
 	info.GraphicsPipeline =
-	  vk::raii::Pipeline(*m_Device, m_DriverCache, pipelineInfo);
+	  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo);
 
 	if (reload) {
 		int index = -1;

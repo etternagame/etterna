@@ -866,12 +866,11 @@ void
 RendererVK::InitGraphicsPipeline()
 {
 	m_Cache.emplace();
-	m_Cache->m_Device = &m_Device;
 	m_Cache->m_DescriptorSetLayout = m_DescriptorSetLayout;
 	m_Cache->m_TextureLayout = m_TextureLayout;
 	m_Cache->m_DepthFormat = m_DepthFormat;
 	m_Cache->m_ImageFormat = m_ImageFormat;
-	m_Cache->Init();
+	m_Cache->Init(m_Device);
 
 	CreateGraphicsPipeline("Data/Shaders/Vulkan/vertex.glsl",
 						   "Data/Shaders/Vulkan/fragment.glsl");
@@ -1683,14 +1682,14 @@ RendererVK::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 								   const std::string& fragmentShaderPath)
 {
 	assert(m_Cache.has_value());
-	return m_Cache->CreateGraphicsPipeline(vertexShaderPath,
+	return m_Cache->CreateGraphicsPipeline(m_Device, vertexShaderPath,
 										   fragmentShaderPath);
 }
 
 void
 RendererVK::ReloadPipelines()
 {
-	m_Cache->ReloadPipelines();
+	m_Cache->ReloadPipelines(m_Device);
 }
 
 void

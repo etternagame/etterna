@@ -19,17 +19,17 @@ struct PipelineCache
 {
 	constexpr static std::string_view CacheName = "Cache/pipelineCache.bin";
 
-	void Init();
+	void Init(vk::raii::Device& device);
 	void WriteToDisk();
-	void ReloadPipelines();
-	intptr_t CreateGraphicsPipeline(const std::string& vertexShaderPath,
-									const std::string& fragmentShaderPath, bool reload = false);
+	void ReloadPipelines(vk::raii::Device& device);
+	intptr_t CreateGraphicsPipeline(vk::raii::Device& device,
+									const std::string& vertexShaderPath,
+									const std::string& fragmentShaderPath,
+									bool reload = false);
 
 	std::vector<PipelineInfo> m_Pipelines;
 	std::map<std::pair<std::string, std::string>, intptr_t> m_PipelineLookup;
 
-	// Device is owned by RendererVK which owns PipelineCache so this is... ok?
-	vk::raii::Device* m_Device = nullptr;
 	vk::DescriptorSetLayout m_DescriptorSetLayout = nullptr;
 	vk::DescriptorSetLayout m_TextureLayout = nullptr;
 	vk::Format m_DepthFormat = {};
