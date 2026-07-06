@@ -6,6 +6,7 @@
 #include <map>
 #include <utility>
 #include <vulkan/vulkan_raii.hpp>
+#include "RageUtil/Graphics/Display/PipelineHandle.h"
 
 struct PipelineInfo
 {
@@ -15,6 +16,7 @@ struct PipelineInfo
 	std::string FragmentShaderPath;
 };
 
+
 struct PipelineCache
 {
 	constexpr static std::string_view CacheName = "Cache/pipelineCache.bin";
@@ -22,7 +24,8 @@ struct PipelineCache
 	void Init(vk::raii::Device& device);
 	void WriteToDisk();
 	void ReloadPipelines(vk::raii::Device& device);
-	intptr_t CreateGraphicsPipeline(vk::raii::Device& device,
+	DisplayAdapter::PipelineHandle CreateGraphicsPipeline(
+	  vk::raii::Device& device,
 									const std::string& vertexShaderPath,
 									const std::string& fragmentShaderPath,
 									bool reload = false);

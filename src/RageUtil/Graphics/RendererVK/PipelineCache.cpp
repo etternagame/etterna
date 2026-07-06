@@ -48,7 +48,7 @@ PipelineCache::ReloadPipelines(vk::raii::Device& device)
 	}
 }
 
-intptr_t
+DisplayAdapter::PipelineHandle
 PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 									  const std::string& vertexShaderPath,
 									  const std::string& fragmentShaderPath,
@@ -62,7 +62,7 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 		  m_PipelineLookup.find({ vertexShaderPath, fragmentShaderPath });
 
 		if (previousPipeline != m_PipelineLookup.end()) {
-			return previousPipeline->second;
+			return { previousPipeline->second };
 		} else {
 			m_PipelineLookup[{ vertexShaderPath, fragmentShaderPath }] =
 			  m_Pipelines.size();
@@ -198,9 +198,9 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 		assert(index != -1 && "Only existing pipelines should be refreshed");
 
 		m_Pipelines[index] = std::move(info);
-		return index;
+		return { index };
 	}
 
 	m_Pipelines.push_back(std::move(info));
-	return static_cast<intptr_t>(m_Pipelines.size() - 1);
+	return { static_cast<intptr_t>(m_Pipelines.size() - 1) };
 }

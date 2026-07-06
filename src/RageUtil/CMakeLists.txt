@@ -111,6 +111,7 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/Display/CompiledGeometry.h"
   "Graphics/Display/RenderNode.h"
   "Graphics/Display/Vertex.h"
+  "Graphics/Display/PipelineHandle.h"
 )
 
 if(WITH_VULKAN)

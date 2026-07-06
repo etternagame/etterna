@@ -5,6 +5,7 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Graphics/Display/PipelineHandle.h"
 
 #include <chrono>
 #include <set>
@@ -419,14 +420,14 @@ class RageDisplay
 	virtual void SetSphereEnvironmentMapping(TextureUnit tu, bool b) = 0;
 	virtual void SetCelShaded(int stage) = 0;
 
-	virtual intptr_t CreateGraphicsPipeline(
+	virtual DisplayAdapter::PipelineHandle CreateGraphicsPipeline(
 	  const std::string& vertexShaderPath,
 	  const std::string& fragmentShaderPath) {
-		return 0;
+		return DisplayAdapter::PipelineHandle{ 0 };
 	}
 	virtual void ReloadPipelines() {}
 	virtual void SetGraphicsPipeline(
-	  intptr_t pipeline,
+	  DisplayAdapter::PipelineHandle pipeline,
 	  const std::vector<uint8_t>& vertexShaderArgs,
 	  const std::vector<uint8_t>& fragShaderArgs,
 	  bool persist) {}

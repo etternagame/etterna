@@ -78,10 +78,10 @@ class Display : public RageDisplay
 							 const RageColor& diffuse,
 							 const RageColor& specular,
 							 const RageVector3& dir) override;
-	intptr_t CreateGraphicsPipeline(
+	PipelineHandle CreateGraphicsPipeline(
 	  const std::string& vertexShaderPath,
 	  const std::string& fragmentShaderPath) override;
-	void SetGraphicsPipeline(intptr_t pipeline,
+	void SetGraphicsPipeline(PipelineHandle pipeline,
 							 const std::vector<uint8_t>& vertexShaderArgs,
 							 const std::vector<uint8_t>& fragShaderArgs,
 							 bool persist) override;

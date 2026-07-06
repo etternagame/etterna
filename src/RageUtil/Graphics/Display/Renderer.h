@@ -30,7 +30,7 @@ class Renderer
 	virtual intptr_t CreateRenderTarget(const RenderTargetParam& param,
 										int& iTextureWidthOut,
 										int& iTextureHeightOut) = 0;
-	virtual intptr_t CreateGraphicsPipeline(
+	virtual PipelineHandle CreateGraphicsPipeline(
 	  const std::string& vertexShaderPath,
 	  const std::string& fragmentShaderPath) = 0;
 	virtual void ReloadPipelines() = 0;

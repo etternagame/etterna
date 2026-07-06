@@ -59,7 +59,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	intptr_t CreateRenderTarget(const RenderTargetParam& param,
 								int& iTextureWidthOut,
 								int& iTextureHeightOut) override;
-	intptr_t CreateGraphicsPipeline(
+	DisplayAdapter::PipelineHandle CreateGraphicsPipeline(
 	  const std::string& vertexShaderPath,
 	  const std::string& fragmentShaderPath) override;
 	void ReloadPipelines() override;

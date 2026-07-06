@@ -1677,7 +1677,7 @@ RendererVK::CreateRenderTargetTexture(int width, int height)
 	return currentHandle;
 }
 
-intptr_t
+DisplayAdapter::PipelineHandle
 RendererVK::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 								   const std::string& fragmentShaderPath)
 {

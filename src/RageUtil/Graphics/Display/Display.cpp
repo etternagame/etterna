@@ -347,7 +347,7 @@ DisplayAdapter::Display::GetCurrentMatrixState()
 	return m;
 }
 
-intptr_t
+DisplayAdapter::PipelineHandle
 DisplayAdapter::Display::CreateGraphicsPipeline(
   const std::string& vertexShaderPath,
   const std::string& fragmentShaderPath)
@@ -358,13 +358,13 @@ DisplayAdapter::Display::CreateGraphicsPipeline(
 
 void
 DisplayAdapter::Display::SetGraphicsPipeline(
-  intptr_t pipeline,
+  DisplayAdapter::PipelineHandle pipeline,
   const std::vector<uint8_t>& vertexShaderArgs,
   const std::vector<uint8_t>& fragShaderArgs,
   bool persist)
 {
 	m_Batcher.InsertPipelineChangeCommand(
-	  pipeline, vertexShaderArgs, fragShaderArgs, persist);
+	  pipeline.id, vertexShaderArgs, fragShaderArgs, persist);
 }
 
 void

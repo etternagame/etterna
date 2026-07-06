@@ -1,12 +1,13 @@
 #include "Etterna/Globals/global.h"
 #include "Actor.h"
+#include "RageUtil/Graphics/Display/PipelineHandle.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Models/Misc/Preference.h"
-#include "RageUtil/Graphics/RageDisplay.h"
 #include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
@@ -521,7 +522,8 @@ Actor::Draw()
 
 			DISPLAY->SetGraphicsPipeline(m_CustomShaders, m_VertexShaderArgs, m_FragmentShaderArgs, m_ShaderPersistence);
 			this->DrawPrimitives();
-			DISPLAY->SetGraphicsPipeline(0, {}, {}, m_ShaderPersistence);
+			DISPLAY->SetGraphicsPipeline(
+			  DisplayAdapter::PipelineHandle{ 0 }, {}, {}, m_ShaderPersistence);
 
 			this->EndDraw();
 		}
