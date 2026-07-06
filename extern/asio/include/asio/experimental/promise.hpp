@@ -32,6 +32,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 namespace experimental {
 
 template <typename T>
@@ -84,8 +85,9 @@ struct promise_value_type<>
  * awaitable<void> read_write_some(asio::ip::tcp::socket & sock,
  *     asio::mutable_buffer read_buf, asio::const_buffer to_write)
  * {
- *   auto p = asio::async_read(read_buf, asio::use_awaitable);
- *   co_await asio::async_write_some(to_write, asio::deferred);
+ *   auto p = asio::async_read(read_buf,
+ *       asio::experimental::use_promise);
+ *   co_await asio::async_write_some(to_write);
  *   co_await p;
  * }
  * @endcode
@@ -138,7 +140,6 @@ struct promise<void(Ts...), Executor,  Allocator>
    * It is safe to destruct a promise of a promise that didn't complete.
    */
   ~promise() { cancel(); }
-
 
 private:
 #if !defined(GENERATING_DOCUMENTATION)
@@ -217,6 +218,7 @@ private:
 
 } // namespace experimental
 
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

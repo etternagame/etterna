@@ -23,6 +23,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 namespace experimental {
 
 template <typename Allocator = std::allocator<void>>
@@ -33,7 +34,7 @@ struct use_promise_t
   typedef Allocator allocator_type;
 
   /// Construct using default-constructed allocator.
-  ASIO_CONSTEXPR use_promise_t()
+  constexpr use_promise_t()
   {
   }
 
@@ -44,7 +45,7 @@ struct use_promise_t
   }
 
   /// Obtain allocator.
-  allocator_type get_allocator() const ASIO_NOEXCEPT
+  allocator_type get_allocator() const noexcept
   {
     return allocator_;
   }
@@ -58,7 +59,7 @@ struct use_promise_t
     typedef use_promise_t<Allocator> default_completion_token_type;
 
     /// Construct the adapted executor from the inner executor type.
-    executor_with_default(const InnerExecutor& ex) ASIO_NOEXCEPT
+    executor_with_default(const InnerExecutor& ex) noexcept
       : InnerExecutor(ex)
     {
     }
@@ -67,9 +68,9 @@ struct use_promise_t
     /// that to construct the adapted executor.
     template <typename OtherExecutor>
     executor_with_default(const OtherExecutor& ex,
-        typename constraint<
+        constraint_t<
           is_convertible<OtherExecutor, InnerExecutor>::value
-        >::type = 0) ASIO_NOEXCEPT
+        > = 0) noexcept
       : InnerExecutor(ex)
     {
     }
@@ -78,14 +79,14 @@ struct use_promise_t
   /// Function helper to adapt an I/O object to use @c use_promise_t as its
   /// default completion token type.
   template <typename T>
-  static typename decay<T>::type::template rebind_executor<
-      executor_with_default<typename decay<T>::type::executor_type>
+  static typename decay_t<T>::template rebind_executor<
+      executor_with_default<typename decay_t<T>::executor_type>
     >::other
-  as_default_on(ASIO_MOVE_ARG(T) object)
+  as_default_on(T&& object)
   {
-    return typename decay<T>::type::template rebind_executor<
-        executor_with_default<typename decay<T>::type::executor_type>
-      >::other(ASIO_MOVE_CAST(T)(object));
+    return typename decay_t<T>::template rebind_executor<
+        executor_with_default<typename decay_t<T>::executor_type>
+      >::other(static_cast<T&&>(object));
   }
 
   /// Specify an alternate allocator.
@@ -99,9 +100,10 @@ private:
   Allocator allocator_;
 };
 
-constexpr use_promise_t<> use_promise;
+ASIO_INLINE_VARIABLE constexpr use_promise_t<> use_promise;
 
 } // namespace experimental
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

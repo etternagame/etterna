@@ -2,7 +2,7 @@
 // detail/io_uring_wait_op.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -19,7 +19,6 @@
 #include "asio/detail/bind_handler.hpp"
 #include "asio/detail/fenced_block.hpp"
 #include "asio/detail/handler_alloc_helpers.hpp"
-#include "asio/detail/handler_invoke_helpers.hpp"
 #include "asio/detail/handler_work.hpp"
 #include "asio/detail/io_uring_operation.hpp"
 #include "asio/detail/memory.hpp"
@@ -27,6 +26,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 namespace detail {
 
 template <typename Handler, typename IoExecutor>
@@ -39,7 +39,7 @@ public:
       int poll_flags, Handler& handler, const IoExecutor& io_ex)
     : io_uring_operation(success_ec, &io_uring_wait_op::do_prepare,
         &io_uring_wait_op::do_perform, &io_uring_wait_op::do_complete),
-      handler_(ASIO_MOVE_CAST(Handler)(handler)),
+      handler_(static_cast<Handler&&>(handler)),
       work_(handler_, io_ex),
       descriptor_(descriptor),
       poll_flags_(poll_flags)
@@ -72,7 +72,7 @@ public:
 
     // Take ownership of the operation's outstanding work.
     handler_work<Handler, IoExecutor> w(
-        ASIO_MOVE_CAST2(handler_work<Handler, IoExecutor>)(
+        static_cast<handler_work<Handler, IoExecutor>&&>(
           o->work_));
 
     ASIO_ERROR_LOCATION(o->ec_);
@@ -92,7 +92,7 @@ public:
     if (owner)
     {
       fenced_block b(fenced_block::half);
-      ASIO_HANDLER_INVOCATION_BEGIN((handler.arg1_, handler.arg2_));
+      ASIO_HANDLER_INVOCATION_BEGIN((handler.arg1_));
       w.complete(handler, handler.handler_);
       ASIO_HANDLER_INVOCATION_END;
     }
@@ -106,6 +106,7 @@ private:
 };
 
 } // namespace detail
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

@@ -2,7 +2,7 @@
 // basic_seq_packet_socket.hpp
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -25,6 +25,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 
 #if !defined(ASIO_BASIC_SEQ_PACKET_SOCKET_FWD_DECL)
 #define ASIO_BASIC_SEQ_PACKET_SOCKET_FWD_DECL
@@ -111,9 +112,9 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_seq_packet_socket(ExecutionContext& context,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      > = 0)
     : basic_socket<Protocol, Executor>(context)
   {
   }
@@ -154,10 +155,10 @@ public:
   template <typename ExecutionContext>
   basic_seq_packet_socket(ExecutionContext& context,
       const protocol_type& protocol,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      >::type = defaulted_constraint())
+      > = defaulted_constraint())
     : basic_socket<Protocol, Executor>(context, protocol)
   {
   }
@@ -202,9 +203,9 @@ public:
   template <typename ExecutionContext>
   basic_seq_packet_socket(ExecutionContext& context,
       const endpoint_type& endpoint,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      > = 0)
     : basic_socket<Protocol, Executor>(context, endpoint)
   {
   }
@@ -247,14 +248,13 @@ public:
   template <typename ExecutionContext>
   basic_seq_packet_socket(ExecutionContext& context,
       const protocol_type& protocol, const native_handle_type& native_socket,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value
-      >::type = 0)
+      > = 0)
     : basic_socket<Protocol, Executor>(context, protocol, native_socket)
   {
   }
 
-#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_seq_packet_socket from another.
   /**
    * This constructor moves a sequenced packet socket from one object to
@@ -267,7 +267,7 @@ public:
    * constructed using the @c basic_seq_packet_socket(const executor_type&)
    * constructor.
    */
-  basic_seq_packet_socket(basic_seq_packet_socket&& other) ASIO_NOEXCEPT
+  basic_seq_packet_socket(basic_seq_packet_socket&& other) noexcept
     : basic_socket<Protocol, Executor>(std::move(other))
   {
   }
@@ -305,10 +305,10 @@ public:
    */
   template <typename Protocol1, typename Executor1>
   basic_seq_packet_socket(basic_seq_packet_socket<Protocol1, Executor1>&& other,
-      typename constraint<
+      constraint_t<
         is_convertible<Protocol1, Protocol>::value
           && is_convertible<Executor1, Executor>::value
-      >::type = 0)
+      > = 0)
     : basic_socket<Protocol, Executor>(std::move(other))
   {
   }
@@ -327,16 +327,15 @@ public:
    * constructor.
    */
   template <typename Protocol1, typename Executor1>
-  typename constraint<
+  constraint_t<
     is_convertible<Protocol1, Protocol>::value
       && is_convertible<Executor1, Executor>::value,
     basic_seq_packet_socket&
-  >::type operator=(basic_seq_packet_socket<Protocol1, Executor1>&& other)
+  > operator=(basic_seq_packet_socket<Protocol1, Executor1>&& other)
   {
     basic_socket<Protocol, Executor>::operator=(std::move(other));
     return *this;
   }
-#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destroys the socket.
   /**
@@ -432,7 +431,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::post().
+   * manner equivalent to using asio::async_immediate().
    *
    * @par Completion Signature
    * @code void(asio::error_code, std::size_t) @endcode
@@ -459,17 +458,15 @@ public:
   template <typename ConstBufferSequence,
       ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code,
         std::size_t)) WriteToken
-          ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(WriteToken,
-      void (asio::error_code, std::size_t))
-  async_send(const ConstBufferSequence& buffers,
+          = default_completion_token_t<executor_type>>
+  auto async_send(const ConstBufferSequence& buffers,
       socket_base::message_flags flags,
-      ASIO_MOVE_ARG(WriteToken) token
-        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
-    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
+      WriteToken&& token
+        = default_completion_token_t<executor_type>())
+    -> decltype(
       async_initiate<WriteToken,
         void (asio::error_code, std::size_t)>(
-          declval<initiate_async_send>(), token, buffers, flags)))
+          declval<initiate_async_send>(), token, buffers, flags))
   {
     return async_initiate<WriteToken,
       void (asio::error_code, std::size_t)>(
@@ -624,7 +621,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::post().
+   * manner equivalent to using asio::async_immediate().
    *
    * @par Completion Signature
    * @code void(asio::error_code, std::size_t) @endcode
@@ -651,19 +648,15 @@ public:
    */
   template <typename MutableBufferSequence,
       ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code,
-        std::size_t)) ReadToken
-          ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(ReadToken,
-      void (asio::error_code, std::size_t))
-  async_receive(const MutableBufferSequence& buffers,
+        std::size_t)) ReadToken = default_completion_token_t<executor_type>>
+  auto async_receive(const MutableBufferSequence& buffers,
       socket_base::message_flags& out_flags,
-      ASIO_MOVE_ARG(ReadToken) token
-        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
-    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
+      ReadToken&& token = default_completion_token_t<executor_type>())
+    -> decltype(
       async_initiate<ReadToken,
         void (asio::error_code, std::size_t)>(
           declval<initiate_async_receive_with_flags>(), token,
-          buffers, socket_base::message_flags(0), &out_flags)))
+          buffers, socket_base::message_flags(0), &out_flags))
   {
     return async_initiate<ReadToken,
       void (asio::error_code, std::size_t)>(
@@ -702,7 +695,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::post().
+   * manner equivalent to using asio::async_immediate().
    *
    * @par Completion Signature
    * @code void(asio::error_code, std::size_t) @endcode
@@ -731,20 +724,16 @@ public:
    */
   template <typename MutableBufferSequence,
       ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code,
-        std::size_t)) ReadToken
-          ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(ReadToken,
-      void (asio::error_code, std::size_t))
-  async_receive(const MutableBufferSequence& buffers,
+        std::size_t)) ReadToken = default_completion_token_t<executor_type>>
+  auto async_receive(const MutableBufferSequence& buffers,
       socket_base::message_flags in_flags,
       socket_base::message_flags& out_flags,
-      ASIO_MOVE_ARG(ReadToken) token
-        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
-    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
+      ReadToken&& token = default_completion_token_t<executor_type>())
+    -> decltype(
       async_initiate<ReadToken,
         void (asio::error_code, std::size_t)>(
           declval<initiate_async_receive_with_flags>(),
-          token, buffers, in_flags, &out_flags)))
+          token, buffers, in_flags, &out_flags))
   {
     return async_initiate<ReadToken,
       void (asio::error_code, std::size_t)>(
@@ -754,9 +743,9 @@ public:
 
 private:
   // Disallow copying and assignment.
-  basic_seq_packet_socket(const basic_seq_packet_socket&) ASIO_DELETED;
+  basic_seq_packet_socket(const basic_seq_packet_socket&) = delete;
   basic_seq_packet_socket& operator=(
-      const basic_seq_packet_socket&) ASIO_DELETED;
+      const basic_seq_packet_socket&) = delete;
 
   class initiate_async_send
   {
@@ -768,13 +757,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const ASIO_NOEXCEPT
+    const executor_type& get_executor() const noexcept
     {
       return self_->get_executor();
     }
 
     template <typename WriteHandler, typename ConstBufferSequence>
-    void operator()(ASIO_MOVE_ARG(WriteHandler) handler,
+    void operator()(WriteHandler&& handler,
         const ConstBufferSequence& buffers,
         socket_base::message_flags flags) const
     {
@@ -802,13 +791,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const ASIO_NOEXCEPT
+    const executor_type& get_executor() const noexcept
     {
       return self_->get_executor();
     }
 
     template <typename ReadHandler, typename MutableBufferSequence>
-    void operator()(ASIO_MOVE_ARG(ReadHandler) handler,
+    void operator()(ReadHandler&& handler,
         const MutableBufferSequence& buffers,
         socket_base::message_flags in_flags,
         socket_base::message_flags* out_flags) const
@@ -828,6 +817,7 @@ private:
   };
 };
 
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

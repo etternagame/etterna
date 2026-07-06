@@ -2,7 +2,7 @@
 // ip/udp.hpp
 // ~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -26,6 +26,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 namespace ip {
 
 /// Encapsulates the flags needed for UDP.
@@ -46,31 +47,31 @@ public:
   typedef basic_endpoint<udp> endpoint;
 
   /// Construct to represent the IPv4 UDP protocol.
-  static udp v4() ASIO_NOEXCEPT
+  static udp v4() noexcept
   {
     return udp(ASIO_OS_DEF(AF_INET));
   }
 
   /// Construct to represent the IPv6 UDP protocol.
-  static udp v6() ASIO_NOEXCEPT
+  static udp v6() noexcept
   {
     return udp(ASIO_OS_DEF(AF_INET6));
   }
 
   /// Obtain an identifier for the type of the protocol.
-  int type() const ASIO_NOEXCEPT
+  int type() const noexcept
   {
     return ASIO_OS_DEF(SOCK_DGRAM);
   }
 
   /// Obtain an identifier for the protocol.
-  int protocol() const ASIO_NOEXCEPT
+  int protocol() const noexcept
   {
     return ASIO_OS_DEF(IPPROTO_UDP);
   }
 
   /// Obtain an identifier for the protocol family.
-  int family() const ASIO_NOEXCEPT
+  int family() const noexcept
   {
     return family_;
   }
@@ -95,7 +96,7 @@ public:
 
 private:
   // Construct with a specific family.
-  explicit udp(int protocol_family) ASIO_NOEXCEPT
+  explicit udp(int protocol_family) noexcept
     : family_(protocol_family)
   {
   }
@@ -104,6 +105,7 @@ private:
 };
 
 } // namespace ip
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

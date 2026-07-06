@@ -2,7 +2,7 @@
 // ssl/detail/engine.hpp
 // ~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -27,6 +27,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 namespace ssl {
 namespace detail {
 
@@ -61,18 +62,14 @@ public:
   // Construct a new engine for an existing native SSL implementation.
   ASIO_DECL explicit engine(SSL* ssl_impl);
 
-#if defined(ASIO_HAS_MOVE)
   // Move construct from another engine.
-  ASIO_DECL engine(engine&& other) ASIO_NOEXCEPT;
-#endif // defined(ASIO_HAS_MOVE)
+  ASIO_DECL engine(engine&& other) noexcept;
 
   // Destructor.
   ASIO_DECL ~engine();
 
-#if defined(ASIO_HAS_MOVE)
   // Move assign from another engine.
-  ASIO_DECL engine& operator=(engine&& other) ASIO_NOEXCEPT;
-#endif // defined(ASIO_HAS_MOVE)
+  ASIO_DECL engine& operator=(engine&& other) noexcept;
 
   // Get the underlying implementation in the native type.
   ASIO_DECL SSL* native_handle();
@@ -162,6 +159,7 @@ private:
 
 } // namespace detail
 } // namespace ssl
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

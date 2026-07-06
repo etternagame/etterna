@@ -2,7 +2,7 @@
 // detail/memory.hpp
 // ~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -23,42 +23,21 @@
 #include "asio/detail/cstdint.hpp"
 #include "asio/detail/throw_exception.hpp"
 
-#if !defined(ASIO_HAS_STD_SHARED_PTR)
-# include <boost/make_shared.hpp>
-# include <boost/shared_ptr.hpp>
-# include <boost/weak_ptr.hpp>
-#endif // !defined(ASIO_HAS_STD_SHARED_PTR)
-
-#if !defined(ASIO_HAS_STD_ADDRESSOF)
-# include <boost/utility/addressof.hpp>
-#endif // !defined(ASIO_HAS_STD_ADDRESSOF)
-
 #if !defined(ASIO_HAS_STD_ALIGNED_ALLOC) \
-  && defined(ASIO_HAS_BOOST_ALIGN) \
-  && defined(ASIO_HAS_ALIGNOF)
+  && defined(ASIO_HAS_BOOST_ALIGN)
 # include <boost/align/aligned_alloc.hpp>
 #endif // !defined(ASIO_HAS_STD_ALIGNED_ALLOC)
        //   && defined(ASIO_HAS_BOOST_ALIGN)
-       //   && defined(ASIO_HAS_ALIGNOF)
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 namespace detail {
 
-#if defined(ASIO_HAS_STD_SHARED_PTR)
+using std::allocate_shared;
 using std::make_shared;
 using std::shared_ptr;
 using std::weak_ptr;
-#else // defined(ASIO_HAS_STD_SHARED_PTR)
-using boost::make_shared;
-using boost::shared_ptr;
-using boost::weak_ptr;
-#endif // defined(ASIO_HAS_STD_SHARED_PTR)
-
-#if defined(ASIO_HAS_STD_ADDRESSOF)
 using std::addressof;
-#else // defined(ASIO_HAS_STD_ADDRESSOF)
-using boost::addressof;
-#endif // defined(ASIO_HAS_STD_ADDRESSOF)
 
 #if defined(ASIO_HAS_STD_TO_ADDRESS)
 using std::to_address;
@@ -76,23 +55,39 @@ inline const volatile T* to_address(const volatile T* p) { return p; }
 inline void* align(std::size_t alignment,
     std::size_t size, void*& ptr, std::size_t& space)
 {
-#if defined(ASIO_HAS_STD_ALIGN)
   return std::align(alignment, size, ptr, space);
-#else // defined(ASIO_HAS_STD_ALIGN)
-	const uintptr_t intptr = reinterpret_cast<uintptr_t>(ptr);
-	const uintptr_t aligned = (intptr - 1u + alignment) & -alignment;
-	const std::size_t padding = aligned - intptr;
-	if (size + padding > space)
-    return 0;
-	space -= padding;
-	ptr = reinterpret_cast<void*>(aligned);
-  return ptr;
-#endif // defined(ASIO_HAS_STD_ALIGN)
+}
+
+template <typename T, typename Allocator, typename... Args>
+T* allocate_object(const Allocator& a, Args&&... args)
+{
+  typename std::allocator_traits<Allocator>::template rebind_alloc<T> alloc(a);
+  T* raw = std::allocator_traits<decltype(alloc)>::allocate(alloc, 1);
+#if !defined(ASIO_NO_EXCEPTIONS)
+  try
+#endif // !defined(ASIO_NO_EXCEPTIONS)
+  {
+    return new (raw) T(static_cast<Args&&>(args)...);
+  }
+#if !defined(ASIO_NO_EXCEPTIONS)
+  catch (...)
+  {
+    std::allocator_traits<decltype(alloc)>::deallocate(alloc, raw, 1);
+    throw;
+  }
+#endif // !defined(ASIO_NO_EXCEPTIONS)
+}
+
+template <typename Allocator, typename T>
+void deallocate_object(const Allocator& a, T* ptr)
+{
+  typename std::allocator_traits<Allocator>::template rebind_alloc<T> alloc(a);
+  std::allocator_traits<decltype(alloc)>::destroy(alloc, ptr);
+  std::allocator_traits<decltype(alloc)>::deallocate(alloc, ptr, 1);
 }
 
 } // namespace detail
 
-#if defined(ASIO_HAS_CXX11_ALLOCATORS)
 using std::allocator_arg_t;
 # define ASIO_USES_ALLOCATOR(t) \
   namespace std { \
@@ -103,17 +98,10 @@ using std::allocator_arg_t;
 # define ASIO_REBIND_ALLOC(alloc, t) \
   typename std::allocator_traits<alloc>::template rebind_alloc<t>
   /**/
-#else // defined(ASIO_HAS_CXX11_ALLOCATORS)
-struct allocator_arg_t {};
-# define ASIO_USES_ALLOCATOR(t)
-# define ASIO_REBIND_ALLOC(alloc, t) \
-  typename alloc::template rebind<t>::other
-  /**/
-#endif // defined(ASIO_HAS_CXX11_ALLOCATORS)
 
 inline void* aligned_new(std::size_t align, std::size_t size)
 {
-#if defined(ASIO_HAS_STD_ALIGNED_ALLOC) && defined(ASIO_HAS_ALIGNOF)
+#if defined(ASIO_HAS_STD_ALIGNED_ALLOC)
   align = (align < ASIO_DEFAULT_ALIGN) ? ASIO_DEFAULT_ALIGN : align;
   size = (size % align == 0) ? size : size + (align - size % align);
   void* ptr = std::aligned_alloc(align, size);
@@ -123,7 +111,7 @@ inline void* aligned_new(std::size_t align, std::size_t size)
     asio::detail::throw_exception(ex);
   }
   return ptr;
-#elif defined(ASIO_HAS_BOOST_ALIGN) && defined(ASIO_HAS_ALIGNOF)
+#elif defined(ASIO_HAS_BOOST_ALIGN)
   align = (align < ASIO_DEFAULT_ALIGN) ? ASIO_DEFAULT_ALIGN : align;
   size = (size % align == 0) ? size : size + (align - size % align);
   void* ptr = boost::alignment::aligned_alloc(align, size);
@@ -133,7 +121,7 @@ inline void* aligned_new(std::size_t align, std::size_t size)
     asio::detail::throw_exception(ex);
   }
   return ptr;
-#elif defined(ASIO_MSVC) && defined(ASIO_HAS_ALIGNOF)
+#elif defined(ASIO_MSVC)
   align = (align < ASIO_DEFAULT_ALIGN) ? ASIO_DEFAULT_ALIGN : align;
   size = (size % align == 0) ? size : size + (align - size % align);
   void* ptr = _aligned_malloc(size, align);
@@ -143,25 +131,26 @@ inline void* aligned_new(std::size_t align, std::size_t size)
     asio::detail::throw_exception(ex);
   }
   return ptr;
-#else // defined(ASIO_MSVC) && defined(ASIO_HAS_ALIGNOF)
+#else // defined(ASIO_MSVC)
   (void)align;
   return ::operator new(size);
-#endif // defined(ASIO_MSVC) && defined(ASIO_HAS_ALIGNOF)
+#endif // defined(ASIO_MSVC)
 }
 
 inline void aligned_delete(void* ptr)
 {
-#if defined(ASIO_HAS_STD_ALIGNED_ALLOC) && defined(ASIO_HAS_ALIGNOF)
+#if defined(ASIO_HAS_STD_ALIGNED_ALLOC)
   std::free(ptr);
-#elif defined(ASIO_HAS_BOOST_ALIGN) && defined(ASIO_HAS_ALIGNOF)
+#elif defined(ASIO_HAS_BOOST_ALIGN)
   boost::alignment::aligned_free(ptr);
-#elif defined(ASIO_MSVC) && defined(ASIO_HAS_ALIGNOF)
+#elif defined(ASIO_MSVC)
   _aligned_free(ptr);
-#else // defined(ASIO_MSVC) && defined(ASIO_HAS_ALIGNOF)
+#else // defined(ASIO_MSVC)
   ::operator delete(ptr);
-#endif // defined(ASIO_MSVC) && defined(ASIO_HAS_ALIGNOF)
+#endif // defined(ASIO_MSVC)
 }
 
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #endif // ASIO_DETAIL_MEMORY_HPP

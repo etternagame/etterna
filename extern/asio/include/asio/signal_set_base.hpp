@@ -2,7 +2,7 @@
 // signal_set_base.hpp
 // ~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -21,6 +21,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 
 /// The signal_set_base class is used as a base for the basic_signal_set class
 /// templates so that we have a common place to define the flags enum.
@@ -56,7 +57,9 @@ public:
 
   /// Portability typedef.
   typedef flags flags_t;
-#elif defined(ASIO_HAS_ENUM_CLASS)
+
+#else // defined(GENERATING_DOCUMENTATION)
+
   enum class flags : int
   {
     none = 0,
@@ -67,21 +70,8 @@ public:
   };
 
   typedef flags flags_t;
-#else // defined(ASIO_HAS_ENUM_CLASS)
-  struct flags
-  {
-    enum flags_t
-    {
-      none = 0,
-      restart = ASIO_OS_DEF(SA_RESTART),
-      no_child_stop = ASIO_OS_DEF(SA_NOCLDSTOP),
-      no_child_wait = ASIO_OS_DEF(SA_NOCLDWAIT),
-      dont_care = -1
-    };
-  };
 
-  typedef flags::flags_t flags_t;
-#endif // defined(ASIO_HAS_ENUM_CLASS)
+#endif // defined(GENERATING_DOCUMENTATION)
 
 protected:
   /// Protected destructor to prevent deletion through this type.
@@ -94,7 +84,7 @@ protected:
 /**
  * @relates signal_set_base::flags
  */
-inline ASIO_CONSTEXPR bool operator!(signal_set_base::flags_t x)
+inline constexpr bool operator!(signal_set_base::flags_t x)
 {
   return static_cast<int>(x) == 0;
 }
@@ -103,7 +93,7 @@ inline ASIO_CONSTEXPR bool operator!(signal_set_base::flags_t x)
 /**
  * @relates signal_set_base::flags
  */
-inline ASIO_CONSTEXPR signal_set_base::flags_t operator&(
+inline constexpr signal_set_base::flags_t operator&(
     signal_set_base::flags_t x, signal_set_base::flags_t y)
 {
   return static_cast<signal_set_base::flags_t>(
@@ -114,7 +104,7 @@ inline ASIO_CONSTEXPR signal_set_base::flags_t operator&(
 /**
  * @relates signal_set_base::flags
  */
-inline ASIO_CONSTEXPR signal_set_base::flags_t operator|(
+inline constexpr signal_set_base::flags_t operator|(
     signal_set_base::flags_t x, signal_set_base::flags_t y)
 {
   return static_cast<signal_set_base::flags_t>(
@@ -125,7 +115,7 @@ inline ASIO_CONSTEXPR signal_set_base::flags_t operator|(
 /**
  * @relates signal_set_base::flags
  */
-inline ASIO_CONSTEXPR signal_set_base::flags_t operator^(
+inline constexpr signal_set_base::flags_t operator^(
     signal_set_base::flags_t x, signal_set_base::flags_t y)
 {
   return static_cast<signal_set_base::flags_t>(
@@ -136,7 +126,7 @@ inline ASIO_CONSTEXPR signal_set_base::flags_t operator^(
 /**
  * @relates signal_set_base::flags
  */
-inline ASIO_CONSTEXPR signal_set_base::flags_t operator~(
+inline constexpr signal_set_base::flags_t operator~(
     signal_set_base::flags_t x)
 {
   return static_cast<signal_set_base::flags_t>(~static_cast<int>(x));
@@ -175,6 +165,7 @@ inline signal_set_base::flags_t& operator^=(
   return x;
 }
 
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

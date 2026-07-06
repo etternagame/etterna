@@ -2,7 +2,7 @@
 // basic_stream_file.hpp
 // ~~~~~~~~~~~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -31,6 +31,7 @@
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 
 #if !defined(ASIO_BASIC_STREAM_FILE_FWD_DECL)
 #define ASIO_BASIC_STREAM_FILE_FWD_DECL
@@ -106,10 +107,10 @@ public:
    */
   template <typename ExecutionContext>
   explicit basic_stream_file(ExecutionContext& context,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      >::type = defaulted_constraint())
+      > = defaulted_constraint())
     : basic_file<Executor>(context)
   {
     this->impl_.get_service().set_is_stream(
@@ -161,10 +162,10 @@ public:
   template <typename ExecutionContext>
   basic_stream_file(ExecutionContext& context,
       const char* path, file_base::flags open_flags,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      >::type = defaulted_constraint())
+      > = defaulted_constraint())
     : basic_file<Executor>(context)
   {
     asio::error_code ec;
@@ -221,10 +222,10 @@ public:
   template <typename ExecutionContext>
   basic_stream_file(ExecutionContext& context,
       const std::string& path, file_base::flags open_flags,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      >::type = defaulted_constraint())
+      > = defaulted_constraint())
     : basic_file<Executor>(context)
   {
     asio::error_code ec;
@@ -272,17 +273,16 @@ public:
   template <typename ExecutionContext>
   basic_stream_file(ExecutionContext& context,
       const native_handle_type& native_file,
-      typename constraint<
+      constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
-      >::type = defaulted_constraint())
+      > = defaulted_constraint())
     : basic_file<Executor>(context, native_file)
   {
     this->impl_.get_service().set_is_stream(
         this->impl_.get_implementation(), true);
   }
 
-#if defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
   /// Move-construct a basic_stream_file from another.
   /**
    * This constructor moves a stream file from one object to another.
@@ -294,7 +294,7 @@ public:
    * constructed using the @c basic_stream_file(const executor_type&)
    * constructor.
    */
-  basic_stream_file(basic_stream_file&& other) ASIO_NOEXCEPT
+  basic_stream_file(basic_stream_file&& other) noexcept
     : basic_file<Executor>(std::move(other))
   {
   }
@@ -330,10 +330,10 @@ public:
    */
   template <typename Executor1>
   basic_stream_file(basic_stream_file<Executor1>&& other,
-      typename constraint<
+      constraint_t<
         is_convertible<Executor1, Executor>::value,
         defaulted_constraint
-      >::type = defaulted_constraint())
+      > = defaulted_constraint())
     : basic_file<Executor>(std::move(other))
   {
   }
@@ -350,15 +350,14 @@ public:
    * constructor.
    */
   template <typename Executor1>
-  typename constraint<
+  constraint_t<
     is_convertible<Executor1, Executor>::value,
     basic_stream_file&
-  >::type operator=(basic_stream_file<Executor1>&& other)
+  > operator=(basic_stream_file<Executor1>&& other)
   {
     basic_file<Executor>::operator=(std::move(other));
     return *this;
   }
-#endif // defined(ASIO_HAS_MOVE) || defined(GENERATING_DOCUMENTATION)
 
   /// Destroys the file.
   /**
@@ -492,7 +491,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::post().
+   * manner equivalent to using asio::async_immediate().
    *
    * @par Completion Signature
    * @code void(asio::error_code, std::size_t) @endcode
@@ -522,17 +521,13 @@ public:
    */
   template <typename ConstBufferSequence,
       ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code,
-        std::size_t)) WriteToken
-          ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(WriteToken,
-      void (asio::error_code, std::size_t))
-  async_write_some(const ConstBufferSequence& buffers,
-      ASIO_MOVE_ARG(WriteToken) token
-        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
-    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
+        std::size_t)) WriteToken = default_completion_token_t<executor_type>>
+  auto async_write_some(const ConstBufferSequence& buffers,
+      WriteToken&& token = default_completion_token_t<executor_type>())
+    -> decltype(
       async_initiate<WriteToken,
         void (asio::error_code, std::size_t)>(
-          declval<initiate_async_write_some>(), token, buffers)))
+          declval<initiate_async_write_some>(), token, buffers))
   {
     return async_initiate<WriteToken,
       void (asio::error_code, std::size_t)>(
@@ -624,7 +619,7 @@ public:
    * Regardless of whether the asynchronous operation completes immediately or
    * not, the completion handler will not be invoked from within this function.
    * On immediate completion, invocation of the handler will be performed in a
-   * manner equivalent to using asio::post().
+   * manner equivalent to using asio::async_immediate().
    *
    * @par Completion Signature
    * @code void(asio::error_code, std::size_t) @endcode
@@ -655,17 +650,13 @@ public:
    */
   template <typename MutableBufferSequence,
       ASIO_COMPLETION_TOKEN_FOR(void (asio::error_code,
-        std::size_t)) ReadToken
-          ASIO_DEFAULT_COMPLETION_TOKEN_TYPE(executor_type)>
-  ASIO_INITFN_AUTO_RESULT_TYPE_PREFIX(ReadToken,
-      void (asio::error_code, std::size_t))
-  async_read_some(const MutableBufferSequence& buffers,
-      ASIO_MOVE_ARG(ReadToken) token
-        ASIO_DEFAULT_COMPLETION_TOKEN(executor_type))
-    ASIO_INITFN_AUTO_RESULT_TYPE_SUFFIX((
+        std::size_t)) ReadToken = default_completion_token_t<executor_type>>
+  auto async_read_some(const MutableBufferSequence& buffers,
+      ReadToken&& token = default_completion_token_t<executor_type>())
+    -> decltype(
       async_initiate<ReadToken,
         void (asio::error_code, std::size_t)>(
-          declval<initiate_async_read_some>(), token, buffers)))
+          declval<initiate_async_read_some>(), token, buffers))
   {
     return async_initiate<ReadToken,
       void (asio::error_code, std::size_t)>(
@@ -674,8 +665,8 @@ public:
 
 private:
   // Disallow copying and assignment.
-  basic_stream_file(const basic_stream_file&) ASIO_DELETED;
-  basic_stream_file& operator=(const basic_stream_file&) ASIO_DELETED;
+  basic_stream_file(const basic_stream_file&) = delete;
+  basic_stream_file& operator=(const basic_stream_file&) = delete;
 
   class initiate_async_write_some
   {
@@ -687,13 +678,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const ASIO_NOEXCEPT
+    const executor_type& get_executor() const noexcept
     {
       return self_->get_executor();
     }
 
     template <typename WriteHandler, typename ConstBufferSequence>
-    void operator()(ASIO_MOVE_ARG(WriteHandler) handler,
+    void operator()(WriteHandler&& handler,
         const ConstBufferSequence& buffers) const
     {
       // If you get an error on the following line it means that your handler
@@ -720,13 +711,13 @@ private:
     {
     }
 
-    const executor_type& get_executor() const ASIO_NOEXCEPT
+    const executor_type& get_executor() const noexcept
     {
       return self_->get_executor();
     }
 
     template <typename ReadHandler, typename MutableBufferSequence>
-    void operator()(ASIO_MOVE_ARG(ReadHandler) handler,
+    void operator()(ReadHandler&& handler,
         const MutableBufferSequence& buffers) const
     {
       // If you get an error on the following line it means that your handler
@@ -744,6 +735,7 @@ private:
   };
 };
 
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"

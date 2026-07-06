@@ -1,8 +1,8 @@
 //
 // consign.hpp
-// ~~~~~~~~~~
+// ~~~~~~~~~~~
 //
-// Copyright (c) 2003-2023 Christopher M. Kohlhoff (chris at kohlhoff dot com)
+// Copyright (c) 2003-2026 Christopher M. Kohlhoff (chris at kohlhoff dot com)
 //
 // Distributed under the Boost Software License, Version 1.0. (See accompanying
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,17 +16,13 @@
 #endif // defined(_MSC_VER) && (_MSC_VER >= 1200)
 
 #include "asio/detail/config.hpp"
-
-#if (defined(ASIO_HAS_STD_TUPLE) \
-    && defined(ASIO_HAS_VARIADIC_TEMPLATES)) \
-  || defined(GENERATING_DOCUMENTATION)
-
 #include <tuple>
 #include "asio/detail/type_traits.hpp"
 
 #include "asio/detail/push_options.hpp"
 
 namespace asio {
+ASIO_INLINE_NAMESPACE_BEGIN
 
 /// Completion token type used to specify that the completion handler should
 /// carry additional values along with it.
@@ -41,11 +37,9 @@ class consign_t
 public:
   /// Constructor.
   template <typename T, typename... V>
-  ASIO_CONSTEXPR explicit consign_t(
-      ASIO_MOVE_ARG(T) completion_token,
-      ASIO_MOVE_ARG(V)... values)
-    : token_(ASIO_MOVE_CAST(T)(completion_token)),
-      values_(ASIO_MOVE_CAST(V)(values)...)
+  constexpr explicit consign_t(T&& completion_token, V&&... values)
+    : token_(static_cast<T&&>(completion_token)),
+      values_(static_cast<V&&>(values)...)
   {
   }
 
@@ -64,25 +58,20 @@ private:
  * called.
  */
 template <typename CompletionToken, typename... Values>
-ASIO_NODISCARD inline ASIO_CONSTEXPR consign_t<
-  typename decay<CompletionToken>::type, typename decay<Values>::type...>
-consign(ASIO_MOVE_ARG(CompletionToken) completion_token,
-    ASIO_MOVE_ARG(Values)... values)
+ASIO_NODISCARD inline constexpr
+consign_t<decay_t<CompletionToken>, decay_t<Values>...>
+consign(CompletionToken&& completion_token, Values&&... values)
 {
-  return consign_t<
-    typename decay<CompletionToken>::type, typename decay<Values>::type...>(
-      ASIO_MOVE_CAST(CompletionToken)(completion_token),
-      ASIO_MOVE_CAST(Values)(values)...);
+  return consign_t<decay_t<CompletionToken>, decay_t<Values>...>(
+      static_cast<CompletionToken&&>(completion_token),
+      static_cast<Values&&>(values)...);
 }
 
+ASIO_INLINE_NAMESPACE_END
 } // namespace asio
 
 #include "asio/detail/pop_options.hpp"
 
 #include "asio/impl/consign.hpp"
-
-#endif // (defined(ASIO_HAS_STD_TUPLE)
-       //     && defined(ASIO_HAS_VARIADIC_TEMPLATES))
-       //   || defined(GENERATING_DOCUMENTATION)
 
 #endif // ASIO_CONSIGN_HPP
