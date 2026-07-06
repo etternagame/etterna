@@ -9,7 +9,7 @@
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
- * are also available at https://curl.haxx.se/docs/copyright.html.
+ * are also available at https://curl.se/docs/copyright.html.
  *
  * You may opt to use, copy, modify, merge, publish, distribute and/or sell
  * copies of the Software, and permit persons to whom the Software is
@@ -21,18 +21,16 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
+#include "first.h"
 
-#include "test.h"
-
-typedef struct
-{
-  char *buf;
+struct put_buffer {
+  const char *buf;
   size_t len;
-} put_buffer;
+};
 
 static size_t put_callback(char *ptr, size_t size, size_t nmemb, void *stream)
 {
-  put_buffer *putdata = (put_buffer *)stream;
+  struct put_buffer *putdata = (struct put_buffer *)stream;
   size_t totalsize = size * nmemb;
   size_t tocopy = (putdata->len < totalsize) ? putdata->len : totalsize;
   memcpy(ptr, putdata->buf, tocopy);
@@ -41,12 +39,12 @@ static size_t put_callback(char *ptr, size_t size, size_t nmemb, void *stream)
   return tocopy;
 }
 
-CURLcode test(char *URL)
+static CURLcode test_lib1948(const char *URL)
 {
   CURL *curl;
-  CURLcode res = CURLE_OK;
-  const char *testput = "This is test PUT data\n";
-  put_buffer pbuf;
+  CURLcode result = CURLE_OK;
+  static const char testput[] = "This is test PUT data\n";
+  struct put_buffer pbuf;
 
   curl_global_init(CURL_GLOBAL_DEFAULT);
 
@@ -56,23 +54,23 @@ CURLcode test(char *URL)
   easy_setopt(curl, CURLOPT_UPLOAD, 1L);
   easy_setopt(curl, CURLOPT_HEADER, 1L);
   easy_setopt(curl, CURLOPT_READFUNCTION, put_callback);
-  pbuf.buf = (char *)CURL_UNCONST(testput);
-  pbuf.len = strlen(testput);
+  pbuf.buf = testput;
+  pbuf.len = sizeof(testput) - 1;
   easy_setopt(curl, CURLOPT_READDATA, &pbuf);
-  easy_setopt(curl, CURLOPT_INFILESIZE, (long)strlen(testput));
+  easy_setopt(curl, CURLOPT_INFILESIZE, (long)(sizeof(testput) - 1));
   easy_setopt(curl, CURLOPT_URL, URL);
-  res = curl_easy_perform(curl);
-  if(res)
+  result = curl_easy_perform(curl);
+  if(result)
     goto test_cleanup;
 
   /* POST */
   easy_setopt(curl, CURLOPT_POST, 1L);
   easy_setopt(curl, CURLOPT_POSTFIELDS, testput);
-  easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(testput));
-  res = curl_easy_perform(curl);
+  easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)(sizeof(testput) - 1));
+  result = curl_easy_perform(curl);
 
 test_cleanup:
   curl_easy_cleanup(curl);
   curl_global_cleanup();
-  return res;
+  return result;
 }

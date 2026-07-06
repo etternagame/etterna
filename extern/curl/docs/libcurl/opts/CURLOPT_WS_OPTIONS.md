@@ -39,10 +39,17 @@ Available bits in the bitmask
 ## CURLWS_RAW_MODE (1)
 
 Deliver "raw" WebSocket traffic to the CURLOPT_WRITEFUNCTION(3)
+callback. Read "raw" WebSocket traffic from the CURLOPT_READFUNCTION(3)
 callback.
 
 In raw mode, libcurl does not handle pings or any other frame for the
 application.
+
+## CURLWS_NOAUTOPONG (2)
+
+Disable the automatic reply to PING messages. This means users must
+send a PONG message with curl_ws_send(3). This feature is added with
+version 8.14.0.
 
 # DEFAULT
 
@@ -57,15 +64,21 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "ws://example.com/");
-    /* tell curl we deal with all the WebSocket magic ourselves */
-    curl_easy_setopt(curl, CURLOPT_WS_OPTIONS, (long)CURLWS_RAW_MODE);
-    res = curl_easy_perform(curl);
+    /* tell curl we deal with all the WebSocket logic ourselves */
+    curl_easy_setopt(curl, CURLOPT_WS_OPTIONS, CURLWS_RAW_MODE);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }
 ~~~
+
+# HISTORY
+
+**CURLWS_RAW_MODE** and **CURLWS_NOAUTOPONG** macros became `long` types
+in 8.16.0, prior to this version a `long` cast was necessary when passed
+to curl_easy_setopt(3).
 
 # %AVAILABILITY%
 

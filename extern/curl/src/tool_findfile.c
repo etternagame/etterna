@@ -24,23 +24,17 @@
 #include "tool_setup.h"
 
 #ifdef HAVE_PWD_H
+#ifdef __AMIGA__
 #undef __NO_NET_API /* required for AmigaOS to declare getpwuid() */
+#endif
 #include <pwd.h>
+#ifdef __AMIGA__
 #define __NO_NET_API
 #endif
-
-#ifdef HAVE_SYS_STAT_H
-#include <sys/stat.h>
 #endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#include <curlx.h>
 
 #include "tool_findfile.h"
-
-#include "memdebug.h" /* keep this as LAST include */
+#include "tool_cfgable.h"
 
 struct finder {
   const char *env;
@@ -57,7 +51,7 @@ static const struct finder conf_list[] = {
 #ifdef _WIN32
   { "USERPROFILE", NULL, FALSE },
   { "APPDATA", NULL, FALSE },
-  { "USERPROFILE", "\\Application Data", FALSE},
+  { "USERPROFILE", "\\Application Data", FALSE },
 #endif
   /* these are for .curlrc if XDG_CONFIG_HOME is not defined */
   { "CURL_HOME", "/.config", TRUE },
@@ -68,19 +62,19 @@ static const struct finder conf_list[] = {
 
 static char *checkhome(const char *home, const char *fname, bool dotscore)
 {
-  const char pref[2] = { '.', '_' };
+  static const char pref[2] = { '.', '_' };
   int i;
   for(i = 0; i < (dotscore ? 2 : 1); i++) {
     char *c;
     if(dotscore)
-      c = aprintf("%s" DIR_CHAR "%c%s", home, pref[i], &fname[1]);
+      c = curl_maprintf("%s" DIR_CHAR "%c%s", home, pref[i], &fname[1]);
     else
-      c = aprintf("%s" DIR_CHAR "%s", home, fname);
+      c = curl_maprintf("%s" DIR_CHAR "%s", home, fname);
     if(c) {
-      int fd = open(c, O_RDONLY);
+      int fd = curlx_open(c, O_RDONLY);
       if(fd >= 0) {
-        char *path = strdup(c);
-        close(fd);
+        char *path = curlx_strdup(c);
+        curlx_close(fd);
         curl_free(c);
         return path;
       }
@@ -91,7 +85,8 @@ static char *checkhome(const char *home, const char *fname, bool dotscore)
 }
 
 /*
- * findfile() - return the full path name of the file.
+ * findfile() - returns the full path name of the file. It must be freed with
+ * curl_free().
  *
  * If 'dotscore' is TRUE, then check for the file first with a leading dot
  * and then with a leading underscore.
@@ -119,7 +114,7 @@ char *findfile(const char *fname, int dotscore)
         continue;
       }
       if(conf_list[i].append) {
-        char *c = aprintf("%s%s", home, conf_list[i].append);
+        char *c = curl_maprintf("%s%s", home, conf_list[i].append);
         curl_free(home);
         if(!c)
           return NULL;
@@ -150,6 +145,6 @@ char *findfile(const char *fname, int dotscore)
         return checkhome(home, fname, FALSE);
     }
   }
-#endif /* PWD-stuff */
+#endif /* HAVE_GETPWUID && HAVE_GETEUID */
   return NULL;
 }

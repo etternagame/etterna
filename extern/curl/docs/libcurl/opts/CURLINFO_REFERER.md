@@ -16,7 +16,7 @@ Added-in: 7.76.0
 
 # NAME
 
-CURLINFO_REFERER - get the used referrer request header
+CURLINFO_REFERER - used HTTP referrer request header
 
 # SYNOPSIS
 
@@ -31,9 +31,9 @@ CURLcode curl_easy_getinfo(CURL *handle, CURLINFO_REFERER, char **hdrp);
 Pass in a pointer to a char pointer and get the referrer header used in the
 most recent request.
 
-The **hdrp** pointer is NULL or points to private memory you MUST NOT free -
-it gets freed when you call curl_easy_cleanup(3) on the corresponding curl
-handle.
+The **hdrp** pointer is NULL or points to private memory. You **must not**
+free it. The memory gets freed automatically when you call
+curl_easy_cleanup(3) on the corresponding curl handle.
 
 # %PROTOCOLS%
 
@@ -44,11 +44,11 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
     curl_easy_setopt(curl, CURLOPT_REFERER, "https://example.org/referrer");
-    res = curl_easy_perform(curl);
-    if(res == CURLE_OK) {
+    result = curl_easy_perform(curl);
+    if(result == CURLE_OK) {
       char *hdr = NULL;
       curl_easy_getinfo(curl, CURLINFO_REFERER, &hdr);
       if(hdr)

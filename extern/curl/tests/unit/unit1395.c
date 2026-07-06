@@ -21,33 +21,36 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curlcheck.h"
+#include "unitcheck.h"
 
-/* copied from urlapi.c */
-extern int dedotdotify(const char *input, size_t clen, char **out);
-
-#include "memdebug.h"
-
-static CURLcode unit_setup(void)
+static CURLcode test_unit1395(const char *arg)
 {
-  return CURLE_OK;
-}
-
-static void unit_stop(void)
-{
-
-}
-
-struct dotdot {
-  const char *input;
-  const char *output;
-};
-
-UNITTEST_START
+  UNITTEST_BEGIN_SIMPLE
 
   unsigned int i;
   int fails = 0;
+
+  struct dotdot {
+    const char *input;
+    const char *output;
+  };
+
   const struct dotdot pairs[] = {
+    { "/%2f%2e%2e%2f/../a", "/a" },
+    { "/%2f%2e%2e%2f/../", "/" },
+    { "/%2f%2e%2e%2f/.", "/%2f%2e%2e%2f/" },
+    { "/%2f%2e%2e%2f/", "/%2f%2e%2e%2f/" },
+    { "/%2f%2e%2e%2f", "/%2f%2e%2e%2f" },
+    { "/%2f%2e%2e%2", "/%2f%2e%2e%2" },
+    { "/%2f%2e%2e%", "/%2f%2e%2e%" },
+    { "/%2f%2e%2e", "/%2f%2e%2e" },
+    { "/%2f%2e%2", "/%2f%2e%2" },
+    { "/%2f%2e%", "/%2f%2e%" },
+    { "/%2f%2e", "/%2f%2e" },
+    { "/%2f%2", "/%2f%2" },
+    { "/%2f%", "/%2f%" },
+    { "/%2f", "/%2f" },
+    { "/%2", "/%2" },
     { "%2f%2e%2e%2f/../a", "%2f%2e%2e%2f/a" },
     { "%2f%2e%2e%2f/../", "%2f%2e%2e%2f/" },
     { "%2f%2e%2e%2f/.", "%2f%2e%2e%2f/" },
@@ -107,9 +110,9 @@ UNITTEST_START
     { "/hello/1/./../2", "/hello/2" },
     { "test/this", "test/this" },
     { "test/this/../now", "test/now" },
-    { "/1../moo../foo", "/1../moo../foo"},
-    { "/../../moo", "/moo"},
-    { "/../../moo?", "/moo?"},
+    { "/1../moo../foo", "/1../moo../foo" },
+    { "/../../moo", "/moo" },
+    { "/../../moo?", "/moo?" },
     { "/123?", "/123?" },
     { "/", NULL },
     { "", NULL },
@@ -119,6 +122,26 @@ UNITTEST_START
     { "/moo/..", "/" },
     { "/..", "/" },
     { "/.", "/" },
+    { "////../a", "///a" },
+    { "/../../../../../../", "/" },
+    { "/..//..//", "//" },
+    { "/.config/../ssh", "/ssh" },
+    { "/..config/..", "/" },
+    { "/.../a", "/.../a" },
+    { "/a/%2E%2e/b", "/b" },
+    { "/a/%2e./b", "/b" },
+    { "/a/.%2e/b", "/b" },
+    { "/%2f..%2f", "/%2f..%2f" },
+    { "/a/b/.", "/a/b/" },
+    { "/a/b/..", "/a/" },
+    { "well-known", "well-known" },
+    { ".well-known", ".well-known" },
+    { "..well-known", "..well-known" },
+    { "...well-known", "...well-known" },
+    { "....well-known", "....well-known" },
+    { "%2ewell-known", "%2ewell-known" },
+    { "%2Ewell-known", "%2Ewell-known" },
+    { "../.well-known", ".well-known" },
   };
 
   for(i = 0; i < CURL_ARRAYSIZE(pairs); i++) {
@@ -128,24 +151,25 @@ UNITTEST_START
     abort_if(err && out, "returned error with output");
 
     if(out && pairs[i].output && strcmp(out, pairs[i].output)) {
-      fprintf(stderr, "Test %u: '%s' gave '%s' instead of '%s'\n",
-              i, pairs[i].input, out, pairs[i].output);
+      curl_mfprintf(stderr, "Test %u: '%s' gave '%s' instead of '%s'\n",
+                    i, pairs[i].input, out, pairs[i].output);
       fail("Test case output mismatched");
       fails++;
     }
     else if((!out && pairs[i].output) ||
             (out && !pairs[i].output)) {
-      fprintf(stderr, "Test %u: '%s' gave '%s' instead of '%s'\n",
-              i, pairs[i].input, out ? out : "(null)",
-              pairs[i].output ? pairs[i].output : "(null)");
+      curl_mfprintf(stderr, "Test %u: '%s' gave '%s' instead of '%s'\n",
+                    i, pairs[i].input, out ? out : "(null)",
+                    pairs[i].output ? pairs[i].output : "(null)");
       fail("Test case output mismatched");
       fails++;
     }
     else
-      fprintf(stderr, "Test %u: OK\n", i);
-    free(out);
+      curl_mfprintf(stderr, "Test %u: OK\n", i);
+    curlx_free(out);
   }
 
   fail_if(fails, "output mismatched");
 
-UNITTEST_STOP
+  UNITTEST_END_SIMPLE
+}

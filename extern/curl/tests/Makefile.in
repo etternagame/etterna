@@ -115,7 +115,7 @@ host_triplet = @host@
 subdir = tests
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
-	$(top_srcdir)/m4/curl-bearssl.m4 \
+	$(top_srcdir)/m4/curl-apple-sectrust.m4 \
 	$(top_srcdir)/m4/curl-compilers.m4 \
 	$(top_srcdir)/m4/curl-confopts.m4 \
 	$(top_srcdir)/m4/curl-functions.m4 \
@@ -126,7 +126,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/curl-reentrant.m4 \
 	$(top_srcdir)/m4/curl-rustls.m4 \
 	$(top_srcdir)/m4/curl-schannel.m4 \
-	$(top_srcdir)/m4/curl-sectransp.m4 \
 	$(top_srcdir)/m4/curl-sysconfig.m4 \
 	$(top_srcdir)/m4/curl-wolfssl.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -136,8 +135,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/xc-lt-iface.m4 \
 	$(top_srcdir)/m4/xc-val-flgs.m4 \
 	$(top_srcdir)/m4/zz40-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz50-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz60-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/m4/zz50-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -199,7 +197,7 @@ am__define_uniq_tagged_files = \
     if test -f "$$i"; then echo $$i; else echo $(srcdir)/$$i; fi; \
   done | $(am__uniquify_input)`
 am__DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/config.in \
-	$(srcdir)/configurehelp.pm.in README.md
+	$(srcdir)/configurehelp.pm.in
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -243,6 +241,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_CURL_SYMBOL_HIDING = @CFLAG_CURL_SYMBOL_HIDING@
+CLANG_TIDY = @CLANG_TIDY@
 CONFIGURE_OPTIONS = @CONFIGURE_OPTIONS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -257,6 +256,7 @@ CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX = @CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME = @CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME@
 CURL_NETWORK_AND_TIME_LIBS = @CURL_NETWORK_AND_TIME_LIBS@
 CYGPATH_W = @CYGPATH_W@
+DANTED = @DANTED@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -275,6 +275,7 @@ FILECMD = @FILECMD@
 FISH_FUNCTIONS_DIR = @FISH_FUNCTIONS_DIR@
 GCOV = @GCOV@
 GREP = @GREP@
+H2O = @H2O@
 HAVE_LIBZ = @HAVE_LIBZ@
 HTTPD = @HTTPD@
 HTTPD_NGHTTPX = @HTTPD_NGHTTPX@
@@ -324,7 +325,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -390,92 +393,83 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 
-# if we disable man page building, ignore these
-@BUILD_DOCS_TRUE@RUNTESTS_DOCS = runtests.1
-@BUILD_DOCS_TRUE@TESTCURL_DOCS = testcurl.1
-@BUILD_DOCS_TRUE@MANFILES = $(RUNTESTS_DOCS) $(TESTCURL_DOCS)
-CURLPAGES = runtests.md testcurl.md
-
 # scripts used in test cases
 TESTSCRIPTS = \
- test1119.pl  \
- test1132.pl  \
- test1135.pl  \
- test1139.pl  \
- test1140.pl  \
- test1165.pl  \
- test1167.pl  \
- test1173.pl  \
- test1175.pl  \
- test1177.pl  \
- test1222.pl  \
- test1275.pl  \
- test1276.pl  \
- test1477.pl  \
- test1486.pl  \
- test1488.pl  \
- test1544.pl  \
- test1707.pl  \
- test971.pl
+  test1119.pl \
+  test1135.pl \
+  test1139.pl \
+  test1140.pl \
+  test1165.pl \
+  test1167.pl \
+  test1173.pl \
+  test1175.pl \
+  test1177.pl \
+  test1222.pl \
+  test1275.pl \
+  test1276.pl \
+  test1477.pl \
+  test1486.pl \
+  test1488.pl \
+  test1544.pl \
+  test1707.pl \
+  test745.pl  \
+  test971.pl
 
 EXTRA_DIST = \
- CMakeLists.txt     \
- FILEFORMAT.md      \
- README.md          \
- appveyor.pm        \
- azure.pm           \
- devtest.pl         \
- dictserver.py      \
- directories.pm     \
- ech_combos.py      \
- ech_tests.sh       \
- ftpserver.pl       \
- getpart.pm         \
- globalconfig.pm    \
- http-server.pl     \
- http2-server.pl    \
- http3-server.pl    \
- memanalyze.pl      \
- mk-bundle-hints.sh \
- mk-bundle.pl       \
- negtelnetserver.py \
- nghttpx.conf       \
- pathhelp.pm        \
- processhelp.pm     \
- requirements.txt   \
- rtspserver.pl      \
- runner.pm          \
- runtests.pl        \
- secureserver.pl    \
- serverhelp.pm      \
- servers.pm         \
- smbserver.py       \
- sshhelp.pm         \
- sshserver.pl       \
- testcurl.pl        \
- testutil.pm        \
- tftpserver.pl      \
- util.py            \
- valgrind.pm        \
- valgrind.supp      \
- $(TESTSCRIPTS)     \
- $(CURLPAGES)
+  CMakeLists.txt     \
+  allversions.pm     \
+  appveyor.pm        \
+  azure.pm           \
+  devtest.pl         \
+  dictserver.py      \
+  directories.pm     \
+  ech_combos.py      \
+  ech_tests.sh       \
+  ftpserver.pl       \
+  getpart.pm         \
+  globalconfig.pm    \
+  http-server.pl     \
+  http2-server.pl    \
+  http3-server.pl    \
+  memanalyze.pl      \
+  memanalyzer.pm     \
+  negtelnetserver.py \
+  nghttpx.conf       \
+  pathhelp.pm        \
+  processhelp.pm     \
+  requirements.txt   \
+  rtspserver.pl      \
+  runner.pm          \
+  runtests.pl        \
+  secureserver.pl    \
+  serverhelp.pm      \
+  servers.pm         \
+  smbserver.py       \
+  sshhelp.pm         \
+  sshserver.pl       \
+  testcurl.pl        \
+  testutil.pm        \
+  tftpserver.pl      \
+  util.py            \
+  valgrind.pm        \
+  valgrind.supp      \
+  $(TESTSCRIPTS)
 
 @BUILD_UNITTESTS_FALSE@BUILD_UNIT = 
 
-# we have two variables here to make sure DIST_SUBDIRS won't get 'unit'
+# we have two variables here to make sure DIST_SUBDIRS does not get 'unit'
 # added twice as then targets such as 'distclean' misbehave and try to
 # do things twice in that subdir at times (and thus fails).
-@BUILD_UNITTESTS_TRUE@BUILD_UNIT = unit
-@BUILD_UNITTESTS_FALSE@DIST_UNIT = unit
+@BUILD_UNITTESTS_TRUE@BUILD_UNIT = unit tunit
+@BUILD_UNITTESTS_FALSE@DIST_UNIT = unit tunit
 @BUILD_UNITTESTS_TRUE@DIST_UNIT = 
 SUBDIRS = certs data server libtest http $(BUILD_UNIT)
 DIST_SUBDIRS = $(SUBDIRS) $(DIST_UNIT)
 PERLFLAGS = -I$(srcdir)
-CLEANFILES = .http.pid .https.pid .ftp.pid .ftps.pid $(MANDISTPAGES)
+CLEANFILES = .http.pid .https.pid .ftp.pid .ftps.pid
 TEST_COMMON = $(am__append_1)
-@CROSSCOMPILING_FALSE@TEST = srcdir=$(srcdir) $(PERL) $(PERLFLAGS) $(srcdir)/runtests.pl $(TEST_COMMON)
-@CROSSCOMPILING_TRUE@TEST = @echo "NOTICE: we can't run the tests when cross-compiling!"
+@CROSSCOMPILING_FALSE@TEST = srcdir=$(srcdir) @PERL@ $(PERLFLAGS) $(srcdir)/runtests.pl $(TEST_COMMON)
+@CROSSCOMPILING_TRUE@TEST = @echo "NOTICE: we cannot run the tests when cross-compiling!"
 @CROSSCOMPILING_FALSE@PYTEST = pytest
 @CROSSCOMPILING_TRUE@PYTEST = $(TEST)
 @CROSSCOMPILING_FALSE@TEST_Q = -a -s
@@ -484,18 +478,15 @@ TEST_COMMON = $(am__append_1)
 @CROSSCOMPILING_FALSE@TEST_T = -a -t -j20
 @CROSSCOMPILING_FALSE@TEST_E = -a -e
 
-# ~<keyword> means that it will run all tests matching the keyword, but will
-# ignore their results (since these ones are likely to fail for no good reason)
+# ~<keyword> means that it runs all tests matching the keyword, but ignores
+# their results (since these ones are likely to fail for no good reason)
 @CROSSCOMPILING_FALSE@TEST_NF = -a -p ~flaky ~timing-dependent
 
-# special CI target derived from nonflaky with CI-specific flags
-@CROSSCOMPILING_FALSE@TEST_CI = $(TEST_NF) -r -j20
-CD2NROFF = $(top_srcdir)/scripts/cd2nroff $< >$@
-SUFFIXES = .1 .md
+# special target for CI use
+@CROSSCOMPILING_FALSE@TEST_CI = $(TEST_NF) -r --retry=5 -j20 --buildinfo
 all: all-recursive
 
 .SUFFIXES:
-.SUFFIXES: .1 .md
 $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -813,15 +804,15 @@ uninstall-am:
 curl:
 	@cd $(top_builddir) && $(MAKE)
 
-.md.1:
-	$(CD2)$(CD2NROFF)
-
 # make sure that PERL is pointing to an executable
 perlcheck:
-	@if ! test -x "$(PERL)"; then echo "No perl!"; exit 2; fi
+	@if ! test -x "@PERL@"; then echo "No perl!"; exit 2; fi
 
-build-certs:
+build-certs: perlcheck
 	(cd certs && $(MAKE))
+
+# alias for 'test' to match CMake, where 'test' is a reserved target
+tests: test
 
 test: perlcheck all
 	$(TEST) $(TFLAGS)
@@ -850,13 +841,13 @@ event-test: perlcheck all
 default-pytest: ci-pytest
 
 ci-pytest: all
-	srcdir=$(srcdir) $(PYTEST) -v $(srcdir)/http
+	srcdir=$(srcdir) $(PYTEST) -n auto -v $(srcdir)/http
 
 checksrc:
 	(cd libtest && $(MAKE) checksrc)
 	(cd unit && $(MAKE) checksrc)
+	(cd tunit && $(MAKE) checksrc)
 	(cd server && $(MAKE) checksrc)
-	(cd http && $(MAKE) checksrc)
 
 all-local: $(MANFILES) build-certs
 

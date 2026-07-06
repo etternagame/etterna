@@ -6,12 +6,13 @@ Short: H
 Arg: <header/@file>
 Help: Pass custom header(s) to server
 Protocols: HTTP IMAP SMTP
-Category: http imap smtp
+Category: important http imap smtp
 Added: 5.0
 Multi: append
 See-also:
   - user-agent
   - referer
+  - proxy-header
 Example:
   - -H "X-First-Name: Joe" $URL
   - -H "User-Agent: yes-please/2000" $URL

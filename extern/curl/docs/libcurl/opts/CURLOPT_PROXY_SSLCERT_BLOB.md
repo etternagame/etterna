@@ -14,7 +14,6 @@ Protocol:
 TLS-backend:
   - OpenSSL
   - Schannel
-  - Secure Transport
 Added-in: 7.71.0
 ---
 
@@ -35,9 +34,9 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_PROXY_SSLCERT_BLOB,
 
 Pass a pointer to a curl_blob structure, which contains information (pointer
 and size) about a memory block with binary data of the certificate used to
-connect to the HTTPS proxy. The format must be "P12" on Secure Transport or
-Schannel. The format must be "P12" or "PEM" on OpenSSL. The string "P12" or
-"PEM" must be specified with CURLOPT_PROXY_SSLCERTTYPE(3).
+connect to the HTTPS proxy. The format must be "P12" on Schannel. The format
+must be "P12" or "PEM" on OpenSSL. The string "P12" or "PEM" must be specified
+with CURLOPT_PROXY_SSLCERTTYPE(3).
 
 If the blob is initialized with the flags member of struct curl_blob set to
 CURL_BLOB_COPY, the application does not have to keep the buffer around after
@@ -63,17 +62,17 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     struct curl_blob blob;
     blob.data = certificateData;
     blob.len = filesize;
     blob.flags = CURL_BLOB_COPY;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-    curl_easy_setopt(curl, CURLOPT_PROXY, "https://proxy");
+    curl_easy_setopt(curl, CURLOPT_PROXY, "https://proxy.example");
     curl_easy_setopt(curl, CURLOPT_PROXY_SSLKEY, "key.pem");
     curl_easy_setopt(curl, CURLOPT_PROXY_KEYPASSWD, "s3cret");
     curl_easy_setopt(curl, CURLOPT_PROXY_SSLCERT_BLOB, &blob);
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }

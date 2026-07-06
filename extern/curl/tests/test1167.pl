@@ -43,41 +43,41 @@ my $rc = eval {
 };
 # Set default values if configure has not generated a configurehelp.pm file.
 # This is the case with cmake.
-if (!$rc) {
+if(!$rc) {
     $Cpreprocessor = 'cpp';
 }
 
-my $verbose=0;
+my $verbose = 0;
 
 # verbose mode when -v is the first argument
 if($ARGV[0] eq "-v") {
-    $verbose=1;
+    $verbose = 1;
     shift;
 }
 
-# we may get the dir root pointed out
-my $root=$ARGV[0] || ".";
+# we may get the directory root pointed out
+my $root = $ARGV[0] || ".";
 
 # need an include directory when building out-of-tree
 my $i = ($ARGV[1]) ? "-I$ARGV[1] " : '';
 
 my $incdir = "$root/include/curl";
 
-my $summary=0;
-my $misses=0;
+my $summary = 0;
+my $misses = 0;
 
 my @syms;
 
 sub scanenums {
-    my ($file)=@_;
+    my ($file) = @_;
     my $skipit = 0;
 
-    open H_IN, "-|", "$Cpreprocessor -DCURL_DISABLE_DEPRECATION $i$file" ||
+    open(H_IN, "-|", "$Cpreprocessor -DCURL_DISABLE_DEPRECATION $i$file") or
         die "Cannot preprocess $file";
-    while ( <H_IN> ) {
+    while(<H_IN>) {
         my ($line, $linenum) = ($_, $.);
-        if( /^#(line|) (\d+) \"(.*)\"/) {
-            # if the included file isn't in our incdir, then we skip this section
+        if(/^#(line|) (\d+) \"(.*)\"/) {
+            # if the included file is not in our incdir, then we skip this section
             # until next #line
             #
             if($3 !~ /^$incdir/) {
@@ -91,10 +91,10 @@ sub scanenums {
         if($skipit) {
             next;
         }
-        if (/^#/) {
+        if(/^#/) {
             next;
         }
-        if ( /enum\s+(\S+\s+)?{/ .. /}/ ) {
+        if(/enum\s+(\S+\s+)?{/ .. /}/) {
             s/^\s+//;
             chomp;
             s/[,\s].*//;
@@ -113,16 +113,16 @@ sub scanenums {
             }
         }
     }
-    close H_IN || die "Error preprocessing $file";
+    close H_IN or die "Error preprocessing $file";
 }
 
 sub scanheader {
-    my ($f)=@_;
+    my ($f) = @_;
     scanenums($f);
-    open H, "<$f";
+    open(H, '<', $f);
     while(<H>) {
         my ($line, $linenum) = ($_, $.);
-        if (/^ *# *define +([^ \n]*)/) {
+        if(/^ *# *define +([^ \n]*)/) {
             if($verbose) {
                 print "Source: $f\n";
                 print "Symbol: $1\n";
@@ -134,8 +134,7 @@ sub scanheader {
     close H;
 }
 
-
-opendir(my $dh, $incdir) || die "Can't opendir $incdir: $!";
+opendir(my $dh, $incdir) or die "Cannot opendir $incdir: $!";
 my @hfiles = grep { /\.h$/ } readdir($dh);
 closedir $dh;
 

@@ -30,7 +30,12 @@ if(ENABLE_CURL_MANUAL AND BUILD_CURL_EXE)
 endif()
 
 if(BUILD_MISC_DOCS)
-  foreach(_man_misc IN ITEMS "curl-config" "mk-ca-bundle")
+  set(_man_targets "curl-config" "mk-ca-bundle")
+  if(BUILD_CURL_EXE)
+    list(APPEND _man_targets "wcurl")
+  endif()
+
+  foreach(_man_misc IN LISTS _man_targets)
     set(_man_target "${CMAKE_CURRENT_BINARY_DIR}/${_man_misc}.1")
     add_custom_command(OUTPUT "${_man_target}"
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -39,7 +44,7 @@ if(BUILD_MISC_DOCS)
       VERBATIM
     )
     add_custom_target("curl-generate-${_man_misc}.1" ALL DEPENDS "${_man_target}")
-    if(NOT CURL_DISABLE_INSTALL)
+    if(NOT CURL_DISABLE_INSTALL AND NOT _man_misc STREQUAL "mk-ca-bundle")
       install(FILES "${_man_target}" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
     endif()
   endforeach()

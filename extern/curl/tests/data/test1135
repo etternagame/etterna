@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -6,17 +7,11 @@ CURL_EXTERN
 </keywords>
 </info>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
-
 # The VMS and OS/400 builds extract the CURL_EXTERN protos and use in
 # the build. We break binary compatibility by changing order. Only add
 # new entries last or bump the SONAME.
-#
 <name>
 Verify CURL_EXTERN order
 </name>
@@ -109,9 +104,12 @@ curl_multi_timeout
 curl_multi_setopt
 curl_multi_assign
 curl_multi_get_handles
+curl_multi_get_offt
 curl_pushheader_bynum
 curl_pushheader_byname
 curl_multi_waitfds
+curl_multi_notify_disable
+curl_multi_notify_enable
 curl_easy_option_by_name
 curl_easy_option_by_id
 curl_easy_option_next
@@ -123,6 +121,7 @@ curl_url_set
 curl_url_strerror
 curl_ws_recv
 curl_ws_send
+curl_ws_start_frame
 curl_ws_meta
 </stdout>
 </verify>

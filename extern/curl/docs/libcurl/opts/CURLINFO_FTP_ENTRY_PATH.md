@@ -9,12 +9,13 @@ See-also:
   - curl_easy_setopt (3)
 Protocol:
   - FTP
+  - SFTP
 Added-in: 7.15.4
 ---
 
 # NAME
 
-CURLINFO_FTP_ENTRY_PATH - get entry path in FTP server
+CURLINFO_FTP_ENTRY_PATH - entry path in FTP server
 
 # SYNOPSIS
 
@@ -28,12 +29,12 @@ CURLcode curl_easy_getinfo(CURL *handle, CURLINFO_FTP_ENTRY_PATH, char **path);
 
 Pass a pointer to a char pointer to receive a pointer to a string holding the
 path of the entry path. That is the initial path libcurl ended up in when
-logging on to the remote FTP server. This stores a NULL as pointer if
+logging on to the remote FTP or SFTP server. This stores a NULL as pointer if
 something is wrong.
 
-The **path** pointer is NULL or points to private memory. You MUST NOT free
-- it gets freed when you call curl_easy_cleanup(3) on the corresponding curl
-handle.
+The **path** pointer is NULL or points to private memory. You **must not**
+free it. The memory gets freed automatically when you call
+curl_easy_cleanup(3) on the corresponding curl handle.
 
 # %PROTOCOLS%
 
@@ -44,16 +45,16 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "ftp://example.com");
 
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
-    if(!res) {
+    if(result == CURLE_OK) {
       /* extract the entry path */
       char *ep = NULL;
-      res = curl_easy_getinfo(curl, CURLINFO_FTP_ENTRY_PATH, &ep);
-      if(!res && ep) {
+      result = curl_easy_getinfo(curl, CURLINFO_FTP_ENTRY_PATH, &ep);
+      if(!result && ep) {
         printf("Entry path was: %s\n", ep);
       }
     }

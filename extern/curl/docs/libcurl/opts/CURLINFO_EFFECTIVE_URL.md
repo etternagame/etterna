@@ -15,7 +15,7 @@ Added-in: 7.4
 
 # NAME
 
-CURLINFO_EFFECTIVE_URL - get the last used URL
+CURLINFO_EFFECTIVE_URL - last used URL
 
 # SYNOPSIS
 
@@ -32,9 +32,9 @@ Pass in a pointer to a char pointer and get the last used effective URL.
 In cases when you have asked libcurl to follow redirects, it may not be the same
 value you set with CURLOPT_URL(3).
 
-The **urlp** pointer is NULL or points to private memory. You MUST NOT free
-- it gets freed when you call curl_easy_cleanup(3) on the corresponding curl
-handle.
+The **urlp** pointer is NULL or points to private memory. You **must not**
+free it. It memory gets freed automatically when you call curl_easy_cleanup(3)
+on the corresponding curl handle.
 
 # %PROTOCOLS%
 
@@ -45,11 +45,11 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    res = curl_easy_perform(curl);
-    if(res == CURLE_OK) {
+    result = curl_easy_perform(curl);
+    if(result == CURLE_OK) {
       char *url = NULL;
       curl_easy_getinfo(curl, CURLINFO_EFFECTIVE_URL, &url);
       if(url)

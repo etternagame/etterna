@@ -10,6 +10,7 @@ See-also:
   - CURLOPT_FORBID_REUSE (3)
   - CURLOPT_MAXAGE_CONN (3)
   - CURLOPT_MAXLIFETIME_CONN (3)
+  - CURLMOPT_NETWORK_CHANGED (3)
 Added-in: 7.7
 ---
 
@@ -51,10 +52,11 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
     curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L);
     /* this transfer must use a new connection, not reuse an existing */
-    curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }

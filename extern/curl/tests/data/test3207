@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -16,135 +17,8 @@ Content-Length: 29
 
 run 1: foobar and so on fun!
 </data>
-<datacheck>
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
-run 1: foobar and so on fun!
+<datacheck nonewline="yes">
+%repeat[128 x run 1: foobar and so on fun!%0a]%
 </datacheck>
 </reply>
 
@@ -158,7 +32,7 @@ OpenSSL
 https
 </server>
 <name>
-concurrent HTTPS GET using shared ssl session cache
+concurrent HTTPS GET using shared SSL session cache
 </name>
 <tool>
 lib%TESTNUMBER
@@ -171,5 +45,8 @@ https://localhost:%HTTPSPORT/%TESTNUMBER %CERTDIR/certs/test-ca.crt
 
 # Verify data after the test has been "shot"
 <verify>
+<limits>
+Allocations: 13600
+</limits>
 </verify>
 </testcase>

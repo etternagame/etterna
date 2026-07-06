@@ -23,41 +23,93 @@
 #
 ###########################################################################
 
-# Helper script for "unity"-like support in autotools, to generate the umbrella
-# C source that includes the individual source files. Reads Makefile.inc and
-# accepts the variable name containing all the source files to include. Also
-# allow a list of exceptions that are to be excluded from the generated file.
+# Helper script for "unity"-like support in autotools and to bundle up tests
+# for both autotools and cmake. It generates the umbrella C source that
+# includes the individual source files and tests.
 
 use strict;
 use warnings;
 
 if(!@ARGV) {
-    die "Usage: $0 [<c-sources>] [--exclude <exclude-c-sources>]\n";
+    die "Usage: $0 [--concat [-I<incdir>]] [--test <tests>] [--include <include-c-sources>]\n";
 }
 
-# Specific sources to exclude or add as an extra source file
 my @src;
-my %exclude;
-my $in_exclude = 0;
+my %include;
+my $in_include = 0;
+my $any_test = 0;
+my $concat = 0;
+my @incpath;
 foreach my $src (@ARGV) {
-    if($in_exclude) {
-        $exclude{$src} = 1;
+    if($src eq "--concat") {
+        $concat = 1;
     }
-    elsif($src eq "--exclude") {
-        $in_exclude = 1;
+    elsif($src =~ "^-I") {
+        push @incpath, substr($src, 2);
+    }
+    elsif($src eq "--test") {
+        $in_include = 0;
+    }
+    elsif($src eq "--include") {
+        $in_include = 1;
+    }
+    elsif($in_include) {
+        $include{$src} = 1;
+        push @src, $src;
     }
     else {
         push @src, $src;
+        $any_test = 1;
     }
 }
 
-print <<HEADER
-/* !checksrc! disable COPYRIGHT all */
-HEADER
-    ;
+sub include($@) {
+    my $filename = shift;
+    if($concat && $filename =~ /([a-z0-9_]+)\.c$/) {
+        if(! -f $filename) {
+            foreach my $path (@incpath) {
+                my $fullfn = $path . "/" . $filename;
+                if(-f $fullfn) {
+                    $filename = $fullfn;
+                    last;
+                }
+            }
+        }
+        open(my $fh, '<', $filename) or die "Cannot open '$filename': $!";
+        my $content = do { local $/; <$fh> };
+        close $fh;
+        print "#line 1 \"$filename\"\n$content\n";
+    }
+    else {
+        print "#include \"$filename\"\n";
+    }
+}
+
+print "/* !checksrc! disable COPYRIGHT all */\n\n";
+if($any_test) {
+    if($concat) {
+        print "/* NOLINTBEGIN(readability-duplicate-include) */\n\n";
+    }
+    include("first.h");
+    print "\n";
+}
+
+my $tlist = "";
 
 foreach my $src (@src) {
-    if($src =~ /\.c$/g && !exists $exclude{$src}) {
-        print "#include \"$src\"\n";
+    if($src =~ /([a-z0-9_]+)\.c$/) {
+        my $name = $1;
+        include($src);
+        if(not exists $include{$src}) {  # register test entry function
+            $tlist .= "  {\"$name\", test_$name},\n";
+        }
+    }
+}
+
+if($any_test) {
+    print "\nconst struct entry_s s_entries[] = {\n$tlist  {NULL, NULL}\n};\n\n";
+    include("first.c");
+    if($concat) {
+        print "/* NOLINTEND(readability-duplicate-include) */\n";
     }
 }

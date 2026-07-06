@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -5,17 +6,12 @@
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
 <name>
 -K with missing file causes error
 </name>
@@ -24,7 +20,6 @@ none
 </command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 <stderr mode="text">

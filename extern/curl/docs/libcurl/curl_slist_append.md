@@ -28,12 +28,13 @@ struct curl_slist *curl_slist_append(struct curl_slist *list,
 
 curl_slist_append(3) appends a string to a linked list of strings. The
 existing **list** should be passed as the first argument and the new list is
-returned from this function. Pass in NULL in the **list** argument to create
-a new list. The specified **string** has been appended when this function
-returns. curl_slist_append(3) copies the string.
+returned from this function. Pass in NULL in the **list** argument to create a
+new list. The specified **string** has been appended when this function
+returns. curl_slist_append(3) copies the string. The **string** argument must
+be a valid string pointer and cannot be NULL.
 
-The list should be freed again (after usage) with
-curl_slist_free_all(3).
+The list should be freed (after usage) with curl_slist_free_all(3).
+Its nodes and pointed content may not be altered outside this function.
 
 # %PROTOCOLS%
 
@@ -42,7 +43,7 @@ curl_slist_free_all(3).
 ~~~c
 int main(void)
 {
-  CURL *handle;
+  CURL *handle = curl_easy_init();
   struct curl_slist *slist = NULL;
   struct curl_slist *temp = NULL;
 

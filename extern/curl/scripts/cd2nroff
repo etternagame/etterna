@@ -25,7 +25,7 @@
 
 =begin comment
 
-Converts a curldown file to nroff (manpage).
+Converts a curldown file to nroff (man page).
 
 =end comment
 =cut
@@ -55,10 +55,10 @@ while(@ARGV) {
         print <<HELP
 Usage: cd2nroff [options] [file.md]
 
--d <dir> Write the output to the file name from the meta-data in the
+-d <dir> Write the output to the filename from the meta-data in the
          specified directory, instead of writing to stdout
 -e <ext> If -d is used, this option can provide an added "extension", arbitrary
-         text really, to append to the file name.
+         text really, to append to the filename.
 -h       This help text,
 -v       Show version then exit
 HELP
@@ -76,7 +76,7 @@ HELP
 
 use POSIX qw(strftime);
 my @ts;
-if (defined($ENV{SOURCE_DATE_EPOCH})) {
+if(defined($ENV{SOURCE_DATE_EPOCH})) {
     @ts = gmtime($ENV{SOURCE_DATE_EPOCH});
 } else {
     @ts = localtime;
@@ -89,7 +89,7 @@ sub outseealso {
     my @o;
     push @o, ".SH SEE ALSO\n";
     for my $s (sort @sa) {
-        push @o, sprintf "%s.BR $s", $comma ? ",\n": "";
+        push @o, sprintf "%s.BR $s", $comma ? ",\n" : "";
         $comma = 1;
     }
     push @o, "\n";
@@ -100,27 +100,33 @@ sub outprotocols {
     my (@p) = @_;
     my $comma = 0;
     my @o;
+    my $tls = 0;
     push @o, ".SH PROTOCOLS\n";
 
-    if($p[0] eq "TLS") {
-        push @o, "This functionality affects all TLS based protocols: HTTPS, FTPS, IMAPS, POP3S, SMTPS etc.";
-    }
-    else {
-        my @s = sort @p;
-        push @o, "This functionality affects ";
-        for my $e (sort @s) {
+    my @s = sort @p;
+    push @o, "This functionality affects ";
+    for my $e (sort @s) {
+        if($e eq "TLS") {
+            $tls = 1;
+        }
+        else {
             push @o, sprintf "%s%s",
                 $comma ? (($e eq $s[-1]) ? " and " : ", "): "",
                 lc($e);
             $comma = 1;
         }
-        if($#s == 0) {
-            if($s[0] eq "All") {
-                push @o, " supported protocols";
-            }
-            else {
-                push @o, " only";
-            }
+    }
+    if($tls) {
+        push @o, sprintf
+            "%sall TLS based protocols: HTTPS, FTPS, IMAPS, POP3S, SMTPS etc.",
+            $comma ? " and ": " ";
+    }
+    if($#s == 0) {
+        if($s[0] eq "All") {
+            push @o, " supported protocols";
+        }
+        else {
+            push @o, " only";
         }
     }
     push @o, "\n";
@@ -166,8 +172,6 @@ my %knownprotos = (
     'MQTT' => 1,
     'POP3' => 1,
     'POP3S' => 1,
-    'RTMP' => 1,
-    'RTMPS' => 1,
     'RTSP' => 1,
     'SCP' => 1,
     'SFTP' => 1,
@@ -186,13 +190,11 @@ my %knownprotos = (
     );
 
 my %knowntls = (
-    'BearSSL' => 1,
     'GnuTLS' => 1,
     'mbedTLS' => 1,
     'OpenSSL' => 1,
-    'rustls' => 1,
+    'Rustls' => 1,
     'Schannel' => 1,
-    'Secure Transport' => 1,
     'wolfSSL' => 1,
     'All' => 1,
     'none' => 1,
@@ -203,7 +205,7 @@ sub single {
     my @proto;
     my @tls;
     my $d;
-    my ($f)=@_;
+    my ($f) = @_;
     my $copyright;
     my $errors = 0;
     my $fh;
@@ -218,7 +220,7 @@ sub single {
     my $title;
 
     if(defined($f)) {
-        if(!open($fh, "<:crlf", "$f")) {
+        if(!open($fh, "<:crlf", $f)) {
             print STDERR "cd2nroff failed to open '$f' for reading: $!\n";
             return 1;
         }
@@ -238,13 +240,13 @@ sub single {
             next;
         }
         if(/^Title: *(.*)/i) {
-            $title=$1;
+            $title = $1;
         }
         elsif(/^Section: *(.*)/i) {
-            $section=$1;
+            $section = $1;
         }
         elsif(/^Source: *(.*)/i) {
-            $source=$1;
+            $source = $1;
         }
         elsif(/^See-also: +(.*)/i) {
             $list = 1; # 1 for see-also
@@ -264,7 +266,7 @@ sub single {
             $list = 3; # 3 for TLS backend
         }
         elsif(/^Added-in: *(.*)/i) {
-            $addedin=$1;
+            $addedin = $1;
             if(($addedin !~ /^[0-9.]+[0-9]\z/) &&
                ($addedin ne "n/a")) {
                 print STDERR "$f:$line:1:ERROR: invalid version number in Added-in line: $addedin\n";
@@ -289,10 +291,10 @@ sub single {
         }
         # REUSE-IgnoreStart
         elsif(/^C: (.*)/i) {
-            $copyright=$1;
+            $copyright = $1;
         }
         elsif(/^SPDX-License-Identifier: (.*)/i) {
-            $spdx=$1;
+            $spdx = $1;
         }
         # REUSE-IgnoreEnd
         elsif(/^---/) {
@@ -322,7 +324,9 @@ sub single {
                 return 2;
             }
             if(!$spdx) {
+                # REUSE-IgnoreStart
                 print STDERR "$f:$line:1:ERROR: no 'SPDX-License-Identifier:' field present\n";
+                # REUSE-IgnoreEnd
                 return 2;
             }
             if($section == 3) {
@@ -373,7 +377,7 @@ sub single {
     my $blankline = 0;
     my $header = 0;
 
-    # cut off the leading path from the file name, if any
+    # cut off the leading path from the filename, if any
     $f =~ s/^(.*[\\\/])//;
 
     push @desc, ".\\\" generated by cd2nroff $cd2nroff from $f\n";
@@ -403,7 +407,7 @@ sub single {
                 push @desc, ".fi\n";
                 next;
             }
-            # convert single backslahes to doubles
+            # convert single backslashes to doubles
             $d =~ s/\\/\\\\/g;
             # lines starting with a period needs it escaped
             $d =~ s/^\./\\&./;
@@ -428,10 +432,10 @@ sub single {
             print STDERR "$f:$line:1:ERROR: un-escaped < or > used\n";
             $errors++;
         }
-        # convert backslash-'<' or '> to just the second character
+        # convert backslash-'<' or '> to the second character
         $d =~ s/\\([<>])/$1/g;
 
-        # mentions of curl symbols with manpages use italics by default
+        # mentions of curl symbols with man pages use italics by default
         $d =~ s/((lib|)curl([^ ]*\(3\)))/\\fI$1\\fP/gi;
 
         # backticked becomes italics
@@ -515,7 +519,7 @@ sub single {
             $blankline++;
         }
         else {
-            # don't output newlines if this is the first content after a
+            # do not output newlines if this is the first content after a
             # header
             push @desc, "\n" if($blankline && !$header);
             $blankline = 0;

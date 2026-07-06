@@ -21,13 +21,11 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "memdebug.h"
-
-CURLcode test(char *URL)
+static CURLcode test_lib3104(const char *URL)
 {
-  CURLcode res = CURLE_OK;
+  CURLcode result = CURLE_OK;
   CURLSH *share;
   CURL *curl;
 
@@ -37,22 +35,22 @@ CURLcode test(char *URL)
   curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_COOKIE);
 
   curl = curl_easy_init();
-  test_setopt(curl, CURLOPT_SHARE, share);
+  easy_setopt(curl, CURLOPT_SHARE, share);
 
-  test_setopt(curl, CURLOPT_VERBOSE, 1L);
-  test_setopt(curl, CURLOPT_HEADER, 1L);
-  test_setopt(curl, CURLOPT_PROXY, URL);
-  test_setopt(curl, CURLOPT_URL, "http://example.com/");
+  easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+  easy_setopt(curl, CURLOPT_HEADER, 1L);
+  easy_setopt(curl, CURLOPT_PROXY, URL);
+  easy_setopt(curl, CURLOPT_URL, "http://example.com/");
 
-  test_setopt(curl, CURLOPT_COOKIEFILE, "");
+  easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 
-  test_setopt(curl, CURLOPT_COOKIELIST,
+  easy_setopt(curl, CURLOPT_COOKIELIST,
               "example.com\tFALSE\t/\tFALSE\t0\tname\tvalue");
 
-  res = curl_easy_perform(curl);
-  if(res) {
-    fprintf(stderr, "curl_easy_perform() failed: %s\n",
-            curl_easy_strerror(res));
+  result = curl_easy_perform(curl);
+  if(result) {
+    curl_mfprintf(stderr, "curl_easy_perform() failed: %s\n",
+                  curl_easy_strerror(result));
   }
 
 test_cleanup:
@@ -62,5 +60,5 @@ test_cleanup:
   curl_share_cleanup(share);
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

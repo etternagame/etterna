@@ -38,9 +38,6 @@ previous ones. Set it to NULL to disable its use again.
 libcurl does not copy the list, it needs to be kept around until after the
 transfer has completed.
 
-These commands are not performed when a directory listing is performed, only
-for file transfers.
-
 While CURLOPT_QUOTE(3) and CURLOPT_POSTQUOTE(3) work for SFTP,
 this option does not.
 
@@ -60,13 +57,13 @@ int main(void)
 
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "ftp://example.com/foo.bin");
 
     /* pass in the FTP commands to run */
     curl_easy_setopt(curl, CURLOPT_PREQUOTE, cmdlist);
 
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
   }

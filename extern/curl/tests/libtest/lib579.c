@@ -21,20 +21,9 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "memdebug.h"
-
-static const char * const testpost[]={
-  "one",
-  "two",
-  "three",
-  "and a final longer crap: four",
-  NULL
-};
-
-
-struct WriteThis {
+struct t579_WriteThis {
   int counter;
 };
 
@@ -44,22 +33,22 @@ static size_t last_ul_total = 0;
 
 static void progress_final_report(void)
 {
-  FILE *moo = fopen(libtest_arg2, "ab");
-  fprintf(moo ? moo : stderr, "Progress: end UL %zu/%zu\n",
-                              last_ul, last_ul_total);
+  FILE *moo = curlx_fopen(libtest_arg2, "ab");
+  curl_mfprintf(moo ? moo : stderr, "Progress: end UL %zu/%zu\n",
+                last_ul, last_ul_total);
   if(moo)
-    fclose(moo);
+    curlx_fclose(moo);
   else
-    fprintf(stderr, "Progress: end UL, can't open %s\n", libtest_arg2);
+    curl_mfprintf(stderr, "Progress: end UL, cannot open %s\n", libtest_arg2);
   started = FALSE;
 }
 
-static int progress_callback(void *clientp, double dltotal, double dlnow,
-                             double ultotal, double ulnow)
+static int t579_progress_callback(void *clientp, double dltotal, double dlnow,
+                                  double ultotal, double ulnow)
 {
-  (void)clientp; /* UNUSED */
-  (void)dltotal; /* UNUSED */
-  (void)dlnow; /* UNUSED */
+  (void)clientp;
+  (void)dltotal;
+  (void)dlnow;
 
   if(started && ulnow <= 0.0 && last_ul) {
     progress_final_report();
@@ -68,98 +57,105 @@ static int progress_callback(void *clientp, double dltotal, double dlnow,
   last_ul = (size_t)ulnow;
   last_ul_total = (size_t)ultotal;
   if(!started) {
-    FILE *moo = fopen(libtest_arg2, "ab");
-    fprintf(moo ? moo : stderr, "Progress: start UL %zu/%zu\n",
-                                last_ul, last_ul_total);
+    FILE *moo = curlx_fopen(libtest_arg2, "ab");
+    curl_mfprintf(moo ? moo : stderr, "Progress: start UL %zu/%zu\n",
+                  last_ul, last_ul_total);
     if(moo)
-      fclose(moo);
+      curlx_fclose(moo);
     else
-      fprintf(stderr, "Progress: start UL, can't open %s\n", libtest_arg2);
+      curl_mfprintf(stderr, "Progress: start UL, cannot open %s\n",
+                    libtest_arg2);
     started = TRUE;
   }
 
   return 0;
 }
 
-static size_t read_callback(char *ptr, size_t size, size_t nmemb, void *userp)
+static size_t t579_read_cb(char *ptr, size_t size, size_t nmemb, void *userp)
 {
-  struct WriteThis *pooh = (struct WriteThis *)userp;
+  static const char * const testpost[] = {
+    "one",
+    "two",
+    "three",
+    "and a final longer crap: four",
+    NULL
+  };
+
+  struct t579_WriteThis *pooh = (struct t579_WriteThis *)userp;
   const char *data;
 
-  if(size*nmemb < 1)
+  if(size * nmemb < 1)
     return 0;
 
   data = testpost[pooh->counter];
 
   if(data) {
     size_t len = strlen(data);
-    memcpy(ptr, data, len);
+    memcpy(ptr, data, len); /* NOLINT(bugprone-not-null-terminated-result) */
     pooh->counter++; /* advance pointer */
     return len;
   }
   return 0;                         /* no more data left to deliver */
 }
 
-CURLcode test(char *URL)
+static CURLcode test_lib579(const char *URL)
 {
   CURL *curl;
-  CURLcode res = CURLE_OK;
+  CURLcode result = CURLE_OK;
   struct curl_slist *slist = NULL;
-  struct WriteThis pooh;
+  struct t579_WriteThis pooh;
   pooh.counter = 0;
 
   if(curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
-    fprintf(stderr, "curl_global_init() failed\n");
+    curl_mfprintf(stderr, "curl_global_init() failed\n");
     return TEST_ERR_MAJOR_BAD;
   }
 
   curl = curl_easy_init();
   if(!curl) {
-    fprintf(stderr, "curl_easy_init() failed\n");
+    curl_mfprintf(stderr, "curl_easy_init() failed\n");
     curl_global_cleanup();
     return TEST_ERR_MAJOR_BAD;
   }
 
   slist = curl_slist_append(slist, "Transfer-Encoding: chunked");
   if(!slist) {
-    fprintf(stderr, "curl_slist_append() failed\n");
+    curl_mfprintf(stderr, "curl_slist_append() failed\n");
     curl_easy_cleanup(curl);
     curl_global_cleanup();
     return TEST_ERR_MAJOR_BAD;
   }
 
   /* First set the URL that is about to receive our POST. */
-  test_setopt(curl, CURLOPT_URL, URL);
+  easy_setopt(curl, CURLOPT_URL, URL);
 
   /* Now specify we want to POST data */
-  test_setopt(curl, CURLOPT_POST, 1L);
+  easy_setopt(curl, CURLOPT_POST, 1L);
 
   /* we want to use our own read function */
-  test_setopt(curl, CURLOPT_READFUNCTION, read_callback);
+  easy_setopt(curl, CURLOPT_READFUNCTION, t579_read_cb);
 
   /* pointer to pass to our read function */
-  test_setopt(curl, CURLOPT_READDATA, &pooh);
+  easy_setopt(curl, CURLOPT_READDATA, &pooh);
 
   /* get verbose debug output please */
-  test_setopt(curl, CURLOPT_VERBOSE, 1L);
+  easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
   /* include headers in the output */
-  test_setopt(curl, CURLOPT_HEADER, 1L);
+  easy_setopt(curl, CURLOPT_HEADER, 1L);
 
   /* enforce chunked transfer by setting the header */
-  test_setopt(curl, CURLOPT_HTTPHEADER, slist);
+  easy_setopt(curl, CURLOPT_HTTPHEADER, slist);
 
-  test_setopt(curl, CURLOPT_HTTPAUTH, (long)CURLAUTH_DIGEST);
-  test_setopt(curl, CURLOPT_USERPWD, "foo:bar");
+  easy_setopt(curl, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
+  easy_setopt(curl, CURLOPT_USERPWD, "foo:bar");
 
   /* we want to use our own progress function */
-  test_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-  CURL_IGNORE_DEPRECATION(
-    test_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
-  )
+  easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+  easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, t579_progress_callback);
 
-  /* Perform the request, res will get the return code */
-  res = curl_easy_perform(curl);
+  /* Perform the request, result gets the return code */
+  result = curl_easy_perform(curl);
 
   progress_final_report();
 
@@ -173,5 +169,5 @@ test_cleanup:
   curl_easy_cleanup(curl);
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

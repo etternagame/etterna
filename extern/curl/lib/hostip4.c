@@ -21,7 +21,6 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
 /***********************************************************************
@@ -44,34 +43,16 @@
 #endif
 
 #include "urldata.h"
-#include "sendf.h"
+#include "curl_addrinfo.h"
+#include "curl_trc.h"
 #include "hostip.h"
-#include "hash.h"
-#include "share.h"
 #include "url.h"
-/* The last 3 #include files should be in this order */
-#include "curl_printf.h"
-#include "curl_memory.h"
-#include "memdebug.h"
 
-/*
- * Curl_ipvalid() checks what CURL_IPRESOLVE_* requirements that might've
- * been set and returns TRUE if they are OK.
- */
-bool Curl_ipvalid(struct Curl_easy *data, struct connectdata *conn)
-{
-  (void)data;
-  if(conn->ip_version == CURL_IPRESOLVE_V6)
-    /* An IPv6 address was requested and we cannot get/use one */
-    return FALSE;
-
-  return TRUE; /* OK, proceed */
-}
 
 #ifdef CURLRES_SYNCH
 
 /*
- * Curl_getaddrinfo() - the IPv4 synchronous version.
+ * Curl_sync_getaddrinfo() - the IPv4 synchronous version.
  *
  * The original code to this function was from the Dancer source code, written
  * by Bjorn Reese, it has since been patched and modified considerably.
@@ -83,21 +64,19 @@ bool Curl_ipvalid(struct Curl_easy *data, struct connectdata *conn)
  * the HAVE_GETHOSTBYNAME_R_3, HAVE_GETHOSTBYNAME_R_5 or
  * HAVE_GETHOSTBYNAME_R_6 defines accordingly. Note that HAVE_GETADDRBYNAME
  * has the corresponding rules. This is primarily on *nix. Note that some Unix
- * flavours have thread-safe versions of the plain gethostbyname() etc.
+ * flavors have thread-safe versions of the plain gethostbyname() etc.
  *
  */
-struct Curl_addrinfo *Curl_getaddrinfo(struct Curl_easy *data,
-                                       const char *hostname,
-                                       int port,
-                                       int *waitp)
+struct Curl_addrinfo *Curl_sync_getaddrinfo(struct Curl_easy *data,
+                                            uint8_t dns_queries,
+                                            const char *hostname,
+                                            uint16_t port,
+                                            uint8_t transport)
 {
   struct Curl_addrinfo *ai = NULL;
 
-#ifdef CURL_DISABLE_VERBOSE_STRINGS
-  (void)data;
-#endif
-
-  *waitp = 0; /* synchronous response only */
+  (void)dns_queries;
+  (void)transport;
 
   ai = Curl_ipv4_resolve_r(hostname, port);
   if(!ai)
@@ -108,21 +87,21 @@ struct Curl_addrinfo *Curl_getaddrinfo(struct Curl_easy *data,
 #endif /* CURLRES_SYNCH */
 #endif /* CURLRES_IPV4 */
 
-#if defined(CURLRES_IPV4) && \
-   !defined(CURLRES_ARES) && !defined(CURLRES_AMIGA)
+#if defined(CURLRES_IPV4) && !defined(USE_RESOLV_ARES) && \
+  !defined(CURLRES_AMIGA)
 
 /*
- * Curl_ipv4_resolve_r() - ipv4 threadsafe resolver function.
+ * Curl_ipv4_resolve_r() - ipv4 thread-safe resolver function.
  *
  * This is used for both synchronous and asynchronous resolver builds,
- * implying that only threadsafe code and function calls may be used.
+ * implying that only thread-safe code and function calls may be used.
  *
  */
 struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
-                                          int port)
+                                          uint16_t port)
 {
 #if !(defined(HAVE_GETADDRINFO) && defined(HAVE_GETADDRINFO_THREADSAFE)) && \
-   defined(HAVE_GETHOSTBYNAME_R_3)
+  defined(HAVE_GETHOSTBYNAME_R_3)
   int res;
 #endif
   struct Curl_addrinfo *ai = NULL;
@@ -140,7 +119,7 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
   hints.ai_family = PF_INET;
   hints.ai_socktype = SOCK_STREAM;
   if(port) {
-    msnprintf(sbuf, sizeof(sbuf), "%d", port);
+    curl_msnprintf(sbuf, sizeof(sbuf), "%d", port);
     sbufptr = sbuf;
   }
 
@@ -154,16 +133,16 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
    */
   int h_errnop;
 
-  buf = calloc(1, CURL_HOSTENT_SIZE);
+  buf = curlx_calloc(1, CURL_HOSTENT_SIZE);
   if(!buf)
     return NULL; /* major failure */
   /*
    * The clearing of the buffer is a workaround for a gethostbyname_r bug in
-   * qnx nto and it is also _required_ for some of these functions on some
+   * QNX Neutrino and it is also _required_ for some of these functions on some
    * platforms.
    */
 
-#if defined(HAVE_GETHOSTBYNAME_R_5)
+#ifdef HAVE_GETHOSTBYNAME_R_5
   /* Solaris, IRIX and more */
   h = gethostbyname_r(hostname,
                       (struct hostent *)buf,
@@ -172,7 +151,7 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
                       &h_errnop);
 
   /* If the buffer is too small, it returns NULL and sets errno to
-   * ERANGE. The errno is thread safe if this is compiled with
+   * ERANGE. The errno is thread-safe if this is compiled with
    * -D_REENTRANT as then the 'errno' variable is a macro defined to get
    * used properly for threads.
    */
@@ -185,11 +164,11 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
   /* Linux */
 
   (void)gethostbyname_r(hostname,
-                      (struct hostent *)buf,
-                      (char *)buf + sizeof(struct hostent),
-                      CURL_HOSTENT_SIZE - sizeof(struct hostent),
-                      &h, /* DIFFERENCE */
-                      &h_errnop);
+                        (struct hostent *)buf,
+                        (char *)buf + sizeof(struct hostent),
+                        CURL_HOSTENT_SIZE - sizeof(struct hostent),
+                        &h, /* DIFFERENCE */
+                        &h_errnop);
   /* Redhat 8, using glibc 2.2.93 changed the behavior. Now all of a
    * sudden this function returns EAGAIN if the given buffer size is too
    * small. Previous versions are known to return ERANGE for the same
@@ -268,8 +247,8 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
      * Since we do not know how big buffer this particular lookup required,
      * we cannot realloc down the huge alloc without doing closer analysis of
      * the returned data. Thus, we always use CURL_HOSTENT_SIZE for every
-     * name lookup. Fixing this would require an extra malloc() and then
-     * calling Curl_addrinfo_copy() that subsequent realloc()s down the new
+     * name lookup. Fixing this would require an extra allocation and then
+     * calling Curl_addrinfo_copy() that subsequent reallocation down the new
      * memory area to the actually used amount.
      */
   }
@@ -277,12 +256,12 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
 #endif /* HAVE_...BYNAME_R_5 || HAVE_...BYNAME_R_6 || HAVE_...BYNAME_R_3 */
   {
     h = NULL; /* set return code to NULL */
-    free(buf);
+    curlx_free(buf);
   }
 #else /* (HAVE_GETADDRINFO && HAVE_GETADDRINFO_THREADSAFE) ||
           HAVE_GETHOSTBYNAME_R */
   /*
-   * Here is code for platforms that do not have a thread safe
+   * Here is code for platforms that do not have a thread-safe
    * getaddrinfo() nor gethostbyname_r() function or for which
    * gethostbyname() is the preferred one.
    */
@@ -295,11 +274,10 @@ struct Curl_addrinfo *Curl_ipv4_resolve_r(const char *hostname,
     ai = Curl_he2ai(h, port);
 
     if(buf) /* used a *_r() function */
-      free(buf);
+      curlx_free(buf);
   }
 #endif
 
   return ai;
 }
-#endif /* defined(CURLRES_IPV4) && !defined(CURLRES_ARES) &&
-                                   !defined(CURLRES_AMIGA) */
+#endif /* CURLRES_IPV4 && !USE_RESOLV_ARES && !CURLRES_AMIGA */

@@ -14,12 +14,10 @@ Protocol:
   - TLS
 TLS-backend:
   - OpenSSL
-  - BearSSL
   - Schannel
-  - Secure Transport
   - wolfSSL
   - mbedTLS
-  - rustls
+  - Rustls
   - GnuTLS
 Added-in: 7.9
 ---
@@ -82,12 +80,12 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
     curl_easy_setopt(curl, CURLOPT_SSL_CIPHER_LIST,
                      "ECDHE-ECDSA-CHACHA20-POLY1305:"
                      "ECDHE-RSA-CHACHA20-POLY1305");
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }
@@ -98,8 +96,6 @@ int main(void)
 OpenSSL support added in 7.9.
 wolfSSL support added in 7.53.0.
 Schannel support added in 7.61.0.
-Secure Transport support added in 7.77.0.
-BearSSL support added in 7.83.0.
 mbedTLS support added in 8.8.0.
 Rustls support added in 8.10.0.
 

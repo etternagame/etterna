@@ -36,13 +36,16 @@ Example: cd2cd [--in-place] <file.md> > <file.md>
 =end comment
 =cut
 
+use strict;
+use warnings;
+
 my $cd2cd = "0.1"; # to keep check
 my $dir;
 my $extension;
 my $inplace = 0;
 
 while(1) {
-    if($ARGV[0] eq "--in-place") {
+    if(@ARGV && $ARGV[0] eq "--in-place") {
         shift @ARGV;
         $inplace = 1;
     }
@@ -51,10 +54,9 @@ while(1) {
     }
 }
 
-
 use POSIX qw(strftime);
 my @ts;
-if (defined($ENV{SOURCE_DATE_EPOCH})) {
+if(defined($ENV{SOURCE_DATE_EPOCH})) {
     @ts = localtime($ENV{SOURCE_DATE_EPOCH});
 } else {
     @ts = localtime;
@@ -67,7 +69,7 @@ sub outseealso {
     my @o;
     push @o, ".SH SEE ALSO\n";
     for my $s (sort @sa) {
-        push @o, sprintf "%s.BR $s", $comma ? ",\n": "";
+        push @o, sprintf "%s.BR $s", $comma ? ",\n" : "";
         $comma = 1;
     }
     push @o, "\n";
@@ -77,14 +79,17 @@ sub outseealso {
 sub single {
     my @head;
     my @seealso;
-    my ($f)=@_;
+    my ($f) = @_;
     my $title;
     my $section;
     my $source;
     my $start = 0;
     my $d;
     my $line = 0;
-    open(F, "<:crlf", "$f") ||
+    my $salist = 0;
+    my $copyright;
+    my $spdx;
+    open(F, "<:crlf", $f) or
         return 1;
     while(<F>) {
         $line++;
@@ -98,13 +103,13 @@ sub single {
             next;
         }
         if(/^Title: *(.*)/i) {
-            $title=$1;
+            $title = $1;
         }
         elsif(/^Section: *(.*)/i) {
-            $section=$1;
+            $section = $1;
         }
         elsif(/^Source: *(.*)/i) {
-            $source=$1;
+            $source = $1;
         }
         elsif(/^See-also: +(.*)/i) {
             $salist = 0;
@@ -125,10 +130,10 @@ sub single {
         }
         # REUSE-IgnoreStart
         elsif(/^C: (.*)/i) {
-            $copyright=$1;
+            $copyright = $1;
         }
         elsif(/^SPDX-License-Identifier: (.*)/i) {
-            $spdx=$1;
+            $spdx = $1;
         }
         # REUSE-IgnoreEnd
         elsif(/^---/) {
@@ -150,7 +155,9 @@ sub single {
                 return 2;
             }
             if(!$spdx) {
+                # REUSE-IgnoreStart
                 print STDERR "$f:$line:1:ERROR: no 'SPDX-License-Identifier:' field present\n";
+                # REUSE-IgnoreEnd
                 return 2;
             }
             last;
@@ -170,7 +177,7 @@ sub single {
 
     push @desc, sprintf <<HEAD
 ---
-c: Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
+c: Copyright (C) Daniel Stenberg, <daniel\@haxx.se>, et al.
 SPDX-License-Identifier: curl
 Title: $title
 Section: $section
@@ -205,7 +212,7 @@ HEAD
     close(F);
 
     if($inplace) {
-        open(O, ">$f") || return 1;
+        open(O, ">$f") or return 1;
         print O @desc;
         close(O);
     }
@@ -221,6 +228,6 @@ if($inplace) {
         single($a);
     }
 }
-else {
+elsif(@ARGV) {
     exit single($ARGV[0]);
 }

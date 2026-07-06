@@ -23,8 +23,7 @@
 #
 """A telnet server which negotiates."""
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import argparse
 import logging
@@ -39,10 +38,10 @@ if sys.version_info.major >= 3:
 else:
     import SocketServer as socketserver
 
+
 log = logging.getLogger(__name__)
 HOST = "localhost"
 IDENT = "NTEL"
-
 
 # The strings that indicate the test framework is checking our aliveness
 VERIFIED_REQ = "verifiedserver"
@@ -85,7 +84,7 @@ class NegotiatingTelnetHandler(socketserver.BaseRequestHandler):
             neg.send_wont("NAWS")
 
             # Get the data passed through the negotiator
-            data = neg.recv(4*1024)
+            data = neg.recv(4 * 1024)
             log.debug("Incoming data: %r", data)
 
             if VERIFIED_REQ.encode('utf-8') in data:
@@ -107,14 +106,14 @@ class NegotiatingTelnetHandler(socketserver.BaseRequestHandler):
             # put some effort into making a clean socket shutdown
             # that does not give the client ECONNRESET
             self.request.settimeout(0.1)
-            self.request.recv(4*1024)
+            self.request.recv(4 * 1024)
             self.request.shutdown(socket.SHUT_RDWR)
 
         except IOError:
             log.exception("IOError hit during request")
 
 
-class Negotiator(object):
+class Negotiator:
     NO_NEG = 0
     START_NEG = 1
     WILL = 2
@@ -135,7 +134,7 @@ class Negotiator(object):
         """
         buffer = bytearray()
 
-        # If we keep receiving negotiation sequences, we won't fill the buffer.
+        # If we keep receiving negotiation sequences, we will not fill the buffer.
         # Keep looping while we can, and until we have something to give back
         # to the caller.
         while len(buffer) == 0:
@@ -168,7 +167,7 @@ class Negotiator(object):
             log.debug("Starting negotiation (IAC)")
             self.state = self.START_NEG
         else:
-            # Just append the incoming byte to the buffer
+            # Append the incoming byte to the buffer
             buffer.append(byte_int)
 
     def start_neg(self, byte_int):
@@ -190,8 +189,8 @@ class Negotiator(object):
             log.debug("Client can do")
             self.state = self.DO
         elif byte_int == NegTokens.DONT:
-            # Client is indicating they can't do an option
-            log.debug("Client can't do")
+            # Client is indicating they cannot do an option
+            log.debug("Client cannot do")
             self.state = self.DONT
         else:
             # Received an unexpected byte. Stop negotiations
@@ -243,7 +242,7 @@ class Negotiator(object):
         self.send_iac([NegTokens.WONT, NegOptions.to_val(option_str)])
 
 
-class NegBase(object):
+class NegBase:
     @classmethod
     def to_val(cls, name):
         return getattr(cls, name)
@@ -296,9 +295,9 @@ def get_options():
     parser.add_argument("--verbose", action="store", type=int, default=0,
                         help="verbose output")
     parser.add_argument("--pidfile", action="store",
-                        help="file name for the PID")
+                        help="filename for the PID")
     parser.add_argument("--logfile", action="store",
-                        help="file name for the log")
+                        help="filename for the log")
     parser.add_argument("--srcdir", action="store", help="test directory")
     parser.add_argument("--id", action="store", help="server ID")
     parser.add_argument("--ipv4", action="store_true", default=0,
@@ -323,7 +322,7 @@ def setup_logging(options):
         handler.setLevel(logging.DEBUG)
         root_logger.addHandler(handler)
     else:
-        # The logfile wasn't specified. Add a stdout logger.
+        # The logfile was not specified. Add a stdout logger.
         add_stdout = True
 
     if options.verbose:
@@ -340,7 +339,7 @@ def setup_logging(options):
         root_logger.addHandler(stdout_handler)
 
 
-class ScriptRC(object):
+class ScriptRC:
     """Enum for script return codes."""
 
     SUCCESS = 0

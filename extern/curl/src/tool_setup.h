@@ -24,14 +24,16 @@
  *
  ***************************************************************************/
 
+#ifndef CURL_NO_OLDIES
 #define CURL_NO_OLDIES
+#endif
 
 /*
  * curl_setup.h may define preprocessor macros such as _FILE_OFFSET_BITS and
  * _LARGE_FILES in order to support files larger than 2 GB. On platforms
  * where this happens it is mandatory that these macros are defined before
  * any system header file is included, otherwise file handling function
- * prototypes will be misdeclared and curl tool may not build properly;
+ * prototypes are misdeclared and curl tool may not build properly;
  * therefore we must include curl_setup.h before curl.h when building curl.
  */
 
@@ -43,40 +45,42 @@ extern FILE *tool_stderr;
  * curl tool certainly uses libcurl's external interface.
  */
 
-#include <curl/curl.h> /* external interface */
-
-#include "timeval.h"
+#include "curlx/base64.h" /* for curlx_base64* */
+#include "curlx/dynbuf.h" /* for curlx_dyn_*() */
+#include "curlx/fopen.h" /* for curlx_f*() */
+#include "curlx/multibyte.h" /* for curlx_convert_*() */
+#include "curlx/strcopy.h" /* for curlx_strcopy() */
+#include "curlx/strdup.h" /* for curlx_memdup*() */
+#include "curlx/strerr.h" /* for curlx_strerror() */
+#include "curlx/strparse.h" /* for curlx_str_* parsing functions */
+#include "curlx/timediff.h" /* for timediff_t type and related functions */
+#include "curlx/timeval.h" /* for curlx_now type and related functions */
+#include "curlx/wait.h" /* for curlx_wait_ms() */
 
 /*
  * Platform specific stuff.
  */
 
 #ifdef macintosh
-#  define main(x,y) curl_main(x,y)
+#  define main(x, y) curl_main(x, y)
 #endif
 
 #ifndef CURL_OS
-#  define CURL_OS "unknown"
+#define CURL_OS "unknown"
 #endif
 
-#ifndef UNPRINTABLE_CHAR
-   /* define what to use for unprintable characters */
-#  define UNPRINTABLE_CHAR '.'
-#endif
-
-#ifndef HAVE_STRDUP
-#  include "tool_strdup.h"
-#endif
+/* define what to use for unprintable characters */
+#define UNPRINTABLE_CHAR '.'
 
 #ifndef tool_nop_stmt
-#define tool_nop_stmt do { } while(0)
+#define tool_nop_stmt do {} while(0)
 #endif
 
 #ifdef _WIN32
 #  define CURL_STRICMP(p1, p2)  _stricmp(p1, p2)
 #elif defined(HAVE_STRCASECMP)
 #  ifdef HAVE_STRINGS_H
-#    include <strings.h>
+#  include <strings.h>
 #  endif
 #  define CURL_STRICMP(p1, p2)  strcasecmp(p1, p2)
 #elif defined(HAVE_STRCMPI)
@@ -90,28 +94,22 @@ extern FILE *tool_stderr;
 #ifdef _WIN32
 /* set in init_terminal() */
 extern bool tool_term_has_bold;
-
-#ifdef UNDER_CE
-#  undef isatty
-#  define isatty(fd) 0  /* fd is void*, expects int */
-#  undef _get_osfhandle
-#  define _get_osfhandle(fd) (fd)
-#  undef _getch
-#  define _getch() 0
 #endif
 
-#ifndef HAVE_FTRUNCATE
+#if defined(_WIN32) && !defined(__MINGW32__)
+int toolx_ftruncate_win32(int fd, curl_off_t where);
+#define toolx_ftruncate toolx_ftruncate_win32
+#elif defined(__DJGPP__)
+int toolx_ftruncate_djgpp(int fd, curl_off_t where);
+#define toolx_ftruncate toolx_ftruncate_djgpp
+#elif defined(__AMIGA__)
+#define toolx_ftruncate(f, o) ftruncate(f, (off_t)(o))
+#else
+#define toolx_ftruncate ftruncate
+#endif
 
-int tool_ftruncate64(int fd, curl_off_t where);
-
-#undef  ftruncate
-#define ftruncate(fd,where) tool_ftruncate64(fd,where)
-
-#define HAVE_FTRUNCATE 1
-#define USE_TOOL_FTRUNCATE 1
-
-#endif /* ! HAVE_FTRUNCATE */
-#endif /* _WIN32 */
-
+#ifdef CURL_CA_EMBED
+extern const unsigned char curl_ca_embed[];
+#endif
 
 #endif /* HEADER_CURL_TOOL_SETUP_H */

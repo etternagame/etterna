@@ -10,6 +10,7 @@ See-also:
   - CURLOPT_DNS_USE_GLOBAL_CACHE (3)
   - CURLOPT_MAXAGE_CONN (3)
   - CURLOPT_RESOLVE (3)
+  - CURLMOPT_NETWORK_CHANGED (3)
 Protocol:
   - All
 Added-in: 7.9.3
@@ -48,8 +49,11 @@ DNS entries have a "TTL" property but libcurl does not use that. This DNS
 cache timeout is entirely speculative that a name resolves to the same address
 for a small amount of time into the future.
 
-Since version 8.1.0, libcurl prunes entries from the DNS cache if it exceeds
-30,000 entries no matter which timeout value is used.
+libcurl prunes entries from the DNS cache if it exceeds 30,000 entries no
+matter which timeout value is used. (Added in version 8.1.0)
+
+Since curl 8.16.0, failed name resolves are stored in the DNS cache for half
+the set timeout period.
 
 # DEFAULT
 
@@ -64,17 +68,17 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/foo.bin");
 
     /* only reuse addresses for a short time */
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 2L);
 
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
     /* in this second request, the cache is not be used if more than
        two seconds have passed since the previous name resolve */
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
   }

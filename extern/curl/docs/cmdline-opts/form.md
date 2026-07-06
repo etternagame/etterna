@@ -28,11 +28,11 @@ For SMTP and IMAP protocols, this composes a multipart mail message to
 transmit.
 
 This enables uploading of binary files etc. To force the 'content' part to be
-a file, prefix the filename with an @ sign. To just get the content part from
-a file, prefix the filename with the symbol \<. The difference between @ and
-\< is then that @ makes a file get attached in the post as a file upload,
-while the \< makes a text field and just get the contents for that text field
-from a file.
+a file, prefix the filename with an @ sign. To get the content part from a
+file, prefix the filename with the symbol \<. The difference between @ and \<
+is then that @ makes a file get attached in the post as a file upload, while
+the \< makes a text field and gets the contents for that text field from a
+file.
 
 Read content from stdin instead of a file by using a single "-" as filename.
 This goes for both @ and \< constructs. When stdin is used, the contents is
@@ -97,14 +97,14 @@ or
 
     curl -F "submit=OK;headers=@headerfile" example.com
 
-The headers= keyword may appear more that once and above notes about quoting
-apply. When headers are read from a file, Empty lines and lines starting
-with '#' are comments and ignored; each header can be folded by splitting
+The headers= keyword may appear more than once and above notes about quoting
+apply. When headers are read from a file, empty lines and lines starting
+with '#' are ignored; each header can be folded by splitting
 between two words and starting the continuation line with a space; embedded
 carriage-returns and trailing spaces are stripped.
 Here is an example of a header file contents:
 
-    # This file contain two headers.
+    # This file contains two headers.
     X-header-1: this is a header
 
     # The following header is folded.
@@ -127,7 +127,7 @@ text file:
     curl -F '=(;type=multipart/alternative' \
          -F '=plain text message' \
          -F '= <body>HTML message</body>;type=text/html' \
-         -F '=)' -F '=@textfile.txt' ...  smtp://example.com
+         -F '=)' -F '=@textfile.txt' ... smtp://example.com
 
 Data can be encoded for transfer using encoder=. Available encodings are
 *binary* and *8bit* that do nothing else than adding the corresponding
@@ -141,5 +141,3 @@ base64 attached file:
 
     curl -F '=text message;encoder=quoted-printable' \
          -F '=@localfile;encoder=base64' ... smtp://example.com
-
-See further examples and details in the MANUAL.

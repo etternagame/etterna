@@ -24,29 +24,29 @@
 ###########################################################################
 #
 # Scan symbols-in-version (which is verified to be correct by test 1119), then
-# verify that each option mention in there that should have its own manpage
+# verify that each option mention in there that should have its own man page
 # actually does.
 #
 # In addition, make sure that every current option to curl_easy_setopt,
 # curl_easy_getinfo and curl_multi_setopt are also mentioned in their
-# corresponding main (index) manpage.
+# corresponding main (index) man page.
 #
 # src/tool_getparam.c lists all options curl can parse
 # docs/curl.1 documents all command line options
 # src/tool_listhelp.c outputs all options with curl -h
-# - make sure they're all in sync
+# - make sure they are all in sync
 #
 # Output all deviances to stderr.
 
 use strict;
 use warnings;
 
-# we may get the dir roots pointed out
-my $root=$ARGV[0] || ".";
-my $buildroot=$ARGV[1] || ".";
+# we may get the directory roots pointed out
+my $root = $ARGV[0] || ".";
+my $buildroot = $ARGV[1] || ".";
 my $syms = "$root/docs/libcurl/symbols-in-versions";
 my $curlh = "$root/include/curl/curl.h";
-my $errors=0;
+my $errors = 0;
 
 # the prepopulated alias list is the CURLINFO_* defines that are used for the
 # debug function callback and the fact that they use the same prefix as the
@@ -67,8 +67,7 @@ my %alias = (
 sub scanmdpage {
     my ($file, @words) = @_;
 
-    open(my $mh, "<", "$file") ||
-        die "could not open $file";
+    open(my $mh, "<", $file) or die "could not open $file";
     my @m;
     while(<$mh>) {
         if($_ =~ /^## (.*)/) {
@@ -90,7 +89,7 @@ sub scanmdpage {
         }
     }
     foreach my $m (@words) {
-        my @g = grep(/$m/, @m);
+        my @g = grep(/$m\b/, @m);
         if(!$g[0]) {
             print STDERR "Missing mention of $m in $file\n";
             $errors++;
@@ -101,11 +100,10 @@ sub scanmdpage {
 my $r;
 
 # check for define aliases
-open($r, "<", "$curlh") ||
-    die "no curl.h";
+open($r, "<", $curlh) or die "no curl.h";
 while(<$r>) {
     if(/^\#define (CURL(OPT|INFO|MOPT)_\w+) (.*)/) {
-        $alias{$1}=$3;
+        $alias{$1} = $3;
     }
 }
 close($r);
@@ -113,8 +111,7 @@ close($r);
 my @curlopt;
 my @curlinfo;
 my @curlmopt;
-open($r, "<", "$syms") ||
-    die "no input file";
+open($r, "<", $syms) or die "no input file";
 while(<$r>) {
     chomp;
     my $l= $_;
@@ -126,7 +123,7 @@ while(<$r>) {
         }
         elsif($rem) {
             # $opt was removed in $rem
-            # so don't check for that
+            # so do not check for that
         }
         else {
             if($type eq "OPT") {
@@ -185,11 +182,9 @@ my %opts = (
     '--wdebug' => 6,
     );
 
-
 #########################################################################
 # parse the curl code that parses the command line arguments!
-open($r, "<", "$root/src/tool_getparam.c") ||
-    die "no input file";
+open($r, "<", "$root/src/tool_getparam.c") or die "no input file";
 my $list;
 my @getparam; # store all parsed parameters
 
@@ -199,11 +194,11 @@ while(<$r>) {
     $no++;
     chomp;
     if(/struct LongShort aliases/) {
-        $list=1;
+        $list = 1;
     }
     elsif($list) {
-        if( /^  \{(\"[^,]*\").*\'(.)\',/) {
-            my ($l, $s)=($1, $2);
+        if(/^  \{(\"[^,]*\").*\'(.)\',/) {
+            my ($l, $s) = ($1, $2);
             my $sh;
             my $lo;
             my $title;
@@ -213,12 +208,12 @@ while(<$r>) {
             if($l =~ /\"(.*)\"/) {
                 # long option
                 $lo = $1;
-                $title="--$lo";
+                $title = "--$lo";
             }
             if($s ne " ") {
                 # a short option
                 $sh = $s;
-                $title="-$sh, $title";
+                $title = "-$sh, $title";
             }
             push @getparam, $title;
             $opts{$title} |= 1;
@@ -229,9 +224,10 @@ while(<$r>) {
 close($r);
 
 #########################################################################
-# parse the curl.1 manpage, extract all documented command line options
-# The manpage may or may not be rebuilt, so check both possible locations
-open($r, "<", "$buildroot/docs/cmdline-opts/curl.1") || open($r, "<", "$root/docs/cmdline-opts/curl.1") ||
+# parse the curl.1 man page, extract all documented command line options
+# The man page may or may not be rebuilt, so check both possible locations
+open($r, "<", "$buildroot/docs/cmdline-opts/curl.1") or
+    open($r, "<", "$root/docs/cmdline-opts/curl.1") or
     die "failed getting curl.1";
 my @manpage; # store all parsed parameters
 while(<$r>) {
@@ -257,17 +253,15 @@ while(<$r>) {
 }
 close($r);
 
-
 #########################################################################
 # parse the curl code that outputs the curl -h list
-open($r, "<", "$root/src/tool_listhelp.c") ||
-    die "no input file";
+open($r, "<", "$root/src/tool_listhelp.c") or die "no input file";
 my @toolhelp; # store all parsed parameters
 while(<$r>) {
     chomp;
     my $l= $_;
-    if(/^  \{\" *(.*)/) {
-        my $str=$1;
+    if(/^  \{ \" *(.*)/) {
+        my $str = $1;
         my $combo;
         if($str =~ /^-(.), --([a-z0-9.-]*)/) {
             # figure out the -short, --long combo
@@ -281,7 +275,6 @@ while(<$r>) {
             push @toolhelp, $combo;
             $opts{$combo} |= 4;
         }
-
     }
 }
 close($r);
@@ -298,10 +291,10 @@ foreach my $o (keys %opts) {
         my $exists;
         my $missing;
         if($where & 1) {
-            $exists=" tool_getparam.c";
+            $exists = " tool_getparam.c";
         }
         else {
-            $missing=" tool_getparam.c";
+            $missing = " tool_getparam.c";
         }
         if($where & 2) {
             $exists.= " curl.1";

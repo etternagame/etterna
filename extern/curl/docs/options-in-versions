@@ -76,7 +76,7 @@
 --ftp-pasv                           7.11.0
 --ftp-port (-P)                      4.0
 --ftp-pret                           7.20.0
---ftp-skip-pasv-ip                   7.14.2
+--ftp-skip-pasv-ip                   7.15.0
 --ftp-ssl-ccc                        7.16.1
 --ftp-ssl-ccc-mode                   7.16.2
 --ftp-ssl-control                    7.16.0
@@ -111,6 +111,7 @@
 --keepalive-time                     7.18.0
 --key                                7.9.3
 --key-type                           7.9.3
+--knownhosts                         8.17.0
 --krb                                7.3
 --libcurl                            7.16.1
 --limit-rate                         7.10
@@ -145,11 +146,13 @@
 --ntlm                               7.10.6
 --ntlm-wb                            7.22.0
 --oauth2-bearer                      7.33.0
+--out-null                           8.16.0
 --output (-o)                        4.0
 --output-dir                         7.73.0
 --parallel (-Z)                      7.66.0
 --parallel-immediate                 7.68.0
 --parallel-max                       7.66.0
+--parallel-max-host                  8.16.0
 --pass                               7.9.3
 --path-as-is                         7.42.0
 --pinnedpubkey                       7.39.0
@@ -158,9 +161,9 @@
 --post303                            7.26.0
 --preproxy                           7.52.0
 --progress-bar (-#)                  5.10
---proto                              7.20.2
+--proto                              7.21.0
 --proto-default                      7.45.0
---proto-redir                        7.20.2
+--proto-redir                        7.21.0
 --proxy (-x)                         4.0
 --proxy-anyauth                      7.13.2
 --proxy-basic                        7.12.0
@@ -174,6 +177,7 @@
 --proxy-digest                       7.12.0
 --proxy-header                       7.37.0
 --proxy-http2                        8.1.0
+--proxy-http3                        8.21.0
 --proxy-insecure                     7.52.0
 --proxy-key                          7.52.0
 --proxy-key-type                     7.52.0
@@ -198,6 +202,7 @@
 --range (-r)                         4.0
 --rate                               7.84.0
 --raw                                7.16.2
+--follow                             8.16.0
 --referer (-e)                       4.0
 --remote-header-name (-J)            7.20.0
 --remote-name (-O)                   4.0
@@ -218,6 +223,7 @@
 --show-error (-S)                    5.9
 --show-headers (-i)                  4.8
 --silent (-s)                        4.0
+--sigalgs                            8.14.0
 --skip-existing                      8.10.0
 --socks4                             7.15.2
 --socks4a                            7.18.0

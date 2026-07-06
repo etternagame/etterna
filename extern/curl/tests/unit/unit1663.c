@@ -21,7 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curlcheck.h"
+#include "unitcheck.h"
 
 #ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
@@ -30,68 +30,61 @@
 #include <netinet/in6.h>
 #endif
 
-#include <curl/curl.h>
-
 #include "cf-socket.h"
 
-#include "memdebug.h" /* LAST include file */
-
-static CURLcode unit_setup(void)
+static CURLcode t1663_setup(void)
 {
-  CURLcode res = CURLE_OK;
+  CURLcode result = CURLE_OK;
   global_init(CURL_GLOBAL_ALL);
-  return res;
+  return result;
 }
 
-static void unit_stop(void)
-{
-  curl_global_cleanup();
-}
-
-static void test_parse(
-  const char *input_data,
-  const char *exp_dev,
-  const char *exp_iface,
-  const char *exp_host,
-  CURLcode exp_rc)
+static void t1663_parse(const char *input_data,
+                        const char *exp_dev,
+                        const char *exp_iface,
+                        const char *exp_host,
+                        CURLcode result_exp)
 {
   char *dev = NULL;
   char *iface = NULL;
   char *host = NULL;
-  CURLcode rc = Curl_parse_interface(input_data, &dev, &iface, &host);
-  fail_unless(rc == exp_rc, "Curl_parse_interface() failed");
+  CURLcode result = Curl_parse_interface(input_data, &dev, &iface, &host);
+  fail_unless(result == result_exp, "Curl_parse_interface() failed");
 
   fail_unless(!!exp_dev == !!dev, "dev expectation failed.");
   fail_unless(!!exp_iface == !!iface, "iface expectation failed");
   fail_unless(!!exp_host == !!host, "host expectation failed");
 
   if(!unitfail) {
-    fail_unless(!dev || !exp_dev || strcmp(dev, exp_dev) == 0,
+    fail_unless(!dev || !exp_dev || !strcmp(dev, exp_dev),
                 "dev should be equal to exp_dev");
-    fail_unless(!iface || !exp_iface || strcmp(iface, exp_iface) == 0,
+    fail_unless(!iface || !exp_iface || !strcmp(iface, exp_iface),
                 "iface should be equal to exp_iface");
-    fail_unless(!host || !exp_host || strcmp(host, exp_host) == 0,
+    fail_unless(!host || !exp_host || !strcmp(host, exp_host),
                 "host should be equal to exp_host");
   }
 
-  free(dev);
-  free(iface);
-  free(host);
+  curlx_free(dev);
+  curlx_free(iface);
+  curlx_free(host);
 }
 
-UNITTEST_START
+static CURLcode test_unit1663(const char *arg)
 {
-  test_parse("dev", "dev", NULL, NULL, CURLE_OK);
-  test_parse("if!eth0", NULL, "eth0", NULL, CURLE_OK);
-  test_parse("host!myname", NULL, NULL, "myname", CURLE_OK);
-  test_parse("ifhost!eth0!myname", NULL, "eth0", "myname", CURLE_OK);
-  test_parse("", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
-  test_parse("!", "!", NULL, NULL, CURLE_OK);
-  test_parse("if!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
-  test_parse("if!eth0!blubb", NULL, "eth0!blubb", NULL, CURLE_OK);
-  test_parse("host!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
-  test_parse("ifhost!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
-  test_parse("ifhost!eth0", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
-  test_parse("ifhost!eth0!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+  UNITTEST_BEGIN(t1663_setup())
+
+  t1663_parse("dev", "dev", NULL, NULL, CURLE_OK);
+  t1663_parse("if!eth0", NULL, "eth0", NULL, CURLE_OK);
+  t1663_parse("host!myname", NULL, NULL, "myname", CURLE_OK);
+  t1663_parse("ifhost!eth0!myname", NULL, "eth0", "myname", CURLE_OK);
+  t1663_parse("", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+  t1663_parse("!", "!", NULL, NULL, CURLE_OK);
+  t1663_parse("if!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+  t1663_parse("if!eth0!blubb", NULL, "eth0!blubb", NULL, CURLE_OK);
+  t1663_parse("host!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+  t1663_parse("ifhost!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+  t1663_parse("ifhost!eth0", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+  t1663_parse("ifhost!eth0!", NULL, NULL, NULL, CURLE_BAD_FUNCTION_ARGUMENT);
+
+  UNITTEST_END(curl_global_cleanup())
 }
-UNITTEST_STOP

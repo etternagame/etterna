@@ -8,6 +8,7 @@ Help: Load/save SSL session tickets from/to this file
 Added: 8.12.0
 Category: tls
 Multi: single
+Experimental: yes
 See-also:
   - tls-earlydata
 Example:
@@ -18,7 +19,7 @@ Example:
 
 Use the given file to load SSL session tickets into curl's cache before
 starting any transfers. At the end of a successful curl run, the cached
-SSL sessions tickets are save to the file, replacing any previous content.
+SSL sessions tickets are saved to the file, replacing any previous content.
 
 The file does not have to exist, but curl reports an error if it is
 unable to create it. Unused loaded tickets are saved again, unless they
@@ -31,5 +32,8 @@ not provide forward secrecy, e.g. is not as secure.
 
 The SSL session tickets are stored as base64 encoded text, each ticket on
 its own line. The hostnames are cryptographically salted and hashed. While
-this prevents someone to easily see the hosts you contacted, they could still
-check if a specific hostname matches one of the values.
+this prevents someone from easily seeing the hosts you contacted, they could
+still check if a specific hostname matches one of the values.
+
+This feature requires that the underlying libcurl was built with the
+experimental SSL session import/export feature (SSLS-EXPORT) enabled.

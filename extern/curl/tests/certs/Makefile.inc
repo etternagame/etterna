@@ -21,11 +21,15 @@
 # SPDX-License-Identifier: curl
 #
 ###########################################################################
+# Shared between CMakeLists.txt and Makefile.am
+
 CERTCONFIG_CA = \
   test-ca.cnf \
   test-ca.prm
 
 CERTCONFIGS = \
+  test-client-cert.prm \
+  test-client-eku-only.prm \
   test-localhost.prm \
   test-localhost.nn.prm \
   test-localhost0h.prm \
@@ -36,24 +40,18 @@ GENERATEDCERTS = \
   test-ca.cacert \
   test-ca.crt \
   test-ca.key \
-  test-localhost.crl \
-  test-localhost.crt \
-  test-localhost.key \
-  test-localhost.pem \
-  test-localhost.pub.der \
-  test-localhost.pub.pem \
-  test-localhost.nn.crl \
-  test-localhost.nn.crt \
-  test-localhost.nn.key \
-  test-localhost.nn.pem \
-  test-localhost.nn.pub.der \
-  test-localhost.nn.pub.pem \
-  test-localhost0h.crl \
-  test-localhost0h.crt \
-  test-localhost0h.key \
-  test-localhost0h.pem \
-  test-localhost0h.pub.der \
-  test-localhost0h.pub.pem \
+  test-client-cert.crl \
+  test-client-cert.crt \
+  test-client-cert.key \
+  test-client-cert.pem \
+  test-client-cert.pub.der \
+  test-client-cert.pub.pem \
+  test-client-eku-only.crl \
+  test-client-eku-only.crt \
+  test-client-eku-only.key \
+  test-client-eku-only.pem \
+  test-client-eku-only.pub.der \
+  test-client-eku-only.pub.pem \
   test-localhost-san-first.crl \
   test-localhost-san-first.crt \
   test-localhost-san-first.key \
@@ -65,7 +63,25 @@ GENERATEDCERTS = \
   test-localhost-san-last.key \
   test-localhost-san-last.pem \
   test-localhost-san-last.pub.der \
-  test-localhost-san-last.pub.pem
+  test-localhost-san-last.pub.pem \
+  test-localhost.crl \
+  test-localhost.crt \
+  test-localhost.key \
+  test-localhost.nn.crl \
+  test-localhost.nn.crt \
+  test-localhost.nn.key \
+  test-localhost.nn.pem \
+  test-localhost.nn.pub.der \
+  test-localhost.nn.pub.pem \
+  test-localhost.pem \
+  test-localhost.pub.der \
+  test-localhost.pub.pem \
+  test-localhost0h.crl \
+  test-localhost0h.crt \
+  test-localhost0h.key \
+  test-localhost0h.pem \
+  test-localhost0h.pub.der \
+  test-localhost0h.pub.pem
 
 SRPFILES = \
   srp-verifier-conf \

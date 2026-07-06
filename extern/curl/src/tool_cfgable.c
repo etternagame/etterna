@@ -23,17 +23,24 @@
  ***************************************************************************/
 #include "tool_setup.h"
 
+#include <stddef.h>
+
 #include "tool_cfgable.h"
 #include "tool_formparse.h"
+#include "tool_libinfo.h"
 #include "tool_paramhlp.h"
 #include "tool_main.h"
-#include "curlx.h"
+#include "tool_msgs.h"
 
-#include "memdebug.h" /* keep this as LAST include */
+static struct GlobalConfig globalconf;
+struct GlobalConfig *global;
 
-void config_init(struct OperationConfig *config)
+struct OperationConfig *config_alloc(void)
 {
-  memset(config, 0, sizeof(struct OperationConfig));
+  struct OperationConfig *config =
+    curlx_calloc(1, sizeof(struct OperationConfig));
+  if(!config)
+    return NULL;
 
   config->use_httpget = FALSE;
   config->create_dirs = FALSE;
@@ -48,6 +55,7 @@ void config_init(struct OperationConfig *config)
   config->file_clobber_mode = CLOBBER_DEFAULT;
   config->upload_flags = CURLULFLAG_SEEN;
   curlx_dyn_init(&config->postdata, MAX_FILE2MEMORY);
+  return config;
 }
 
 static void free_config_fields(struct OperationConfig *config)
@@ -114,7 +122,7 @@ static void free_config_fields(struct OperationConfig *config)
 
 #ifndef CURL_DISABLE_IPFS
   curlx_safefree(config->ipfs_gateway);
-#endif /* !CURL_DISABLE_IPFS */
+#endif
   curlx_safefree(config->doh_url);
   curlx_safefree(config->cipher_list);
   curlx_safefree(config->proxy_cipher_list);
@@ -146,6 +154,7 @@ static void free_config_fields(struct OperationConfig *config)
   curlx_safefree(config->etag_save_file);
   curlx_safefree(config->etag_compare_file);
   curlx_safefree(config->ssl_ec_curves);
+  curlx_safefree(config->ssl_signature_algorithms);
   curlx_safefree(config->request_target);
   curlx_safefree(config->customrequest);
   curlx_safefree(config->krblevel);
@@ -178,11 +187,10 @@ static void free_config_fields(struct OperationConfig *config)
   curlx_safefree(config->ftp_account);
   curlx_safefree(config->ftp_alternative_to_user);
   curlx_safefree(config->aws_sigv4);
-  curlx_safefree(config->proto_str);
-  curlx_safefree(config->proto_redir_str);
   curlx_safefree(config->ech);
   curlx_safefree(config->ech_config);
   curlx_safefree(config->ech_public);
+  curlx_safefree(config->knownhosts);
 }
 
 void config_free(struct OperationConfig *config)
@@ -194,8 +202,186 @@ void config_free(struct OperationConfig *config)
     struct OperationConfig *prev = last->prev;
 
     free_config_fields(last);
-    free(last);
+    curlx_free(last);
 
     last = prev;
   }
+}
+
+#ifdef CURL_DEBUG_GLOBAL_MEM
+
+#ifdef CURL_MEMDEBUG
+#error "curl_global_init_mem() testing does not work with memdebug debugging"
+#endif
+
+/*
+ * This is the custom memory functions handed to curl when we run special test
+ * round to verify them.
+ *
+ * The main point is to make sure that what is returned is different than what
+ * the regular memory functions return so that mixup does trigger problems.
+ *
+ * This test setup currently only works when building with a *shared* libcurl
+ * and not static, as in the latter case the tool and the library share some of
+ * the functions in incompatible ways.
+ */
+
+/*
+ * This code appends this extra chunk of memory in front of every allocation
+ * done by libcurl with the only purpose to cause trouble when using the wrong
+ * free function on memory.
+ */
+struct extramem {
+  size_t extra;
+  union {
+    curl_off_t o;
+    double d;
+    void *p;
+  } mem[1];
+};
+
+static void *custom_calloc(size_t wanted_nmemb, size_t wanted_size)
+{
+  struct extramem *m;
+  size_t sz = wanted_size * wanted_nmemb;
+  sz += sizeof(struct extramem);
+  m = curlx_calloc(1, sz);
+  if(m)
+    return m->mem;
+  return NULL;
+}
+
+static void *custom_malloc(size_t wanted_size)
+{
+  struct extramem *m;
+  size_t sz = wanted_size + sizeof(struct extramem);
+  m = curlx_malloc(sz);
+  if(m)
+    return m->mem;
+  return NULL;
+}
+
+static char *custom_strdup(const char *ptr)
+{
+  struct extramem *m;
+  size_t len = strlen(ptr);
+  size_t sz = len + sizeof(struct extramem);
+  m = curlx_malloc(sz);
+  if(m) {
+    char *p = (char *)m->mem;
+    /* since strcpy is banned, we do memcpy */
+    memcpy(p, ptr, len);
+    p[len] = 0;
+    return (char *)m->mem;
+  }
+  return NULL;
+}
+
+static void *custom_realloc(void *ptr, size_t size)
+{
+  struct extramem *m = NULL;
+  size_t sz = size + sizeof(struct extramem);
+  if(ptr)
+    /* if given a pointer, figure out the original */
+    ptr = (void *)((char *)ptr - offsetof(struct extramem, mem));
+  m = curlx_realloc(ptr, sz);
+  if(m)
+    return m->mem;
+  return NULL;
+}
+
+static void custom_free(void *ptr)
+{
+  struct extramem *m = NULL;
+  if(ptr) {
+    m = (void *)((char *)ptr - offsetof(struct extramem, mem));
+    curlx_free(m);
+  }
+}
+
+#endif
+
+/*
+ * This is the main global constructor for the app. Call this before
+ * _any_ libcurl usage. If this fails, *NO* libcurl functions may be
+ * used, or havoc may be the result.
+ */
+CURLcode globalconf_init(void)
+{
+  CURLcode result = CURLE_OK;
+  global = &globalconf;
+
+#ifdef __DJGPP__
+  /* stop stat() wasting time */
+  _djstat_flags |= _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
+#endif
+
+  /* Initialize the global config */
+  global->showerror = FALSE;          /* show errors when silent */
+  global->styled_output = TRUE;       /* enable detection */
+  global->parallel_max = PARALLEL_DEFAULT;
+
+  /* Allocate the initial operate config */
+  global->first = global->last = config_alloc();
+  if(global->first) {
+    /* Perform the libcurl initialization */
+#ifdef CURL_DEBUG_GLOBAL_MEM
+    result = curl_global_init_mem(CURL_GLOBAL_ALL, custom_malloc, custom_free,
+                                  custom_realloc, custom_strdup,
+                                  custom_calloc);
+#else
+    result = curl_global_init(CURL_GLOBAL_DEFAULT);
+#endif
+    if(!result) {
+      /* Get information about libcurl */
+      result = get_libcurl_info();
+
+      if(result) {
+        errorf("error retrieving curl library information");
+        curlx_free(global->first);
+      }
+    }
+    else {
+      errorf("error initializing curl library");
+      curlx_free(global->first);
+    }
+  }
+  else {
+    errorf("error initializing curl");
+    result = CURLE_FAILED_INIT;
+  }
+
+  return result;
+}
+
+static void free_globalconfig(void)
+{
+  curlx_safefree(global->trace_dump);
+
+  if(global->trace_fopened && global->trace_stream)
+    curlx_fclose(global->trace_stream);
+  global->trace_stream = NULL;
+
+  curlx_safefree(global->ssl_sessions);
+  curlx_safefree(global->libcurl);
+#ifdef _WIN32
+  curlx_free(global->term.buf);
+#endif
+}
+
+/*
+ * This is the main global destructor for the app. Call this after _all_
+ * libcurl usage is done.
+ */
+void globalconf_free(void)
+{
+  /* Cleanup the easy handle */
+  /* Main cleanup */
+  curl_global_cleanup();
+  free_globalconfig();
+
+  /* Free the OperationConfig structures */
+  config_free(global->last);
+  global->first = NULL;
+  global->last = NULL;
 }

@@ -18,9 +18,9 @@ are names for specific combinations of
 and with TLSv1.3 the
 [authenticated encryption](https://en.wikipedia.org/wiki/Authenticated_encryption).
 In addition, there are other parameters that influence the TLS handshake, like
-[DHE](https://en.wikipedia.org/wiki/Diffie–Hellman_key_exchange) "groups" and
-[ECDHE](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie–Hellman) with its
-"curves".
+[DHE](https://en.wikipedia.org/wiki/Diffie%e2%80%93Hellman_key_exchange) "groups"
+and [ECDHE](https://en.wikipedia.org/wiki/Elliptic-curve_Diffie%e2%80%93Hellman)
+with its "curves".
 
 ### History
 
@@ -78,6 +78,7 @@ OpenSSL (1.1.1+, curl 7.61.0+), LibreSSL (3.4.1+, curl 8.3.0+),
 wolfSSL (curl 8.10.0+) and mbedTLS (3.6.0+, curl 8.10.0+).
 
 The list of cipher suites that can be used for the `--tls13-ciphers` option:
+
 ```
 TLS_AES_128_GCM_SHA256
 TLS_AES_256_GCM_SHA384
@@ -95,11 +96,10 @@ are NULL ciphers, offering no encryption whatsoever.)
 
 ### TLS 1.2 (1.1, 1.0) cipher suites
 
-Setting TLS 1.2 cipher suites is supported by curl with OpenSSL, LibreSSL,
-BoringSSL, mbedTLS (curl 8.8.0+), wolfSSL (curl 7.53.0+),
-Secure Transport (curl 7.77.0+) and BearSSL (curl 7.83.0+). Schannel does not
-support setting cipher suites directly, but does support setting algorithms
-(curl 7.61.0+), see Schannel notes below.
+Setting TLS 1.2 cipher suites is supported by curl with AWS-LC, BoringSSL,
+LibreSSL, mbedTLS (curl 8.8.0+), OpenSSL, wolfSSL (curl 7.53.0+). Schannel
+does not support setting cipher suites directly, but does support setting
+algorithms (curl 7.61.0+), see Schannel notes below.
 
 For TLS 1.2 cipher suites there are multiple naming schemes, the two most used
 are with OpenSSL names (e.g. `ECDHE-RSA-AES128-GCM-SHA256`) and IANA names
@@ -110,15 +110,15 @@ TLS 1.2 cipher suites with curl it is recommended that you use OpenSSL names
 as these are most widely recognized by the supported SSL backends.
 
 The complete list of cipher suites that may be considered for the `--ciphers`
-option is extensive, it consists of more than 300 ciphers suites. However,
-nowadays for most of them their usage is discouraged, and support for a lot of
-them have been removed from the various SSL backends, if ever implemented at
-all.
+option is extensive, it consists of more than 300 ciphers suites. Nowadays,
+most of them are discouraged, and support for a lot of them has been removed
+from the various SSL backends, if ever implemented at all.
 
 A shortened list (based on [recommendations by
 Mozilla](https://wiki.mozilla.org/Security/Server_Side_TLS)) of cipher suites,
 which are (mostly) supported by all SSL backends, that can be used for the
 `--ciphers` option:
+
 ```
 ECDHE-ECDSA-AES128-GCM-SHA256
 ECDHE-RSA-AES128-GCM-SHA256
@@ -164,11 +164,11 @@ for further information on that format.
 Schannel does not support setting individual TLS 1.2 cipher suites directly.
 It only allows the enabling and disabling of encryption algorithms. These are
 in the form of `CALG_xxx`, see the [Schannel `ALG_ID`
-documentation](https://docs.microsoft.com/windows/desktop/SecCrypto/alg-id)
+documentation](https://learn.microsoft.com/windows/win32/seccrypto/alg-id)
 for a list of these algorithms. Also, (since curl 7.77.0)
 `SCH_USE_STRONG_CRYPTO` can be given to pass that flag to Schannel, lookup the
 [documentation for the Windows version in
-use](https://learn.microsoft.com/en-us/windows/win32/secauthn/cipher-suites-in-schannel)
+use](https://learn.microsoft.com/windows/win32/secauthn/cipher-suites-in-schannel)
 to see how that affects the cipher suite selection. When not specifying the
 `--ciphers` and `--tls13-ciphers` options curl passes this flag by default.
 
@@ -181,17 +181,20 @@ curl \
 ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305 \
   https://example.com/
 ```
+
 Restrict ciphers to `aes128-gcm` and `chacha20`. Works with OpenSSL, LibreSSL,
 mbedTLS and wolfSSL.
 
 ```sh
 curl \
   --tlsv1.3 \
+  --tls-max 1.3 \
   --tls13-ciphers TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256 \
   https://example.com/
 ```
+
 Restrict to only TLS 1.3 with `aes128-gcm` and `chacha20` ciphers. Works with
-OpenSSL, LibreSSL, mbedTLS, wolfSSL and Schannel.
+OpenSSL, LibreSSL, mbedTLS and wolfSSL.
 
 ```sh
 curl \
@@ -199,9 +202,10 @@ curl \
 ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305 \
   https://example.com/
 ```
+
 Restrict TLS 1.2 ciphers to `aes128-gcm` and `chacha20`, use default TLS 1.3
 ciphers (if TLS 1.3 is available). Works with OpenSSL, LibreSSL, BoringSSL,
-mbedTLS, wolfSSL, Secure Transport and BearSSL.
+mbedTLS and wolfSSL.
 
 ## ciphers, the GnuTLS way
 
@@ -235,7 +239,7 @@ other keywords that tweak its operations. Applications or a system
 may define new alias names for priority strings that can then be used here.
 
 Since the order of items in priority strings is significant, it makes no
-sense for curl to puzzle other ssl options somehow together. `--ciphers`
+sense for curl to puzzle other SSL options somehow together. `--ciphers`
 is the single way to change priority.
 
 ### Examples
@@ -245,6 +249,7 @@ curl \
   --ciphers '-CIPHER_ALL:+AES-128-GCM:+CHACHA20-POLY1305' \
   https://example.com/
 ```
+
 Restrict ciphers to `aes128-gcm` and `chacha20` in GnuTLS.
 
 ```sh
@@ -252,6 +257,7 @@ curl \
   --ciphers 'NORMAL:-VERS-ALL:+TLS1.3:-AES-256-GCM' \
   https://example.com/
 ```
+
 Restrict to only TLS 1.3 without the `aes256-gcm` cipher.
 
 ```sh
@@ -259,15 +265,15 @@ curl \
   --ciphers 'NORMAL:-VERS-ALL:+TLS1.2:-CIPHER_ALL:+CAMELLIA-128-GCM' \
   https://example.com/
 ```
+
 Restrict to only TLS 1.2 with the `CAMELLIA-128-GCM` cipher.
 
 ## Further reading
-- [OpenSSL cipher suite names documentation](https://docs.openssl.org/master/man1/openssl-ciphers/#cipher-suite-names)
-- [wolfSSL cipher support documentation](https://www.wolfssl.com/documentation/manuals/wolfssl/chapter04.html#cipher-support)
-- [mbedTLS cipher suites reference](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/ssl__ciphersuites_8h/)
-- [Schannel cipher suites documentation](https://learn.microsoft.com/en-us/windows/win32/secauthn/cipher-suites-in-schannel)
-- [BearSSL supported crypto](https://www.bearssl.org/support.html)
-- [Secure Transport cipher suite values](https://developer.apple.com/documentation/security/1550981-ssl_cipher_suite_values)
-- [IANA cipher suites list](https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-4)
-- [Wikipedia cipher suite article](https://en.wikipedia.org/wiki/Cipher_suite)
+
 - [GnuTLS Priority Strings](https://gnutls.org/manual/html_node/Priority-Strings.html)
+- [IANA cipher suites list](https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml#tls-parameters-4)
+- [mbedTLS cipher suites reference](https://mbed-tls.readthedocs.io/projects/api/en/development/api/file/ssl__ciphersuites_8h/)
+- [OpenSSL cipher suite names documentation](https://docs.openssl.org/master/man1/openssl-ciphers/#cipher-suite-names)
+- [Schannel cipher suites documentation](https://learn.microsoft.com/windows/win32/secauthn/cipher-suites-in-schannel)
+- [Wikipedia cipher suite article](https://en.wikipedia.org/wiki/Cipher_suite)
+- [wolfSSL cipher support documentation](https://www.wolfssl.com/documentation/manuals/wolfssl/chapter04.html#cipher-support)

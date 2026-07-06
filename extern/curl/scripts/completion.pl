@@ -40,19 +40,19 @@ Pod::Usage::pod2usage() if $help;
 
 my @opts = parse_main_opts($opts_dir);
 
-if ($shell eq 'fish') {
+if($shell eq 'fish') {
     print "# curl fish completion\n\n";
     print "# Complete file paths after @\n";
     print q(complete -c curl -n 'string match -qr "^@" -- (commandline -ct)' -k -xa "(printf '%s\n' -- @(__fish_complete_suffix --complete=(commandline -ct | string replace -r '^@' '') ''))");
     print "\n\n";
     print qq{$_ \n} foreach (@opts);
-} elsif ($shell eq 'zsh') {
+} elsif($shell eq 'zsh') {
     my $opts_str;
 
     $opts_str .= qq{  $_ \\\n} foreach (@opts);
     chomp $opts_str;
 
-my $tmpl = <<"EOS";
+    my $tmpl = <<"EOS";
 #compdef curl
 
 # curl zsh completion
@@ -80,29 +80,29 @@ sub parse_main_opts {
     my (@files, @list);
     my ($dir_handle, $file_content);
 
-    opendir($dir_handle, $opts_dir) || die "Unable to open dir: $opts_dir due to error: $!";
+    opendir($dir_handle, $opts_dir) or die "Unable to open dir: $opts_dir due to error: $!";
     @files = readdir($dir_handle);
-    closedir($dir_handle) || die "Unable to close handle on dir: $opts_dir due to error: $!";
+    closedir($dir_handle) or die "Unable to close handle on dir: $opts_dir due to error: $!";
 
-    # We want regular files that end with .md and don't start with an underscore
-    # Edge case: MANPAGE.md doesn't start with an underscore but also isn't documentation for an option
+    # We want regular files that end with .md and do not start with an underscore
+    # Edge case: MANPAGE.md does not start with an underscore but also is not documentation for an option
     @files = grep { $_ =~ /\.md$/i && !/^_/ && -f "$opts_dir/$_" && $_ ne "MANPAGE.md" } @files;
 
     for my $file (@files) {
-        open(my $doc_handle, '<', "$opts_dir/$file") || die "Unable to open file: $file due to error: $!";
+        open(my $doc_handle, '<', "$opts_dir/$file") or die "Unable to open file: $file due to error: $!";
         $file_content = join('', <$doc_handle>);
-        close($doc_handle) || die "Unable to close file: $file due to error: $!";
+        close($doc_handle) or die "Unable to close file: $file due to error: $!";
 
         # Extract the curldown header section demarcated by ---
-        $file_content =~ /^---\s*\n(.*?)\n---\s*\n/s || die "Unable to parse file $file";
+        $file_content =~ /^---\s*\n(.*?)\n---\s*\n/s or die "Unable to parse file $file";
 
         $file_content = $1;
         my ($short, $long, $arg, $desc);
 
-        if ($file_content =~ /^Short:\s+(.*)\s*$/im) {$short = "-$1";}
-        if ($file_content =~ /^Long:\s+(.*)\s*$/im) {$long = "--$1";}
-        if ($file_content =~ /^Arg:\s+(.*)\s*$/im) {$arg = $1;}
-        if ($file_content =~ /^Help:\s+(.*)\s*$/im) {$desc = $1;}
+        if($file_content =~ /^Short:\s+(.*)\s*$/im) {$short = "-$1";}
+        if($file_content =~ /^Long:\s+(.*)\s*$/im) {$long = "--$1";}
+        if($file_content =~ /^Arg:\s+(.*)\s*$/im) {$arg = $1;}
+        if($file_content =~ /^Help:\s+(.*)\s*$/im) {$desc = $1;}
 
         $arg =~ s/\:/\\\:/g if defined $arg;
         $desc =~ s/'/'\\''/g if defined $desc;
@@ -112,7 +112,7 @@ sub parse_main_opts {
 
         my $option = '';
 
-        if ($shell eq 'fish') {
+        if($shell eq 'fish') {
             $option .= "complete --command curl";
             $option .= " --short-option '" . strip_dash(trim($short)) . "'"
                 if defined $short;
@@ -120,23 +120,23 @@ sub parse_main_opts {
                 if defined $long;
             $option .= " --description '" . strip_dash(trim($desc)) . "'"
                 if defined $desc;
-        } elsif ($shell eq 'zsh') {
+        } elsif($shell eq 'zsh') {
             $option .= '{' . trim($short) . ',' if defined $short;
             $option .= trim($long)  if defined $long;
             $option .= '}' if defined $short;
             $option .= '\'[' . trim($desc) . ']\'' if defined $desc;
 
-            if (defined $arg) {
+            if(defined $arg) {
                 $option .= ":'$arg'";
-                if ($arg =~ /<file ?(name)?>|<path>/) {
+                if($arg =~ /<file ?(name)?>|<path>/) {
                     $option .= ':_files';
-                } elsif ($arg =~ /<dir>/) {
+                } elsif($arg =~ /<dir>/) {
                     $option .= ":'_path_files -/'";
-                } elsif ($arg =~ /<url>/i) {
+                } elsif($arg =~ /<url>/i) {
                     $option .= ':_urls';
-                } elsif ($long =~ /ftp/ && $arg =~ /<method>/) {
+                } elsif($long =~ /ftp/ && $arg =~ /<method>/) {
                     $option .= ":'(multicwd nocwd singlecwd)'";
-                } elsif ($arg =~ /<method>/) {
+                } elsif($arg =~ /<method>/) {
                     $option .= ":'(DELETE GET HEAD POST PUT)'";
                 }
             }
@@ -145,15 +145,15 @@ sub parse_main_opts {
         push(@list, $option);
     }
 
-    # Sort longest first, because zsh won't complete an option listed
-    # after one that's a prefix of it. When length is equal, fall back
+    # Sort longest first, because zsh does not complete an option listed
+    # after one that is a prefix of it. When length is equal, fall back
     # to stringwise cmp.
     @list = sort {
         $a =~ /([^=]*)/; my $ma = $1;
         $b =~ /([^=]*)/; my $mb = $1;
 
         length($mb) <=> length($ma) || $ma cmp $mb
-    } @list if $shell eq 'zsh';
+    } @list;
 
     return @list;
 }
@@ -171,7 +171,7 @@ completion.pl - Generates tab-completion files for various shells
 
 completion.pl [options...]
 
-    --opts_dir path to cmdline-opts directory
+    --opts-dir path to cmdline-opts directory
     --shell    zsh/fish
     --help     prints this help
 

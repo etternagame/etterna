@@ -23,10 +23,10 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
+#include "curl_setup.h"
 
-#include <curl/curl.h>
 #include "llist.h"
-#include "dynbuf.h"
+#include "curlx/dynbuf.h"
 
 struct fileinfo {
   struct curl_fileinfo info;

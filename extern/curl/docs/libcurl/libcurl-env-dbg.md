@@ -29,8 +29,8 @@ Bypass the AltSvc HTTPS protocol restriction if this variable exists.
 
 ## `CURL_DBG_SOCK_RBLOCK`
 
-The percentage of recv() calls that should be answered with a EAGAIN at random.
-For TCP/UNIX sockets.
+The percentage of recv() calls that should be answered with an EAGAIN at
+random. For TCP/UNIX sockets.
 
 ## `CURL_DBG_SOCK_RMAX`
 
@@ -42,8 +42,8 @@ maximum of 400 bytes.
 
 ## `CURL_DBG_SOCK_WBLOCK`
 
-The percentage of send() calls that should be answered with a EAGAIN at random.
-For TCP/UNIX sockets.
+The percentage of send() calls that should be answered with an EAGAIN at
+random. For TCP/UNIX sockets.
 
 ## `CURL_DBG_SOCK_WPARTIAL`
 
@@ -57,6 +57,10 @@ only send 800.
 
 The percentage of send() calls that should be answered with EAGAIN at random.
 QUIC only.
+
+## `CURL_DBG_SOCK_FAIL_IPV6`
+
+Fail opening of sockets for the IPv6 address family.
 
 ## `CURL_DEBUG`
 
@@ -77,6 +81,18 @@ HTTP/2.
 
 Fake the size returned by CURLINFO_HEADER_SIZE and CURLINFO_REQUEST_SIZE.
 
+## `CURL_DNS_SERVER`
+
+When built with c-ares for name resolving, setting this environment variable
+to `[IP:port]` makes libcurl use that DNS server instead of the system
+default. This is used by the curl test suite.
+
+## `CURL_FTP_PWD_STOP`
+
+When set, the first transfer - when using ftp: - returns before sending
+the `PWD` command and stop any further progress. This is used to test
+an edge case
+
 ## `CURL_GETHOSTNAME`
 
 Fake the local machine's unqualified hostname for NTLM and SMTP.
@@ -94,6 +110,11 @@ A time of 0 is used for AWS signatures and NTLM if this variable exists.
 A fixed faked value to use instead of a proper random number so that functions
 in libcurl that are otherwise getting random outputs can be tested for what
 they generate.
+
+## `CURL_SIGPIPE_DEBUG`
+
+When present, `curl` does not set `SIGPIPE` to ignore. This allows
+verification that `libcurl` does not cause `SIGPIPE` to be raised.
 
 ## `CURL_SMALLREQSEND`
 
@@ -135,6 +156,11 @@ decoding.
 Used to simulate blocking sends after this chunk size for WebSocket
 connections.
 
+## `CURL_WS_FORCE_ZERO_MASK`
+
+Used to set the bitmask of all sent WebSocket frames to zero. The value of the
+environment variable does not matter.
+
 ## `CURL_FORBID_REUSE`
 
 Used to set the CURLOPT_FORBID_REUSE flag on each transfer initiated
@@ -147,3 +173,34 @@ Make a blocking, graceful shutdown of all remaining connections when
 a multi handle is destroyed. This implicitly triggers for easy handles
 that are run via easy_perform. The value of the environment variable
 gives the shutdown timeout in milliseconds.
+
+## `CURL_DBG_RESOLV_MAX_THREADS`
+
+Overrides the maximum number of threads for resolver.
+
+## `CURL_DBG_RESOLV_DELAY`
+
+Makes ever threaded resolve experience an initial delay in milliseconds.
+
+## `CURL_DBG_RESOLV_FAIL_DELAY`
+
+With a threaded resolver, delay each lookup by the given milliseconds
+and give a negative answer.
+
+## `CURL_DBG_RESOLV_FAIL_IPV6`
+
+Make libcurl fail a resolve for IPv6 only.
+
+## `CURL_QUICK_EXIT`
+
+Make `curl` use the quick exit option, even when built in debug mode.
+
+## `CURL_DBG_AWAIT_HTTPSRR`
+
+When happy eyeballing for https: wait for the HTTPS-RR resolve
+answer to arrive before starting any connect attempt.
+
+## `CURL_DBG_NO_USE_SSL_ON_FIRST`
+
+When passing `--ssl-reqd`, clear it for the first URL in a curl command.
+This allows testing of connection reuse in mixed `STARTTLS` needs.

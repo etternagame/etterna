@@ -1,17 +1,16 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 netrc
-pop3
+POP3
 </keywords>
 </info>
-#
 # Server-side
 <reply>
 
 </reply>
 
-#
 # Client-side
 <client>
 <server>

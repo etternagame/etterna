@@ -17,7 +17,7 @@ Added-in: 7.19.0
 
 # NAME
 
-CURLINFO_PRIMARY_IP - get IP address of last connection
+CURLINFO_PRIMARY_IP - IP address of last connection
 
 # SYNOPSIS
 
@@ -35,9 +35,9 @@ string holding the IP address of the most recent connection done with this
 get a pointer to a memory area that is reused at next request so you need to
 copy the string if you want to keep the information.
 
-The **ip** pointer is NULL or points to private memory. You MUST NOT free - it
-gets freed when you call curl_easy_cleanup(3) on the corresponding curl
-handle.
+The **ip** pointer is NULL or points to private memory. You **must not** free
+it. The memory gets freed automatically when you call curl_easy_cleanup(3) on
+the corresponding curl handle.
 
 # %PROTOCOLS%
 
@@ -47,15 +47,15 @@ handle.
 int main(void)
 {
   char *ip;
-  CURLcode res;
+  CURLcode result;
   CURL *curl = curl_easy_init();
 
   curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
   /* Perform the transfer */
-  res = curl_easy_perform(curl);
+  result = curl_easy_perform(curl);
   /* Check for errors */
-  if((res == CURLE_OK) &&
+  if((result == CURLE_OK) &&
      !curl_easy_getinfo(curl, CURLINFO_PRIMARY_IP, &ip) && ip) {
     printf("IP: %s\n", ip);
   }
