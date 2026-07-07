@@ -366,10 +366,11 @@ ETTProtocol::close()
 	waitingForTimeout = false;
 	inRoom = false;
 	if (thread != nullptr) {
-		thread->request_stop();
+		stopRequest = true;
 		if (thread->joinable()) {
 			thread->join();
 		}
+		stopRequest = false;
 	}
 	thread = nullptr;
 }
@@ -615,17 +616,18 @@ void
 ETTProtocol::LaunchPollingThread()
 {
 	if (thread != nullptr) {
-		thread->request_stop();
+		stopRequest = true;
 		if (thread->joinable()) {
 			thread->join();
 		}
+		stopRequest = false;
 	}
 
-	auto loop = [&](std::stop_token token) {
+	auto loop = [&]() {
 		std::string message;
 		std::array<char, 2048> buffer = {};
 
-		while (!token.stop_requested()) {
+		while (!stopRequest) {
 			if (NSMAN == nullptr)
 				return;
 			{
@@ -651,6 +653,10 @@ ETTProtocol::LaunchPollingThread()
 				} while (meta != nullptr && meta->bytesleft > 0);
 			}
 
+			if (message.empty()) {
+				continue;
+			}
+
 			std::unique_ptr<Document> d(new Document);
 			if (d->Parse(message.c_str()).HasParseError())
 				Locator::getLogger()->error(
@@ -667,7 +673,8 @@ ETTProtocol::LaunchPollingThread()
 		}
 	};
 
-	thread = std::make_unique<std::jthread>(loop);
+	stopRequest = false;
+	thread = std::make_unique<std::thread>(loop);
 }
 bool
 NetworkSyncManager::IsETTP()
