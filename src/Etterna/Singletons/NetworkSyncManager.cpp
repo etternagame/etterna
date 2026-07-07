@@ -30,8 +30,8 @@ NetworkSyncManager* NSMAN;
 #include <chrono>
 #include <cmath>
 #include <array>
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
+#ifndef _WIN32
+#include <arpa/inet.h>
 #endif
 
 // Maps to associate the strings with the enum values
