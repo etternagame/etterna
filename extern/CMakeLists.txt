@@ -18,20 +18,12 @@ set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)    # Tell curl not to build standalo
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)     # Disable curl testing
 set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
 set(HTTP_ONLY ON CACHE BOOL "" FORCE)          # Disable all protocols except HTTP/S
-set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
 add_subdirectory(curl)
 
 ## SQLiteCpp
 set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static analysis
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp lintiPng
 add_subdirectory(SQLiteCpp)
-
-## websocketpp
-add_subdirectory(asio) # Only required for websocketpp
-add_subdirectory(websocketpp)
-add_library(websocketpp INTERFACE)
-target_include_directories(websocketpp INTERFACE websocketpp)
-target_link_libraries(websocketpp INTERFACE asio)
 
 ## discord-rpc
 if(SUPPORT_DISCORD_SDK)
