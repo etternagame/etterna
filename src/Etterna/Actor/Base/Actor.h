@@ -5,7 +5,7 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Misc/RageTypes.h"
 #include "Etterna/Singletons/MessageManager.h"
-#include "RageUtil/Graphics/DisplaY/PipelineHandle.h"
+#include "RageUtil/Graphics/Display/PipelineHandle.h"
 #include "Tween.h"
 
 #include <map>
