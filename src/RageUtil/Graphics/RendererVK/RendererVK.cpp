@@ -18,6 +18,15 @@
 #include "RenderTargetVK.h"
 #include "PlatformUtils.h"
 
+#ifndef __aarch64__
+#include <xmmintrin.h>
+#include <emmintrin.h>
+#else
+// Use sse2neon to transparently provide ARM Neon equivalents of x86_64 SIMD
+// intrinsics
+#include "sse2neon.h"
+#endif
+
 constexpr uint64_t Timeout = 1000'000'000;
 
 RendererVK::RendererVK()
@@ -472,6 +481,7 @@ RendererVK::CreateScreenshot()
 
 	uint8_t* data = static_cast<uint8_t*>(destAllocInfo.pMappedData) +
 					subresourceLayout.offset;
+	const uint32_t stride = subresourceLayout.rowPitch / sizeof(uint32_t);
 
 	RageSurface* surface = CreateSurface(m_SwapchainExtent.width,
 										 m_SwapchainExtent.height,
@@ -486,20 +496,62 @@ RendererVK::CreateScreenshot()
 	bool needsSwizzle =
 	  !supportsBlitting && (m_ImageFormat == vk::Format::eB8G8R8A8Unorm);
 
-	for (uint32_t y = 0; y < surface->h; y++) {
-		const auto* row = reinterpret_cast<const uint32_t*>(
-		  data + y * subresourceLayout.rowPitch);
+	const __m128i alphaMask = _mm_set1_epi32(0xff000000u);
+	const __m128i blueMask = _mm_set1_epi32(0x000000FF);
+	const __m128i greenMask = _mm_set1_epi32(0x0000FF00);
+	const __m128i redMask = _mm_set1_epi32(0x00FF0000);
 
-		if (needsSwizzle) {
-			for (uint32_t x = 0; x < surface->w; x++) {
-				const uint32_t p = row[x];
-				dest[y * surface->w + x] =
-				  ((p & 0x00ff0000u) >> 16) | ((p & 0x0000ff00u)) |
-				  ((p & 0x000000ffu) << 16) | 0xff000000u;
+	if (needsSwizzle) {
+		// if the screen image was in a different format (say, BGRA vs RGBA), we
+		// need to swap R/B this is done in chunks of 4 pixels in an attempt to
+		// speed thingies up also, set alpha to 255 to fix the image
+
+		for (uint32_t y = 0; y < surface->h; y++) {
+			const uint32_t* srcRow =
+			  reinterpret_cast<const uint32_t*>(data) + y * stride;
+			uint32_t* destRow =
+			  reinterpret_cast<uint32_t*>(dest + y * surface->w);
+
+			int i = 0;
+			for (; i + 3 < surface->w; i += 4) {
+				__m128i p = _mm_loadu_si128((const __m128i*)(srcRow + i));
+				__m128i B = _mm_and_si128(p, blueMask);
+				__m128i G = _mm_and_si128(p, greenMask);
+				__m128i R = _mm_and_si128(p, redMask);
+
+				B = _mm_slli_epi32(B, 16);
+				R = _mm_srli_epi32(R, 16);
+
+				__m128i res = _mm_or_si128(B, G);
+				res = _mm_or_si128(res, R);
+				res = _mm_or_si128(res, alphaMask);
+
+				_mm_storeu_si128((__m128i*)(destRow + i), res);
 			}
-		} else {
-			for (uint32_t x = 0; x < surface->w; x++) {
-				dest[y * surface->w + x] = row[x] | 0xff000000u;
+			for (; i < surface->w; ++i) {
+				uint32_t p = srcRow[i];
+				destRow[i] = ((p & 0x00FF0000u) >> 16) | ((p & 0x0000FF00u)) |
+							 ((p & 0x000000FFu) << 16) | 0xFF000000u;
+			}
+		}
+	} else {
+		// if there's no need to swizzle, just set alpha to 255 to un-screwup
+		// the screen image
+
+		for (int y = 0; y < surface->h; y++) {
+			const uint32_t* srcRow =
+			  reinterpret_cast<const uint32_t*>(data) + y * stride;
+			uint32_t* destRow =
+			  reinterpret_cast<uint32_t*>(dest + y * surface->w);
+
+			int i = 0;
+			for (; i + 3 < surface->w; i += 4) {
+				__m128i pixels = _mm_loadu_si128((const __m128i*)(srcRow + i));
+				__m128i result = _mm_or_si128(pixels, alphaMask);
+				_mm_storeu_si128((__m128i*)(destRow + i), result);
+			}
+			for (; i < surface->w; i++) {
+				destRow[i] = srcRow[i] | 0xFF000000u;
 			}
 		}
 	}
@@ -1156,7 +1208,8 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 				}
 				default: {
 					Locator::getLogger()->error(
-					  "Invalid ZTestMode encountered: {}", static_cast<int>(call.DepthTestMode));
+					  "Invalid ZTestMode encountered: {}",
+					  static_cast<int>(call.DepthTestMode));
 					Fail();
 				}
 			}
@@ -1332,7 +1385,8 @@ RendererVK::SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer)
 		}
 
 		default: {
-			Locator::getLogger()->error("Invalid BlendMode: {}", static_cast<int>(mode));
+			Locator::getLogger()->error("Invalid BlendMode: {}",
+										static_cast<int>(mode));
 			Fail();
 		}
 	}
@@ -1682,8 +1736,8 @@ RendererVK::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 								   const std::string& fragmentShaderPath)
 {
 	assert(m_Cache.has_value());
-	return m_Cache->CreateGraphicsPipeline(m_Device, vertexShaderPath,
-										   fragmentShaderPath);
+	return m_Cache->CreateGraphicsPipeline(
+	  m_Device, vertexShaderPath, fragmentShaderPath);
 }
 
 void
