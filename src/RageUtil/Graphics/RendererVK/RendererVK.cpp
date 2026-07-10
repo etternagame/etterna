@@ -27,7 +27,7 @@
 #include "sse2neon.h"
 #endif
 
-constexpr uint64_t Timeout = 1000'000'000;
+constexpr uint64_t Timeout = 2000'000'000;
 
 RendererVK::RendererVK()
   : m_Samplers{ nullptr, nullptr, nullptr, nullptr }
@@ -1589,7 +1589,7 @@ RendererVK::UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher)
 				sizeof(DisplayAdapter::MatrixState) *
 				  batcher.m_MatrixStateBuffer.size());
 
-	std::memcpy(m_ShaderScratchBuffer[m_CurrentFrame].GetMappedData(),
+	std::memcpy(m_ShaderScratchBuffer[m_CurrentFrame].GetMappedData(),	
 				batcher.m_ShaderScratchBuffer.data(),
 				sizeof(uint8_t) * batcher.m_ShaderScratchBuffer.size());
 }
