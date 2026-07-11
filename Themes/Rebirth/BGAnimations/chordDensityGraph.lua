@@ -122,7 +122,8 @@ local function getColorForDensity(density, nColumns)
 end
 
 local function getColorForMine()
-    return color("1,0.2,0.2,1.0")
+    -- this is white because the diffuseshift does the coloring
+    return color("1,1,1,1")
 end
 
 local function makeABar(vertices, x, y, barWidth, barHeight, thecolor)
@@ -135,6 +136,7 @@ local function makeABar(vertices, x, y, barWidth, barHeight, thecolor)
 end
 
 local function updateGraphMultiVertex(parent, self, steps)
+    local minegraph = self:GetSibling("ChordDensityGraphMineAMV")
     if steps then
         local ncol = steps:GetNumColumns()
         local rate = math.max(MIN_MUSIC_RATE, getCurRateValue())
@@ -144,6 +146,8 @@ local function updateGraphMultiVertex(parent, self, steps)
             -- reset everything if theres nothing to show
             self:SetVertices({})
             self:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
+            minegraph:SetVertices({})
+            minegraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
             txt:settext("")
             return
         end
@@ -160,11 +164,14 @@ local function updateGraphMultiVertex(parent, self, steps)
                 heightScale = npsVector[i] * 2
             end
         end
+        local maxValueAllowed = heightScale
 
         txt:settext(heightScale / 2 * 0.7 .. translations["NPS"])
         heightScale = sizing.Height / heightScale
+        maxValueAllowed = maxValueAllowed * heightScale
 
         local verts = {} -- reset the vertices for the graph
+        local mverts = {}
         local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
         local lastIndex = 1
         for density = 1,ncol do
@@ -183,7 +190,7 @@ local function updateGraphMultiVertex(parent, self, steps)
 			local val = mineVector[column]
 			if val > 0 then
 				local barColor = getColorForMine()
-				makeABar(verts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, val * 2 * heightScale, barColor)
+				makeABar(mverts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, math.min(maxValueAllowed, val * 2 * heightScale), barColor)
 				if column > lastIndex then
 					lastIndex = column
 				end
@@ -195,10 +202,14 @@ local function updateGraphMultiVertex(parent, self, steps)
 
         self:SetVertices(verts)
         self:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
+        minegraph:SetVertices(mverts)
+        minegraph:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #mverts} )
     else
         -- reset everything if theres nothing to show
         self:SetVertices({})
         self:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
+        minegraph:SetVertices({})
+        minegraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
         parent:GetChild("NPSText"):settext("")
     end
 end
@@ -290,6 +301,24 @@ t[#t+1] = Def.ActorMultiVertex {
         self.s = params.steps
         updateGraphMultiVertex(self:GetParent(), self, params.steps)
     end,
+}
+
+t[#t+1] = Def.ActorMultiVertex {
+    Name = "ChordDensityGraphMineAMV",
+    InitCommand = function(self)
+        self:diffuseshift()
+		self:effectclock("timer")
+		self:effectperiod(2)
+		self:effectcolor1(color("#FF000000"))
+		self:effectcolor2(color("#FF0000FF"))
+    end,
+    UpdateSizingCommand = function(self)
+        -- this will position the plot relative to the bottom left of the area
+        -- less math, more easy, progarming fun
+        self:finishtweening()
+        self:smooth(resizeAnimationSeconds)
+        self:y(sizing.Height)
+    end
 }
 
 t[#t+1] = Def.Quad {
