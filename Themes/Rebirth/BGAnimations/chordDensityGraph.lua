@@ -121,6 +121,10 @@ local function getColorForDensity(density, nColumns)
     return lerp_color(value, lowDensityColor, highDensityColor)
 end
 
+local function getColorForMine()
+    return color("1,0.2,0.2,1.0")
+end
+
 local function makeABar(vertices, x, y, barWidth, barHeight, thecolor)
     -- These bars are vertical, progressively going across the screen
     -- Their corners are: (x,y), (x, y-barHeight), (x-barWidth, y-barHeight), (x-barWidth, y)
@@ -145,6 +149,7 @@ local function updateGraphMultiVertex(parent, self, steps)
         end
 
         local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+        local mineVector = steps:GetCDGraphVectors(rate, "TapNoteType_Mine")
         local numberOfColumns = #npsVector
         local columnWidth = sizing.Width / numberOfColumns
 
@@ -164,15 +169,26 @@ local function updateGraphMultiVertex(parent, self, steps)
         local lastIndex = 1
         for density = 1,ncol do
             for column = 1,numberOfColumns do
-                if graphVectors[density][column] > 0 then
+                local val = graphVectors[density][column]
+                if val > 0 then
                     local barColor = getColorForDensity(density, ncol)
-                    makeABar(verts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, graphVectors[density][column] * 2 * heightScale, barColor)
+                    makeABar(verts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, val * 2 * heightScale, barColor)
                     if column > lastIndex then
                         lastIndex = column
                     end
                 end
             end
         end
+        for column = 1, numberOfColumns do
+			local val = mineVector[column]
+			if val > 0 then
+				local barColor = getColorForMine()
+				makeABar(verts, math.min(column * columnWidth, sizing.Width), yOffset, columnWidth, val * 2 * heightScale, barColor)
+				if column > lastIndex then
+					lastIndex = column
+				end
+			end
+		end
 
         parent.npsVector = npsVector
         parent.finalNPSVectorIndex = lastIndex -- massive hack because npsVector is padded with 0s on uprates

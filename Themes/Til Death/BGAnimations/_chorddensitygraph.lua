@@ -41,6 +41,10 @@ local function getColorForDensity(density, nColumns)
 	return color(tostring(value)..","..tostring(value)..","..tostring(value))
 end
 
+local function getColorForMine()
+	return color("1,0.2,0.2,1.0")
+end
+
 local function updateGraphMultiVertex(parent, realgraph)
 	local steps = GAMESTATE:GetCurrentSteps()
 	if steps then
@@ -55,6 +59,7 @@ local function updateGraphMultiVertex(parent, realgraph)
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+		local mineVector = steps:GetCDGraphVectors(rate, "TapNoteType_Mine")
 		parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = wodth/numberOfColumns
@@ -74,12 +79,23 @@ local function updateGraphMultiVertex(parent, realgraph)
 		local lastIndex = 1
 		for density = 1,ncol do
 			for column = 1,numberOfColumns do
-				if graphVectors[density][column] > 0 then
+				local val = graphVectors[density][column]
+				if val > 0 then
 					local barColor = getColorForDensity(density, ncol)
-					makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+					makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, val * 2 * hodth, barColor)
 					if column > lastIndex then
 						lastIndex = column
 					end
+				end
+			end
+		end
+		for column = 1, numberOfColumns do
+			local val = mineVector[column]
+			if val > 0 then
+				local barColor = getColorForMine()
+				makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, val * 2 * hodth, barColor)
+				if column > lastIndex then
+					lastIndex = column
 				end
 			end
 		end
