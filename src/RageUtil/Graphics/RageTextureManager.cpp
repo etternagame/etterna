@@ -23,6 +23,7 @@
 #include "Etterna/Actor/Base/ActorUtil.h"
 #include "Etterna/Singletons/PrefsManager.h"
 #include "RageBitmapTexture.h"
+#include "RageAnimatedTexture.h"
 #include "RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 #include "RageTextureManager.h"
@@ -199,6 +200,8 @@ RageTextureManager::LoadTextureInternal(RageTextureID ID)
 	RageTexture* pTexture;
 	if (ID.filename == g_sDefaultTextureName) {
 		pTexture = new RageTexture_Default;
+	} else if (make_lower(GetExtension(ID.filename)) == "gif") {
+		pTexture = new RageAnimatedTexture(ID);
 	} else if (ActorUtil::GetFileType(ID.filename) == FT_Movie) {
 		pTexture = RageMovieTexture::Create(ID);
 	} else {
