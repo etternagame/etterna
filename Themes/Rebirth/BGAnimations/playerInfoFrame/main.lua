@@ -663,7 +663,7 @@ t[#t+1] = Def.ActorFrame {
                 inputqueue[2] = inputqueue[3]
                 inputqueue[3] = nil
             end
-            -- / / opens the sort menu
+            -- / / opens asset settings
             if inputqueue[1] == "Select" and inputqueue[2] == "Select" then
                 -- open asset settings
                 MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "General"})
