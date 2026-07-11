@@ -753,6 +753,45 @@ Steps::GetNPSVector(const NoteData& nd,
 	return doot;
 }
 
+
+auto
+Steps::GetNPSVectorForType(const NoteData& nd,
+						   const std::vector<float>& etaner,
+						   const std::vector<int>& nerv,
+						   const float rate,
+						   const TapNoteType tnt) -> std::vector<int>
+{
+	std::map<int, int> intervals_to_counts{};
+	for (auto i = 0; i < static_cast<int>(nerv.size()); i++) {
+		const auto curinterval = static_cast<int>(etaner[i] / rate);
+		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
+			const auto& tn = nd.GetTapNote(t, nerv[i]);
+			if (tn.type == tnt) {
+				intervals_to_counts[curinterval]++;
+			}
+		}
+	}
+
+	auto sz = 0;
+	if (intervals_to_counts.size() > 0) {
+		sz = std::max(static_cast<int>(etaner.back() / rate),
+					  intervals_to_counts.rbegin()->first);
+	} else {
+		sz = static_cast<int>(etaner.back() / rate);
+	}
+	std::vector<int> doot(sz + 1);
+	for (const auto& p : intervals_to_counts) {
+		if (p.first < 0) {
+			Locator::getLogger()->error(
+			  "BAD FILE PRODUCED NEGATIVE ETANER itv {}", p.first);
+			continue;
+		}
+		doot[p.first] = p.second;
+	}
+
+	return doot;
+}
+
 // YEAH THIS IS LIKE, REALLY INEFFICIENT
 auto
 Steps::GetNPSPerMeasure(const NoteData& nd,
@@ -1043,20 +1082,29 @@ class LunaSteps : public Luna<Steps>
 		}
 		const auto& etaner = p->GetTimingData()->BuildAndGetEtaner(nerv);
 
-		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
-		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		lua_newtable(L);
-		LuaHelpers::CreateTableFromArray(
-		  p->GetNPSVector(nd, etaner, nerv, rate), L);
-		lua_rawseti(L, -2, 1);
-
-		for (auto i = 1; i < nd.GetNumTracks(); ++i) {
-			// sort of confusing: the luatable pos/chordsize are i + 1
-			// but we're iterating over tracks which are 0 indexed
-			// so jumps are position 2 and 2 notes each when i = 1 -mina
+		// old functionality when passing no extra param
+		if (lua_isnoneornil(L, 2)) {
+			// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
+			// etaner), L) produced tables full of 0 values for ???? reason
+			// -mina
+			lua_newtable(L);
 			LuaHelpers::CreateTableFromArray(
-			  p->GetCNPSVector(nd, nerv, etaner, i + 1, rate), L);
-			lua_rawseti(L, -2, i + 1);
+			  p->GetNPSVector(nd, etaner, nerv, rate), L);
+			lua_rawseti(L, -2, 1);
+
+			for (auto i = 1; i < nd.GetNumTracks(); ++i) {
+				// sort of confusing: the luatable pos/chordsize are i + 1
+				// but we're iterating over tracks which are 0 indexed
+				// so jumps are position 2 and 2 notes each when i = 1 -mina
+				LuaHelpers::CreateTableFromArray(
+				  p->GetCNPSVector(nd, nerv, etaner, i + 1, rate), L);
+				lua_rawseti(L, -2, i + 1);
+			}
+		} else {
+			// just an array of the values
+			TapNoteType tnt = Enum::Check<TapNoteType>(L, 2);
+			auto arr = p->GetNPSVectorForType(nd, etaner, nerv, rate, tnt);
+			LuaHelpers::CreateTableFromArray(arr, L);
 		}
 		nd.UnsetNerv();
 		p->GetTimingData()->UnsetEtaner();
