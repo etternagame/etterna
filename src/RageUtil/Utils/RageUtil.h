@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <cmath>
+#include <cstdint>
 
 class RageFileDriver;
 
