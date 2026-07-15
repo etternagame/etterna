@@ -14,7 +14,7 @@ Added-in: 7.87.0
 
 # NAME
 
-CURLOPT_QUICK_EXIT - allow to exit quickly
+CURLOPT_QUICK_EXIT - allow libcurl to exit quickly
 
 # SYNOPSIS
 
@@ -47,9 +47,9 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode ret;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_QUICK_EXIT, 1L);
-    ret = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
   }
 }
 ~~~

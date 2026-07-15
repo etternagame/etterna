@@ -6,9 +6,9 @@ particular build may not support them all.
 ## DICT
 Lets you lookup words using online dictionaries.
 ## FILE
-Read or write local files. curl does not support accessing file:// URL
+Read or write local files. curl does not support accessing `file://` URL
 remotely, but when running on Microsoft Windows using the native UNC approach
-works.
+works. Only absolute paths.
 ## FTP(S)
 curl supports the File Transfer Protocol with a lot of tweaks and levers. With
 or without using TLS.
@@ -24,15 +24,12 @@ without using TLS.
 ## LDAP(S)
 curl can do directory lookups for you, with or without TLS.
 ## MQTT
-curl supports MQTT version 3. Downloading over MQTT equals subscribe to a
-topic while uploading/posting equals publish on a topic. MQTT over TLS is not
+curl supports MQTT version 3. Downloading over MQTT equals subscribing to a
+topic while uploading/posting equals publishing on a topic. MQTT over TLS is not
 supported (yet).
 ## POP3(S)
-Downloading from a pop3 server means getting a mail. With or without using
+Downloading from a pop3 server means getting an email. With or without using
 TLS.
-## RTMP(S)
-The **Realtime Messaging Protocol** is primarily used to serve streaming media
-and curl can download it.
 ## RTSP
 curl supports RTSP 1.0 downloads.
 ## SCP

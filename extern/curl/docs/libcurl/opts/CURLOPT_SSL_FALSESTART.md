@@ -9,7 +9,7 @@ See-also:
 Protocol:
   - TLS
 TLS-backend:
-  - Secure Transport
+  - none
 Added-in: 7.42.0
 ---
 
@@ -47,12 +47,18 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
     curl_easy_setopt(curl, CURLOPT_SSL_FALSESTART, 1L);
-    curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
   }
 }
 ~~~
+
+# DEPRECATED
+
+Deprecated since 8.15.0.
 
 # %AVAILABILITY%
 

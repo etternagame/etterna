@@ -61,8 +61,7 @@
 # SPDX-License-Identifier: curl
 #
 ###########################################################################
-
-# Shared between Makefile.am and CMakeLists.txt
+# Shared between CMakeLists.txt and Makefile.am
 
 VPATH = @srcdir@
 am__is_gnu_make = { \
@@ -141,7 +140,7 @@ host_triplet = @host@
 subdir = docs/libcurl
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
-	$(top_srcdir)/m4/curl-bearssl.m4 \
+	$(top_srcdir)/m4/curl-apple-sectrust.m4 \
 	$(top_srcdir)/m4/curl-compilers.m4 \
 	$(top_srcdir)/m4/curl-confopts.m4 \
 	$(top_srcdir)/m4/curl-functions.m4 \
@@ -152,7 +151,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/curl-reentrant.m4 \
 	$(top_srcdir)/m4/curl-rustls.m4 \
 	$(top_srcdir)/m4/curl-schannel.m4 \
-	$(top_srcdir)/m4/curl-sectransp.m4 \
 	$(top_srcdir)/m4/curl-sysconfig.m4 \
 	$(top_srcdir)/m4/curl-wolfssl.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -162,8 +160,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/xc-lt-iface.m4 \
 	$(top_srcdir)/m4/xc-val-flgs.m4 \
 	$(top_srcdir)/m4/zz40-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz50-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz60-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/m4/zz50-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -304,6 +301,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_CURL_SYMBOL_HIDING = @CFLAG_CURL_SYMBOL_HIDING@
+CLANG_TIDY = @CLANG_TIDY@
 CONFIGURE_OPTIONS = @CONFIGURE_OPTIONS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -318,6 +316,7 @@ CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX = @CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME = @CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME@
 CURL_NETWORK_AND_TIME_LIBS = @CURL_NETWORK_AND_TIME_LIBS@
 CYGPATH_W = @CYGPATH_W@
+DANTED = @DANTED@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -336,6 +335,7 @@ FILECMD = @FILECMD@
 FISH_FUNCTIONS_DIR = @FISH_FUNCTIONS_DIR@
 GCOV = @GCOV@
 GREP = @GREP@
+H2O = @H2O@
 HAVE_LIBZ = @HAVE_LIBZ@
 HTTPD = @HTTPD@
 HTTPD_NGHTTPX = @HTTPD_NGHTTPX@
@@ -385,7 +385,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -453,107 +455,113 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = foreign no-dependencies
 SUBDIRS = opts
 @BUILD_DOCS_TRUE@man_MANS = \
-@BUILD_DOCS_TRUE@ curl_easy_cleanup.3 \
-@BUILD_DOCS_TRUE@ curl_easy_duphandle.3 \
-@BUILD_DOCS_TRUE@ curl_easy_escape.3 \
-@BUILD_DOCS_TRUE@ curl_easy_getinfo.3 \
-@BUILD_DOCS_TRUE@ curl_easy_header.3 \
-@BUILD_DOCS_TRUE@ curl_easy_init.3 \
-@BUILD_DOCS_TRUE@ curl_easy_nextheader.3 \
-@BUILD_DOCS_TRUE@ curl_easy_option_by_id.3 \
-@BUILD_DOCS_TRUE@ curl_easy_option_by_name.3 \
-@BUILD_DOCS_TRUE@ curl_easy_option_next.3 \
-@BUILD_DOCS_TRUE@ curl_easy_pause.3 \
-@BUILD_DOCS_TRUE@ curl_easy_perform.3 \
-@BUILD_DOCS_TRUE@ curl_easy_recv.3 \
-@BUILD_DOCS_TRUE@ curl_easy_reset.3 \
-@BUILD_DOCS_TRUE@ curl_easy_send.3 \
-@BUILD_DOCS_TRUE@ curl_easy_setopt.3 \
-@BUILD_DOCS_TRUE@ curl_easy_ssls_export.3 \
-@BUILD_DOCS_TRUE@ curl_easy_ssls_import.3 \
-@BUILD_DOCS_TRUE@ curl_easy_strerror.3 \
-@BUILD_DOCS_TRUE@ curl_easy_unescape.3 \
-@BUILD_DOCS_TRUE@ curl_easy_upkeep.3 \
-@BUILD_DOCS_TRUE@ curl_escape.3 \
-@BUILD_DOCS_TRUE@ curl_formadd.3 \
-@BUILD_DOCS_TRUE@ curl_formfree.3 \
-@BUILD_DOCS_TRUE@ curl_formget.3 \
-@BUILD_DOCS_TRUE@ curl_free.3 \
-@BUILD_DOCS_TRUE@ curl_getdate.3 \
-@BUILD_DOCS_TRUE@ curl_getenv.3 \
-@BUILD_DOCS_TRUE@ curl_global_cleanup.3 \
-@BUILD_DOCS_TRUE@ curl_global_init.3 \
-@BUILD_DOCS_TRUE@ curl_global_init_mem.3 \
-@BUILD_DOCS_TRUE@ curl_global_sslset.3 \
-@BUILD_DOCS_TRUE@ curl_global_trace.3 \
-@BUILD_DOCS_TRUE@ curl_mime_addpart.3 \
-@BUILD_DOCS_TRUE@ curl_mime_data.3 \
-@BUILD_DOCS_TRUE@ curl_mime_data_cb.3 \
-@BUILD_DOCS_TRUE@ curl_mime_encoder.3 \
-@BUILD_DOCS_TRUE@ curl_mime_filedata.3 \
-@BUILD_DOCS_TRUE@ curl_mime_filename.3 \
-@BUILD_DOCS_TRUE@ curl_mime_free.3 \
-@BUILD_DOCS_TRUE@ curl_mime_headers.3 \
-@BUILD_DOCS_TRUE@ curl_mime_init.3 \
-@BUILD_DOCS_TRUE@ curl_mime_name.3 \
-@BUILD_DOCS_TRUE@ curl_mime_subparts.3 \
-@BUILD_DOCS_TRUE@ curl_mime_type.3 \
-@BUILD_DOCS_TRUE@ curl_mprintf.3 \
-@BUILD_DOCS_TRUE@ curl_multi_add_handle.3 \
-@BUILD_DOCS_TRUE@ curl_multi_assign.3 \
-@BUILD_DOCS_TRUE@ curl_multi_cleanup.3 \
-@BUILD_DOCS_TRUE@ curl_multi_fdset.3 \
-@BUILD_DOCS_TRUE@ curl_multi_get_handles.3 \
-@BUILD_DOCS_TRUE@ curl_multi_info_read.3 \
-@BUILD_DOCS_TRUE@ curl_multi_init.3 \
-@BUILD_DOCS_TRUE@ curl_multi_perform.3 \
-@BUILD_DOCS_TRUE@ curl_multi_poll.3 \
-@BUILD_DOCS_TRUE@ curl_multi_remove_handle.3 \
-@BUILD_DOCS_TRUE@ curl_multi_setopt.3 \
-@BUILD_DOCS_TRUE@ curl_multi_socket.3 \
-@BUILD_DOCS_TRUE@ curl_multi_socket_action.3 \
-@BUILD_DOCS_TRUE@ curl_multi_socket_all.3 \
-@BUILD_DOCS_TRUE@ curl_multi_strerror.3 \
-@BUILD_DOCS_TRUE@ curl_multi_timeout.3 \
-@BUILD_DOCS_TRUE@ curl_multi_wait.3 \
-@BUILD_DOCS_TRUE@ curl_multi_waitfds.3 \
-@BUILD_DOCS_TRUE@ curl_multi_wakeup.3 \
-@BUILD_DOCS_TRUE@ curl_pushheader_byname.3 \
-@BUILD_DOCS_TRUE@ curl_pushheader_bynum.3 \
-@BUILD_DOCS_TRUE@ curl_share_cleanup.3 \
-@BUILD_DOCS_TRUE@ curl_share_init.3 \
-@BUILD_DOCS_TRUE@ curl_share_setopt.3 \
-@BUILD_DOCS_TRUE@ curl_share_strerror.3 \
-@BUILD_DOCS_TRUE@ curl_slist_append.3 \
-@BUILD_DOCS_TRUE@ curl_slist_free_all.3 \
-@BUILD_DOCS_TRUE@ curl_strequal.3 \
-@BUILD_DOCS_TRUE@ curl_strnequal.3 \
-@BUILD_DOCS_TRUE@ curl_unescape.3 \
-@BUILD_DOCS_TRUE@ curl_url.3 \
-@BUILD_DOCS_TRUE@ curl_url_cleanup.3 \
-@BUILD_DOCS_TRUE@ curl_url_dup.3 \
-@BUILD_DOCS_TRUE@ curl_url_get.3 \
-@BUILD_DOCS_TRUE@ curl_url_set.3 \
-@BUILD_DOCS_TRUE@ curl_url_strerror.3 \
-@BUILD_DOCS_TRUE@ curl_version.3 \
-@BUILD_DOCS_TRUE@ curl_version_info.3 \
-@BUILD_DOCS_TRUE@ curl_ws_meta.3 \
-@BUILD_DOCS_TRUE@ curl_ws_recv.3 \
-@BUILD_DOCS_TRUE@ curl_ws_send.3 \
-@BUILD_DOCS_TRUE@ libcurl-easy.3 \
-@BUILD_DOCS_TRUE@ libcurl-env-dbg.3 \
-@BUILD_DOCS_TRUE@ libcurl-env.3 \
-@BUILD_DOCS_TRUE@ libcurl-errors.3 \
-@BUILD_DOCS_TRUE@ libcurl-multi.3 \
-@BUILD_DOCS_TRUE@ libcurl-security.3 \
-@BUILD_DOCS_TRUE@ libcurl-share.3 \
-@BUILD_DOCS_TRUE@ libcurl-symbols.3 \
-@BUILD_DOCS_TRUE@ libcurl-thread.3 \
-@BUILD_DOCS_TRUE@ libcurl-tutorial.3 \
-@BUILD_DOCS_TRUE@ libcurl-url.3 \
-@BUILD_DOCS_TRUE@ libcurl-ws.3 \
-@BUILD_DOCS_TRUE@ libcurl.3
+@BUILD_DOCS_TRUE@  curl_easy_cleanup.3 \
+@BUILD_DOCS_TRUE@  curl_easy_duphandle.3 \
+@BUILD_DOCS_TRUE@  curl_easy_escape.3 \
+@BUILD_DOCS_TRUE@  curl_easy_getinfo.3 \
+@BUILD_DOCS_TRUE@  curl_easy_header.3 \
+@BUILD_DOCS_TRUE@  curl_easy_init.3 \
+@BUILD_DOCS_TRUE@  curl_easy_nextheader.3 \
+@BUILD_DOCS_TRUE@  curl_easy_option_by_id.3 \
+@BUILD_DOCS_TRUE@  curl_easy_option_by_name.3 \
+@BUILD_DOCS_TRUE@  curl_easy_option_next.3 \
+@BUILD_DOCS_TRUE@  curl_easy_pause.3 \
+@BUILD_DOCS_TRUE@  curl_easy_perform.3 \
+@BUILD_DOCS_TRUE@  curl_easy_recv.3 \
+@BUILD_DOCS_TRUE@  curl_easy_reset.3 \
+@BUILD_DOCS_TRUE@  curl_easy_send.3 \
+@BUILD_DOCS_TRUE@  curl_easy_setopt.3 \
+@BUILD_DOCS_TRUE@  curl_easy_ssls_export.3 \
+@BUILD_DOCS_TRUE@  curl_easy_ssls_import.3 \
+@BUILD_DOCS_TRUE@  curl_easy_strerror.3 \
+@BUILD_DOCS_TRUE@  curl_easy_unescape.3 \
+@BUILD_DOCS_TRUE@  curl_easy_upkeep.3 \
+@BUILD_DOCS_TRUE@  curl_escape.3 \
+@BUILD_DOCS_TRUE@  curl_formadd.3 \
+@BUILD_DOCS_TRUE@  curl_formfree.3 \
+@BUILD_DOCS_TRUE@  curl_formget.3 \
+@BUILD_DOCS_TRUE@  curl_free.3 \
+@BUILD_DOCS_TRUE@  curl_getdate.3 \
+@BUILD_DOCS_TRUE@  curl_getenv.3 \
+@BUILD_DOCS_TRUE@  curl_global_cleanup.3 \
+@BUILD_DOCS_TRUE@  curl_global_init.3 \
+@BUILD_DOCS_TRUE@  curl_global_init_mem.3 \
+@BUILD_DOCS_TRUE@  curl_global_sslset.3 \
+@BUILD_DOCS_TRUE@  curl_global_trace.3 \
+@BUILD_DOCS_TRUE@  curl_mime_addpart.3 \
+@BUILD_DOCS_TRUE@  curl_mime_data.3 \
+@BUILD_DOCS_TRUE@  curl_mime_data_cb.3 \
+@BUILD_DOCS_TRUE@  curl_mime_encoder.3 \
+@BUILD_DOCS_TRUE@  curl_mime_filedata.3 \
+@BUILD_DOCS_TRUE@  curl_mime_filename.3 \
+@BUILD_DOCS_TRUE@  curl_mime_free.3 \
+@BUILD_DOCS_TRUE@  curl_mime_headers.3 \
+@BUILD_DOCS_TRUE@  curl_mime_init.3 \
+@BUILD_DOCS_TRUE@  curl_mime_name.3 \
+@BUILD_DOCS_TRUE@  curl_mime_subparts.3 \
+@BUILD_DOCS_TRUE@  curl_mime_type.3 \
+@BUILD_DOCS_TRUE@  curl_mprintf.3 \
+@BUILD_DOCS_TRUE@  curl_multi_add_handle.3 \
+@BUILD_DOCS_TRUE@  curl_multi_assign.3 \
+@BUILD_DOCS_TRUE@  curl_multi_cleanup.3 \
+@BUILD_DOCS_TRUE@  curl_multi_fdset.3 \
+@BUILD_DOCS_TRUE@  curl_multi_get_handles.3 \
+@BUILD_DOCS_TRUE@  curl_multi_get_offt.3 \
+@BUILD_DOCS_TRUE@  curl_multi_info_read.3 \
+@BUILD_DOCS_TRUE@  curl_multi_init.3 \
+@BUILD_DOCS_TRUE@  curl_multi_notify_disable.3 \
+@BUILD_DOCS_TRUE@  curl_multi_notify_enable.3 \
+@BUILD_DOCS_TRUE@  curl_multi_perform.3 \
+@BUILD_DOCS_TRUE@  curl_multi_poll.3 \
+@BUILD_DOCS_TRUE@  curl_multi_remove_handle.3 \
+@BUILD_DOCS_TRUE@  curl_multi_setopt.3 \
+@BUILD_DOCS_TRUE@  curl_multi_socket.3 \
+@BUILD_DOCS_TRUE@  curl_multi_socket_action.3 \
+@BUILD_DOCS_TRUE@  curl_multi_socket_all.3 \
+@BUILD_DOCS_TRUE@  curl_multi_strerror.3 \
+@BUILD_DOCS_TRUE@  curl_multi_timeout.3 \
+@BUILD_DOCS_TRUE@  curl_multi_wait.3 \
+@BUILD_DOCS_TRUE@  curl_multi_waitfds.3 \
+@BUILD_DOCS_TRUE@  curl_multi_wakeup.3 \
+@BUILD_DOCS_TRUE@  curl_pushheader_byname.3 \
+@BUILD_DOCS_TRUE@  curl_pushheader_bynum.3 \
+@BUILD_DOCS_TRUE@  curl_share_cleanup.3 \
+@BUILD_DOCS_TRUE@  curl_share_init.3 \
+@BUILD_DOCS_TRUE@  curl_share_setopt.3 \
+@BUILD_DOCS_TRUE@  curl_share_strerror.3 \
+@BUILD_DOCS_TRUE@  curl_slist_append.3 \
+@BUILD_DOCS_TRUE@  curl_slist_free_all.3 \
+@BUILD_DOCS_TRUE@  curl_strequal.3 \
+@BUILD_DOCS_TRUE@  curl_strnequal.3 \
+@BUILD_DOCS_TRUE@  curl_unescape.3 \
+@BUILD_DOCS_TRUE@  curl_url.3 \
+@BUILD_DOCS_TRUE@  curl_url_cleanup.3 \
+@BUILD_DOCS_TRUE@  curl_url_dup.3 \
+@BUILD_DOCS_TRUE@  curl_url_get.3 \
+@BUILD_DOCS_TRUE@  curl_url_set.3 \
+@BUILD_DOCS_TRUE@  curl_url_strerror.3 \
+@BUILD_DOCS_TRUE@  curl_version.3 \
+@BUILD_DOCS_TRUE@  curl_version_info.3 \
+@BUILD_DOCS_TRUE@  curl_ws_meta.3 \
+@BUILD_DOCS_TRUE@  curl_ws_recv.3 \
+@BUILD_DOCS_TRUE@  curl_ws_send.3 \
+@BUILD_DOCS_TRUE@  curl_ws_start_frame.3 \
+@BUILD_DOCS_TRUE@  libcurl-easy.3 \
+@BUILD_DOCS_TRUE@  libcurl-env-dbg.3 \
+@BUILD_DOCS_TRUE@  libcurl-env.3 \
+@BUILD_DOCS_TRUE@  libcurl-errors.3 \
+@BUILD_DOCS_TRUE@  libcurl-multi.3 \
+@BUILD_DOCS_TRUE@  libcurl-security.3 \
+@BUILD_DOCS_TRUE@  libcurl-share.3 \
+@BUILD_DOCS_TRUE@  libcurl-symbols.3 \
+@BUILD_DOCS_TRUE@  libcurl-thread.3 \
+@BUILD_DOCS_TRUE@  libcurl-tutorial.3 \
+@BUILD_DOCS_TRUE@  libcurl-url.3 \
+@BUILD_DOCS_TRUE@  libcurl-ws.3 \
+@BUILD_DOCS_TRUE@  libcurl.3
 
+
+# Get man_MANS variable
 @BUILD_DOCS_TRUE@CURLPAGES = $(man_MANS:.3=.md)
 m4macrodir = $(datadir)/aclocal
 dist_m4macro_DATA = libcurl.m4

@@ -23,22 +23,25 @@
 #
 ###########################################################################
 
+use strict;
+use warnings;
+
 sub showline {
     my ($l) = @_;
     $l =~ s/([^\x20-\x7f])/sprintf "%%%02x", ord $1/eg;
     return $l;
 }
 
-my $root = $ARGV[0];
+my $root = $ARGV[0] || '..';
 
-open(my $fh, "-|", "perl $root/lib/optiontable.pl < $root/include/curl/curl.h");
+open(my $fh, "-|", 'perl', "$root/lib/optiontable.pl", "$root/include/curl/curl.h");
 binmode $fh;
-my @gen=<$fh>;
+my @gen = <$fh>;
 close($fh);
 
 open($fh, "<", "$root/lib/easyoptions.c");
 binmode $fh;
-my @file=<$fh>;
+my @file = <$fh>;
 close($fh);
 
 if(join("", @gen) ne join("", @file)) {
@@ -53,8 +56,8 @@ if(join("", @gen) ne join("", @file)) {
         $file[$i] =~ s/[\r\n]//g;
         if($gen[$i] ne $file[$i]) {
             printf "File: %u:%s\nGen:  %u:%s\n",
-                $i+1, showline($file[$i]),
-                $i+1, showline($gen[$i]);
+                $i + 1, showline($file[$i]),
+                $i + 1, showline($gen[$i]);
             $e++;
             if($e > 10) {
                 # only show 10 lines diff

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -6,7 +7,6 @@ HTTP POST
 --json
 </keywords>
 </info>
-#
 # Server-side
 <reply>
 <data>
@@ -25,7 +25,6 @@ Funny-head: yesyes
 </data>
 </reply>
 
-#
 # Client-side
 <client>
 <server>
@@ -35,25 +34,24 @@ http
 HTTP with --json from stdin
 </name>
 <stdin>
-{ "drink": "coffe" }
+{ "drink": "coffee" }
 </stdin>
 <command>
 --json @- http://%HOSTIP:%HTTPPORT/%TESTNUMBER -H "Accept: foobar/*"
 </command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
-<protocol>
+<protocol crlf="headers">
 POST /%TESTNUMBER HTTP/1.1
 Host: %HOSTIP:%HTTPPORT
 User-Agent: curl/%VERSION
 Accept: foobar/*
 Content-Type: application/json
-Content-Length: 21
+Content-Length: 22
 
-{ "drink": "coffe" }
+{ "drink": "coffee" }
 </protocol>
 </verify>
 </testcase>

@@ -13,7 +13,6 @@ TLS-backend:
   - OpenSSL
   - wolfSSL
   - mbedTLS
-  - BearSSL
 Added-in: 7.10.6
 ---
 
@@ -31,7 +30,7 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_SSL_CTX_DATA, void *pointer);
 
 # DESCRIPTION
 
-Data *pointer* to pass to the ssl context callback set by the option
+Data *pointer* to pass to the SSL context callback set by the option
 CURLOPT_SSL_CTX_FUNCTION(3), this is the pointer you get as third
 parameter.
 
@@ -50,12 +49,12 @@ NULL
 #include <curl/curl.h>
 #include <stdio.h>
 
-static CURLcode sslctx_function(CURL *curl, void *sslctx, void *parm)
+static CURLcode sslctx_function(CURL *curl, void *sslctx, void *pointer)
 {
   X509_STORE *store;
   X509 *cert = NULL;
   BIO *bio;
-  char *mypem = parm;
+  char *mypem = pointer;
   /* get a BIO */
   bio = BIO_new_mem_buf(mypem, -1);
   /* use it to read the PEM formatted certificate from memory into an
@@ -82,44 +81,43 @@ static CURLcode sslctx_function(CURL *curl, void *sslctx, void *parm)
 
 int main(void)
 {
-  CURL *ch;
-  CURLcode rv;
-  char *mypem = /* example CA cert PEM - shortened */
+  CURL *curl;
+  CURLcode result;
+  /* CA cert in PEM format, replace the XXXs */
+  char *mypem =
     "-----BEGIN CERTIFICATE-----\n"
-    "MIIHPTCCBSWgAwIBAgIBADANBgkqhkiG9w0BAQQFADB5MRAwDgYDVQQKEwdSb290\n"
-    "IENBMR4wHAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNB\n"
-    "IENlcnQgU2lnbmluZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRA\n"
-    "Y2FjZXJ0Lm9yZzAeFw0wMzAzMzAxMjI5NDlaFw0zMzAzMjkxMjI5NDlaMHkxEDAO\n"
-    "GCSNe9FINSkYQKyTYOGWhlC0elnYjyELn8+CkcY7v2vcB5G5l1YjqrZslMZIBjzk\n"
-    "zk6q5PYvCdxTby78dOs6Y5nCpqyJvKeyRKANihDjbPIky/qbn3BHLt4Ui9SyIAmW\n"
-    "omTxJBzcoTWcFbLUvFUufQb1nA5V9FrWk9p2rSVzTMVD\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
     "-----END CERTIFICATE-----\n";
 
   curl_global_init(CURL_GLOBAL_ALL);
-  ch = curl_easy_init();
+  curl = curl_easy_init();
 
-  curl_easy_setopt(ch, CURLOPT_SSLCERTTYPE, "PEM");
-  curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, 1L);
-  curl_easy_setopt(ch, CURLOPT_URL, "https://www.example.com/");
+  curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+  curl_easy_setopt(curl, CURLOPT_URL, "https://www.example.com/");
 
-  curl_easy_setopt(ch, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
-  curl_easy_setopt(ch, CURLOPT_SSL_CTX_DATA, mypem);
-  rv = curl_easy_perform(ch);
-  if(!rv)
+  curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
+  curl_easy_setopt(curl, CURLOPT_SSL_CTX_DATA, mypem);
+  result = curl_easy_perform(curl);
+  if(result == CURLE_OK)
     printf("*** transfer succeeded ***\n");
   else
     printf("*** transfer failed ***\n");
 
-  curl_easy_cleanup(ch);
+  curl_easy_cleanup(curl);
   curl_global_cleanup();
-  return rv;
+  return (int)result;
 }
 ~~~
 
 # HISTORY
 
-Added in 7.11.0 for OpenSSL, in 7.42.0 for wolfSSL, in 7.54.0 for mbedTLS,
-in 7.83.0 in BearSSL.
+Added in 7.11.0 for OpenSSL, in 7.42.0 for wolfSSL, in 7.54.0 for mbedTLS.
 
 # %AVAILABILITY%
 

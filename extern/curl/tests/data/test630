@@ -1,13 +1,12 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 SFTP
-FAILURE
 server key check
 </keywords>
 </info>
 
-#
 # Client-side
 <client>
 <server>
@@ -17,11 +16,10 @@ sftp
 SFTP incorrect host key
 </name>
 <command>
---hostpubmd5 00000000000000000000000000000000 --key %LOGDIR/server/curl_client_key --pubkey %LOGDIR/server/curl_client_key.pub -u %USER: sftp://%HOSTIP:%SSHPORT%SSH_PWD/%LOGDIR/irrelevant-file --insecure
+--hostpubmd5 00000000000000000000000000000000 --key %LOGDIR/server/curl_client_key --pubkey %LOGDIR/server/curl_client_key.pub -u %USER: sftp://%HOSTIP:%SSHPORT%SFTP_PWD/%LOGDIR/irrelevant-file --insecure
 </command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 <errorcode>

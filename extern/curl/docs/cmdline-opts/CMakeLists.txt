@@ -21,7 +21,7 @@
 # SPDX-License-Identifier: curl
 #
 ###########################################################################
-# Get 'DPAGES' variable
+# Get SUPPORT, DPAGES variables
 curl_transform_makefile_inc("Makefile.inc" "${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake")
 include("${CMAKE_CURRENT_BINARY_DIR}/Makefile.inc.cmake")
 
@@ -29,7 +29,9 @@ add_custom_command(OUTPUT "${CURL_MANPAGE}" "${CURL_ASCIIPAGE}"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
   COMMAND "${PERL_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/managen" mainpage ${DPAGES} > "${CURL_MANPAGE}"
   COMMAND "${PERL_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/managen" ascii ${DPAGES} > "${CURL_ASCIIPAGE}"
-  DEPENDS "${PROJECT_SOURCE_DIR}/scripts/managen" ${DPAGES}
+  DEPENDS "${PROJECT_SOURCE_DIR}/scripts/managen" ${DPAGES} ${SUPPORT}
+    "${CMAKE_CURRENT_SOURCE_DIR}/Makefile.inc"
+    "${CMAKE_CURRENT_SOURCE_DIR}/mainpage.idx"
   VERBATIM
 )
 
@@ -37,4 +39,20 @@ add_custom_target(generate-curl.1 ALL DEPENDS "${CURL_MANPAGE}")
 
 if(NOT CURL_DISABLE_INSTALL)
   install(FILES "${CURL_MANPAGE}" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+endif()
+
+if(PERL_EXECUTABLE)
+  add_custom_target(curl-listhelp
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating src/tool_listhelp.c" VERBATIM USES_TERMINAL
+    COMMAND "${PERL_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/managen" -d "${CMAKE_CURRENT_SOURCE_DIR}" listhelp ${DPAGES}
+      > "${PROJECT_SOURCE_DIR}/src/tool_listhelp.c"
+    DEPENDS "${PROJECT_SOURCE_DIR}/scripts/managen" ${DPAGES}
+  )
+  add_custom_target(curl-listcats
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMENT "Generating help category constants for src/tool_help.h" VERBATIM USES_TERMINAL
+    COMMAND "${PERL_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/scripts/managen" listcats ${DPAGES}
+    DEPENDS "${PROJECT_SOURCE_DIR}/scripts/managen" ${DPAGES}
+  )
 endif()

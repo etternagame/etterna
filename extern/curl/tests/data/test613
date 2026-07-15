@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -6,17 +7,16 @@ directory
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 <datacheck>
 d?????????    N U         U               N ???  N NN:NN asubdir
+-rw???????    1 U         U               0 Jan  1  2000 emptyfile.txt
 -rw???????    1 U         U              37 Jan  1  2000 plainfile.txt
 -r-???????    1 U         U              47 Dec 31  2000 rofile.txt
 </datacheck>
 </reply>
 
-#
 # Client-side
 <client>
 <server>
@@ -29,11 +29,10 @@ sftp
 SFTP directory retrieval
 </name>
 <command>
---key %LOGDIR/server/curl_client_key --pubkey %LOGDIR/server/curl_client_key.pub -u %USER: sftp://%HOSTIP:%SSHPORT%SSH_PWD/%LOGDIR/test%TESTNUMBER.dir/ --insecure
+--key %LOGDIR/server/curl_client_key --pubkey %LOGDIR/server/curl_client_key.pub -u %USER: sftp://%HOSTIP:%SSHPORT%SFTP_PWD/%LOGDIR/test%TESTNUMBER.dir/ --insecure
 </command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 <postcheck>

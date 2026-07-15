@@ -25,9 +25,8 @@ from stdin you write "@-".
 
 The variables present in the output format are substituted by the value or
 text that curl thinks fit, as described below. All variables are specified as
-%{variable_name} and to output a normal % you just write them as %%. You can
-output a newline by using \n, a carriage return with \r and a tab space with
-\t.
+%{variable_name} and to output a normal % you write them as %%. You can output
+a newline by using \n, a carriage return with \r and a tab space with \t.
 
 The output is by default written to standard output, but can be changed with
 %{stderr} and %output{}.
@@ -62,7 +61,7 @@ The variables available are:
 
 ## `certs`
 Output the certificate chain with details. Supported only by the OpenSSL,
-GnuTLS, Schannel, Rustls, and Secure Transport backends. (Added in 7.88.0)
+GnuTLS, Schannel and Rustls backends. (Added in 7.88.0)
 
 ## `conn_id`
 The connection identifier last used by the transfer. The connection id is
@@ -93,6 +92,14 @@ The value of header `name` from the transfer's most recent server response.
 Unlike other variables, the variable name `header` is not in braces. For
 example `%header{date}`. Refer to --write-out remarks. (Added in 7.84.0)
 
+Starting with 8.17.0, output the contents of *all* header fields using a
+specific name - even for a whole redirect "chain" by appending
+`:all:[separator]` to the header name. The `[separator]` string (if not blank)
+is output between the headers if there are more than one. When more than one
+header is shown, they are output in the chronological order of appearance over
+the wire. To include a close brace (`}`) in the separator, escape it with a
+backslash: `\}`.
+
 ## `header_json`
 A JSON object with all HTTP response headers from the recent transfer. Values
 are provided as arrays, since in the case of multiple headers there can be
@@ -114,7 +121,7 @@ curl CONNECT request. (Added in 7.12.4)
 The http version that was effectively used. (Added in 7.50.0)
 
 ## `json`
-A JSON object with all available keys. (Added in 7.70.0)
+A JSON object with all available keys except `header_json`. (Added in 7.70.0)
 
 ## `local_ip`
 The IP address of the local end of the most recently done connection - can be
@@ -128,8 +135,7 @@ The http method used in the most recent HTTP request. (Added in 7.72.0)
 
 ## `num_certs`
 Number of server certificates received in the TLS handshake. Supported only by
-the OpenSSL, GnuTLS, Schannel, Rustls and Secure Transport backends.
-(Added in 7.88.0)
+the OpenSSL, GnuTLS, Schannel and Rustls backends. (Added in 7.88.0)
 
 ## `num_connects`
 Number of new connects made in the recent transfer. (Added in 7.12.3)
@@ -160,9 +166,9 @@ The result of the HTTPS proxy's SSL peer certificate verification that was
 requested. 0 means the verification was successful. (Added in 7.52.0)
 
 ## `proxy_used`
-Returns 1 if the previous transfer used a proxy, otherwise 0. Useful to for
-example determine if a `NOPROXY` pattern matched the hostname or not. (Added
-in 8.7.0)
+Returns 1 if the previous transfer used a proxy, otherwise 0. Useful for
+example to determine if a `NOPROXY` pattern matched the hostname or not.
+(Added in 8.7.0)
 
 ## `redirect_url`
 When an HTTP request was made without --location to follow redirects (or when
@@ -186,12 +192,18 @@ known as "http_code"). (Added in 7.18.2)
 ## `scheme`
 The URL scheme (sometimes called protocol) that was effectively used. (Added in 7.52.0)
 
+## `size_delivered`
+The total amount of data that were saved or written to stdout. When
+--compressed is used, this is likely different than `size_download`. Includes
+the headers in the count if --include is used.
+
 ## `size_download`
 The total amount of bytes that were downloaded. This is the size of the
 body/data that was transferred, excluding headers.
 
 ## `size_header`
-The total amount of bytes of the downloaded headers.
+The total amount of bytes of the downloaded headers, as represented in
+HTTP/1-style header format.
 
 ## `size_request`
 The total amount of bytes that were sent in the HTTP request.
@@ -221,6 +233,10 @@ From this point on, the --write-out output is written to standard output.
 This is the default, but can be used to switch back after switching to stderr.
 (Added in 7.63.0)
 
+## `time{format}`
+Output the current UTC time using `strftime()` format. See TIME OUTPUT FORMAT
+below for details. (Added in 8.16.0)
+
 ## `time_appconnect`
 The time, in seconds, it took from the start until the SSL/SSH/etc
 connect/handshake to the remote host was completed. (Added in 7.19.0)
@@ -234,13 +250,13 @@ The time, in seconds, it took from the start until the name resolving was
 completed.
 
 ## `time_posttransfer`
-The time it took from the start until the last byte is sent by libcurl.
-In microseconds. (Added in 8.10.0)
+The time, in seconds, it took from the start until the last byte is sent
+by libcurl. (Added in 8.10.0)
 
 ## `time_pretransfer`
-The time, in seconds, it took from the start until the file transfer was just
-about to begin. This includes all pre-transfer commands and negotiations that
-are specific to the particular protocol(s) involved.
+The time, in seconds, it took from the start until immediately before the file
+transfer was about to begin. This includes all pre-transfer commands and
+negotiations that are specific to the particular protocol(s) involved.
 
 ## `time_queue`
 The time, in seconds, the transfer was queued during its run. This adds
@@ -255,7 +271,7 @@ started. `time_redirect` shows the complete execution time for multiple
 redirections. (Added in 7.12.3)
 
 ## `time_starttransfer`
-The time, in seconds, it took from the start until the first byte is received.
+The time, in seconds, it took from the start until the first byte was received.
 This includes time_pretransfer and also the time the server needed to calculate
 the result.
 
@@ -266,7 +282,7 @@ The total time, in seconds, that the full operation lasted.
 The amount of bytes that were sent as TLSv1.3 early data. This is 0
 if this TLS feature was not used and negative if the data sent had
 been rejected by the server. The use of early data is enabled via
-the command line option `--tls-earlydata`. (Added in 8.12.0)
+the command line option `--tls-earlydata`. (Added in 8.13.0)
 
 ## `url`
 The URL that was fetched. (Added in 7.75.0)
@@ -348,3 +364,194 @@ The numerical identifier of the last transfer done. -1 if no transfer has been
 started yet for the handle. The transfer id is unique among all transfers
 performed using the same connection cache.
 (Added in 8.2.0)
+
+##
+
+TIME OUTPUT FORMAT
+
+To show time with `%time{}` the characters within `{}` create a special format
+string that may contain special character sequences called conversion
+specifications. Each conversion specification starts with `%` and is followed
+by a character that instructs curl to output a particular time detail. All
+other characters used are displayed as-is.
+
+The following conversion specification are available:
+
+## `%a`
+
+The abbreviated name of the day of the week according to the current locale.
+
+## `%A`
+
+The full name of the day of the week according to the current locale.
+
+## `%b`
+
+The abbreviated month name according to the current locale.
+
+## `%B`
+
+The full month name according to the current locale.
+
+## `%c`
+
+The preferred date and time representation for the current locale. (In the
+POSIX locale this is equivalent to `%a %b %e %H:%M:%S %Y`.)
+
+## `%C`
+
+The century number (year/100) as a 2-digit integer.
+
+## `%d`
+
+The day of the month as a decimal number (range 01 to 31).
+
+## `%D`
+
+Equivalent to `%m/%d/%y`. In international contexts, this format is ambiguous
+and should be avoided.)
+
+## `%e`
+
+Like `%d`, the day of the month as a decimal number, but a leading zero is
+replaced by a space.
+
+## `%f`
+
+The number of microseconds elapsed of the current second. (This a curl special
+code and not a standard one.)
+
+## `%F`
+
+Equivalent to `%Y-%m-%d` (the ISO 8601 date format).
+
+## `%G`
+
+The ISO 8601 week-based year with century as a decimal number. The 4-digit
+year corresponding to the ISO week number (see `%V`). This has the same format
+and value as `%Y`, except that if the ISO week number belongs to the previous
+or next year, that year is used instead.
+
+## `%g`
+
+Like `%G`, but without century, that is, with a 2-digit year (00-99).
+
+## `%h`
+
+Equivalent to `%b`.
+
+## `%H`
+
+The hour as a decimal number using a 24-hour clock (range 00 to 23).
+
+## `%I`
+
+The hour as a decimal number using a 12-hour clock (range 01 to 12).
+
+## `%j`
+
+The day of the year as a decimal number (range 001 to 366).
+
+## `%k`
+
+The hour (24-hour clock) as a decimal number (range 0 to 23); single digits
+are preceded by a blank.
+
+## `%l`
+
+The hour (12-hour clock) as a decimal number (range 1 to 12); single digits
+are preceded by a blank.
+
+## `%m`
+
+The month as a decimal number (range 01 to 12).
+
+## `%M`
+
+The minute as a decimal number (range 00 to 59).
+
+## `%p`
+
+Either "AM" or "PM" according to the given time value, or the corresponding
+strings for the current locale. Noon is treated as "PM" and midnight as "AM".
+
+## `%P`
+
+Like `%p` but in lowercase: "am" or "pm" or a corresponding string for the
+current locale.
+
+## `%r`
+
+The time in am or pm notation.
+
+## `%R`
+
+The time in 24-hour notation (`%H:%M`). For a version including the seconds,
+see `%T` below.
+
+## `%s`
+
+The number of seconds since the Epoch, 1970-01-01 00:00:00 +0000 (UTC).
+
+## `%S`
+
+The second as a decimal number (range 00 to 60). (The range is up to 60 to
+allow for occasional leap seconds.) See `%f` for microseconds.
+
+## `%T`
+
+The time in 24-hour notation (`%H:%M:%S`).
+
+## `%u`
+
+The day of the week as a decimal, range 1 to 7, Monday being 1.
+
+## `%U`
+
+The week number of the current year as a decimal number, range 00 to 53,
+starting with the first Sunday as the first day of week 01. See also `%V` and
+`%W`.
+
+## `%V`
+
+The ISO 8601 week number (see NOTES) of the current year as a decimal number,
+range 01 to 53, where week 1 is the first week that has at least 4 days in the
+new year. See also `%U` and `%W`.
+
+## `%w`
+
+The day of the week as a decimal, range 0 to 6, Sunday being 0. See also `%u`.
+
+## `%W`
+
+The week number of the current year as a decimal number, range 00 to 53,
+starting with the first Monday as the first day of week 01.
+
+## `%x`
+
+The preferred date representation for the current locale without the time.
+
+## `%X`
+
+The preferred time representation for the current locale without the date.
+
+## `%y`
+
+The year as a decimal number without a century (range 00 to 99).
+
+## `%Y`
+
+The year as a decimal number including the century.
+
+## `%z`
+
+The `+hhmm` or `-hhmm` numeric timezone (that is, the hour and minute offset
+from UTC). As time is always UTC, this outputs `+0000`.
+
+## `%Z`
+
+The timezone name. For some reason `GMT`.
+
+## `%%`
+
+A literal `%` character.

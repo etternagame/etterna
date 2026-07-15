@@ -21,25 +21,23 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "memdebug.h"
-
-CURLcode test(char *URL)
+static CURLcode test_lib539(const char *URL)
 {
-  CURLcode res;
+  CURLcode result;
   CURL *curl;
   char *newURL = NULL;
   struct curl_slist *slist = NULL;
 
   if(curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
-    fprintf(stderr, "curl_global_init() failed\n");
+    curl_mfprintf(stderr, "curl_global_init() failed\n");
     return TEST_ERR_MAJOR_BAD;
   }
 
   curl = curl_easy_init();
   if(!curl) {
-    fprintf(stderr, "curl_easy_init() failed\n");
+    curl_mfprintf(stderr, "curl_easy_init() failed\n");
     curl_global_cleanup();
     return TEST_ERR_MAJOR_BAD;
   }
@@ -47,15 +45,15 @@ CURLcode test(char *URL)
   /*
    * Begin with curl set to use a single CWD to the URL's directory.
    */
-  test_setopt(curl, CURLOPT_URL, URL);
-  test_setopt(curl, CURLOPT_VERBOSE, 1L);
-  test_setopt(curl, CURLOPT_FTP_FILEMETHOD, (long) CURLFTPMETHOD_SINGLECWD);
+  easy_setopt(curl, CURLOPT_URL, URL);
+  easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+  easy_setopt(curl, CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_SINGLECWD);
 
-  res = curl_easy_perform(curl);
-  if(res == CURLE_OK) {
+  result = curl_easy_perform(curl);
+  if(result == CURLE_OK) {
     /*
      * Change the FTP_FILEMETHOD option to use full paths rather than a CWD
-     * command. Use an innocuous QUOTE command, after which curl will CWD to
+     * command. Use an innocuous QUOTE command, after which curl does CWD to
      * ftp_conn->entrypath and then (on the next call to ftp_statemach_act)
      * find a non-zero ftpconn->dirdepth even though no directories are stored
      * in the ftpconn->dirs array (after a call to freedirs).
@@ -69,11 +67,11 @@ CURLcode test(char *URL)
       return TEST_ERR_MAJOR_BAD;
     }
 
-    test_setopt(curl, CURLOPT_URL, libtest_arg2);
-    test_setopt(curl, CURLOPT_FTP_FILEMETHOD, (long) CURLFTPMETHOD_NOCWD);
-    test_setopt(curl, CURLOPT_QUOTE, slist);
+    easy_setopt(curl, CURLOPT_URL, libtest_arg2);
+    easy_setopt(curl, CURLOPT_FTP_FILEMETHOD, CURLFTPMETHOD_NOCWD);
+    easy_setopt(curl, CURLOPT_QUOTE, slist);
 
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
   }
 test_cleanup:
 
@@ -82,5 +80,5 @@ test_cleanup:
   curl_easy_cleanup(curl);
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

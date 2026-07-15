@@ -37,26 +37,26 @@
  * </form>
  *
  */
-
 #include <stdio.h>
 #include <string.h>
 
 #include <curl/curl.h>
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
   CURL *curl;
-  CURLcode res;
 
-  curl_mime *form = NULL;
-  curl_mimepart *field = NULL;
-  struct curl_slist *headerlist = NULL;
-  static const char buf[] = "Expect:";
-
-  curl_global_init(CURL_GLOBAL_ALL);
+  CURLcode result = curl_global_init(CURL_GLOBAL_ALL);
+  if(result != CURLE_OK)
+    return (int)result;
 
   curl = curl_easy_init();
   if(curl) {
+    curl_mime *form = NULL;
+    curl_mimepart *field = NULL;
+    struct curl_slist *headerlist = NULL;
+    static const char buf[] = "Expect:";
+
     /* Create the form */
     form = curl_mime_init(curl);
 
@@ -85,12 +85,12 @@ int main(int argc, char *argv[])
       curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
     curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
 
-    /* Perform the request, res gets the return code */
-    res = curl_easy_perform(curl);
+    /* Perform the request, result gets the return code */
+    result = curl_easy_perform(curl);
     /* Check for errors */
-    if(res != CURLE_OK)
+    if(result != CURLE_OK)
       fprintf(stderr, "curl_easy_perform() failed: %s\n",
-              curl_easy_strerror(res));
+              curl_easy_strerror(result));
 
     /* always cleanup */
     curl_easy_cleanup(curl);
@@ -100,5 +100,8 @@ int main(int argc, char *argv[])
     /* free slist */
     curl_slist_free_all(headerlist);
   }
+
+  curl_global_cleanup();
+
   return 0;
 }

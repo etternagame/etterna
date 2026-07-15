@@ -28,7 +28,7 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_TCP_KEEPINTVL, long interval);
 # DESCRIPTION
 
 Pass a long. Sets the interval, in seconds, to wait between sending keepalive
-probes. Not all operating systems support this option. (Added in 7.25.0)
+probes. Not all operating systems support this option.
 
 The maximum value this accepts is 2147483648. Any larger value is capped to
 this amount.
@@ -46,6 +46,7 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
     /* enable TCP keep-alive for this transfer */
@@ -60,7 +61,8 @@ int main(void)
     /* maximum number of keep-alive probes: 3 */
     curl_easy_setopt(curl, CURLOPT_TCP_KEEPCNT, 3L);
 
-    curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
   }
 }
 ~~~

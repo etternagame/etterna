@@ -23,10 +23,11 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
+#include "curl_setup.h"
 
 #ifndef CURL_DISABLE_HTTP
 
-#include "dynbuf.h"
+#include "curlx/dynbuf.h"
 
 struct connectdata;
 
@@ -49,7 +50,7 @@ typedef enum {
      POST_CR state. */
   CHUNK_DATA,
 
-  /* POSTLF should get a CR and then a LF and nothing else, then move back to
+  /* POSTLF should get a CR and then an LF and nothing else, then move back to
      HEX as the CRLF combination marks the end of a chunk. A missing CR is no
      big deal. */
   CHUNK_POSTLF,
@@ -64,7 +65,7 @@ typedef enum {
   CHUNK_TRAILER,
 
   /* A trailer CR has been found - next state is CHUNK_TRAILER_POSTCR.
-     Next char must be a LF */
+     Next char must be an LF */
   CHUNK_TRAILER_CR,
 
   /* A trailer LF must be found now, otherwise CHUNKE_BAD_CHUNK will be

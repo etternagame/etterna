@@ -22,14 +22,12 @@
 # SPDX-License-Identifier: curl
 #
 ###########################################################################
-#
-#
 
 use strict;
 use warnings;
 
-# we may get the dir root pointed out
-my $root=$ARGV[0] || ".";
+# we may get the directory root pointed out
+my $root = $ARGV[0] || ".";
 
 my %insrc; # variable set in source
 my %indocs; # variable described in docs
@@ -47,7 +45,7 @@ sub getsrcvars {
             if($_ =~ /^}/) {
                 last;
             }
-            if($_ =~ /^  \{\"([^\"]*)/) {
+            if($_ =~ /^  \{ \"([^\"]*)/) {
                 my $var = $1;
                 $insrc{$var} = $srccount++;
             }
@@ -56,11 +54,22 @@ sub getsrcvars {
     close($f);
 }
 
+my %special = (
+    'header{name}' => 1,
+    'output{filename}' => 1,
+    'time{format}' => 1,
+    );
+
 sub getdocsvars {
     open(my $f, "<", "$root/../docs/cmdline-opts/write-out.md");
     while(<$f>) {
-        if($_ =~ /^\#\# \`([^\`]*)\`/) {
-            if($1 ne "header{name}" && $1 ne "output{filename}") {
+        chomp;
+        $_ =~ s/[\r\n]//g;
+        if($_ =~ /^\#\# *\z/) {
+            last;
+        }
+        elsif($_ =~ /^\#\# \`([^\`]*)\`/) {
+            if(!$special{$1}) {
                 $indocs{$1} = 1;
             }
         }

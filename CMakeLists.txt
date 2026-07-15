@@ -108,7 +108,6 @@ target_link_libraries(Etterna PRIVATE SQLiteCpp sqlite3)
 target_link_libraries(Etterna PRIVATE zlib)
 target_link_libraries(Etterna PRIVATE rapidjson)
 target_link_libraries(Etterna PRIVATE jwt-cpp)
-target_link_libraries(Etterna PRIVATE websocketpp)
 target_link_libraries(Etterna PRIVATE libluajit)
 
 if(SUPPORT_DISCORD_SDK)

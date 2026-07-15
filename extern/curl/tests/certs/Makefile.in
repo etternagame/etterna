@@ -13,6 +13,31 @@
 # PARTICULAR PURPOSE.
 
 @SET_MAKE@
+
+#***************************************************************************
+#                                  _   _ ____  _
+#  Project                     ___| | | |  _ \| |
+#                             / __| | | | |_) | |
+#                            | (__| |_| |  _ <| |___
+#                             \___|\___/|_| \_\_____|
+#
+# Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
+#
+# This software is licensed as described in the file COPYING, which
+# you should have received as part of this distribution. The terms
+# are also available at https://curl.se/docs/copyright.html.
+#
+# You may opt to use, copy, modify, merge, publish, distribute and/or sell
+# copies of the Software, and permit persons to whom the Software is
+# furnished to do so, under the terms of the COPYING file.
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
+# KIND, either express or implied.
+#
+# SPDX-License-Identifier: curl
+#
+###########################################################################
+# Shared between CMakeLists.txt and Makefile.am
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -90,7 +115,7 @@ host_triplet = @host@
 subdir = tests/certs
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
-	$(top_srcdir)/m4/curl-bearssl.m4 \
+	$(top_srcdir)/m4/curl-apple-sectrust.m4 \
 	$(top_srcdir)/m4/curl-compilers.m4 \
 	$(top_srcdir)/m4/curl-confopts.m4 \
 	$(top_srcdir)/m4/curl-functions.m4 \
@@ -101,7 +126,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/curl-reentrant.m4 \
 	$(top_srcdir)/m4/curl-rustls.m4 \
 	$(top_srcdir)/m4/curl-schannel.m4 \
-	$(top_srcdir)/m4/curl-sectransp.m4 \
 	$(top_srcdir)/m4/curl-sysconfig.m4 \
 	$(top_srcdir)/m4/curl-wolfssl.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -111,8 +135,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/xc-lt-iface.m4 \
 	$(top_srcdir)/m4/xc-val-flgs.m4 \
 	$(top_srcdir)/m4/zz40-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz50-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz60-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/m4/zz50-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -160,6 +183,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_CURL_SYMBOL_HIDING = @CFLAG_CURL_SYMBOL_HIDING@
+CLANG_TIDY = @CLANG_TIDY@
 CONFIGURE_OPTIONS = @CONFIGURE_OPTIONS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -174,6 +198,7 @@ CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX = @CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME = @CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME@
 CURL_NETWORK_AND_TIME_LIBS = @CURL_NETWORK_AND_TIME_LIBS@
 CYGPATH_W = @CYGPATH_W@
+DANTED = @DANTED@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -192,6 +217,7 @@ FILECMD = @FILECMD@
 FISH_FUNCTIONS_DIR = @FISH_FUNCTIONS_DIR@
 GCOV = @GCOV@
 GREP = @GREP@
+H2O = @H2O@
 HAVE_LIBZ = @HAVE_LIBZ@
 HTTPD = @HTTPD@
 HTTPD_NGHTTPX = @HTTPD_NGHTTPX@
@@ -241,7 +267,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -331,35 +359,13 @@ top_srcdir = @top_srcdir@
 #
 ###########################################################################
 AUTOMAKE_OPTIONS = foreign
-
-#***************************************************************************
-#                                  _   _ ____  _
-#  Project                     ___| | | |  _ \| |
-#                             / __| | | | |_) | |
-#                            | (__| |_| |  _ <| |___
-#                             \___|\___/|_| \_\_____|
-#
-# Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution. The terms
-# are also available at https://curl.se/docs/copyright.html.
-#
-# You may opt to use, copy, modify, merge, publish, distribute and/or sell
-# copies of the Software, and permit persons to whom the Software is
-# furnished to do so, under the terms of the COPYING file.
-#
-# This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
-# KIND, either express or implied.
-#
-# SPDX-License-Identifier: curl
-#
-###########################################################################
 CERTCONFIG_CA = \
   test-ca.cnf \
   test-ca.prm
 
 CERTCONFIGS = \
+  test-client-cert.prm \
+  test-client-eku-only.prm \
   test-localhost.prm \
   test-localhost.nn.prm \
   test-localhost0h.prm \
@@ -370,24 +376,18 @@ GENERATEDCERTS = \
   test-ca.cacert \
   test-ca.crt \
   test-ca.key \
-  test-localhost.crl \
-  test-localhost.crt \
-  test-localhost.key \
-  test-localhost.pem \
-  test-localhost.pub.der \
-  test-localhost.pub.pem \
-  test-localhost.nn.crl \
-  test-localhost.nn.crt \
-  test-localhost.nn.key \
-  test-localhost.nn.pem \
-  test-localhost.nn.pub.der \
-  test-localhost.nn.pub.pem \
-  test-localhost0h.crl \
-  test-localhost0h.crt \
-  test-localhost0h.key \
-  test-localhost0h.pem \
-  test-localhost0h.pub.der \
-  test-localhost0h.pub.pem \
+  test-client-cert.crl \
+  test-client-cert.crt \
+  test-client-cert.key \
+  test-client-cert.pem \
+  test-client-cert.pub.der \
+  test-client-cert.pub.pem \
+  test-client-eku-only.crl \
+  test-client-eku-only.crt \
+  test-client-eku-only.key \
+  test-client-eku-only.pem \
+  test-client-eku-only.pub.der \
+  test-client-eku-only.pub.pem \
   test-localhost-san-first.crl \
   test-localhost-san-first.crt \
   test-localhost-san-first.key \
@@ -399,12 +399,32 @@ GENERATEDCERTS = \
   test-localhost-san-last.key \
   test-localhost-san-last.pem \
   test-localhost-san-last.pub.der \
-  test-localhost-san-last.pub.pem
+  test-localhost-san-last.pub.pem \
+  test-localhost.crl \
+  test-localhost.crt \
+  test-localhost.key \
+  test-localhost.nn.crl \
+  test-localhost.nn.crt \
+  test-localhost.nn.key \
+  test-localhost.nn.pem \
+  test-localhost.nn.pub.der \
+  test-localhost.nn.pub.pem \
+  test-localhost.pem \
+  test-localhost.pub.der \
+  test-localhost.pub.pem \
+  test-localhost0h.crl \
+  test-localhost0h.crt \
+  test-localhost0h.key \
+  test-localhost0h.pem \
+  test-localhost0h.pub.der \
+  test-localhost0h.pub.pem
 
 SRPFILES = \
   srp-verifier-conf \
   srp-verifier-db
 
+
+# Get CERTCONFIG_CA, CERTCONFIGS, GENERATEDCERTS, SRPFILES variables
 EXTRA_DIST = $(CERTCONFIG_CA) $(CERTCONFIGS) $(SRPFILES) CMakeLists.txt \
   genserv.pl
 
@@ -609,10 +629,10 @@ all-am: test-ca.cacert
 
 # Rebuild the certificates
 
-# Generate all certs in a single shot, but declare just a single target file
+# Generate all certs in a single shot, but declare only a single target file
 # to support GNU Make <4.3 without the "grouped explicit targets" feature.
 test-ca.cacert: $(CERTCONFIG_CA) $(CERTCONFIGS) genserv.pl
-	$(PERL) $(srcdir)/genserv.pl test $(CERTCONFIGS)
+	@PERL@ $(srcdir)/genserv.pl test $(CERTCONFIGS)
 
 clean-local:
 	rm -f $(GENERATEDCERTS) \

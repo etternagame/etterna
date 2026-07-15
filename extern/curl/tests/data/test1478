@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -7,13 +8,8 @@ documentation
 </keywords>
 </info>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
-
 <name>
 src/tool_listhelp.c is in sync with docs/cmdline-opts
 </name>

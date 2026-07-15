@@ -21,8 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
-#include "memdebug.h"
+#include "first.h"
 
 static const char *ldata_names[] = {
   "NONE",
@@ -36,28 +35,28 @@ static const char *ldata_names[] = {
   "NULL",
 };
 
-static void test_lock(CURL *handle, curl_lock_data data,
-                      curl_lock_access laccess, void *useptr)
+static void t1554_test_lock(CURL *curl, curl_lock_data data,
+                            curl_lock_access laccess, void *useptr)
 {
-  (void)handle;
+  (void)curl;
   (void)data;
   (void)laccess;
   (void)useptr;
-  printf("-> Mutex lock %s\n", ldata_names[data]);
+  curl_mprintf("-] Mutex lock %s\n", ldata_names[data]);
 }
 
-static void test_unlock(CURL *handle, curl_lock_data data, void *useptr)
+static void t1554_test_unlock(CURL *curl, curl_lock_data data, void *useptr)
 {
-  (void)handle;
+  (void)curl;
   (void)data;
   (void)useptr;
-  printf("<- Mutex unlock %s\n", ldata_names[data]);
+  curl_mprintf("[- Mutex unlock %s\n", ldata_names[data]);
 }
 
 /* test function */
-CURLcode test(char *URL)
+static CURLcode test_lib1554(const char *URL)
 {
-  CURLcode res = CURLE_OK;
+  CURLcode result = CURLE_OK;
   CURLSH *share = NULL;
   int i;
 
@@ -65,16 +64,16 @@ CURLcode test(char *URL)
 
   share = curl_share_init();
   if(!share) {
-    fprintf(stderr, "curl_share_init() failed\n");
+    curl_mfprintf(stderr, "curl_share_init() failed\n");
     goto test_cleanup;
   }
 
   curl_share_setopt(share, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
-  curl_share_setopt(share, CURLSHOPT_LOCKFUNC, test_lock);
-  curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, test_unlock);
+  curl_share_setopt(share, CURLSHOPT_LOCKFUNC, t1554_test_lock);
+  curl_share_setopt(share, CURLSHOPT_UNLOCKFUNC, t1554_test_unlock);
 
-  /* Loop the transfer and cleanup the handle properly every lap. This will
-     still reuse connections since the pool is in the shared object! */
+  /* Loop the transfer and cleanup the handle properly every lap. This
+     still reuses connections since the pool is in the shared object! */
 
   for(i = 0; i < 3; i++) {
     CURL *curl = curl_easy_init();
@@ -84,16 +83,16 @@ CURLcode test(char *URL)
       /* use the share object */
       curl_easy_setopt(curl, CURLOPT_SHARE, share);
 
-      /* Perform the request, res will get the return code */
-      res = curl_easy_perform(curl);
+      /* Perform the request, result gets the return code */
+      result = curl_easy_perform(curl);
 
       /* always cleanup */
       curl_easy_cleanup(curl);
 
       /* Check for errors */
-      if(res != CURLE_OK) {
-        fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                curl_easy_strerror(res));
+      if(result != CURLE_OK) {
+        curl_mfprintf(stderr, "curl_easy_perform() failed: %s\n",
+                      curl_easy_strerror(result));
         goto test_cleanup;
       }
     }
@@ -103,5 +102,5 @@ test_cleanup:
   curl_share_cleanup(share);
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

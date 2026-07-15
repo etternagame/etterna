@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -5,16 +6,12 @@ TrackMemory
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
 # Client-side
 <client>
-<server>
-none
-</server>
 <features>
 TrackMemory
 IPv6
@@ -27,12 +24,8 @@ lib%TESTNUMBER
 <name>
 libtest memory tracking operational
 </name>
-<command>
-nothing
-</command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 <file name="%LOGDIR/memdump">

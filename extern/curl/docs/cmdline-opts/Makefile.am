@@ -27,6 +27,7 @@ AUTOMAKE_OPTIONS = foreign no-dependencies
 MANPAGE = curl.1
 ASCIIPAGE = curl.txt
 
+# Get SUPPORT, DPAGES variables
 include Makefile.inc
 
 EXTRA_DIST = $(DPAGES) MANPAGE.md $(SUPPORT) CMakeLists.txt mainpage.idx
@@ -39,7 +40,7 @@ GN_ = $(GN_0)
 MANAGEN=$(top_srcdir)/scripts/managen
 MAXLINE=$(top_srcdir)/scripts/maxline
 
-# Maximum number of columns accepted in the ASCII version of the manpage
+# Maximum number of columns accepted in the ASCII version of the man page
 INCDIR=$(top_srcdir)/include
 
 if BUILD_DOCS

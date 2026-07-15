@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <!-- This replaces test 577 -->
 <info>
@@ -7,12 +8,8 @@ wildcardmatch
 </keywords>
 </info>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
 <features>
 unittest
 ftp

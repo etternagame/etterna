@@ -17,7 +17,7 @@ Added-in: 7.84.0
 
 # NAME
 
-CURLINFO_CAINFO - get the default built-in CA certificate path
+CURLINFO_CAINFO - default built-in CA certificate path
 
 # SYNOPSIS
 
@@ -53,7 +53,7 @@ int main(void)
     char *cainfo = NULL;
     curl_easy_getinfo(curl, CURLINFO_CAINFO, &cainfo);
     if(cainfo) {
-      printf("default ca info path: %s\n", cainfo);
+      printf("default CA info path: %s\n", cainfo);
     }
     curl_easy_cleanup(curl);
   }

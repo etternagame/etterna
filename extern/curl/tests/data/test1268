@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -5,17 +6,12 @@ warning
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
 <features>
 UnixSockets
 </features>
@@ -23,13 +19,13 @@ UnixSockets
 filename argument looks like a flag
 </name>
 <command>
---stderr %LOGDIR/moo%TESTNUMBER --unix-socket -k hej://moo
+--stderr %LOGDIR/moo%TESTNUMBER --unix-socket -q hej://moo
 </command>
 </client>
 
 <verify>
 <file name="%LOGDIR/moo%TESTNUMBER" mode="text">
-Warning: The filename argument '-k' looks like a flag.
+Warning: The filename argument '-q' looks like a flag.
 curl: (1) Protocol "hej" not supported
 </file>
 

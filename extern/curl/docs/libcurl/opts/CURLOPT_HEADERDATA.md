@@ -36,9 +36,9 @@ If CURLOPT_WRITEFUNCTION(3) or CURLOPT_HEADERFUNCTION(3) is used,
 If neither of those options are set, *pointer* must be a valid FILE * and
 it is used by a plain fwrite() to write headers to.
 
-If you are using libcurl as a Windows DLL, you **MUST** use a
-CURLOPT_WRITEFUNCTION(3) or CURLOPT_HEADERFUNCTION(3) if you set
-this option or you might experience crashes.
+If you are using libcurl as a Windows DLL, you **must** use a
+CURLOPT_WRITEFUNCTION(3) or CURLOPT_HEADERFUNCTION(3) if you set this option
+or you might experience crashes.
 
 # DEFAULT
 
@@ -68,6 +68,7 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
+    CURLcode result;
     struct my_info my = { 10, "the cookies are in the cupboard" };
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
@@ -76,7 +77,9 @@ int main(void)
     /* pass in custom data to the callback */
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, &my);
 
-    curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
+
+    curl_easy_cleanup(curl);
   }
 }
 ~~~

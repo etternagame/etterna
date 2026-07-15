@@ -18,13 +18,13 @@ Example:
 # `--quote`
 
 Send an arbitrary command to the remote FTP or SFTP server. Quote commands are
-sent BEFORE the transfer takes place (just after the initial **PWD** command
-in an FTP transfer, to be exact). To make commands take place after a
+sent BEFORE the transfer takes place (immediately after the initial **PWD**
+command in an FTP transfer, to be exact). To make commands take place after a
 successful transfer, prefix them with a dash '-'.
 
 (FTP only) To make commands be sent after curl has changed the working
-directory, just before the file transfer command(s), prefix the command with a
-'+'. This is not performed when a directory listing is performed.
+directory, immediately before the file transfer command(s), prefix the command
+with a '+'.
 
 You may specify any number of commands.
 
@@ -37,9 +37,12 @@ You must send syntactically correct FTP commands as RFC 959 defines to FTP
 servers, or one of the commands listed below to SFTP servers.
 
 SFTP is a binary protocol. Unlike for FTP, curl interprets SFTP quote commands
-itself before sending them to the server. Filenames may be quoted shell-style
-to embed spaces or special characters. Following is the list of all supported
-SFTP quote commands:
+itself before sending them to the server. Filenames must be provided within
+double quotes to embed spaces, backslashes, quotes or double quotes. Within
+double quotes the following escape sequences are available for that purpose:
+\\, \", and \'.
+
+Following is the list of all supported SFTP quote commands:
 
 ## atime date file
 The atime command sets the last access time of the file named by the file

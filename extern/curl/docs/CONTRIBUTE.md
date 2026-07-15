@@ -48,7 +48,7 @@ By submitting a patch to the curl project, you are assumed to have the right
 to the code and to be allowed by your employer or whatever to hand over that
 patch/code to us. We credit you for your changes as far as possible, to give
 credit but also to keep a trace back to who made what changes. Please always
-provide us with your full real name when contributing,
+provide us with your full real name when contributing.
 
 ## What To Read
 
@@ -56,7 +56,7 @@ Source code, the man pages, the [INTERNALS
 document](https://curl.se/dev/internals.html),
 [TODO](https://curl.se/docs/todo.html),
 [KNOWN_BUGS](https://curl.se/docs/knownbugs.html) and the [most recent
-changes](https://curl.se/dev/sourceactivity.html) in git. Just lurking on the
+changes](https://curl.se/dev/sourceactivity.html) in git. Lurking on the
 [curl-library mailing list](https://curl.se/mail/list.cgi?list=curl-library)
 gives you a lot of insights on what's going on right now. Asking there is a
 good idea too.
@@ -102,7 +102,7 @@ and regression in the future.
 Please try to get the latest available sources to make your patches against.
 It makes the lives of the developers so much easier. The best is if you get
 the most up-to-date sources from the git repository, but the latest release
-archive is quite OK as well.
+archive is OK as well.
 
 ### Documentation
 
@@ -111,8 +111,8 @@ projects but someone's gotta do it. It makes things a lot easier if you submit
 a small description of your fix or your new features with every contribution
 so that it can be swiftly added to the package documentation.
 
-Documentation is mostly provided as manpages or plain ASCII files. The
-manpages are rendered from their source files that are usually written using
+Documentation is mostly provided as man pages or plain ASCII files. The
+man pages are rendered from their source files that are usually written using
 markdown. Most HTML files on the website and in the release archives are
 generated from corresponding markdown and ASCII files.
 
@@ -143,14 +143,14 @@ it into a pull request for you, to have the CI jobs verify it proper before it
 can be merged. Be prepared that some feedback on the proposed change might
 then come on GitHub.
 
-Your changes be reviewed and discussed and you are expected to correct flaws
-pointed out and update accordingly, or the change risks stalling and
-eventually just getting deleted without action. As a submitter of a change,
-you are the owner of that change until it has been merged.
+As your changes are reviewed and discussed, you are expected to address any
+flaws pointed out and update accordingly. Otherwise your changes risk stalling
+and eventually being deleted without action. As a submitter of a change, you
+are the owner of that change until it has been merged.
 
 Respond on the list or on GitHub about the change and answer questions and/or
 fix nits/flaws. This is important. We take lack of replies as a sign that you
-are not anxious to get your patch accepted and we tend to simply drop such
+are not anxious to get your patch accepted and we tend to drop such
 changes.
 
 ## About pull requests
@@ -166,11 +166,11 @@ lists.
 
 Every pull request submitted is automatically tested in several different
 ways. [See the CI document for more
-information](https://github.com/curl/curl/blob/master/tests/CI.md).
+information](https://github.com/curl/curl/blob/master/docs/tests/CI.md).
 
 Sometimes the tests fail due to a dependency service temporarily being offline
-or otherwise unavailable, e.g. package downloads. In this case you can just
-try to update your pull requests to rerun the tests later as described below.
+or otherwise unavailable, e.g. package downloads. In this case you can try to
+update your pull requests to rerun the tests later as described below.
 
 You can update your pull requests by pushing new commits or force-pushing
 changes to existing commits. Force-pushing an amended commit without any
@@ -195,7 +195,7 @@ Once your pull request has been approved it can be merged by a maintainer.
 For new features, or changes, we require that the *feature window* is open for
 the pull request to be merged. This is typically a three week period that
 starts ten days after a previous release. New features submitted as pull
-requests while the window is closed simply have to wait until it opens to get
+requests while the window is closed have to wait until it opens to get
 merged.
 
 If time passes without your approved pull request gets merged: feel free to
@@ -224,9 +224,9 @@ How to write git commit messages in the curl project.
 The first line is a succinct description of the change and should ideally work
 as a single line in the RELEASE NOTES.
 
- - use the imperative, present tense: **change** not "changed" nor "changes"
- - do not capitalize the first letter
- - no period (.) at the end
+- use the imperative, present tense: **change** not "changed" nor "changes"
+- do not capitalize the first letter
+- no period (.) at the end
 
 The `[area]` in the first line can be `http2`, `cookies`, `openssl` or
 similar. There is no fixed list to select from but using the same "area" as
@@ -238,36 +238,36 @@ Use the following ways to improve the message and provide pointers to related
 work.
 
 - `Follow-up to {shorthash}` - if this fixes or continues a previous commit;
-add a `Ref:` that commit's PR or issue if it is not a small, obvious fix;
-followed by an empty line
+  add a `Ref:` that commit's PR or issue if it is not a small, obvious fix;
+  followed by an empty line
 
 - `Bug: URL` to the source of the report or more related discussion; use
-`Fixes` for GitHub issues instead when that is appropriate.
+  `Fixes` for GitHub issues instead when that is appropriate.
 
 - `Approved-by: John Doe` - credit someone who approved the PR.
 
 - `Authored-by: John Doe` - credit the original author of the code; only use
-this if you cannot use `git commit --author=...`.
+  this if you cannot use `git commit --author=...`.
 
 - `Signed-off-by: John Doe` - we do not use this, but do not bother removing
   it.
 
 - `whatever-else-by:` credit all helpers, finders, doers; try to use one of
-the following keywords if at all possible, for consistency: `Acked-by:`,
-`Assisted-by:`, `Co-authored-by:`, `Found-by:`, `Reported-by:`,
-`Reviewed-by:`, `Suggested-by:`, `Tested-by:`.
+  the following keywords if at all possible, for consistency: `Acked-by:`,
+  `Assisted-by:`, `Co-authored-by:`, `Found-by:`, `Reported-by:`,
+  `Reviewed-by:`, `Suggested-by:`, `Tested-by:`.
 
 - `Ref: #1234` - if this is related to a GitHub issue or PR, possibly one that
-has already been closed.
+  has already been closed.
 
 - `Ref: URL` to more information about the commit; use `Bug:` instead for a
-reference to a bug on another bug tracker]
+  reference to a bug on another bug tracker.
 
 - `Fixes #1234` - if this fixes a GitHub issue; GitHub closes the issue once
-this commit is merged.
+  this commit is merged.
 
 - `Closes #1234` - if this merges a GitHub PR; GitHub closes the PR once this
-commit is merged.
+  commit is merged.
 
 Do not forget to use commit with `--author` if you commit someone else's work,
 and make sure that you have your own user and email setup correctly in git
@@ -285,11 +285,13 @@ If you are a frequent contributor, you may be given push access to the git
 repository and then you are able to push your changes straight into the git
 repository instead of sending changes as pull requests or by mail as patches.
 
-Just ask if this is what you would want. You are required to have posted
-several high quality patches first, before you can be granted push access.
+Feel free to ask for this, if this is what you want. You are required to have
+posted several high quality patches first, before you can be granted push
+access.
 
 ## Useful resources
- - [Webinar on getting code into cURL](https://www.youtube.com/watch?v=QmZ3W1d6LQI)
+
+- [Webinar on getting code into curl](https://youtu.be/QmZ3W1d6LQI)
 
 # Update copyright and license information
 
@@ -305,3 +307,63 @@ use a smaller header or add the information for a specific file to the
 
 You can manually verify the copyright and compliance status by running the
 [REUSE helper tool](https://github.com/fsfe/reuse-tool): `reuse lint`
+
+# On AI use in curl
+
+Guidelines for AI use when contributing to curl.
+
+## For security reports and other issues
+
+If you asked an AI tool to find problems in curl, you **must** make sure to
+reveal this fact in your report.
+
+You must also double-check the findings carefully before reporting them to us
+to validate that the issues are indeed existing and working exactly as the AI
+says. AI-based tools frequently generate inaccurate or fabricated results.
+
+Further: it is *rarely* a good idea to copy and paste an AI generated report
+to the project. Those generated reports typically are too wordy and rarely to
+the point (in addition to the common fabricated details). If you actually find
+a problem with an AI and you have verified it yourself to be true: write the
+report yourself and explain the problem as you have learned it. This makes
+sure the AI-generated inaccuracies and invented issues are filtered out early
+before they waste more people's time.
+
+As we take security reports seriously, we investigate each report with
+priority. This work is both time and energy consuming and pulls us away from
+doing other meaningful work. Fake and otherwise made up security problems
+effectively prevent us from doing real project work and make us waste time and
+resources.
+
+We ban users immediately who submit made up fake reports to the project.
+
+## For pull requests
+
+When contributing content to the curl project, you give us permission to use
+it as-is and you must make sure you are allowed to distribute it to us. By
+submitting a change to us, you agree that the changes can and should be
+adopted by curl and get redistributed under the curl license. Authors should
+be explicitly aware that the burden is on them to ensure no unlicensed code is
+submitted to the project.
+
+This is independent if AI is used or not.
+
+When contributing a pull request you should of course always make sure that
+the proposal is good quality and a best effort that follows our guidelines. A
+basic rule of thumb is that if someone can spot that the contribution was made
+with the help of AI, you have more work to do.
+
+We can accept code written with the help of AI into the project, but the code
+must still follow coding standards, be written clearly, be documented, feature
+test cases and adhere to all the normal requirements we have.
+
+## For translation
+
+Translation services help users write reports, texts and documentation in
+non-native languages and we encourage and welcome such contributors and
+contributions.
+
+As AI-based translation tools sometimes have a way to make the output sound a
+little robotic and add an "AI tone" to the text, you may want to consider
+mentioning that you used such a tool. Failing to do so risks that maintainers
+wrongly dismiss translated texts as AI slop.

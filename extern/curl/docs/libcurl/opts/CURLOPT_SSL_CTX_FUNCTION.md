@@ -17,7 +17,6 @@ TLS-backend:
   - OpenSSL
   - wolfSSL
   - mbedTLS
-  - BearSSL
 Added-in: 7.10.6
 ---
 
@@ -41,15 +40,15 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_SSL_CTX_FUNCTION,
 Pass a pointer to your callback function, which should match the prototype
 shown above.
 
-This callback function gets called by libcurl just before the initialization
-of an SSL connection after having processed all other SSL related options to
-give a last chance to an application to modify the behavior of the SSL
-initialization. The *ssl_ctx* parameter is a pointer to the SSL library's
-*SSL_CTX* for OpenSSL or wolfSSL, a pointer to *mbedtls_ssl_config* for
-mbedTLS or a pointer to *br_ssl_client_context* for BearSSL. If an error is
-returned from the callback no attempt to establish a connection is made and
-the perform operation returns the callback's error code. Set the *clientp*
-argument passed in to this callback with the CURLOPT_SSL_CTX_DATA(3) option.
+This callback function gets called by libcurl immediately before the
+initialization of an SSL connection after having processed all other SSL
+related options to give a last chance to an application to modify the behavior
+of the SSL initialization. The *ssl_ctx* parameter is a pointer to the SSL
+library's *SSL_CTX* for OpenSSL or wolfSSL, a pointer to *mbedtls_ssl_config*
+for mbedTLS. If an error is returned from the callback no attempt to establish
+a connection is made and the perform operation returns the callback's error
+code. Set the *clientp* argument passed in to this callback with the
+CURLOPT_SSL_CTX_DATA(3) option.
 
 This function gets called for all new connections made to a server, during the
 SSL negotiation. While *ssl_ctx* points to a newly initialized object each
@@ -61,13 +60,22 @@ callbacks to add additional validation code for certificates, and even to
 change the actual URI of an HTTPS request.
 
 For OpenSSL, asynchronous certificate verification via *SSL_set_retry_verify*
-is supported. (Added in 8.3.0)
+is supported. When *SSL_set_retry_verify* is set, the transfer is paused.
+When verification should continue, call curl_easy_pause(3) to unpause
+the transfer. (Added in 8.3.0, Pausing added in 8.16.0)
 
 The CURLOPT_SSL_CTX_FUNCTION(3) callback allows the application to reach in
 and modify SSL details in the connection without libcurl itself knowing
 anything about it, which then subsequently can lead to libcurl unknowingly
 reusing SSL connections with different properties. To remedy this you may set
 CURLOPT_FORBID_REUSE(3) from the callback function.
+
+A connection that is set up with this callback can be put in the connection
+pool by libcurl and then reused in following transfers without the callback
+being called. The connection may even be selected from the pool to be used for
+transfers not using this callback. If the callback should only be valid for
+the specific transfer the callback verifies, it should be marked unsuitable
+for reuse with CURLOPT_FORBID_REUSE(3).
 
 If you are using DNS-over-HTTPS (DoH) via CURLOPT_DOH_URL(3) then this
 callback is also called for those transfers and the curl handle is set to an
@@ -101,12 +109,12 @@ NULL
 #include <curl/curl.h>
 #include <stdio.h>
 
-static CURLcode sslctx_function(CURL *curl, void *sslctx, void *parm)
+static CURLcode sslctx_function(CURL *curl, void *sslctx, void *pointer)
 {
   X509_STORE *store;
   X509 *cert = NULL;
   BIO *bio;
-  char *mypem = parm;
+  char *mypem = pointer;
   /* get a BIO */
   bio = BIO_new_mem_buf(mypem, -1);
   /* use it to read the PEM formatted certificate from memory into an
@@ -133,37 +141,37 @@ static CURLcode sslctx_function(CURL *curl, void *sslctx, void *parm)
 
 int main(void)
 {
-  CURL *ch;
-  CURLcode rv;
-  char *mypem = /* example CA cert PEM - shortened */
+  CURL *curl;
+  CURLcode result;
+  /* CA cert in PEM format, replace the XXXs */
+  char *mypem =
     "-----BEGIN CERTIFICATE-----\n"
-    "MIIHPTCCBSWgAwIBAgIBADANBgkqhkiG9w0BAQQFADB5MRAwDgYDVQQKEwdSb290\n"
-    "IENBMR4wHAYDVQQLExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNB\n"
-    "IENlcnQgU2lnbmluZyBBdXRob3JpdHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRA\n"
-    "Y2FjZXJ0Lm9yZzAeFw0wMzAzMzAxMjI5NDlaFw0zMzAzMjkxMjI5NDlaMHkxEDAO\n"
-    "GCSNe9FINSkYQKyTYOGWhlC0elnYjyELn8+CkcY7v2vcB5G5l1YjqrZslMZIBjzk\n"
-    "zk6q5PYvCdxTby78dOs6Y5nCpqyJvKeyRKANihDjbPIky/qbn3BHLt4Ui9SyIAmW\n"
-    "omTxJBzcoTWcFbLUvFUufQb1nA5V9FrWk9p2rSVzTMVD\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
+    "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n"
     "-----END CERTIFICATE-----\n";
 
   curl_global_init(CURL_GLOBAL_ALL);
-  ch = curl_easy_init();
+  curl = curl_easy_init();
 
-  curl_easy_setopt(ch, CURLOPT_SSLCERTTYPE, "PEM");
-  curl_easy_setopt(ch, CURLOPT_SSL_VERIFYPEER, 1L);
-  curl_easy_setopt(ch, CURLOPT_URL, "https://www.example.com/");
+  curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+  curl_easy_setopt(curl, CURLOPT_URL, "https://www.example.com/");
 
-  curl_easy_setopt(ch, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
-  curl_easy_setopt(ch, CURLOPT_SSL_CTX_DATA, mypem);
-  rv = curl_easy_perform(ch);
-  if(!rv)
+  curl_easy_setopt(curl, CURLOPT_SSL_CTX_FUNCTION, *sslctx_function);
+  curl_easy_setopt(curl, CURLOPT_SSL_CTX_DATA, mypem);
+  result = curl_easy_perform(curl);
+  if(result == CURLE_OK)
     printf("*** transfer succeeded ***\n");
   else
     printf("*** transfer failed ***\n");
 
-  curl_easy_cleanup(ch);
+  curl_easy_cleanup(curl);
   curl_global_cleanup();
-  return rv;
+  return (int)result;
 }
 ~~~
 

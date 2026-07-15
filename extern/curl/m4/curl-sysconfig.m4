@@ -32,7 +32,7 @@ AC_MSG_CHECKING([whether to link macOS CoreFoundation, CoreServices, and SystemC
       #if TARGET_OS_MAC && !(defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE)
         return 0;
       #else
-      #error Not macOS
+        #error Not macOS
       #endif
     ]])
   ],[
@@ -40,7 +40,7 @@ AC_MSG_CHECKING([whether to link macOS CoreFoundation, CoreServices, and SystemC
   ],[
     build_for_macos="no"
   ])
-  if test "x$build_for_macos" != xno; then
+  if test "$build_for_macos" != "no"; then
     AC_MSG_RESULT(yes)
     SYSCONFIG_LDFLAGS='-framework CoreFoundation -framework CoreServices -framework SystemConfiguration'
     LDFLAGS="$LDFLAGS $SYSCONFIG_LDFLAGS"

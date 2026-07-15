@@ -15,5 +15,7 @@ Example:
 
 # `--retry-connrefused`
 
-In addition to the other conditions, consider ECONNREFUSED as a transient
-error too for --retry. This option is used together with --retry.
+In addition to the other conditions, also consider ECONNREFUSED as a transient
+error for --retry. This option is used together with --retry. Normally, a
+refused connection is not considered a transient error and therefore would not
+otherwise trigger a retry.

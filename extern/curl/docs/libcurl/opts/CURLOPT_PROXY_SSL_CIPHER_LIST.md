@@ -14,12 +14,10 @@ Protocol:
   - TLS
 TLS-backend:
   - OpenSSL
-  - BearSSL
   - Schannel
-  - Secure Transport
   - wolfSSL
   - mbedTLS
-  - rustls
+  - Rustls
 Added-in: 7.52.0
 ---
 
@@ -77,13 +75,13 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
     curl_easy_setopt(curl, CURLOPT_PROXY, "https://localhost");
     curl_easy_setopt(curl, CURLOPT_PROXY_SSL_CIPHER_LIST,
                      "ECDHE-ECDSA-CHACHA20-POLY1305:"
                      "ECDHE-RSA-CHACHA20-POLY1305");
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }
@@ -92,7 +90,7 @@ int main(void)
 # HISTORY
 
 OpenSSL support added in 7.52.0.
-wolfSSL, Schannel, Secure Transport, and BearSSL support added in 7.87.0
+wolfSSL, Schannel support added in 7.87.0
 mbedTLS support added in 8.8.0.
 Rustls support added in 8.10.0.
 

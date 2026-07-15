@@ -24,35 +24,14 @@
  *
  ***************************************************************************/
 
-/*
- * This header should be included by ALL code in libcurl that uses any
- * *rintf() functions.
- */
-
-#ifndef CURL_TEMP_PRINTF
-#error "CURL_TEMP_PRINTF must be set before including curl/mprintf.h"
-#endif
-
-#include <curl/mprintf.h>
-
 #define MERR_OK        0
 #define MERR_MEM       1
 #define MERR_TOO_LARGE 2
 
-# undef printf
-# undef fprintf
-# undef msnprintf
-# undef vprintf
-# undef vfprintf
-# undef mvsnprintf
-# undef aprintf
-# undef vaprintf
-# define printf curl_mprintf
-# define fprintf curl_mfprintf
-# define msnprintf curl_msnprintf
-# define vprintf curl_mvprintf
-# define vfprintf curl_mvfprintf
-# define mvsnprintf curl_mvsnprintf
-# define aprintf curl_maprintf
-# define vaprintf curl_mvaprintf
+/* Lower-case digits. */
+extern const unsigned char Curl_ldigits[];
+
+/* Upper-case digits. */
+extern const unsigned char Curl_udigits[];
+
 #endif /* HEADER_CURL_PRINTF_H */

@@ -14,7 +14,6 @@ TLS-backend:
   - GnuTLS
   - mbedTLS
   - Schannel
-  - Secure Transport
   - wolfSSL
 Added-in: 7.9.3
 ---
@@ -36,10 +35,9 @@ CURLcode curl_easy_setopt(CURL *handle, CURLOPT_SSLCERTTYPE, char *type);
 Pass a pointer to a null-terminated string as parameter. The string should be
 the format of your certificate.
 
-Supported formats are "PEM" and "DER", except with Secure Transport or
-Schannel. OpenSSL (versions 0.9.3 and later), Secure Transport (on iOS 5 or
-later, or macOS 10.7 or later) and Schannel support "P12" for PKCS#12-encoded
-files. GnuTLS supports P12 starting with curl 8.11.0.
+Supported formats are "PEM" and "DER", except with Schannel. OpenSSL and
+Schannel support "P12" for PKCS#12-encoded files. GnuTLS supports P12 starting
+with curl 8.11.0.
 
 The application does not have to keep the string around after setting this
 option.
@@ -60,13 +58,13 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
     curl_easy_setopt(curl, CURLOPT_SSLCERT, "client.pem");
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
     curl_easy_setopt(curl, CURLOPT_SSLKEY, "key.pem");
     curl_easy_setopt(curl, CURLOPT_KEYPASSWD, "s3cret");
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }

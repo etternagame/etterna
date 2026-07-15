@@ -8,7 +8,7 @@ SPDX-License-Identifier: curl
 
 [Rustls is a TLS backend written in Rust](https://docs.rs/rustls/). curl can
 be built to use it as an alternative to OpenSSL or other TLS backends. We use
-the [rustls-ffi C bindings](https://github.com/rustls/rustls-ffi/). This
+the [rustls-ffi C bindings](https://github.com/rustls/rustls-ffi). This
 version of curl is compatible with `rustls-ffi` v0.15.x.
 
 ## Getting rustls-ffi
@@ -27,7 +27,7 @@ differ between distributions.
 
 Once installed, build `curl` using `--with-rustls`.
 
-    % git clone https://github.com/curl/curl
+    % git clone --depth 1 https://github.com/curl/curl
     % cd curl
     % autoreconf -fi
     % ./configure --with-rustls
@@ -43,7 +43,7 @@ Download the appropriate archive for your platform and extract it to a directory
 
 Once downloaded, build `curl` using `--with-rustls` and the path to the extracted binaries.
 
-    % git clone https://github.com/curl/curl
+    % git clone --depth 1 https://github.com/curl/curl
     % cd curl
     % autoreconf -fi
     % ./configure --with-rustls=${HOME}/rustls-ffi-built
@@ -56,20 +56,20 @@ Once downloaded, build `curl` using `--with-rustls` and the path to the extracte
 Building `rustls-ffi` from source requires both a rust compiler, and the [cargo-c] cargo plugin.
 
 To install a Rust compiler, use [rustup] or your package manager to install
-the **1.73+** or newer toolchain.
+the **1.73** or newer toolchain.
 
 To install `cargo-c`, use your [package manager][cargo-c pkg], download
 [a pre-built archive][cargo-c prebuilt], or build it from source with `cargo install cargo-c`.
 
 Next, check out, build, and install the appropriate version of `rustls-ffi` using `cargo`:
 
-    % git clone https://github.com/rustls/rustls-ffi -b v0.15.0
+    % git clone --depth 1 --branch v0.15.3 https://github.com/rustls/rustls-ffi
     % cd rustls-ffi
     % cargo capi install --release --prefix=${HOME}/rustls-ffi-built
 
 Now configure and build `curl` using `--with-rustls`:
 
-    % git clone https://github.com/curl/curl
+    % git clone --depth 1 https://github.com/curl/curl
     % cd curl
     % autoreconf -fi
     % ./configure --with-rustls=${HOME}/rustls-ffi-built

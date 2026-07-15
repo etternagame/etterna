@@ -21,21 +21,15 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "testutil.h"
-#include "warnless.h"
-#include "memdebug.h"
-
-#define TEST_HANG_TIMEOUT 60 * 1000
-
-CURLcode test(char *URL)
+static CURLcode test_lib3208(const char *URL)
 {
   CURL *curl = NULL;
   CURLM *multi = NULL;
   int still_running;
   CURLcode i = TEST_ERR_FAILURE;
-  CURLcode res = CURLE_OK;
+  CURLcode result = CURLE_OK;
   CURLMsg *msg;
 
   start_test_timing();
@@ -64,12 +58,12 @@ CURLcode test(char *URL)
   abort_on_test_timeout();
 
   while(still_running) {
-    CURLMcode mres;
+    CURLMcode mresult;
     int num;
-    mres = curl_multi_wait(multi, NULL, 0, TEST_HANG_TIMEOUT, &num);
-    if(mres != CURLM_OK) {
-      printf("curl_multi_wait() returned %d\n", mres);
-      res = TEST_ERR_MAJOR_BAD;
+    mresult = curl_multi_wait(multi, NULL, 0, TEST_HANG_TIMEOUT, &num);
+    if(mresult != CURLM_OK) {
+      curl_mprintf("curl_multi_wait() returned %d\n", mresult);
+      result = TEST_ERR_MAJOR_BAD;
       goto test_cleanup;
     }
 
@@ -99,8 +93,8 @@ test_cleanup:
   curl_easy_cleanup(curl);
   curl_global_cleanup();
 
-  if(res)
-    i = res;
+  if(result)
+    i = result;
 
   return i; /* return the final return code */
 }

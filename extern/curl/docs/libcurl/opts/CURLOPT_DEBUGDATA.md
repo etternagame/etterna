@@ -51,12 +51,13 @@ static int my_trace(CURL *handle, curl_infotype type,
   printf("our ptr: %p\n", mine->custom);
 
   /* output debug info */
+  return 0;
 }
 
 int main(void)
 {
   CURL *curl;
-  CURLcode res;
+  CURLcode result;
   struct data my_tracedata;
 
   curl = curl_easy_init();
@@ -69,7 +70,7 @@ int main(void)
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
     /* always cleanup */
     curl_easy_cleanup(curl);

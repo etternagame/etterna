@@ -31,6 +31,11 @@ Pass a *pointer* that remains untouched by libcurl and passed as the first
 argument in the closesocket callback set with
 CURLOPT_CLOSESOCKETFUNCTION(3).
 
+Note that when using multi/share handles, your callback may get invoked even
+after the easy handle has been cleaned up. The callback and data is
+inherited by a new connection and that connection may live longer
+than the transfer itself in the multi/share handle's connection cache.
+
 # DEFAULT
 
 NULL
@@ -57,13 +62,15 @@ int main(void)
 {
   struct priv myown;
   CURL *curl = curl_easy_init();
+  if(curl) {
+    CURLcode result;
+    /* call this function to close sockets */
+    curl_easy_setopt(curl, CURLOPT_CLOSESOCKETFUNCTION, closesocket);
+    curl_easy_setopt(curl, CURLOPT_CLOSESOCKETDATA, &myown);
 
-  /* call this function to close sockets */
-  curl_easy_setopt(curl, CURLOPT_CLOSESOCKETFUNCTION, closesocket);
-  curl_easy_setopt(curl, CURLOPT_CLOSESOCKETDATA, &myown);
-
-  curl_easy_perform(curl);
-  curl_easy_cleanup(curl);
+    result = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+  }
 }
 ~~~
 

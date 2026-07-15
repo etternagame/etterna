@@ -21,29 +21,20 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
-
-#include <curl/curl.h>
 
 #include "urldata.h"
 #include "bufq.h"
 #include "cfilters.h"
-#include "headers.h"
-#include "multiif.h"
 #include "sendf.h"
+#include "curl_trc.h"
 #include "cw-pause.h"
-
-/* The last 3 #include files should be in this order */
-#include "curl_printf.h"
-#include "curl_memory.h"
-#include "memdebug.h"
 
 
 /* body dynbuf sizes */
 #define CW_PAUSE_BUF_CHUNK         (16 * 1024)
 /* when content decoding, write data in chunks */
-#define CW_PAUSE_DEC_WRITE_CHUNK   (4096)
+#define CW_PAUSE_DEC_WRITE_CHUNK   4096
 
 struct cw_pause_buf {
   struct cw_pause_buf *next;
@@ -53,12 +44,12 @@ struct cw_pause_buf {
 
 static struct cw_pause_buf *cw_pause_buf_create(int type, size_t buflen)
 {
-  struct cw_pause_buf *cwbuf = calloc(1, sizeof(*cwbuf));
+  struct cw_pause_buf *cwbuf = curlx_calloc(1, sizeof(*cwbuf));
   if(cwbuf) {
     cwbuf->type = type;
     if(type & CLIENTWRITE_BODY)
       Curl_bufq_init2(&cwbuf->b, CW_PAUSE_BUF_CHUNK, 1,
-                      (BUFQ_OPT_SOFT_LIMIT|BUFQ_OPT_NO_SPARES));
+                      (BUFQ_OPT_SOFT_LIMIT | BUFQ_OPT_NO_SPARES));
     else
       Curl_bufq_init(&cwbuf->b, buflen, 1);
   }
@@ -69,7 +60,7 @@ static void cw_pause_buf_free(struct cw_pause_buf *cwbuf)
 {
   if(cwbuf) {
     Curl_bufq_free(&cwbuf->b);
-    free(cwbuf);
+    curlx_free(cwbuf);
   }
 }
 
@@ -77,23 +68,6 @@ struct cw_pause_ctx {
   struct Curl_cwriter super;
   struct cw_pause_buf *buf;
   size_t buf_total;
-};
-
-static CURLcode cw_pause_write(struct Curl_easy *data,
-                               struct Curl_cwriter *writer, int type,
-                               const char *buf, size_t nbytes);
-static void cw_pause_close(struct Curl_easy *data,
-                           struct Curl_cwriter *writer);
-static CURLcode cw_pause_init(struct Curl_easy *data,
-                              struct Curl_cwriter *writer);
-
-struct Curl_cwtype Curl_cwt_pause = {
-  "cw-pause",
-  NULL,
-  cw_pause_init,
-  cw_pause_write,
-  cw_pause_close,
-  sizeof(struct cw_pause_ctx)
 };
 
 static CURLcode cw_pause_init(struct Curl_easy *data,
@@ -143,7 +117,8 @@ static CURLcode cw_pause_flush(struct Curl_easy *data,
       result = Curl_cwriter_write(data, cw_pause->next, (*plast)->type,
                                   (const char *)buf, wlen);
       CURL_TRC_WRITE(data, "[PAUSE] flushed %zu/%zu bytes, type=%x -> %d",
-                     wlen, ctx->buf_total, (*plast)->type, result);
+                     wlen, ctx->buf_total, (unsigned int)(*plast)->type,
+                     (int)result);
       Curl_bufq_skip(&(*plast)->b, wlen);
       DEBUGASSERT(ctx->buf_total >= wlen);
       ctx->buf_total -= wlen;
@@ -154,7 +129,8 @@ static CURLcode cw_pause_flush(struct Curl_easy *data,
       result = Curl_cwriter_write(data, cw_pause->next, (*plast)->type,
                                   (const char *)buf, 0);
       CURL_TRC_WRITE(data, "[PAUSE] flushed 0/%zu bytes, type=%x -> %d",
-                     ctx->buf_total, (*plast)->type, result);
+                     ctx->buf_total, (unsigned int)(*plast)->type,
+                     (int)result);
     }
 
     if(Curl_bufq_is_empty(&(*plast)->b)) {
@@ -191,7 +167,7 @@ static CURLcode cw_pause_write(struct Curl_easy *data,
       wtype &= ~CLIENTWRITE_EOS;
     result = Curl_cwriter_write(data, writer->next, wtype, buf, wlen);
     CURL_TRC_WRITE(data, "[PAUSE] writing %zu/%zu bytes of type %x -> %d",
-                   wlen, blen, wtype, result);
+                   wlen, blen, (unsigned int)wtype, (int)result);
     if(result)
       return result;
     buf += wlen;
@@ -217,8 +193,8 @@ static CURLcode cw_pause_write(struct Curl_easy *data,
       result = Curl_bufq_cwrite(&ctx->buf->b, buf, blen, &nwritten);
     }
     CURL_TRC_WRITE(data, "[PAUSE] buffer %zu more bytes of type %x, "
-                   "total=%zu -> %d", nwritten, type, ctx->buf_total + wlen,
-                   result);
+                   "total=%zu -> %d", nwritten, (unsigned int)type,
+                   ctx->buf_total + wlen, (int)result);
     if(result)
       return result;
     buf += nwritten;
@@ -228,6 +204,15 @@ static CURLcode cw_pause_write(struct Curl_easy *data,
 
   return result;
 }
+
+const struct Curl_cwtype Curl_cwt_pause = {
+  "cw-pause",
+  NULL,
+  cw_pause_init,
+  cw_pause_write,
+  cw_pause_close,
+  sizeof(struct cw_pause_ctx)
+};
 
 CURLcode Curl_cw_pause_flush(struct Curl_easy *data)
 {

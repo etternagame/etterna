@@ -5,15 +5,9 @@
 #include "Etterna/Models/HighScore/HighScore.h"
 #include <queue>
 #include "rapidjson/fwd.h"
-#define ASIO_STANDALONE
-#define _WEBSOCKETPP_CPP11_INTERNAL_
-#include <websocketpp/client.hpp>
-#include <websocketpp/config/asio_client.hpp>
-typedef websocketpp::config::asio_tls_client::message_type::ptr wss_message_ptr;
-using wss_client = ::websocketpp::client<websocketpp::config::asio_tls_client>;
-#include <websocketpp/config/asio_no_tls_client.hpp>
-using ws_message_ptr = ::websocketpp::config::asio_client::message_type::ptr;
-using ws_client = ::websocketpp::client<websocketpp::config::asio_client>;
+#include <curl/curl.h>
+#include <thread>
+#include <mutex>
 
 class LoadingWindow;
 
@@ -258,10 +252,13 @@ class ETTProtocol : public NetProtocol
 	unsigned int msgId{ 0 };
 	bool error{ false };
 	std::string errorMsg;
-	std::shared_ptr<ws_client> client{ nullptr };
-	std::shared_ptr<wss_client> secure_client{ nullptr };
-	std::shared_ptr<websocketpp::connection_hdl> hdl{ nullptr };
+
+	CURL* curl;
+	std::mutex curlMutex;
+
 	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
+	std::atomic_bool stopRequest = false;
+	void LaunchPollingThread();
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
@@ -298,7 +295,7 @@ class ETTProtocol : public NetProtocol
 	void OffEval() override;
 	void SendMPLeaderboardUpdate(float wife, std::string& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
-	void Send(const char* msg);
+	void Send(const std::string &str);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score,
 	int combo, float offset, int numNotes) override; void

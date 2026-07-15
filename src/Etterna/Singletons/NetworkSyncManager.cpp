@@ -23,13 +23,16 @@
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
 using namespace rapidjson;
-#include "asio.hpp"
 
 NetworkSyncManager* NSMAN;
 
 #include <cerrno>
 #include <chrono>
 #include <cmath>
+#include <array>
+#ifndef _WIN32
+#include <arpa/inet.h>
+#endif
 
 // Maps to associate the strings with the enum values
 std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
@@ -118,9 +121,9 @@ correct_non_utf_8(std::string* str)
 			to.append(1, c);
 			continue;
 		}
-		if (c < 160) { // control char (nothing should be defined here
-							  // either ASCI, ISO_8859-1 or UTF8, so skipping)
-			if (c2 == 128) {  // fix microsoft mess, add euro
+		if (c < 160) {		 // control char (nothing should be defined here
+							 // either ASCI, ISO_8859-1 or UTF8, so skipping)
+			if (c2 == 128) { // fix microsoft mess, add euro
 				to.append(1, static_cast<unsigned char>(226));
 				to.append(1, static_cast<unsigned char>(130));
 				to.append(1, static_cast<unsigned char>(172));
@@ -141,7 +144,7 @@ correct_non_utf_8(std::string* str)
 			to.append(1, c - 64);
 			continue;
 		}
-		
+
 		if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
 			c2 = static_cast<unsigned char>((*str)[i + 1]);
 			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
@@ -289,7 +292,7 @@ NetworkSyncManager::OffEval()
 void
 ETTProtocol::OffEval()
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -306,7 +309,7 @@ ETTProtocol::OffEval()
 void
 ETTProtocol::OnEval()
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -323,7 +326,7 @@ ETTProtocol::OnEval()
 void
 ETTProtocol::OnOptions()
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -340,7 +343,7 @@ ETTProtocol::OnOptions()
 void
 ETTProtocol::OffOptions()
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -365,40 +368,22 @@ ETTProtocol::close()
 	roomDesc = "";
 	waitingForTimeout = false;
 	inRoom = false;
-	if (client) {
-		auto hdl = *(this->hdl);
-		auto client = this->client;
-		client->get_io_service().post([hdl, client]() {
-			client->pause_reading(hdl);
-			client->close(hdl, websocketpp::close::status::going_away, "");
-			client->resume_reading(hdl);
-		});
+	if (thread != nullptr) {
+		stopRequest = true;
+		if (thread->joinable()) {
+			thread->join();
+		}
+		stopRequest = false;
 	}
-	if (secure_client) {
-		auto hdl = *(this->hdl);
-		auto secure_client = this->secure_client;
-		secure_client->get_io_service().post([hdl, secure_client]() {
-			secure_client->pause_reading(hdl);
-			secure_client->close(
-			  hdl, websocketpp::close::status::going_away, "");
-			secure_client->resume_reading(hdl);
-		});
-	}
-	if (this->thread) {
-		thread->detach();
-		thread = nullptr;
-	}
-	hdl = nullptr;
-	client = nullptr;
-	secure_client = nullptr;
+	thread = nullptr;
 }
 
 ETTProtocol::~ETTProtocol()
 {
 	close();
-	// Wait until the client is closed
-	while (this->client != nullptr)
-		;
+	if (curl != nullptr) {
+		curl_easy_cleanup(curl);
+	}
 }
 
 void
@@ -452,7 +437,8 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	}
 
 	chat.rawMap.clear();
-	Locator::getLogger()->info("Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
+	Locator::getLogger()->info(
+	  "Attempting to connect to: {}, Port: {}", sAddress.c_str(), iPort);
 	curProtocol = nullptr;
 	CloseConnection();
 
@@ -475,8 +461,8 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	difficulty = Difficulty_Invalid;
 	meter = -1;
 	Locator::getLogger()->info("Server Version: {} {}",
-	        curProtocol->serverVersion,
-	        curProtocol->serverName.c_str());
+							   curProtocol->serverVersion,
+							   curProtocol->serverName.c_str());
 	MESSAGEMAN->Broadcast("MultiplayerConnection");
 }
 
@@ -491,131 +477,37 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	error = false;
 	bool finished_connecting = false;
 
-	bool ws = true;
-	bool wss = true;
-	bool prepend = true;
-	if (starts_with(address, "ws://")) {
-		wss = false;
-		prepend = false;
-	} else if (starts_with(address, "wss://")) {
-		ws = false;
-		prepend = false;
+	curl = curl_easy_init();
+	if (curl == nullptr) {
+		throw std::runtime_error("failed to initialize curl");
 	}
-	auto msgHandler = [this](websocketpp::connection_hdl hdl,
-							 ws_message_ptr message) {
-		// Ignore if we're closing the program and already deleted nsman
-		if (NSMAN == nullptr)
-			return;
-		std::unique_ptr<Document> d(new Document);
-		if (d->Parse(message->get_payload().c_str()).HasParseError())
-			Locator::getLogger()->error("Error while processing ettprotocol json (message: {} )",
-					   message->get_payload().c_str());
-		else {
-			std::lock_guard<std::mutex> l(this->messageBufferMutex);
-			this->newMessages.push_back(std::move(d));
-		}
-	};
-	auto openHandler = [n, this, address, &finished_connecting](
-						 websocketpp::connection_hdl hdl) {
-		if (NSMAN == nullptr)
-			return;
-		finished_connecting = true;
-		this->hdl = std::make_shared<websocketpp::connection_hdl>(hdl);
-		n->isSMOnline = true;
-		Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
-	};
-	auto failHandler = [n, address, &finished_connecting](
-						 websocketpp::connection_hdl hdl) {
-		if (NSMAN == nullptr)
-			return;
-		finished_connecting = true;
-		n->isSMOnline = false;
-	};
-	auto closeHandler = [this](websocketpp::connection_hdl hdl) {
-		if (NSMAN == nullptr)
-			return;
-		this->client = nullptr;
-	};
-	if (wss) {
-		std::shared_ptr<wss_client> client(new wss_client());
-		try {
-			client->init_asio();
-			client->clear_access_channels(websocketpp::log::alevel::all);
-			client->set_message_handler(msgHandler);
-			client->set_open_handler(openHandler);
-			client->set_close_handler(closeHandler);
-		} catch (std::exception& e) {
-			Locator::getLogger()->warn("Failed to initialize ettp connection due to exception: {}", e.what());
-		}
-		finished_connecting = false;
-		websocketpp::lib::error_code ec;
-		wss_client::connection_ptr con =
-		  client->get_connection(((prepend ? "wss://" + address : address) +
-								  ":" + std::to_string(port))
-								   .c_str(),
-								 ec);
-		if (ec) {
-			Locator::getLogger()->error("Could not create ettp connection because: {}",
-					   ec.message().c_str());
-		} else {
-			try {
-				client->connect(con);
-				while (!finished_connecting)
-					client->poll_one();
-				if (n->isSMOnline)
-					this->secure_client = std::move(client);
-			} catch (websocketpp::http::exception& e) {
-				Locator::getLogger()->warn("Failed to create ettp connection due to exception: "
-						  "{} --- {}",
-						  e.m_error_code,
-						  e.what());
-			}
-		}
-	}
-	if (ws && !n->isSMOnline) {
-		std::shared_ptr<ws_client> client(new ws_client());
-		try {
-			client->init_asio();
-			client->clear_access_channels(websocketpp::log::alevel::all);
-			client->set_message_handler(msgHandler);
-			client->set_open_handler(openHandler);
-			client->set_fail_handler(failHandler);
-			client->set_close_handler(closeHandler);
-		} catch (std::exception& e) {
-			Locator::getLogger()->warn("Failed to initialize ettp connection due to exception: {}", e.what());
-		}
 
-		finished_connecting = false;
-		websocketpp::lib::error_code ec;
-		ws_client::connection_ptr con = client->get_connection(
-		  ((prepend ? "ws://" + address : address) + ":" + std::to_string(port))
-			.c_str(),
-		  ec);
-		if (ec) {
-			Locator::getLogger()->error("Could not create ettp connection because: {}",
-					   ec.message().c_str());
-		} else {
-			try {
-				client->connect(con);
-				while (!finished_connecting) {
-					client->poll_one();
-				}
-				if (n->isSMOnline)
-					this->client = std::move(client);
-			} catch (websocketpp::http::exception& e) {
-				Locator::getLogger()->warn("Failed to create ettp connection due to exception: "
-						  "{} --- {}",
-						  e.m_error_code,
-						  e.what());
-			}
-		}
+	std::string url = fmt::format(
+	  "{}{}:{}", starts_with("wss://", address) ? "" : "ws://", address, port);
+	auto res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	if (res != CURLE_OK) {
+		throw std::runtime_error(
+		  fmt::format("curl failed: {}", curl_easy_strerror(res)));
 	}
-	if (n->isSMOnline) {
-		auto client = this->client;
-		this->thread = std::unique_ptr<std::thread>(
-		  new std::thread([client]() { client->run(); }));
-	} else
-		Locator::getLogger()->error("Failed to connect to ettp server: {}", address.c_str());
+
+	res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
+	if (res != CURLE_OK) {
+		throw std::runtime_error(
+		  fmt::format("curl failed: {}", curl_easy_strerror(res)));
+	}
+
+	res = curl_easy_perform(curl);
+	if (res != CURLE_OK) {
+		throw std::runtime_error(
+		  fmt::format("curl failed: {}", curl_easy_strerror(res)));
+	}
+
+	finished_connecting = true;
+	n->isSMOnline = true;
+	Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
+
+	LaunchPollingThread();
+
 	return n->isSMOnline;
 }
 RoomData
@@ -623,8 +515,8 @@ jsonToRoom(Value& room)
 {
 	RoomData tmp;
 	std::string s = room.HasMember("name") && room["name"].IsString()
-				 ? room["name"].GetString()
-				 : "";
+					  ? room["name"].GetString()
+					  : "";
 	tmp.SetName(s);
 	s = room.HasMember("desc") && room["desc"].IsString()
 		  ? room["desc"].GetString()
@@ -723,6 +615,70 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, Value& ch)
 		}
 	}
 }
+void
+ETTProtocol::LaunchPollingThread()
+{
+	if (thread != nullptr) {
+		stopRequest = true;
+		if (thread->joinable()) {
+			thread->join();
+		}
+		stopRequest = false;
+	}
+
+	auto loop = [&]() {
+		std::string message;
+		std::array<char, 2048> buffer = {};
+
+		while (!stopRequest) {
+			if (NSMAN == nullptr)
+				return;
+			{
+				std::unique_lock lock(curlMutex);
+				size_t rlen = 0;
+				const struct curl_ws_frame* meta = nullptr;
+				do {
+					CURLcode result = curl_ws_recv(
+					  curl, &buffer[0], buffer.size(), &rlen, &meta);
+					if (result == CURLE_AGAIN) {
+						std::this_thread::sleep_for(
+						  std::chrono::milliseconds(20));
+						continue;
+					}
+
+					if (result != CURLE_OK) {
+						Locator::getLogger()->error(
+						  "CURL request from ETTP failed: {}",
+						  curl_easy_strerror(result));
+					}
+					buffer[rlen] = '\0';
+					message += buffer.data();
+				} while (meta != nullptr && meta->bytesleft > 0);
+			}
+
+			if (message.empty()) {
+				continue;
+			}
+
+			std::unique_ptr<Document> d(new Document);
+			if (d->Parse(message.c_str()).HasParseError())
+				Locator::getLogger()->error(
+				  "Error while processing ettprotocol json (message: {} )",
+				  message.data());
+			else {
+				std::scoped_lock<std::mutex> l(this->messageBufferMutex);
+				this->newMessages.push_back(std::move(d));
+				message.clear();
+				buffer = {};
+			}
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		}
+	};
+
+	stopRequest = false;
+	thread = std::make_unique<std::thread>(loop);
+}
 bool
 NetworkSyncManager::IsETTP()
 {
@@ -731,8 +687,9 @@ NetworkSyncManager::IsETTP()
 void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
-	if (this->client == nullptr) {
-		Locator::getLogger()->info("Disconnected from ett server {}", serverName.c_str());
+	if (this->curl == nullptr) {
+		Locator::getLogger()->info("Disconnected from ett server {}",
+								   serverName.c_str());
 		n->isSMOnline = false;
 		n->CloseConnection();
 		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
@@ -768,7 +725,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			auto type = ettServerMessageMap.find(d["type"].GetString());
 			if (ettServerMessageMap.end() == type) {
 				Locator::getLogger()->warn("Unknown ETTP message type {}",
-											d["type"].GetString());
+										   d["type"].GetString());
 				continue;
 			}
 			switch (type->second) {
@@ -800,11 +757,12 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						serverVersion = payload["version"].GetInt();
 					else
 						serverVersion = 1;
-					Locator::getLogger()->info("Ettp server identified: {} (Version: {})",
-							   serverName.c_str(),
-							   serverVersion);
+					Locator::getLogger()->info(
+					  "Ettp server identified: {} (Version: {})",
+					  serverName.c_str(),
+					  serverVersion);
 					n->DisplayStartupStatus();
-					if (client != nullptr) {
+					if (curl != nullptr) {
 						StringBuffer s;
 						Writer<StringBuffer> writer(s);
 						writer.StartObject();
@@ -983,13 +941,13 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						// add some backwards compatibility with pre 0.71
 						// multi users
 						if (replay.HasMember("notetypes") &&
-							replay["notetypes"].IsArray())
-						{
+							replay["notetypes"].IsArray()) {
 							auto& notetypes = replay["notetypes"];
 							std::vector<TapNoteType> v_types;
 							for (auto& type : notetypes.GetArray())
-								if (type.IsInt()) 
-									v_types.push_back(static_cast<TapNoteType>(type.GetInt()));
+								if (type.IsInt())
+									v_types.push_back(
+									  static_cast<TapNoteType>(type.GetInt()));
 							hs.SetTapNoteTypeVector(v_types);
 						}
 					}
@@ -1004,7 +962,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					MESSAGEMAN->Broadcast("NewMultiScore");
 				} break;
 				case ettps_ping: {
-					if (client != nullptr) {
+					if (curl != nullptr) {
 						StringBuffer s;
 						Writer<StringBuffer> writer(s);
 						writer.StartObject();
@@ -1160,9 +1118,10 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 							  "ScreenNetRoom", "MusicSelectScreen");
 							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
 						} catch (std::exception& e) {
-							Locator::getLogger()->error("Error while parsing ettp json enter "
-									   "room response: {}",
-									   e.what());
+							Locator::getLogger()->error(
+							  "Error while parsing ettp json enter "
+							  "room response: {}",
+							  e.what());
 						}
 					} else {
 						roomDesc = "";
@@ -1184,7 +1143,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 						!payload["room"].IsObject() ||
 						!payload["room"].HasMember("name") ||
 						!payload["room"]["name"].IsString()) {
-						Locator::getLogger()->warn("Invalid ETTP deleteroom room message");
+						Locator::getLogger()->warn(
+						  "Invalid ETTP deleteroom room message");
 						continue;
 					}
 					std::string name = payload["room"]["name"].GetString();
@@ -1309,7 +1269,8 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					break;
 			}
 		} catch (std::exception& e) {
-			Locator::getLogger()->error("Error while parsing ettp json message: {}", e.what());
+			Locator::getLogger()->error(
+			  "Error while parsing ettp json message: {}", e.what());
 		}
 	}
 	newMessages.clear();
@@ -1348,7 +1309,7 @@ NetworkSyncManager::Logout()
 void
 ETTProtocol::Logout()
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1369,7 +1330,7 @@ NetworkSyncManager::Login(std::string user, std::string pass)
 void
 ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1396,7 +1357,7 @@ ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
 void
 ETTProtocol::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1423,7 +1384,7 @@ ETTProtocol::CreateNewRoom(std::string name,
 						   std::string desc,
 						   std::string password)
 {
-	if (client == nullptr || creatingRoom)
+	if (curl == nullptr || creatingRoom)
 		return;
 	creatingRoom = true;
 	timeoutStart = clock();
@@ -1456,7 +1417,7 @@ ETTProtocol::CreateNewRoom(std::string name,
 void
 ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	n->song = nullptr;
 	n->steps = nullptr;
@@ -1486,7 +1447,7 @@ ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 void
 ETTProtocol::EnterRoom(std::string name, std::string password)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	auto it = find_if(NSMAN->m_Rooms.begin(),
 					  NSMAN->m_Rooms.end(),
@@ -1517,7 +1478,7 @@ ETTProtocol::EnterRoom(std::string name, std::string password)
 void
 ETTProtocol::Login(std::string user, std::string pass)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 
 	NSMAN->loggedInUsername = user.c_str();
@@ -1569,16 +1530,22 @@ NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 }
 
 void
-ETTProtocol::Send(const char* msg)
+ETTProtocol::Send(const std::string& str)
 {
-	if (client != nullptr) {
-		client->send(*hdl, msg, websocketpp::frame::opcode::text);
+	if (curl == nullptr) {
+		return;
 	}
+	std::unique_lock lock(curlMutex);
+	size_t sent = 0;
+
+	CURLcode result =
+	  curl_ws_send(curl, str.c_str(), str.size(), &sent, 0, CURLWS_TEXT);
+	assert(result == CURLE_OK);
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 	StringBuffer s;
 	Writer<StringBuffer> writer(s);
@@ -1715,7 +1682,7 @@ NetworkSyncManager::ReportSongOver()
 void
 ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 {
-	if (client == nullptr)
+	if (curl == nullptr)
 		return;
 
 	StringBuffer s;
@@ -1789,7 +1756,9 @@ NetworkSyncManager::ChangedScoreboard(int Column)
 }
 
 void
-NetworkSyncManager::SendChat(const std::string& message, std::string tab, int type)
+NetworkSyncManager::SendChat(const std::string& message,
+							 std::string tab,
+							 int type)
 {
 	if (curProtocol != nullptr)
 		curProtocol->SendChat(message, tab, type);
@@ -1818,7 +1787,7 @@ void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
 	auto curSteps = GAMESTATE->m_pCurSteps;
-	if (client == nullptr || song == nullptr || curSteps == nullptr ||
+	if (curl == nullptr || song == nullptr || curSteps == nullptr ||
 		GAMESTATE->m_pPlayerState == nullptr)
 		return;
 
