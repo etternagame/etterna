@@ -100,6 +100,7 @@ enum ETTServerMessageTypes
 	ettps_roomuserlist,
 	ettps_chartrequest,
 	ettps_roompacklist,
+	ettps_gameplay_replay_update,
 	ettps_end
 };
 enum ETTClientMessageTypes
@@ -125,6 +126,7 @@ enum ETTClientMessageTypes
 	ettpc_closeeval,
 	ettpc_logout,
 	ettpc_hello,
+	ettpc_gameplay_judgment,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -242,6 +244,32 @@ class NetProtocol
 	virtual void OnEval(){};
 	virtual void OffEval(){};
 	virtual void SendMPLeaderboardUpdate(float wife, std::string& jdgstr){};
+
+	// triggered by button presses in gameplay
+	virtual void ReportReplayInput(NetworkSyncManager* n,
+								   bool isPress,
+								   int col,
+								   int row,
+								   float fMusicSeconds,
+								   float fNoteOffset,
+								   int tapNoteType,
+								   int tapNoteSubType) {};
+
+	// triggered by a miss in gameplay
+	virtual void ReportReplayMiss(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int tapNoteType,
+								  int tapNoteSubType) {};
+
+	// triggered by completing or dropping a hold in gameplay
+	virtual void ReportReplayHold(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int subType) {};
+
+	// triggered by hitting a mine in gameplay
+	virtual void ReportReplayMine(NetworkSyncManager* n, int row, int col) {};
 };
 
 class ETTProtocol : public NetProtocol
@@ -295,7 +323,32 @@ class ETTProtocol : public NetProtocol
 	void OffEval() override;
 	void SendMPLeaderboardUpdate(float wife, std::string& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
-	void Send(const std::string &str);
+	// triggered by button presses in gameplay
+	void ReportReplayInput(NetworkSyncManager* n,
+								   bool isPress,
+								   int col,
+								   int row,
+								   float fMusicSeconds,
+								   float fNoteOffset,
+								   int tapNoteType,
+								   int tapNoteSubType) override;
+
+	// triggered by a miss in gameplay
+	void ReportReplayMiss(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int tapNoteType,
+								  int tapNoteSubType) override;
+
+	// triggered by completing or dropping a hold in gameplay
+	void ReportReplayHold(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int subType) override;
+
+	// triggered by hitting a mine in gameplay
+	void ReportReplayMine(NetworkSyncManager* n, int row, int col) override;
+	void Send(const std::string& str);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score,
 	int combo, float offset, int numNotes) override; void
@@ -345,6 +398,27 @@ class NetworkSyncManager
 	void ReportSongOver();
 	void ReportStyle();			// Report style, players, and names
 	void ReportNSSOnOff(int i); // Report song selection screen on/off
+
+		// triggered by button presses in gameplay
+	void ReportReplayInput(bool isPress,
+						   int col,
+						   int row,
+						   float fMusicSeconds,
+						   float fNoteOffset,
+						   int tapNoteType,
+						   int tapNoteSubType);
+
+	// triggered by a miss in gameplay
+	void ReportReplayMiss(int col,
+						  int row,
+						  int tapNoteType,
+						  int tapNoteSubType);
+
+	// triggered by completing or dropping a hold in gameplay
+	void ReportReplayHold(int col, int row, int subType);
+
+	// triggered by hitting a mine in gameplay
+	void ReportReplayMine(int row, int col);
 
 	void OnMusicSelect();
 	void OffMusicSelect();

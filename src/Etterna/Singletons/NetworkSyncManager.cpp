@@ -57,6 +57,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_closeeval, "closeeval" },
 	{ ettpc_logout, "logout" },
 	{ ettpc_hello, "hello" },
+	{ ettpc_gameplay_judgment, "gameplay_judgment" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -77,6 +78,7 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "updateroom", ettps_updateroom },
 	{ "userlist", ettps_roomuserlist },
 	{ "chartrequest", ettps_chartrequest },
+	{ "gameplay_replay_update", ettps_gameplay_replay_update },
 	{ "packlist", ettps_roompacklist }
 };
 
@@ -100,8 +102,13 @@ static LocalizedString CONNECTION_FAILED("NetworkSyncManager",
 										 "Connection failed.");
 static LocalizedString LOGIN_TIMEOUT("NetworkSyncManager", "LoginTimeout");
 
+// need it to be reasonably large
+// but if too big it can blow the stack
+// or some other dumb consequence
+static const long INCOMING_BUFFER_SIZE = 128000;
+
 // Utility function (Since json needs to be valid utf8)
-std::string
+static std::string
 correct_non_utf_8(std::string* str)
 {
 	int i, f_size = str->size();
@@ -189,7 +196,7 @@ correct_non_utf_8(std::string* str)
 	return to;
 }
 
-std::string
+static std::string
 correct_non_utf_8(const std::string& str)
 {
 	std::string stdStr = str.c_str();
@@ -197,9 +204,6 @@ correct_non_utf_8(const std::string& str)
 	return utf8ValidStr;
 }
 
-static LocalizedString INITIALIZING_CLIENT_NETWORK(
-  "NetworkSyncManager",
-  "Initializing Client Network...");
 NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 {
 	NSMAN = this;
@@ -487,19 +491,25 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	auto res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 	if (res != CURLE_OK) {
 		throw std::runtime_error(
-		  fmt::format("curl failed: {}", curl_easy_strerror(res)));
+		  fmt::format("curlopt_url failed: {}", curl_easy_strerror(res)));
+	}
+
+	res = curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, INCOMING_BUFFER_SIZE);
+	if (res != CURLE_OK) {
+		throw std::runtime_error(fmt::format("curlopt_buffersize failed: {}",
+											 curl_easy_strerror(res)));
 	}
 
 	res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
 	if (res != CURLE_OK) {
 		throw std::runtime_error(
-		  fmt::format("curl failed: {}", curl_easy_strerror(res)));
+		  fmt::format("curlopt_connect_only failed: {}", curl_easy_strerror(res)));
 	}
 
 	res = curl_easy_perform(curl);
 	if (res != CURLE_OK) {
 		throw std::runtime_error(
-		  fmt::format("curl failed: {}", curl_easy_strerror(res)));
+		  fmt::format("curl_easy_perform failed: {}", curl_easy_strerror(res)));
 	}
 
 	finished_connecting = true;
@@ -628,31 +638,30 @@ ETTProtocol::LaunchPollingThread()
 
 	auto loop = [&]() {
 		std::string message;
-		std::array<char, 2048> buffer = {};
+		std::vector<char> buffer = {};
+		buffer.reserve(INCOMING_BUFFER_SIZE);
 
 		while (!stopRequest) {
 			if (NSMAN == nullptr)
 				return;
 			{
-				std::unique_lock lock(curlMutex);
+				std::scoped_lock<std::mutex> lock(curlMutex);
 				size_t rlen = 0;
 				const struct curl_ws_frame* meta = nullptr;
 				do {
 					CURLcode result = curl_ws_recv(
-					  curl, &buffer[0], buffer.size(), &rlen, &meta);
+					  curl, &buffer[0], INCOMING_BUFFER_SIZE, &rlen, &meta);
 					if (result == CURLE_AGAIN) {
-						std::this_thread::sleep_for(
-						  std::chrono::milliseconds(20));
-						continue;
-					}
-
-					if (result != CURLE_OK) {
+						// almost always means nothing to us
+						// just move on so that the lock can be released
+					} else if (result != CURLE_OK) {
 						Locator::getLogger()->error(
 						  "CURL request from ETTP failed: {}",
 						  curl_easy_strerror(result));
+					} else {
+						buffer[rlen] = '\0';
+						message += buffer.data();
 					}
-					buffer[rlen] = '\0';
-					message += buffer.data();
 				} while (meta != nullptr && meta->bytesleft > 0);
 			}
 
@@ -661,16 +670,21 @@ ETTProtocol::LaunchPollingThread()
 			}
 
 			std::unique_ptr<Document> d(new Document);
-			if (d->Parse(message.c_str()).HasParseError())
-				Locator::getLogger()->error(
+			if (d->Parse(message.c_str()).HasParseError()) {
+				// ideally, this just means
+				// we got a huge chunk and it isnt parseable
+				// until we get the whole thing
+				// so hide the message unless someone cares
+				Locator::getLogger()->debug(
 				  "Error while processing ettprotocol json (message: {} )",
 				  message.data());
+			}
 			else {
 				std::scoped_lock<std::mutex> l(this->messageBufferMutex);
 				this->newMessages.push_back(std::move(d));
 				message.clear();
-				buffer = {};
 			}
+			buffer.clear();
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		}
@@ -1264,6 +1278,10 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 					}
 					MESSAGEMAN->Broadcast("UsersUpdate");
 				} break;
+				case ettps_gameplay_replay_update: {
+					auto& payload = d["payload"];
+
+				} break;
 				case ettps_end:
 				default:
 					break;
@@ -1535,12 +1553,47 @@ ETTProtocol::Send(const std::string& str)
 	if (curl == nullptr) {
 		return;
 	}
-	std::unique_lock lock(curlMutex);
-	size_t sent = 0;
+	std::scoped_lock<std::mutex> lock(curlMutex);
 
-	CURLcode result =
-	  curl_ws_send(curl, str.c_str(), str.size(), &sent, 0, CURLWS_TEXT);
-	assert(result == CURLE_OK);
+	CURLcode result = CURLE_OK;
+	size_t offset = 0;
+	auto buffer = str.c_str();
+
+	while (!result) {
+		size_t sent = 0;
+		result = curl_ws_send(curl,
+							  buffer + offset,
+							  strlen(buffer) - offset,
+							  &sent,
+							  0,
+							  CURLWS_TEXT);
+
+		offset += sent;
+		switch (result) {
+			case CURLE_OK: {
+				if (offset == strlen(buffer))
+					// success, exit
+					return;
+				else
+					Locator::getLogger()->info(
+					  "NSMAN is sending a large WS message");
+				break;
+			}
+			case CURLE_AGAIN: {
+				// wait and maybe it works later
+				Locator::getLogger()->warn(
+				  "NSMAN returned CURLE_AGAIN. Waiting 200ms");
+				std::this_thread::sleep_for(std::chrono::milliseconds(200));
+				result = CURLE_OK;
+				break;
+			}
+			default: {
+				Locator::getLogger()->warn("NSMAN got unexpected CURLE: {}",
+										   result);
+				return;
+			}
+		}
+	}
 }
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
@@ -1663,6 +1716,90 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 
 	Send(s.GetString());
 }
+
+void
+ETTProtocol::ReportReplayInput(NetworkSyncManager* n,
+							   bool isPress,
+							   int col,
+							   int row,
+							   float fMusicSeconds,
+							   float fNoteOffset,
+							   int tapNoteType,
+							   int tapNoteSubType)
+{
+	
+}
+
+void
+ETTProtocol::ReportReplayMiss(NetworkSyncManager* n,
+							  int col,
+							  int row,
+							  int tapNoteType,
+							  int tapNoteSubType)
+{
+
+}
+
+void
+ETTProtocol::ReportReplayHold(NetworkSyncManager* n,
+							  int col,
+							  int row,
+							  int subType)
+{
+
+}
+
+void
+ETTProtocol::ReportReplayMine(NetworkSyncManager* n, int row, int col)
+{
+
+}
+
+void
+NetworkSyncManager::ReportReplayInput(bool isPress,
+									  int col,
+									  int row,
+									  float fMusicSeconds,
+									  float fNoteOffset,
+									  int tapNoteType,
+									  int tapNoteSubType)
+{
+	if (curProtocol != nullptr)
+		curProtocol->ReportReplayInput(this,
+									   isPress,
+									   col,
+									   row,
+									   fMusicSeconds,
+									   fNoteOffset,
+									   tapNoteType,
+									   tapNoteSubType);
+}
+
+void
+NetworkSyncManager::ReportReplayMiss(int col,
+									 int row,
+									 int tapNoteType,
+									 int tapNoteSubType)
+{
+	if (curProtocol != nullptr)
+		curProtocol->ReportReplayMiss(
+		  this, col, row, tapNoteType, tapNoteSubType);
+}
+
+void
+NetworkSyncManager::ReportReplayHold(int col, int row, int subType)
+{
+	if (curProtocol != nullptr)
+		curProtocol->ReportReplayHold(this, col, row, subType);
+}
+
+void
+NetworkSyncManager::ReportReplayMine(int row, int col)
+{
+	if (curProtocol != nullptr)
+		curProtocol->ReportReplayMine(this, row, col);
+}
+
 void
 NetworkSyncManager::ReportScore(int playerID,
 								int step,
