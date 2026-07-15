@@ -226,6 +226,7 @@ function BUTTON.ResetButtonTable(self, screenName)
 	print("Resetting the current button table")
     if screenName ~= nil then
 		self.ButtonTable[screenName] = nil
+		self.DepthTable[screenName] = nil
 		self.CurTopButton = nil
 		self.CurDownButton = {}
 		self.mouseMoved = false
