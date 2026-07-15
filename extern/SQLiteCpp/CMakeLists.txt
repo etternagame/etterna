@@ -1,12 +1,12 @@
 # Main CMake file for compiling the library itself, examples and tests.
 #
-# Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+# Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
 #
 # Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
 # or copy at http://opensource.org/licenses/MIT)
 cmake_minimum_required(VERSION 3.5)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake") # custom CMake modules like FindSQLiteCpp
-project(SQLiteCpp VERSION 3.3.2)
+project(SQLiteCpp VERSION 3.3.3)
 
 # SQLiteC++ 3.x requires C++11 features
 if (NOT CMAKE_CXX_STANDARD)
@@ -188,7 +188,9 @@ if (SQLITECPP_INCLUDE_SCRIPT)
     set(SQLITECPP_SCRIPT
      .editorconfig
      .gitbugtraq
+     .github/dependabot.yml
      .github/workflows/cmake.yml
+     .github/workflows/cmake_builtin_lib.yml
      .github/workflows/cmake_subdir_example.yml
      .github/workflows/meson.yml
      .gitignore
@@ -197,10 +199,13 @@ if (SQLITECPP_INCLUDE_SCRIPT)
      appveyor.yml
      build.bat
      build.sh
-     cpplint.py
-     Doxyfile
      cmake/FindSQLite3.cmake
      cmake/SQLiteCppConfig.cmake.in
+     cpplint.py
+     Doxyfile
+     meson.build
+     meson_options.txt
+     package.xml
     )
     source_group(scripts FILES ${SQLITECPP_SCRIPT})
 endif()
@@ -321,7 +326,7 @@ else (SQLITECPP_INTERNAL_SQLITE)
         endif()
     else()
         find_package (SQLite3 REQUIRED)
-        message(STATUS "Link to sqlite3 system library")
+        message(STATUS "Link to sqlite3 system library ${SQLite3_VERSION}")
         target_link_libraries(SQLiteCpp PUBLIC SQLite::SQLite3)
         if(SQLite3_VERSION VERSION_LESS "3.19")
             set_target_properties(SQLiteCpp PROPERTIES COMPILE_FLAGS "-DSQLITECPP_HAS_MEM_STRUCT")
@@ -387,14 +392,26 @@ install(FILES
 
 option(SQLITECPP_RUN_CPPLINT "Run cpplint.py tool for Google C++ StyleGuide." ON)
 if (SQLITECPP_RUN_CPPLINT)
-    find_package(PythonInterp)
-    if (PYTHONINTERP_FOUND)
-        # add a cpplint target to the "all" target
-        add_custom_target(SQLiteCpp_cpplint
-         ALL
-         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
-        )
-    endif (PYTHONINTERP_FOUND)
+    # The minimum version of CMAKE is 3.5, but as of 3.12 the PythonInterp package is deprecated.
+    if(${CMAKE_VERSION} VERSION_LESS "3.12.0") 
+        find_package(PythonInterp)
+        if (PYTHONINTERP_FOUND)
+            # add a cpplint target to the "all" target
+            add_custom_target(SQLiteCpp_cpplint
+            ALL
+            COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
+            )
+        endif (PYTHONINTERP_FOUND)
+    else()
+        find_package(Python)
+        if (PYTHON_INTERPRETER_FOUND)
+            # add a cpplint target to the "all" target
+            add_custom_target(SQLiteCpp_cpplint
+            ALL
+            COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
+            )
+        endif (PYTHON_INTERPRETER_FOUND)
+    endif()
 else (SQLITECPP_RUN_CPPLINT)
     message(STATUS "SQLITECPP_RUN_CPPLINT OFF")
 endif (SQLITECPP_RUN_CPPLINT)
