@@ -642,7 +642,8 @@ void LowLevelWindow_MacOSX::Update()
 	dispatch_async(dispatch_get_main_queue(), ^{
 	  [m_Context update];
 	});
-	DISPLAY->ResolutionChanged();
+	if (DISPLAY != nullptr)
+		DISPLAY->ResolutionChanged();
 }
 
 RenderTarget *LowLevelWindow_MacOSX::CreateRenderTarget()
