@@ -12,14 +12,14 @@ struct CJDensityMod
 
 #pragma region params
 
-	float min_mod = 0.98F;
+	float min_mod = 0.7F;
 	float max_mod = 1.F;
 	float base = 0.F;
 
 	float single_scaler = 1.F;
-	float jump_scaler = 1.25F;
-	float hand_scaler = 0.9F;
-	float quad_scaler = 1.15F;
+	float jump_scaler = 1.F;
+	float hand_scaler = 0.95F;
+	float quad_scaler = 0.75F;
 
 	const std::vector<std::pair<std::string, float*>> _params{
 		{ "min_mod", &min_mod },
@@ -59,7 +59,7 @@ struct CJDensityMod
 
 		auto aaa = a0 + a1 + a2 + a3;
 
-		pmod = std::clamp(base + fastsqrt(aaa), min_mod, max_mod);
+		pmod = std::clamp(base + (aaa), min_mod, max_mod);
 
 		return pmod;
 	}
