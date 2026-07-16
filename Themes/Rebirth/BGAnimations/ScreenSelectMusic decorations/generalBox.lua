@@ -166,6 +166,7 @@ local function actorLoader(tabExpected, filename)
         GeneralTabSetMessageCommand = function(self, params)
             if self.opened then return end
             if params and params.tab and params.tab == tabExpected then
+                self.opened = true
                 print("Loading GeneralTab for the first time: "..filename)
                 local result = self:GetParent():AddChild(LoadActorWithParams(filename, {ratios = ratios, actuals = actuals}))
                 if result ~= nil then
