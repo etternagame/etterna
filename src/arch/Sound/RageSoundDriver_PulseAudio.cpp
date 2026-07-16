@@ -17,16 +17,15 @@ REGISTER_SOUND_DRIVER_CLASS2(Pulse, PulseAudio);
 RageSoundDriver_PulseAudio::RageSoundDriver_PulseAudio()
   : RageSoundDriver()
   , m_LastPosition(0)
-  , m_SampleRate(0)
   , m_Error(NULL)
   , m_Sem("Pulseaudio Synchronization Semaphore")
   , m_PulseMainLoop(NULL)
   , m_PulseCtx(NULL)
   , m_PulseStream(NULL)
 {
-	m_SampleRate = PREFSMAN->m_iSoundPreferredSampleRate;
-	if (m_SampleRate == 0)
-		m_SampleRate = 44100;
+	m_ss.rate = PREFSMAN->m_iSoundPreferredSampleRate;
+	if (m_ss.rate == 0)
+		m_ss.rate = 44100;
 }
 
 RageSoundDriver_PulseAudio::~RageSoundDriver_PulseAudio()
@@ -47,7 +46,7 @@ RageSoundDriver_PulseAudio::Init()
 {
 	int error = 0;
 
-	Locator::getLogger()->trace("Pulse: pa_threaded_mainloop_new()...");
+	Locator::getLogger()->info("Pulse: pa_threaded_mainloop_new()...");
 	m_PulseMainLoop = pa_threaded_mainloop_new();
 	if (m_PulseMainLoop == NULL) {
 		return "pa_threaded_mainloop_new() failed!";
@@ -59,7 +58,7 @@ RageSoundDriver_PulseAudio::Init()
 	pa_proplist_sets(plist, PA_PROP_APPLICATION_VERSION, PACKAGE_VERSION);
 	pa_proplist_sets(plist, PA_PROP_MEDIA_ROLE, "game");
 
-	Locator::getLogger()->trace("Pulse: pa_context_new_with_proplist()...");
+	Locator::getLogger()->info("Pulse: pa_context_new_with_proplist()...");
 
 	m_PulseCtx = pa_context_new_with_proplist(
 	  pa_threaded_mainloop_get_api(m_PulseMainLoop), "StepMania", plist);
@@ -69,7 +68,7 @@ RageSoundDriver_PulseAudio::Init()
 		return "pa_context_new_with_proplist() failed!";
 	}
 #else
-	Locator::getLogger()->trace("Pulse: pa_context_new()...");
+	Locator::getLogger()->info("Pulse: pa_context_new()...");
 	m_PulseCtx = pa_context_new(pa_threaded_mainloop_get_api(m_PulseMainLoop),
 								"Stepmania");
 	if (m_PulseCtx == NULL) {
@@ -79,7 +78,7 @@ RageSoundDriver_PulseAudio::Init()
 
 	pa_context_set_state_callback(m_PulseCtx, StaticCtxStateCb, this);
 
-	Locator::getLogger()->trace("Pulse: pa_context_connect()...");
+	Locator::getLogger()->info("Pulse: pa_context_connect()...");
 	error = pa_context_connect(m_PulseCtx, NULL, (pa_context_flags_t)0, NULL);
 
 	if (error < 0) {
@@ -87,7 +86,7 @@ RageSoundDriver_PulseAudio::Init()
 						pa_strerror(pa_context_errno(m_PulseCtx)));
 	}
 
-	Locator::getLogger()->trace("Pulse: pa_threaded_mainloop_start()...");
+	Locator::getLogger()->info("Pulse: pa_threaded_mainloop_start()...");
 	error = pa_threaded_mainloop_start(m_PulseMainLoop);
 	if (error < 0) {
 		return ssprintf("pa_threaded_mainloop_start() returned %i", error);
@@ -138,10 +137,10 @@ RageSoundDriver_PulseAudio::m_InitStream(void)
 	/* log the used sample spec */
 	char specstring[PA_SAMPLE_SPEC_SNPRINT_MAX];
 	pa_sample_spec_snprint(specstring, sizeof(specstring), &ss);
-	Locator::getLogger()->trace("Pulse: using sample spec: {}", specstring);
+	Locator::getLogger()->info("Pulse: using sample spec: {}", specstring);
 
 	/* create the stream */
-	Locator::getLogger()->trace("Pulse: pa_stream_new()...");
+	Locator::getLogger()->info("Pulse: pa_stream_new()...");
 	m_PulseStream = pa_stream_new(m_PulseCtx, "Stepmania Audio", &ss, &map);
 	if (m_PulseStream == NULL) {
 		if (asprintf(&m_Error,
@@ -212,12 +211,15 @@ RageSoundDriver_PulseAudio::m_InitStream(void)
 	attr.prebuf = (uint32_t)-1;
 
 	/* log the used target buffer length */
-	Locator::getLogger()->trace("Pulse: using target buffer length of {} bytes", attr.tlength);
+	Locator::getLogger()->info("Pulse: using target buffer length of {} bytes", attr.tlength);
 
 	/* connect the stream for playback */
-	Locator::getLogger()->trace("Pulse: pa_stream_connect_playback()...");
+	Locator::getLogger()->info("Pulse: pa_stream_connect_playback()...");
+	const int flags = PA_STREAM_INTERPOLATE_TIMING
+		| PA_STREAM_NOT_MONOTONIC
+		| PA_STREAM_AUTO_TIMING_UPDATE;
 	error = pa_stream_connect_playback(
-	  m_PulseStream, NULL, &attr, PA_STREAM_AUTO_TIMING_UPDATE, NULL, NULL);
+	  m_PulseStream, NULL, &attr, static_cast<pa_stream_flags_t>(flags), NULL, NULL);
 	if (error < 0) {
 		if (asprintf(&m_Error,
 					 "pa_stream_connect_playback(): %s",
@@ -228,7 +230,7 @@ RageSoundDriver_PulseAudio::m_InitStream(void)
 		return;
 	}
 
-	m_SampleRate = ss.rate;
+	m_ss = ss;
 }
 
 void
@@ -236,16 +238,16 @@ RageSoundDriver_PulseAudio::CtxStateCb(pa_context* c)
 {
 	switch (pa_context_get_state(m_PulseCtx)) {
 		case PA_CONTEXT_CONNECTING:
-			Locator::getLogger()->trace("Pulse: Context connecting...");
+			Locator::getLogger()->info("Pulse: Context connecting...");
 			break;
 		case PA_CONTEXT_AUTHORIZING:
-			Locator::getLogger()->trace("Pulse: Context authorizing...");
+			Locator::getLogger()->info("Pulse: Context authorizing...");
 			break;
 		case PA_CONTEXT_SETTING_NAME:
-			Locator::getLogger()->trace("Pulse: Context setting name...");
+			Locator::getLogger()->info("Pulse: Context setting name...");
 			break;
 		case PA_CONTEXT_READY:
-			Locator::getLogger()->trace("Pulse: Context ready now.");
+			Locator::getLogger()->info("Pulse: Context ready now.");
 			m_InitStream();
 			break;
 		case PA_CONTEXT_TERMINATED:
@@ -269,10 +271,10 @@ RageSoundDriver_PulseAudio::StreamStateCb(pa_stream* s)
 {
 	switch (pa_stream_get_state(m_PulseStream)) {
 		case PA_STREAM_CREATING:
-			Locator::getLogger()->trace("Pulse: Stream creating...");
+			Locator::getLogger()->info("Pulse: Stream creating...");
 			break;
 		case PA_STREAM_READY:
-			Locator::getLogger()->trace("Pulse: Stream ready now/");
+			Locator::getLogger()->info("Pulse: Stream ready now.");
 			m_Sem.Post();
 			return;
 			break;
@@ -292,29 +294,28 @@ RageSoundDriver_PulseAudio::StreamStateCb(pa_stream* s)
 int64_t
 RageSoundDriver_PulseAudio::GetPosition() const
 {
-	return m_LastPosition;
+	pa_usec_t usec;
+	if(pa_stream_get_time(m_PulseStream, &usec) < 0)
+	{
+		Locator::getLogger()->warn("pa_stream_get_time went backwards??");
+	}
+	std::size_t length = pa_usec_to_bytes(usec, &m_ss);
+	return length / (sizeof(std::int16_t) * 2);
 }
 
-/*
- * XXX: Something here is slow and causes arrows to stutter in gameplay.
- * This needs to be looked into (and for some reason the ALSA driver is
- * useless on my laptop). - Colby
- */
 void
 RageSoundDriver_PulseAudio::StreamWriteCb(pa_stream* s, size_t length)
 {
-#if PA_API_VERSION <= 11
-	/* We have to multiply the requested length by 2 on 0.9.10
-	 * maybe the requested length is given in frames instead of bytes */
-	length *= 2;
-#endif
+	void* buf;
+	if(pa_stream_begin_write(m_PulseStream, &buf, &length) < 0)
+	{
+		RageException::Throw("Pulse: pa_stream_begin_write()");
+	}
 	size_t nbframes = length / sizeof(int16_t); /* we use 16-bit frames */
-	int16_t buf[nbframes];
 	int64_t pos1 = m_LastPosition;
 	int64_t pos2 = pos1 + nbframes / 2; /* Mix() position in stereo frames */
-	this->Mix(buf, pos2 - pos1, pos1, pos2);
-	if (pa_stream_write(m_PulseStream, buf, length, NULL, 0, PA_SEEK_RELATIVE) <
-		0) {
+	this->Mix( reinterpret_cast<std::int16_t*>(buf), pos2-pos1, pos1, pos2);
+	if(pa_stream_write(m_PulseStream, buf, length, nullptr, 0, PA_SEEK_RELATIVE) < 0) {
 		RageException::Throw("Pulse: pa_stream_write()");
 	}
 	m_LastPosition = pos2;
