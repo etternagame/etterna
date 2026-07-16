@@ -1905,7 +1905,7 @@ function WHEELDATA.SortByCurrentSortmode(self)
     end
 
     -- sort timing debug
-    print(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
+    print(string.format("WHEELDATA -- Sorting took %f seconds.", tafter - tbefore))
     MESSAGEMAN:Broadcast("FinishedSort")
 end
 
