@@ -399,7 +399,7 @@ add_custom_command(
   DEPENDS buildvm ${LJ_LIB_SOURCE}
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/)
 
-set(LJ_LUAJIT_PATH ${CMAKE_CURRENT_BINARY_DIR}/luajit.h)
+set(LJ_LUAJIT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/luajit.h)
 
 add_custom_target(lj_gen_headers ALL
   DEPENDS ${LJ_LIBDEF_PATH} ${LJ_RECDEF_PATH} ${LJ_VMDEF_PATH}
