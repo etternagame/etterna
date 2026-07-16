@@ -1090,6 +1090,7 @@ local function createList()
                 end,
                 MouseOutCommand = function(self)
                     self:diffusealpha(1)
+                    if self:IsInvisible() then return end
                     TOOLTIP:Hide()
                 end,
                 MouseDownCommand = function(self, params)
