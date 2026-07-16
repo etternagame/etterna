@@ -7,12 +7,11 @@
 # Also works with MinGW and Cygwin on Windows.
 # Please check msvcbuild.bat for building with MSVC on Windows.
 #
-# Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+# Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 ##############################################################################
 
 MAJVER=  2
 MINVER=  1
-RELVER=  0
 ABIVER=  5.1
 NODOTABIVER= 51
 
@@ -234,7 +233,7 @@ TARGET_ALDFLAGS= $(LDOPTIONS) $(TARGET_XLDFLAGS) $(TARGET_FLAGS) $(TARGET_LDFLAG
 TARGET_ASHLDFLAGS= $(LDOPTIONS) $(TARGET_XSHLDFLAGS) $(TARGET_FLAGS) $(TARGET_SHLDFLAGS)
 TARGET_ALIBS= $(TARGET_XLIBS) $(LIBS) $(TARGET_LIBS)
 
-TARGET_TESTARCH=$(shell $(TARGET_CC) $(TARGET_TCFLAGS) -E lj_arch.h -dM)
+TARGET_TESTARCH:=$(shell $(TARGET_CC) $(TARGET_TCFLAGS) -E lj_arch.h -dM)
 ifneq (,$(findstring LJ_TARGET_X64 ,$(TARGET_TESTARCH)))
   TARGET_LJARCH= x64
 else
@@ -300,6 +299,9 @@ endif
 ifneq (,$(LMULTILIB))
   TARGET_XCFLAGS+= -DLUA_LMULTILIB=\"$(LMULTILIB)\"
 endif
+ifneq (,$(INSTALL_LJLIBD))
+  TARGET_XCFLAGS+= -DLUA_LJDIR=\"$(INSTALL_LJLIBD)\"
+endif
 
 ##############################################################################
 # Target system detection.
@@ -321,15 +323,15 @@ ifeq (Darwin,$(TARGET_SYS))
   endif
   TARGET_STRIP+= -x
   TARGET_XCFLAGS+= -DLUAJIT_UNWIND_EXTERNAL
-  TARGET_XSHLDFLAGS= -dynamiclib -single_module -undefined dynamic_lookup -fPIC
+  TARGET_XSHLDFLAGS= -dynamiclib -undefined dynamic_lookup -fPIC
   TARGET_DYNXLDOPTS=
-  TARGET_XSHLDFLAGS+= -install_name $(TARGET_DYLIBPATH) -compatibility_version $(MAJVER).$(MINVER) -current_version $(MAJVER).$(MINVER).$(RELVER)
+  TARGET_XSHLDFLAGS+= -install_name $(TARGET_DYLIBPATH) -compatibility_version $(MAJVER).$(MINVER) -current_version $(MAJVER).$(MINVER).255
 else
 ifeq (iOS,$(TARGET_SYS))
   TARGET_STRIP+= -x
-  TARGET_XSHLDFLAGS= -dynamiclib -single_module -undefined dynamic_lookup -fPIC
+  TARGET_XSHLDFLAGS= -dynamiclib -undefined dynamic_lookup -fPIC
   TARGET_DYNXLDOPTS=
-  TARGET_XSHLDFLAGS+= -install_name $(TARGET_DYLIBPATH) -compatibility_version $(MAJVER).$(MINVER) -current_version $(MAJVER).$(MINVER).$(RELVER)
+  TARGET_XSHLDFLAGS+= -install_name $(TARGET_DYLIBPATH) -compatibility_version $(MAJVER).$(MINVER) -current_version $(MAJVER).$(MINVER).255
   ifeq (arm64,$(TARGET_LJARCH))
     TARGET_XCFLAGS+= -fno-omit-frame-pointer
   endif
@@ -352,6 +354,9 @@ else
   ifeq (GNU/kFreeBSD,$(TARGET_SYS))
     TARGET_XLIBS+= -ldl
   endif
+  ifeq (GNU,$(TARGET_SYS))
+    TARGET_XLIBS+= -ldl
+  endif
 endif
 endif
 endif
@@ -367,7 +372,7 @@ ifneq ($(HOST_SYS),$(TARGET_SYS))
     HOST_XCFLAGS+= -DLUAJIT_OS=LUAJIT_OS_OSX
   else
   ifeq (iOS,$(TARGET_SYS))
-    HOST_XCFLAGS+= -DLUAJIT_OS=LUAJIT_OS_OSX -DTARGET_OS_IPHONE=1
+    HOST_XCFLAGS+= -DLUAJIT_OS=LUAJIT_OS_OSX -DLUAJIT_TARGET_IPHONE=1
   else
     HOST_XCFLAGS+= -DLUAJIT_OS=LUAJIT_OS_OTHER
   endif
@@ -388,10 +393,11 @@ MINILUA_O= host/minilua.o
 MINILUA_LIBS= -lm
 MINILUA_T= host/minilua
 MINILUA_X= $(MINILUA_T)
+MINILUA_DEP=
 
 ifeq (,$(HOST_LUA))
   HOST_LUA= $(MINILUA_X)
-  DASM_DEP= $(MINILUA_T)
+  MINILUA_DEP= $(MINILUA_T)
 endif
 
 DASM_DIR= ../dynasm
@@ -433,6 +439,18 @@ ifneq (,$(findstring LJ_NO_UNWIND 1,$(TARGET_TESTARCH)))
   DASM_AFLAGS+= -D NO_UNWIND
   TARGET_ARCH+= -DLUAJIT_NO_UNWIND
 endif
+ifneq (,$(findstring LJ_ABI_PAUTH 1,$(TARGET_TESTARCH)))
+  DASM_AFLAGS+= -D PAUTH
+  TARGET_ARCH+= -DLJ_ABI_PAUTH=1
+endif
+ifneq (,$(findstring LJ_ABI_BRANCH_TRACK 1,$(TARGET_TESTARCH)))
+  DASM_AFLAGS+= -D BRANCH_TRACK
+  TARGET_ARCH+= -DLJ_ABI_BRANCH_TRACK=1
+endif
+ifneq (,$(findstring LJ_ABI_SHADOW_STACK 1,$(TARGET_TESTARCH)))
+  DASM_AFLAGS+= -D SHADOW_STACK
+  TARGET_ARCH+= -DLJ_ABI_SHADOW_STACK=1
+endif
 DASM_AFLAGS+= -D VER=$(subst LJ_ARCH_VERSION_,,$(filter LJ_ARCH_VERSION_%,$(subst LJ_ARCH_VERSION ,LJ_ARCH_VERSION_,$(TARGET_TESTARCH))))
 ifeq (Windows,$(TARGET_SYS))
   DASM_AFLAGS+= -D WIN
@@ -469,6 +487,14 @@ endif
 
 DASM_FLAGS= $(DASM_XFLAGS) $(DASM_AFLAGS)
 DASM_DASC= vm_$(DASM_ARCH).dasc
+
+GIT= git
+ifeq (Windows,$(HOST_SYS)$(HOST_MSYS))
+  GIT_RELVER= if exist ..\.git ( $(GIT) show -s --format=%%ct >luajit_relver.txt ) else ( type ..\.relver >luajit_relver.txt )
+else
+  GIT_RELVER= [ -e ../.git ] && $(GIT) show -s --format=%ct >luajit_relver.txt 2>/dev/null || cat ../.relver >luajit_relver.txt 2>/dev/null || :
+endif
+GIT_DEP= $(wildcard ../.git/HEAD ../.git/refs/heads/*)
 
 BUILDVM_O= host/buildvm.o host/buildvm_asm.o host/buildvm_peobj.o \
 	   host/buildvm_lib.o host/buildvm_fold.o
@@ -516,8 +542,8 @@ LUAJIT_T= luajit
 
 ALL_T= $(LUAJIT_T) $(LUAJIT_A) $(LUAJIT_SO) $(HOST_T)
 ALL_HDRGEN= lj_bcdef.h lj_ffdef.h lj_libdef.h lj_recdef.h lj_folddef.h \
-	    host/buildvm_arch.h
-ALL_GEN= $(LJVM_S) $(ALL_HDRGEN) $(LIB_VMDEFP)
+	    host/buildvm_arch.h luajit.h
+ALL_GEN= $(LJVM_S) $(ALL_HDRGEN) luajit_relver.txt $(LIB_VMDEFP)
 WIN_RM= *.obj *.lib *.exp *.dll *.exe *.manifest *.pdb *.ilk
 ALL_RM= $(ALL_T) $(ALL_GEN) *.o host/*.o $(WIN_RM)
 
@@ -641,7 +667,12 @@ $(MINILUA_T): $(MINILUA_O)
 	$(E) "HOSTLINK  $@"
 	$(Q)$(HOST_CC) $(HOST_ALDFLAGS) -o $@ $(MINILUA_O) $(MINILUA_LIBS) $(HOST_ALIBS)
 
-host/buildvm_arch.h: $(DASM_DASC) $(DASM_DEP) $(DASM_DIR)/*.lua lj_arch.h lua.h luaconf.h
+luajit.h: $(MINILUA_DEP) $(GIT_DEP) luajit_rolling.h
+	$(E) "VERSION   $@"
+	$(Q)$(GIT_RELVER)
+	$(Q)$(HOST_LUA) host/genversion.lua
+
+host/buildvm_arch.h: $(DASM_DASC) $(MINILUA_DEP) lj_arch.h lua.h luaconf.h
 	$(E) "DYNASM    $@"
 	$(Q)$(DASM) $(DASM_FLAGS) -o $@ $(DASM_DASC)
 

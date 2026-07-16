@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------------
 -- DynASM x86/x64 module.
 --
--- Copyright (C) 2005-2021 Mike Pall. All rights reserved.
+-- Copyright (C) 2005-2026 Mike Pall. All rights reserved.
 -- See dynasm.lua for full copyright notice.
 ------------------------------------------------------------------------------
 
@@ -627,7 +627,11 @@ local function wputmrmsib(t, imark, s, vsreg, psz, sk)
 	werror("NYI: rip-relative displacement followed by immediate")
       end
       -- The previous byte in the action buffer cannot be 0xe9 or 0x80-0x8f.
-      wputlabel("REL_", disp[1], 2)
+      if disp[2] == "iPJ" then
+	waction("REL_A", disp[1])
+      else
+	wputlabel("REL_", disp[1], 2)
+      end
     else
       wputdarg(disp)
     end
@@ -744,9 +748,9 @@ local function dispexpr(expr)
     return imm*map_opsizenum[ops]
   end
   local mode, iexpr = immexpr(dispt)
-  if mode == "iJ" then
+  if mode == "iJ" or mode == "iPJ" then
     if c == "-" then werror("cannot invert label reference") end
-    return { iexpr }
+    return { iexpr, mode }
   end
   return expr -- Need to return original signed expression.
 end
@@ -1147,6 +1151,8 @@ local map_op = {
   rep_0 =	"F3",
   repe_0 =	"F3",
   repz_0 =	"F3",
+  endbr32_0 =	"F30F1EFB",
+  endbr64_0 =	"F30F1EFA",
   -- F4: *hlt
   cmc_0 =	"F5",
   -- F6: test... mb,i; div... mb
@@ -1403,7 +1409,7 @@ local map_op = {
   dppd_3 =	"rmio:660F3A41rMU",
   dpps_3 =	"rmio:660F3A40rMU",
   extractps_3 =	"mri/do:660F3A17RmU|rri/qo:660F3A17RXmU",
-  insertps_3 =	"rrio:660F3A41rMU|rxi/od:",
+  insertps_3 =	"rrio:660F3A21rMU|rxi/od:",
   movntdqa_2 =	"rxo:660F382ArM",
   mpsadbw_3 =	"rmio:660F3A42rMU",
   packusdw_2 =	"rmo:660F382BrM",

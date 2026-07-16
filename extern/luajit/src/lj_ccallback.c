@@ -1,6 +1,6 @@
 /*
 ** FFI C callback handling.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #include "lj_obj.h"
@@ -34,28 +34,39 @@
 
 #elif LJ_TARGET_X86ORX64
 
+#if LJ_ABI_BRANCH_TRACK
+#define CALLBACK_MCODE_SLOTSZ	8
+#else
+#define CALLBACK_MCODE_SLOTSZ	4
+#endif
+#define CALLBACK_MCODE_NSLOT	(128 / CALLBACK_MCODE_SLOTSZ)
+
 #define CALLBACK_MCODE_HEAD	(LJ_64 ? 8 : 0)
 #define CALLBACK_MCODE_GROUP	(-2+1+2+(LJ_GC64 ? 10 : 5)+(LJ_64 ? 6 : 5))
 
 #define CALLBACK_SLOT2OFS(slot) \
-  (CALLBACK_MCODE_HEAD + CALLBACK_MCODE_GROUP*((slot)/32) + 4*(slot))
+  (CALLBACK_MCODE_HEAD + CALLBACK_MCODE_GROUP*((slot)/CALLBACK_MCODE_NSLOT) + CALLBACK_MCODE_SLOTSZ*(slot))
 
 static MSize CALLBACK_OFS2SLOT(MSize ofs)
 {
   MSize group;
   ofs -= CALLBACK_MCODE_HEAD;
-  group = ofs / (32*4 + CALLBACK_MCODE_GROUP);
-  return (ofs % (32*4 + CALLBACK_MCODE_GROUP))/4 + group*32;
+  group = ofs / (128 + CALLBACK_MCODE_GROUP);
+  return (ofs % (128 + CALLBACK_MCODE_GROUP))/CALLBACK_MCODE_SLOTSZ + group*CALLBACK_MCODE_NSLOT;
 }
 
 #define CALLBACK_MAX_SLOT \
-  (((CALLBACK_MCODE_SIZE-CALLBACK_MCODE_HEAD)/(CALLBACK_MCODE_GROUP+4*32))*32)
+  (((CALLBACK_MCODE_SIZE-CALLBACK_MCODE_HEAD)/(CALLBACK_MCODE_GROUP+128))*CALLBACK_MCODE_NSLOT)
 
 #elif LJ_TARGET_ARM
 
 #define CALLBACK_MCODE_HEAD		32
 
 #elif LJ_TARGET_ARM64
+
+#if LJ_ABI_BRANCH_TRACK
+#define CALLBACK_MCODE_SLOTSZ		12
+#endif
 
 #define CALLBACK_MCODE_HEAD		32
 
@@ -81,8 +92,11 @@ static MSize CALLBACK_OFS2SLOT(MSize ofs)
 #endif
 
 #ifndef CALLBACK_SLOT2OFS
-#define CALLBACK_SLOT2OFS(slot)		(CALLBACK_MCODE_HEAD + 8*(slot))
-#define CALLBACK_OFS2SLOT(ofs)		(((ofs)-CALLBACK_MCODE_HEAD)/8)
+#ifndef CALLBACK_MCODE_SLOTSZ
+#define CALLBACK_MCODE_SLOTSZ		8
+#endif
+#define CALLBACK_SLOT2OFS(slot)		(CALLBACK_MCODE_HEAD + CALLBACK_MCODE_SLOTSZ*(slot))
+#define CALLBACK_OFS2SLOT(ofs)		(((ofs)-CALLBACK_MCODE_HEAD)/CALLBACK_MCODE_SLOTSZ)
 #define CALLBACK_MAX_SLOT		(CALLBACK_OFS2SLOT(CALLBACK_MCODE_SIZE))
 #endif
 
@@ -118,9 +132,13 @@ static void *callback_mcode_init(global_State *g, uint8_t *page)
   *(void **)p = target; p += 8;
 #endif
   for (slot = 0; slot < CALLBACK_MAX_SLOT; slot++) {
+#if LJ_ABI_BRANCH_TRACK
+    *(uint32_t *)p = XI_ENDBR64; p += 4;
+#endif
     /* mov al, slot; jmp group */
     *p++ = XI_MOVrib | RID_EAX; *p++ = (uint8_t)slot;
-    if ((slot & 31) == 31 || slot == CALLBACK_MAX_SLOT-1) {
+    if ((slot & (CALLBACK_MCODE_NSLOT-1)) == (CALLBACK_MCODE_NSLOT-1) ||
+	slot == CALLBACK_MAX_SLOT-1) {
       /* push ebp/rbp; mov ah, slot>>8; mov ebp, &g. */
       *p++ = XI_PUSH + RID_EBP;
       *p++ = XI_MOVrib | (RID_EAX+4); *p++ = (uint8_t)(slot >> 8);
@@ -140,7 +158,8 @@ static void *callback_mcode_init(global_State *g, uint8_t *page)
       *p++ = XI_JMP; *(int32_t *)p = target-(p+4); p += 4;
 #endif
     } else {
-      *p++ = XI_JMPs; *p++ = (uint8_t)((2+2)*(31-(slot&31)) - 2);
+      *p++ = XI_JMPs;
+      *p++ = (uint8_t)(CALLBACK_MCODE_SLOTSZ*(CALLBACK_MCODE_NSLOT-1-(slot&(CALLBACK_MCODE_NSLOT-1))) - 2);
     }
   }
   return p;
@@ -171,16 +190,19 @@ static void *callback_mcode_init(global_State *g, uint32_t *page)
 static void *callback_mcode_init(global_State *g, uint32_t *page)
 {
   uint32_t *p = page;
-  void *target = (void *)lj_vm_ffi_callback;
+  ASMFunction target = lj_vm_ffi_callback;
   MSize slot;
   *p++ = A64I_LE(A64I_LDRLx | A64F_D(RID_X11) | A64F_S19(4));
   *p++ = A64I_LE(A64I_LDRLx | A64F_D(RID_X10) | A64F_S19(5));
-  *p++ = A64I_LE(A64I_BR | A64F_N(RID_X11));
+  *p++ = A64I_LE(A64I_BR_AUTH | A64F_N(RID_X11));
   *p++ = A64I_LE(A64I_NOP);
-  ((void **)p)[0] = target;
+  ((ASMFunction *)p)[0] = target;
   ((void **)p)[1] = g;
   p += 4;
   for (slot = 0; slot < CALLBACK_MAX_SLOT; slot++) {
+#if LJ_ABI_BRANCH_TRACK
+    *p++ = A64I_BTI_C;
+#endif
     *p++ = A64I_LE(A64I_MOVZw | A64F_D(RID_X9) | A64F_U16(slot));
     *p = A64I_LE(A64I_B | A64F_S26((page-p) & 0x03ffffffu));
     p++;
@@ -262,6 +284,14 @@ static void *callback_mcode_init(global_State *g, uint32_t *page)
 #define CCPROT_CREATE	0
 #endif
 
+/* Check for macOS hardened runtime. */
+#if defined(LUAJIT_ENABLE_OSX_HRT) && LUAJIT_SECURITY_MCODE != 0 && defined(MAP_JIT) && __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= 110000
+#include <pthread.h>
+#define CCMAP_CREATE	MAP_JIT
+#else
+#define CCMAP_CREATE	0
+#endif
+
 #endif
 
 /* Allocate and initialize area for callback function pointers. */
@@ -276,10 +306,13 @@ static void callback_mcode_new(CTState *cts)
   if (!p)
     lj_err_caller(cts->L, LJ_ERR_FFI_CBACKOV);
 #elif LJ_TARGET_POSIX
-  p = mmap(NULL, sz, (PROT_READ|PROT_WRITE|CCPROT_CREATE), MAP_PRIVATE|MAP_ANONYMOUS,
-	   -1, 0);
+  p = mmap(NULL, sz, PROT_READ|PROT_WRITE|CCPROT_CREATE,
+	   MAP_PRIVATE|MAP_ANONYMOUS|CCMAP_CREATE, -1, 0);
   if (p == MAP_FAILED)
     lj_err_caller(cts->L, LJ_ERR_FFI_CBACKOV);
+#if CCMAP_CREATE
+  pthread_jit_write_protect_np(0);
+#endif
 #else
   /* Fallback allocator. Fails if memory is not executable by default. */
   p = lj_mem_new(cts->L, sz);
@@ -296,7 +329,11 @@ static void callback_mcode_new(CTState *cts)
     LJ_WIN_VPROTECT(p, sz, PAGE_EXECUTE_READ, &oprot);
   }
 #elif LJ_TARGET_POSIX
+#if CCMAP_CREATE
+  pthread_jit_write_protect_np(1);
+#else
   mprotect(p, sz, (PROT_READ|PROT_EXEC));
+#endif
 #endif
 }
 
@@ -667,6 +704,10 @@ static void callback_conv_result(CTState *cts, lua_State *L, TValue *o)
     if (ctr->size <= 4 &&
 	(LJ_ABI_SOFTFP || ctype_isinteger_or_bool(ctr->info)))
       *(int64_t *)dp = (int64_t)*(int32_t *)dp;
+#elif LJ_TARGET_X64
+    /* Always zero-extend results to 64 bits. */
+    if (ctr->size <= 4 && ctype_isinteger_or_bool(ctr->info))
+      *(uint64_t *)dp = (uint64_t)*(uint32_t *)dp;
 #endif
 #if LJ_TARGET_X86
     if (ctype_isfp(ctr->info))
