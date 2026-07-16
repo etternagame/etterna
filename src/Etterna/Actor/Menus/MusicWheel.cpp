@@ -74,6 +74,7 @@ MusicWheel::Load(const std::string& sType)
 	SORT_ORDERS.Load(sType, "SortOrders");
 	USE_SECTIONS_WITH_PREFERRED_GROUP.Load(sType,
 										   "UseSectionsWithPreferredGroup");
+	SKIP_COMPLEX_SORTING.Load(sType, "SkipComplexSorting");
 	HIDE_INACTIVE_SECTIONS.Load(sType, "OnlyShowActiveSection");
 	HIDE_ACTIVE_SECTION_TITLE.Load(sType, "HideActiveSectionTitle");
 	REMIND_WHEEL_POSITIONS.Load(sType, "RemindWheelPositions");
@@ -803,7 +804,7 @@ MusicWheel::BuildWheelItemDatas(
 
 		// skip resorting the songs 4 times for the most frequently used sort
 		// ?????
-		if (so != SORT_GROUP || !bUseSections) {
+		if ((so != SORT_GROUP || !bUseSections) && !SKIP_COMPLEX_SORTING) {
 
 			// sort the songs
 			switch (so) {
@@ -901,7 +902,7 @@ MusicWheel::BuildWheelItemDatas(
 				break;
 		}
 
-		if (bUseSections) {
+		if (bUseSections && !SKIP_COMPLEX_SORTING) {
 			// Sorting twice isn't necessary. Instead, modify the comparator
 			// functions in Song.cpp to have the desired effect. -Chris
 			/* Keeping groups together with the sorts is tricky and brittle; we
@@ -929,106 +930,144 @@ MusicWheel::BuildWheelItemDatas(
 
 		// make WheelItemDatas with sections
 
-		if (so != SORT_GROUP) {
-			// the old code, to unbreak title sort etc -mina
-			std::string sLastSection;
-			auto iSectionColorIndex = 0;
-			for (unsigned i = 0; i < arraySongs.size(); i++) {
-				auto* pSong = arraySongs[i];
-				if (bUseSections) {
-					auto sThisSection =
-					  SongUtil::GetSectionNameFromSongAndSort(pSong, so);
+		if (SKIP_COMPLEX_SORTING) {
 
-					if (sThisSection != sLastSection) {
-						auto iSectionCount = 0;
-						// Count songs in this section
-						unsigned j;
-						for (j = i; j < arraySongs.size(); j++) {
-							if (SongUtil::GetSectionNameFromSongAndSort(
-								  arraySongs[j], so) != sThisSection) {
-								break;
-							}
-						}
-						iSectionCount = j - i;
+			const auto sLastSection = "";
+			for (auto* pSong : arraySongs) {
 
-						// new section, make a section item
-						// todo: preferred sort section color handling? -aj
-						auto colorSection =
-						  (so == SORT_GROUP)
-							? SONGMAN->GetSongGroupColor(pSong->m_sGroupName)
-							: SECTION_COLORS.GetValue(iSectionColorIndex);
-						iSectionColorIndex =
-						  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-						arrayWheelItemDatas.emplace_back(
-						  std::make_unique<MusicWheelItemData>(
-							WheelItemDataType_Section,
-							nullptr,
-							sThisSection,
-							colorSection,
-							iSectionCount));
-						sLastSection = sThisSection;
-					}
-				}
-				arrayWheelItemDatas.emplace_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Song,
-										 pSong,
-										 sLastSection,
-										 SONGMAN->GetSongColor(pSong),
-										 0));
+				arrayWheelItemDatas.emplace_back(
+				  std::make_unique<MusicWheelItemData>(
+					WheelItemDataType_Song,
+					pSong,
+					sLastSection,
+					SONGMAN->GetSongColor(pSong),
+					0));
 				if (allSongsByGroupFiltered.at(so).count(sLastSection) != 0u) {
-					allSongsByGroupFiltered.at(so)[sLastSection].emplace_back(pSong);
+					allSongsByGroupFiltered.at(so)[sLastSection].emplace_back(
+					  pSong);
 				} else {
 					std::vector<Song*> v;
 					v.emplace_back(pSong);
 					allSongsByGroupFiltered.at(so)[sLastSection] = v;
 				}
+
 			}
+
 		} else {
 
-			// forces sections for now because who doesnt use sections wtf -mina
-			std::string sLastSection;
-			auto iSectionColorIndex = 0;
+			if (so != SORT_GROUP) {
+				// the old code, to unbreak title sort etc -mina
+				std::string sLastSection;
+				auto iSectionColorIndex = 0;
+				for (unsigned i = 0; i < arraySongs.size(); i++) {
+					auto* pSong = arraySongs[i];
+					if (bUseSections) {
+						auto sThisSection =
+						  SongUtil::GetSectionNameFromSongAndSort(pSong, so);
 
-			std::set<Song*> hurp;
-			for (auto& a : arraySongs) {
-				hurp.emplace(a);
-			}
+						if (sThisSection != sLastSection) {
+							auto iSectionCount = 0;
+							// Count songs in this section
+							unsigned j;
+							for (j = i; j < arraySongs.size(); j++) {
+								if (SongUtil::GetSectionNameFromSongAndSort(
+									  arraySongs[j], so) != sThisSection) {
+									break;
+								}
+							}
+							iSectionCount = j - i;
 
-			auto& groups = SONGMAN->groupderps;
+							// new section, make a section item
+							// todo: preferred sort section color handling? -aj
+							auto colorSection =
+							  (so == SORT_GROUP)
+								? SONGMAN->GetSongGroupColor(
+									pSong->m_sGroupName)
+								: SECTION_COLORS.GetValue(iSectionColorIndex);
+							iSectionColorIndex =
+							  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
+							arrayWheelItemDatas.emplace_back(
+							  std::make_unique<MusicWheelItemData>(
+								WheelItemDataType_Section,
+								nullptr,
+								sThisSection,
+								colorSection,
+								iSectionCount));
+							sLastSection = sThisSection;
+						}
+					}
+					arrayWheelItemDatas.emplace_back(
+					  std::make_unique<MusicWheelItemData>(
+						WheelItemDataType_Song,
+						pSong,
+						sLastSection,
+						SONGMAN->GetSongColor(pSong),
+						0));
+					if (allSongsByGroupFiltered.at(so).count(sLastSection) !=
+						0u) {
+						allSongsByGroupFiltered.at(so)[sLastSection]
+						  .emplace_back(pSong);
+					} else {
+						std::vector<Song*> v;
+						v.emplace_back(pSong);
+						allSongsByGroupFiltered.at(so)[sLastSection] = v;
+					}
+				}
+			} else {
 
-			std::map<std::string, std::string> shitterstrats;
-			for (auto& n : groups) {
-				shitterstrats[make_lower(n.first)] = n.first;
-				SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
-			}
+				// forces sections for now because who doesnt use sections wtf
+				// -mina
+				std::string sLastSection;
+				auto iSectionColorIndex = 0;
 
-			for (auto& n : shitterstrats) {
-				auto& gname = n.second;
-				auto& gsongs = groups[n.second];
+				std::set<Song*> hurp;
+				for (auto& a : arraySongs) {
+					hurp.emplace(a);
+				}
 
-				auto colorSection = SONGMAN->GetSongGroupColor(gname);
-				iSectionColorIndex =
-				  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
-				arrayWheelItemDatas.emplace_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Section,
-										 nullptr,
-										 gname,
-										 colorSection,
-										 gsongs.size()));
+				auto& groups = SONGMAN->groupderps;
 
-				// need to interact with the filter/search system so check if
-				// the song is in the arraysongs set defined above -mina
-				for (auto& s : gsongs) {
-					if (hurp.count(s) != 0u) {
-						arrayWheelItemDatas.emplace_back(std::make_unique<MusicWheelItemData>(WheelItemDataType_Song,
-												 s,
-												 gname,
-												 SONGMAN->GetSongColor(s),
-												 0));
-						if (allSongsByGroupFiltered.at(so).count(gname) != 0u) {
-							allSongsByGroupFiltered.at(so)[gname].emplace_back(s);
-						} else {
-							std::vector<Song*> v;
-							v.emplace_back(s);
-							allSongsByGroupFiltered.at(so)[gname] = v;
+				std::map<std::string, std::string> shitterstrats;
+				for (auto& n : groups) {
+					shitterstrats[make_lower(n.first)] = n.first;
+					SongUtil::SortSongPointerArrayByTitle(groups[n.first]);
+				}
+
+				for (auto& n : shitterstrats) {
+					auto& gname = n.second;
+					auto& gsongs = groups[n.second];
+
+					auto colorSection = SONGMAN->GetSongGroupColor(gname);
+					iSectionColorIndex =
+					  (iSectionColorIndex + 1) % NUM_SECTION_COLORS;
+					arrayWheelItemDatas.emplace_back(
+					  std::make_unique<MusicWheelItemData>(
+						WheelItemDataType_Section,
+						nullptr,
+						gname,
+						colorSection,
+						gsongs.size()));
+
+					// need to interact with the filter/search system so check
+					// if the song is in the arraysongs set defined above -mina
+					for (auto& s : gsongs) {
+						if (hurp.count(s) != 0u) {
+							arrayWheelItemDatas.emplace_back(
+							  std::make_unique<MusicWheelItemData>(
+								WheelItemDataType_Song,
+								s,
+								gname,
+								SONGMAN->GetSongColor(s),
+								0));
+							if (allSongsByGroupFiltered.at(so).count(gname) !=
+								0u) {
+								allSongsByGroupFiltered.at(so)[gname]
+								  .emplace_back(s);
+							} else {
+								std::vector<Song*> v;
+								v.emplace_back(s);
+								allSongsByGroupFiltered.at(so)[gname] = v;
+							}
 						}
 					}
 				}

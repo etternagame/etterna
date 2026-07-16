@@ -123,6 +123,7 @@ class MusicWheel : public WheelBase
 	ThemeMetric<std::string> CUSTOM_WHEEL_ITEM_NAMES;
 	ThemeMetricMap<std::string> CUSTOM_CHOICES;
 	ThemeMetricMap<RageColor> CUSTOM_CHOICE_COLORS;
+	ThemeMetric<bool> SKIP_COMPLEX_SORTING;
 
   private:
 	// use getWheelItemsData instead of touching this one
