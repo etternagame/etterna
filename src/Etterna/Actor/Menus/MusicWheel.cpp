@@ -726,6 +726,12 @@ MusicWheel::BuildWheelItemDatas(
   bool searching,
   const std::string& findme)
 {
+	Locator::getLogger()->info("Entering BuildWheelItemDatas with SortOrder {} "
+							   "(searching {} ; findme '{}')",
+							   SortOrderToString(so),
+							   searching,
+							   findme);
+	auto startTime = std::chrono::steady_clock::now();
 
 	std::map<std::string, Commands> commanDZ;
 	if (so == SORT_MODE_MENU) {
@@ -750,6 +756,7 @@ MusicWheel::BuildWheelItemDatas(
 		// Make an array of Song*, then sort them
 		std::vector<Song*> arraySongs;
 		GetSongList(arraySongs, so);
+		auto afterGetSongList = std::chrono::steady_clock::now();
 
 		Message msg("FilterResults");
 		msg.SetParam("Total", static_cast<int>(arraySongs.size()));
@@ -771,100 +778,111 @@ MusicWheel::BuildWheelItemDatas(
 			}
 			arraySongs.swap(tmp);
 		}
+		auto afterCommonPackFilter = std::chrono::steady_clock::now();
 
 		if (searching) {
 			FilterBySearch(arraySongs, findme);
 		}
+		auto afterSearchFilter = std::chrono::steady_clock::now();
 
 		if (!hashList.empty() || !outHashList.empty()) {
 			FilterByAndAgainstStepKeys(arraySongs);
 		}
+		auto afterKeyFilter = std::chrono::steady_clock::now();
 
 		if (FILTERMAN->AnyActiveFilter()) {
 			FilterBySkillsets(arraySongs);
 		}
+		auto afterSkillsetFilter = std::chrono::steady_clock::now();
 
 		msg.SetParam("Matches", static_cast<int>(arraySongs.size()));
 		MESSAGEMAN->Broadcast(msg);
+		auto afterFilterResultsMessage = std::chrono::steady_clock::now();
 
 		auto bUseSections = true;
 
-		// sort the songs
-		switch (so) {
-			case SORT_FAVORITES:
-				bUseSections = false;
-				break;
-			case SORT_GROUP:
-				SongUtil::SortSongPointerArrayByGroupAndTitle(arraySongs);
+		// skip resorting the songs 4 times for the most frequently used sort
+		// ?????
+		if (so != SORT_GROUP || !bUseSections) {
 
-				if (USE_SECTIONS_WITH_PREFERRED_GROUP) {
-					bUseSections = true;
-				} else {
-					bUseSections =
-					  GAMESTATE->m_sPreferredSongGroup == GROUP_ALL;
-				}
-				break;
-			case SORT_Ungrouped:
-				[[fallthrough]];
-			case SORT_TITLE:
-				SongUtil::SortSongPointerArrayByTitle(arraySongs);
-				break;
-			case SORT_BPM:
-				SongUtil::SortSongPointerArrayByBPM(arraySongs);
-				break;
-			case SORT_TOP_GRADES:
-				SongUtil::SortSongPointerArrayByWifeScore(arraySongs);
-				break;
-			case SORT_ARTIST:
-				SongUtil::SortSongPointerArrayByArtist(arraySongs);
-				break;
-			case SORT_GENRE:
-				SongUtil::SortSongPointerArrayByGenre(arraySongs);
-				break;
-			case SORT_Overall:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Overall);
-				break;
-			case SORT_Stream:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Stream);
-				break;
-			case SORT_Jumpstream:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Jumpstream);
-				break;
-			case SORT_Handstream:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Handstream);
-				break;
-			case SORT_Stamina:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Stamina);
-				break;
-			case SORT_JackSpeed:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_JackSpeed);
-				break;
-			case SORT_Chordjack:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Chordjack);
-				break;
-			case SORT_Technical:
-				SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
-															Skill_Technical);
-				break;
-			case SORT_LENGTH:
-				SongUtil::SortSongPointerArrayByLength(arraySongs);
-				break;
-			case SORT_DATE_ADDED:
-				SongUtil::SortSongPointerArrayByDateAdded(arraySongs);
-				break;
-			case SORT_CHART_AUTHOR:
-				SongUtil::SortSongPointerArrayByAuthor(arraySongs);
-				break;
-			default:
-				FAIL_M("Unhandled sort order! Aborting...");
+			// sort the songs
+			switch (so) {
+				case SORT_FAVORITES:
+					bUseSections = false;
+					break;
+				case SORT_GROUP:
+					SongUtil::SortSongPointerArrayByGroupAndTitle(arraySongs);
+
+					if (USE_SECTIONS_WITH_PREFERRED_GROUP) {
+						bUseSections = true;
+					} else {
+						bUseSections =
+						  GAMESTATE->m_sPreferredSongGroup == GROUP_ALL;
+					}
+					break;
+				case SORT_Ungrouped:
+					[[fallthrough]];
+				case SORT_TITLE:
+					SongUtil::SortSongPointerArrayByTitle(arraySongs);
+					break;
+				case SORT_BPM:
+					SongUtil::SortSongPointerArrayByBPM(arraySongs);
+					break;
+				case SORT_TOP_GRADES:
+					SongUtil::SortSongPointerArrayByWifeScore(arraySongs);
+					break;
+				case SORT_ARTIST:
+					SongUtil::SortSongPointerArrayByArtist(arraySongs);
+					break;
+				case SORT_GENRE:
+					SongUtil::SortSongPointerArrayByGenre(arraySongs);
+					break;
+				case SORT_Overall:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
+																Skill_Overall);
+					break;
+				case SORT_Stream:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
+																Skill_Stream);
+					break;
+				case SORT_Jumpstream:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(
+					  arraySongs, Skill_Jumpstream);
+					break;
+				case SORT_Handstream:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(
+					  arraySongs, Skill_Handstream);
+					break;
+				case SORT_Stamina:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(arraySongs,
+																Skill_Stamina);
+					break;
+				case SORT_JackSpeed:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(
+					  arraySongs, Skill_JackSpeed);
+					break;
+				case SORT_Chordjack:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(
+					  arraySongs, Skill_Chordjack);
+					break;
+				case SORT_Technical:
+					SongUtil::SortSongPointerArrayByGroupAndMSD(
+					  arraySongs, Skill_Technical);
+					break;
+				case SORT_LENGTH:
+					SongUtil::SortSongPointerArrayByLength(arraySongs);
+					break;
+				case SORT_DATE_ADDED:
+					SongUtil::SortSongPointerArrayByDateAdded(arraySongs);
+					break;
+				case SORT_CHART_AUTHOR:
+					SongUtil::SortSongPointerArrayByAuthor(arraySongs);
+					break;
+				default:
+					FAIL_M("Unhandled sort order! Aborting...");
+			}
 		}
+		auto afterSongSort = std::chrono::steady_clock::now();
 
 		// Build an array of WheelItemDatas from the sorted list of Song*'s
 		arrayWheelItemDatas.clear(); // clear out the previous wheel items
@@ -896,12 +914,14 @@ MusicWheel::BuildWheelItemDatas(
 				case SORT_FAVORITES:
 				case SORT_TOP_GRADES:
 				case SORT_BPM:
+				case SORT_GROUP: // sections are sorted below
 					break; // don't sort by section
 				default:
 					SongUtil::SortSongPointerArrayBySectionName(arraySongs, so);
 					break;
 			}
 		}
+		auto afterSectionSort = std::chrono::steady_clock::now();
 
 		allSongsFiltered = arraySongs;
 		allSongsByGroupFiltered[so].clear();
@@ -1014,6 +1034,8 @@ MusicWheel::BuildWheelItemDatas(
 				}
 			}
 		}
+		auto afterInnerSectionSort = std::chrono::steady_clock::now();
+
 		// calculate the pack progress numbers for the sortorder
 		if (PREFSMAN->m_bPackProgressInWheel) {
 			auto& allsongs = allSongsByGroupFiltered.at(so);
@@ -1030,8 +1052,46 @@ MusicWheel::BuildWheelItemDatas(
 				packProgressByGroup.at(so)[groupname_songlist_pair.first] =
 				  num_played_songs;
 			}
-
 		}
+		auto now = std::chrono::steady_clock::now();
+
+		// lmao
+		Locator::getLogger()->info(
+		  "BuildWheelItemDatas sort timing:\n afterGetSongList: {}ms\n "
+		  "afterCommonPackFilter: {}ms\n afterSearchFilter: {}ms\n "
+		  "afterKeyFilter: {}ms\n afterSkillsetFilter: {}ms\n "
+		  "afterFilterResultsMessage: {}ms\n afterSongSort: {}ms\n "
+		  "afterSectionSort: {}ms\n afterInnerSectionSort: {}ms\n "
+		  "afterPackProgress: {}ms\n  total time: {}ms",
+		  std::chrono::duration<float, std::milli>(afterGetSongList - startTime)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterCommonPackFilter -
+												   afterGetSongList)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterSearchFilter -
+												   afterCommonPackFilter)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterKeyFilter -
+												   afterSearchFilter)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterSkillsetFilter -
+												   afterKeyFilter)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterFilterResultsMessage -
+												   afterSkillsetFilter)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterSongSort -
+												   afterFilterResultsMessage)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterSectionSort -
+												   afterSongSort)
+			.count(),
+		  std::chrono::duration<float, std::milli>(afterInnerSectionSort -
+												   afterSectionSort)
+			.count(),
+		  std::chrono::duration<float, std::milli>(now - afterInnerSectionSort)
+			.count(),
+		  std::chrono::duration<float, std::milli>(now - startTime).count());
 	}
 }
 
@@ -1089,6 +1149,9 @@ MusicWheel::FilterWheelItemDatas(
   const std::string& currentText,
   const WheelItemDataType& currentType) const
 {
+	Locator::getLogger()->info("Entering FilterWheelItemDatas");
+	auto now = std::chrono::steady_clock::now();
+
 	aFilteredData.clear();
 
 	const unsigned unfilteredSize = aUnFilteredDatas.size();
@@ -1219,6 +1282,11 @@ MusicWheel::FilterWheelItemDatas(
 		  WheelItemDataType_Section, nullptr, EMPTY_STRING, EMPTY_COLOR, 0);
 		aFilteredData.emplace_back(&EmptyDummy);
 	}
+
+	auto after = std::chrono::steady_clock::now();
+	Locator::getLogger()->info(
+	  "FilterWheelItemDatas took {}ms",
+	  std::chrono::duration<float, std::milli>(after - now).count());
 
 	return nearestCompatibleWheelItemData;
 }
