@@ -231,6 +231,7 @@ struct ceejay
 
 #pragma endregion params and param map
 
+	int chain = 1;
 
 	void update_flags(const unsigned& row_notes, const int& row_count)
 	{
@@ -379,8 +380,6 @@ struct ceejay
 
 	unsigned last_row_notes = 0U;
 	unsigned last_last_row_notes = 0U;
-
-	int chain = 1;
 
 	const int consecutive_rows_equal_max_sz = 10;
 	std::vector<bool> consecutive_rows_equal{};

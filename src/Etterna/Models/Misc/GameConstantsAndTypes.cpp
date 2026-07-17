@@ -242,6 +242,7 @@ static const char* CalcPatternModNames[] = {
 	"WideRangeJJ",
 	"WideRangeBalance",
 	"WideRangeAnchor",
+	"WideRangeCJAnchor",
 	"TheThing",
 	"TheThing2",
 	"RanMan",

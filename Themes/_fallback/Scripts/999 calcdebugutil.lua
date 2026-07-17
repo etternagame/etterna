@@ -124,10 +124,12 @@ CALC = {
         },
         {   -- Group 4
             CJ = true,
+            CJDensity = true,
             OldAnchorScaler = true,
             OldRollScaler = true,
             OldOHJScaler = true,
             OldJumpScaler = true,
+            WideRangeCJAnchor = true,
             StamMod = true,
         },
         {   -- Group 5
@@ -152,6 +154,7 @@ CALC = {
         },
         {   -- Group 9
             CJOHAnchor = true,
+            WideRangeCJAnchor = true,
         },
         {   -- Group 10
             Roll = true,
@@ -315,6 +318,7 @@ CALC = {
         "wrjj",
         "wrb",
         "wra",
+        "wrcja",
         "thing",
         "thing2",
         "rm",
@@ -393,6 +397,7 @@ CALC = {
         color("1,0.2,1"),		-- purpley		= wrjj
         color("0.7,1,0.2"),		-- leme			= wrb
         color("0.7,1,0.1"),		-- leme			= wra
+        color("0.7,1,0.3"),		-- leme			= wrcja
         color("0,0.8,1"),		-- light blue	= thething
         color("0,0.6,1"),       -- darkish blue = thething2
         color("0.2,1,1"),		-- light blue	= ranman

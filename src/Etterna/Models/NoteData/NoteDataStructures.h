@@ -69,6 +69,7 @@ enum CalcPatternMod
 	WideRangeJJ, // wrjumpjack
 	WideRangeBalance,
 	WideRangeAnchor,
+	WideRangeCJAnchor,
 	TheThing,
 	TheThing2,
 	RanMan,
