@@ -165,6 +165,7 @@ RendererVK::CreateTexture(RageSurface* img, bool RGBA8)
 							   &texture.allocation,
 							   &allocInfo));
 	texture.image = imagePtr;
+	texture.allocator = m_Allocator;
 
 	vk::ImageViewCreateInfo viewInfo;
 	viewInfo.image = texture.image;
@@ -176,6 +177,8 @@ RendererVK::CreateTexture(RageSurface* img, bool RGBA8)
 	viewInfo.subresourceRange.layerCount = 1;
 	texture.view = (*m_Device).createImageView(viewInfo);
 	texture.currentLayout = vk::ImageLayout::eUndefined;
+
+	texture.InitImageBuffer();
 	m_Textures.insert({ currentHandle, texture });
 
 	UpdateTexture(currentHandle, img, 0, 0, img->w, img->h);
@@ -213,74 +216,14 @@ RendererVK::UpdateTexture(intptr_t textureHandle,
 	copyBuffer.begin(beginInfo);
 
 	auto& texture = m_Textures[textureHandle];
-	std::memcpy(m_TextureBuffer.GetMappedData(),
+	std::memcpy(texture.imageBuffer.GetMappedData(),
 				img->pixels,
 				static_cast<size_t>(img->h) * img->w * sizeof(uint32_t));
 
-	vk::ImageMemoryBarrier barrier = {};
-	if (texture.initialized) {
-		barrier.oldLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
-		barrier.srcAccessMask = vk::AccessFlagBits::eShaderRead;
-		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-	} else {
-		barrier.srcAccessMask = vk::AccessFlags();
-		barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
-		barrier.oldLayout = vk::ImageLayout::eUndefined;
-		barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+	if (!texture.dirty) {
+		texture.dirty = true;
+		m_DirtyTextures.push_back(&texture);
 	}
-	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.image = texture.image;
-	barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-	barrier.subresourceRange.baseMipLevel = 0;
-	barrier.subresourceRange.levelCount = 1;
-	barrier.subresourceRange.layerCount = 1;
-	copyBuffer.pipelineBarrier(texture.initialized
-								 ? vk::PipelineStageFlagBits::eAllGraphics
-								 : vk::PipelineStageFlagBits::eNone,
-							   vk::PipelineStageFlagBits::eTransfer,
-							   {},
-							   {},
-							   {},
-							   { barrier });
-
-	vk::BufferImageCopy imageCopy = {};
-	imageCopy.imageExtent =
-	  vk::Extent3D{ (uint32_t)width, (uint32_t)height, 1 };
-	imageCopy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-	imageCopy.imageSubresource.mipLevel = 0;
-	imageCopy.imageSubresource.baseArrayLayer = 0;
-	imageCopy.imageSubresource.layerCount = 1;
-	copyBuffer.copyBufferToImage(m_TextureBuffer.buffer,
-								 texture.image,
-								 vk::ImageLayout::eTransferDstOptimal,
-								 { imageCopy });
-
-	barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
-	barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-	barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
-	barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-	copyBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-							   vk::PipelineStageFlagBits::eAllGraphics,
-							   {},
-							   {},
-							   {},
-							   { barrier });
-
-	copyBuffer.end();
-
-	vk::SubmitInfo submitInfo = {};
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &(*copyBuffer);
-
-	vk::FenceCreateInfo fenceInfo;
-	vk::raii::Fence fence(m_Device, fenceInfo);
-	m_GraphicsQueue.submit({ submitInfo }, fence);
-	ThrowIfFail(m_Device.waitForFences({ fence }, VK_TRUE, Timeout));
-
-	texture.initialized = true;
-	texture.currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 }
 
 void
@@ -593,43 +536,12 @@ RendererVK::~RendererVK()
 		m_DepthAllocation = nullptr;
 	}
 
-	if (m_TextureBuffer.buffer != VK_NULL_HANDLE) {
-		vmaDestroyBuffer(
-		  m_Allocator, m_TextureBuffer.buffer, m_TextureBuffer.allocation);
-		m_TextureBuffer.buffer = VK_NULL_HANDLE;
-	}
-
 	for (int i = 0; i < FramesInFlight; i++) {
-		if (m_VertexBuffer[i].buffer != VK_NULL_HANDLE) {
-			vmaDestroyBuffer(m_Allocator,
-							 m_VertexBuffer[i].buffer,
-							 m_VertexBuffer[i].allocation);
-			m_VertexBuffer[i].buffer = VK_NULL_HANDLE;
-		}
-		if (m_IndexBuffer[i].buffer != VK_NULL_HANDLE) {
-			vmaDestroyBuffer(m_Allocator,
-							 m_IndexBuffer[i].buffer,
-							 m_IndexBuffer[i].allocation);
-			m_IndexBuffer[i].buffer = VK_NULL_HANDLE;
-		}
-		if (m_MatrixStateBuffer[i].buffer != VK_NULL_HANDLE) {
-			vmaDestroyBuffer(m_Allocator,
-							 m_MatrixStateBuffer[i].buffer,
-							 m_MatrixStateBuffer[i].allocation);
-			m_MatrixStateBuffer[i].buffer = VK_NULL_HANDLE;
-		}
-		if (m_StagingBuffer[i].buffer != VK_NULL_HANDLE) {
-			vmaDestroyBuffer(m_Allocator,
-							 m_StagingBuffer[i].buffer,
-							 m_StagingBuffer[i].allocation);
-			m_StagingBuffer[i].buffer = VK_NULL_HANDLE;
-		}
-		if (m_ShaderScratchBuffer[i].buffer != VK_NULL_HANDLE) {
-			vmaDestroyBuffer(m_Allocator,
-							 m_ShaderScratchBuffer[i].buffer,
-							 m_ShaderScratchBuffer[i].allocation);
-			m_ShaderScratchBuffer[i].buffer = VK_NULL_HANDLE;
-		}
+		m_VertexBuffer[i].Destroy();
+		m_IndexBuffer[i].Destroy();
+		m_MatrixStateBuffer[i].Destroy();
+		m_StagingBuffer[i].Destroy();
+		m_ShaderScratchBuffer[i].Destroy();
 	}
 
 	if (m_Allocator != nullptr) {
@@ -1067,6 +979,50 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	auto& buffer = m_CommandBuffers[m_CurrentFrame];
 	buffer.begin({});
 
+	for (auto& texture : m_DirtyTextures) {
+		TransitionImageLayout(
+		  texture->image,
+		  texture->currentLayout,
+		  vk::ImageLayout::eTransferDstOptimal,
+		  (texture->currentLayout == vk::ImageLayout::eUndefined)
+			? vk::AccessFlags2()
+			: vk::AccessFlagBits2::eShaderRead,
+		  vk::AccessFlagBits2::eTransferWrite,
+		  (texture->currentLayout == vk::ImageLayout::eUndefined)
+			? vk::PipelineStageFlagBits2::eNone
+			: vk::PipelineStageFlagBits2::eAllGraphics,
+		  vk::PipelineStageFlagBits2::eTransfer,
+		  buffer);
+
+		vk::BufferImageCopy2 copyRegion{};
+		copyRegion.imageExtent =
+		  vk::Extent3D{ texture->width, texture->height, 1 };
+		copyRegion.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+		copyRegion.imageSubresource.layerCount = 1;
+
+		vk::CopyBufferToImageInfo2 copyInfo{};
+		copyInfo.setRegions({ copyRegion });
+		copyInfo.dstImage = texture->image;
+		copyInfo.dstImageLayout = vk::ImageLayout::eTransferDstOptimal;
+		copyInfo.srcBuffer = texture->imageBuffer.buffer;
+
+		buffer.copyBufferToImage2(copyInfo);
+
+		TransitionImageLayout(texture->image,
+							  vk::ImageLayout::eTransferDstOptimal,
+							  vk::ImageLayout::eShaderReadOnlyOptimal,
+							  vk::AccessFlagBits2::eTransferWrite,
+							  vk::AccessFlagBits2::eShaderRead,
+							  vk::PipelineStageFlagBits2::eTransfer,
+							  vk::PipelineStageFlagBits2::eAllGraphics,
+							  buffer);
+
+		texture->currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		texture->dirty = false;
+		texture->initialized = true; // technically not yet because we didn't wait for the GPU to do its thing but eh
+	}
+	m_DirtyTextures.clear();
+
 	vk::BufferCopy stagingCopy{};
 	stagingCopy.srcOffset = 0;
 	stagingCopy.dstOffset = 0;
@@ -1401,21 +1357,6 @@ RendererVK::SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer)
 void
 RendererVK::InitBatchBuffers()
 {
-	uint32_t textureDims = GetMaxTextureSize();
-
-	VmaAllocationCreateInfo textureAllocInfo = {};
-	textureAllocInfo.flags =
-	  VMA_ALLOCATION_CREATE_MAPPED_BIT |
-	  VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
-	textureAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-	textureAllocInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-
-	vk::BufferCreateInfo textureInfo = {};
-	textureInfo.size =
-	  (vk::DeviceSize)textureDims * textureDims * sizeof(uint32_t);
-	textureInfo.usage = vk::BufferUsageFlagBits::eTransferSrc;
-	m_TextureBuffer.Init(m_Allocator, textureInfo, textureAllocInfo);
-
 	vk::DescriptorPoolSize poolSizes[1] = {};
 	poolSizes[0].type = vk::DescriptorType::eStorageBuffer;
 	poolSizes[0].descriptorCount = 2 * FramesInFlight;
@@ -1624,6 +1565,7 @@ RendererVK::GetMaxTextureCount()
 void
 RendererVK::DestroyTexture(Texture& texture)
 {
+	texture.DestroyImageBuffer();
 	if (texture.image) {
 		vmaDestroyImage(m_Allocator, texture.image, texture.allocation);
 	}

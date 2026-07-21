@@ -1354,7 +1354,13 @@ RageCompiledGeometry::Set(const std::vector<msMesh>& vMeshes, bool bNeedsNormals
 bool
 RageDisplay::DisplayDebugModeEnabled()
 {
-	return PREFSMAN->m_bVideoRendererDebugMode;
+	// PREFSMAN might get destroyed before we log debug stuff for RageDisplay, so save the value for later
+	static std::optional<bool> enabled = std::nullopt;
+	if (!enabled.has_value()) {
+		enabled = PREFSMAN->m_bVideoRendererDebugMode;
+	}
+
+	return *enabled;
 }
 
 // lua start

@@ -136,13 +136,13 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::array<PersistentBuffer, FramesInFlight> m_MatrixStateBuffer;
 	std::array<PersistentBuffer, FramesInFlight> m_ShaderScratchBuffer;
 	std::array<PersistentBuffer, FramesInFlight> m_StagingBuffer;
-	PersistentBuffer m_TextureBuffer;
 
 	void InitBatchBuffers();
 	void UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher);
 
 	std::map<intptr_t, Texture> m_Textures;
 	std::set<intptr_t> m_EmptyTextureSlots;
+	std::vector<Texture*> m_DirtyTextures; // replace with SpscChannel or a lock later...
 	int GetMaxTextureCount();
 	int m_TextureCount = 0;
 	int m_TextureSize = -1;

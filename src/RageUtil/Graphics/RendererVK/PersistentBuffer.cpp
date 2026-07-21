@@ -23,6 +23,22 @@ PersistentBuffer::Init(VmaAllocator allocator,
 					  &this->allocInfo));
 }
 
+void
+PersistentBuffer::Destroy()
+{
+	if (buffer == VK_NULL_HANDLE) {
+		return;
+	}
+
+	vmaDestroyBuffer(allocator, buffer, allocation);
+
+	buffer = VK_NULL_HANDLE;
+	allocation = VK_NULL_HANDLE;
+	allocInfo = {};
+	allocator = nullptr;
+	gpuAddress = 0;
+}
+
 vk::Buffer
 PersistentBuffer::Get() const
 {

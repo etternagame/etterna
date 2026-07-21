@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_raii.hpp>
 #include <vk_mem_alloc.h>
 #include <RageUtil/Graphics/RageSurface.h>
+#include "PersistentBuffer.h"
 
 struct Texture
 {
@@ -21,7 +22,14 @@ struct Texture
 	uint32_t width = 0;
 	uint32_t height = 0;
 	bool initialized = false;
+	bool dirty = false;
 	vk::ImageLayout currentLayout = vk::ImageLayout::eUndefined;
+
+	// used to temporarily store RageSurface data to not rely on ownership shenanigans
+	PersistentBuffer imageBuffer;
+
+	void InitImageBuffer();
+	void DestroyImageBuffer();
 };
 
 #endif

@@ -77,6 +77,7 @@ if(WITH_VULKAN)
     "Graphics/RendererVK/RenderTargetVK.cpp"
     "Graphics/RendererVK/PlatformUtils.cpp"
     "Graphics/RendererVK/PipelineCache.cpp"
+    "Graphics/RendererVK/Texture.cpp"
   )
 endif()
 

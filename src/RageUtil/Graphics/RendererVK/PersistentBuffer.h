@@ -16,6 +16,8 @@ struct PersistentBuffer
 			  const vk::BufferCreateInfo& createInfo,
 			  const VmaAllocationCreateInfo& allocInfo);
 
+	void Destroy();
+
 	vk::Buffer Get() const;
 
 	void* GetMappedData() const;
