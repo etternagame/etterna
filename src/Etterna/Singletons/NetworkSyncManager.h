@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #include <thread>
 #include <mutex>
+#include <functional>
 
 class LoadingWindow;
 
