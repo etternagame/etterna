@@ -61,7 +61,7 @@ HTTP page not retrieved. The requested URL was not found or returned another
 error with the HTTP error code being 400 or above. This return code only
 appears if --fail is used.
 ## 23
-Write error. curl could not write data to a local filesystem or similar.
+Write error. curl could not write data to a local file system or similar.
 ## 25
 Failed starting the upload. For FTP, the server typically denied the STOR
 command.
@@ -175,7 +175,7 @@ FTP chunk callback reported error.
 ## 89
 No connection available, the session is queued.
 ## 90
-SSL public key does not matched pinned public key.
+SSL public key does not match pinned public key.
 ## 91
 Invalid SSL certificate status.
 ## 92

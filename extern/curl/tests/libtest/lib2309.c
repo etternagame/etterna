@@ -21,11 +21,7 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
-#include "test.h"
-#include "testtrace.h"
-
-#include <curl/curl.h>
+#include "first.h"
 
 static size_t cb_ignore(char *buffer, size_t size, size_t nmemb, void *userp)
 {
@@ -36,11 +32,11 @@ static size_t cb_ignore(char *buffer, size_t size, size_t nmemb, void *userp)
   return CURL_WRITEFUNC_ERROR;
 }
 
-CURLcode test(char *URL)
+static CURLcode test_lib2309(const char *URL)
 {
   CURL *curl;
   CURL *curldupe;
-  CURLcode res = CURLE_OK;
+  CURLcode result = CURLE_OK;
 
   global_init(CURL_GLOBAL_ALL);
   curl = curl_easy_init();
@@ -49,13 +45,14 @@ CURLcode test(char *URL)
     curl_easy_setopt(curl, CURLOPT_URL, URL);
     curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
     curl_easy_setopt(curl, CURLOPT_PROXY, libtest_arg3);
-    curl_easy_setopt(curl, CURLOPT_NETRC, (long)CURL_NETRC_REQUIRED);
+    curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_REQUIRED);
     curl_easy_setopt(curl, CURLOPT_NETRC_FILE, libtest_arg2);
 
     curldupe = curl_easy_duphandle(curl);
     if(curldupe) {
-      res = curl_easy_perform(curldupe);
-      printf("Returned %d, should be %d.\n", res, CURLE_WRITE_ERROR);
+      result = curl_easy_perform(curldupe);
+      curl_mprintf("Returned %d, should be %d.\n", (int)result,
+                   CURLE_WRITE_ERROR);
       fflush(stdout);
       curl_easy_cleanup(curldupe);
     }

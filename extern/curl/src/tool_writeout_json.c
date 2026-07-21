@@ -23,7 +23,6 @@
  ***************************************************************************/
 #include "tool_setup.h"
 
-#include "curlx.h"
 #include "tool_cfgable.h"
 #include "tool_writeout_json.h"
 #include "tool_writeout.h"
@@ -35,8 +34,7 @@
 
    Return 0 on success, non-zero on error.
 */
-int jsonquoted(const char *in, size_t len,
-               struct curlx_dynbuf *out, bool lowercase)
+int jsonquoted(const char *in, size_t len, struct dynbuf *out, bool lowercase)
 {
   const unsigned char *i = (const unsigned char *)in;
   const unsigned char *in_end = &i[len];
@@ -85,7 +83,7 @@ int jsonquoted(const char *in, size_t len,
 
 void jsonWriteString(FILE *stream, const char *in, bool lowercase)
 {
-  struct curlx_dynbuf out;
+  struct dynbuf out;
   curlx_dyn_init(&out, MAX_JSON_STRING);
 
   if(!jsonquoted(in, strlen(in), &out, lowercase)) {
@@ -107,15 +105,15 @@ void ourWriteOutJSON(FILE *stream, const struct writeoutvar mappings[],
 
   for(i = 0; i < nentries; i++) {
     if(mappings[i].writefunc &&
-       mappings[i].writefunc(stream, &mappings[i], per, per_result, true))
+       mappings[i].writefunc(stream, &mappings[i], per, per_result, TRUE))
       fputs(",", stream);
   }
 
   /* The variables are sorted in alphabetical order but as a special case
      curl_version (which is not actually a --write-out variable) is last. */
-  fprintf(stream, "\"curl_version\":");
+  curl_mfprintf(stream, "\"curl_version\":");
   jsonWriteString(stream, curl_version(), FALSE);
-  fprintf(stream, "}");
+  curl_mfprintf(stream, "}");
 }
 
 void headerJSON(FILE *stream, struct per_transfer *per)
@@ -144,8 +142,7 @@ void headerJSON(FILE *stream, struct per_transfer *per)
           if(++i >= a)
             break;
           fputc(',', stream);
-          if(curl_easy_header(per->curl, name, i, CURLH_HEADER,
-                              -1, &header))
+          if(curl_easy_header(per->curl, name, i, CURLH_HEADER, -1, &header))
             break;
         } while(1);
         fputc(']', stream);

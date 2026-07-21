@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -27,7 +28,7 @@ file:// with Unix path resolution behavior for the case of extra slashes
 file:////%FILE_PWD/%LOGDIR/test%TESTNUMBER.txt
 </command>
 <precheck>
-%PERL -e "print 'Test requires a Unix system' if ( $^O eq 'MSWin32' || $^O eq 'cygwin' || $^O eq 'dos' || $^O eq 'msys');"
+%PERL -e "print 'Test requires a Unix system' if($^O eq 'MSWin32' || $^O eq 'cygwin' || $^O eq 'dos' || $^O eq 'msys');"
 </precheck>
 <file name="%LOGDIR/test%TESTNUMBER.txt">
 foo

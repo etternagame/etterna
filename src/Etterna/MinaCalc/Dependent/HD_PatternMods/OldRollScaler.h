@@ -1,7 +1,7 @@
 #pragma once
 #include "../MetaIntervalHandInfo.h"
 
-/// Hand downscaler based on how many one hand jumps there are
+/// Hand downscaler based on how trilly the hand is
 struct OldRollScalerMod
 {
 	const CalcPatternMod _pmod = OldRollScaler;

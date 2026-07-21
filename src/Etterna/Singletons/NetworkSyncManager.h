@@ -5,15 +5,9 @@
 #include "Etterna/Models/HighScore/HighScore.h"
 #include <queue>
 #include "rapidjson/fwd.h"
-#define ASIO_STANDALONE
-#define _WEBSOCKETPP_CPP11_INTERNAL_
-#include <websocketpp/client.hpp>
-#include <websocketpp/config/asio_client.hpp>
-typedef websocketpp::config::asio_tls_client::message_type::ptr wss_message_ptr;
-using wss_client = ::websocketpp::client<websocketpp::config::asio_tls_client>;
-#include <websocketpp/config/asio_no_tls_client.hpp>
-using ws_message_ptr = ::websocketpp::config::asio_client::message_type::ptr;
-using ws_client = ::websocketpp::client<websocketpp::config::asio_client>;
+#include <curl/curl.h>
+#include <thread>
+#include <mutex>
 
 class LoadingWindow;
 
@@ -106,6 +100,7 @@ enum ETTServerMessageTypes
 	ettps_roomuserlist,
 	ettps_chartrequest,
 	ettps_roompacklist,
+	ettps_gameplay_replay_update,
 	ettps_end
 };
 enum ETTClientMessageTypes
@@ -131,6 +126,7 @@ enum ETTClientMessageTypes
 	ettpc_closeeval,
 	ettpc_logout,
 	ettpc_hello,
+	ettpc_gameplay_judgment,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
@@ -248,6 +244,32 @@ class NetProtocol
 	virtual void OnEval(){};
 	virtual void OffEval(){};
 	virtual void SendMPLeaderboardUpdate(float wife, std::string& jdgstr){};
+
+	// triggered by button presses in gameplay
+	virtual void ReportReplayInput(NetworkSyncManager* n,
+								   bool isPress,
+								   int col,
+								   int row,
+								   float fMusicSeconds,
+								   float fNoteOffset,
+								   int tapNoteType,
+								   int tapNoteSubType) {};
+
+	// triggered by a miss in gameplay
+	virtual void ReportReplayMiss(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int tapNoteType,
+								  int tapNoteSubType) {};
+
+	// triggered by completing or dropping a hold in gameplay
+	virtual void ReportReplayHold(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int subType) {};
+
+	// triggered by hitting a mine in gameplay
+	virtual void ReportReplayMine(NetworkSyncManager* n, int row, int col) {};
 };
 
 class ETTProtocol : public NetProtocol
@@ -258,10 +280,13 @@ class ETTProtocol : public NetProtocol
 	unsigned int msgId{ 0 };
 	bool error{ false };
 	std::string errorMsg;
-	std::shared_ptr<ws_client> client{ nullptr };
-	std::shared_ptr<wss_client> secure_client{ nullptr };
-	std::shared_ptr<websocketpp::connection_hdl> hdl{ nullptr };
+
+	CURL* curl;
+	std::mutex curlMutex;
+
 	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
+	std::atomic_bool stopRequest = false;
+	void LaunchPollingThread();
 	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
 				   // notReady(unkown reason)
   public:
@@ -298,7 +323,32 @@ class ETTProtocol : public NetProtocol
 	void OffEval() override;
 	void SendMPLeaderboardUpdate(float wife, std::string& jdgstr) override;
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
-	void Send(const char* msg);
+	// triggered by button presses in gameplay
+	void ReportReplayInput(NetworkSyncManager* n,
+								   bool isPress,
+								   int col,
+								   int row,
+								   float fMusicSeconds,
+								   float fNoteOffset,
+								   int tapNoteType,
+								   int tapNoteSubType) override;
+
+	// triggered by a miss in gameplay
+	void ReportReplayMiss(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int tapNoteType,
+								  int tapNoteSubType) override;
+
+	// triggered by completing or dropping a hold in gameplay
+	void ReportReplayHold(NetworkSyncManager* n,
+								  int col,
+								  int row,
+								  int subType) override;
+
+	// triggered by hitting a mine in gameplay
+	void ReportReplayMine(NetworkSyncManager* n, int row, int col) override;
+	void Send(const std::string& str);
 	/*
 	void ReportScore(NetworkSyncManager* n, int playerID, int step, int score,
 	int combo, float offset, int numNotes) override; void
@@ -348,6 +398,27 @@ class NetworkSyncManager
 	void ReportSongOver();
 	void ReportStyle();			// Report style, players, and names
 	void ReportNSSOnOff(int i); // Report song selection screen on/off
+
+		// triggered by button presses in gameplay
+	void ReportReplayInput(bool isPress,
+						   int col,
+						   int row,
+						   float fMusicSeconds,
+						   float fNoteOffset,
+						   int tapNoteType,
+						   int tapNoteSubType);
+
+	// triggered by a miss in gameplay
+	void ReportReplayMiss(int col,
+						  int row,
+						  int tapNoteType,
+						  int tapNoteSubType);
+
+	// triggered by completing or dropping a hold in gameplay
+	void ReportReplayHold(int col, int row, int subType);
+
+	// triggered by hitting a mine in gameplay
+	void ReportReplayMine(int row, int col);
 
 	void OnMusicSelect();
 	void OffMusicSelect();

@@ -21,7 +21,6 @@ caIssuers;URI.0         = http://test.curl.se/ca/EdelCurlRoot.cer
 URI.0                   = http://test.curl.se/ca/EdelCurlRoot.crl
 
 [ req ]
-default_bits            = 2048
 distinguished_name      = req_DN
 default_md              = sha256
 string_mask             = utf8only
@@ -30,6 +29,6 @@ string_mask             = utf8only
 countryName             = "Country Name is Northern Nowhere"
 countryName_value       = NN
 organizationName        = "Organization Name"
-organizationName_value  = Edel Curl Arctic Illudium Research Cloud
+organizationName_value  = Edel curl Arctic Illudium Research Cloud
 commonName              = "Common Name"
 commonName_value        = localhost

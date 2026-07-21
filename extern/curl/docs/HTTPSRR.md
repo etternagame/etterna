@@ -6,18 +6,18 @@ SPDX-License-Identifier: curl
 
 # HTTPS RR
 
-[RFC 9460](https://www.rfc-editor.org/rfc/rfc9460.html) documents the HTTPS
+[RFC 9460](https://datatracker.ietf.org/doc/html/rfc9460) documents the HTTPS
 DNS Resource Record.
 
 curl features **experimental** support for HTTPS RR.
 
-- The ALPN list from the retrieved HTTPS record is parsed
-- The ECH field is stored (when DoH is used)
-- The port number from the HTTPS RR is not used
+- The ALPN list from the record is parsed and used
+- The ECH field is stored - and used if ECH is enabled in the build
+- The port number is not used (Firefox supports it, Chrome does not)
 - The target name is not used
-- The IP addresses from the HTTPS RR are not used
+- The IP addresses (`Ipv6hints`, `Ipv4hints`) from the HTTPS RR are not used
 - It only supports a single HTTPS RR per hostname
-- consider cases without A/AAAA records but *with* HTTPS RR
+- Hostnames without A/AAAA records but *with* HTTPS RR fails
 - consider service profiles where the RR provides different addresses for TCP
   vs QUIC etc
 
@@ -35,7 +35,7 @@ be reused on subsequent uses of the same hostnames.
 ## limitations
 
 We have decided to work on the HTTPS RR support by following what seems to be
-(widely) used, and simply wait with implementing the details of the record
+(widely) used, and wait with implementing the details of the record
 that do not seem to be deployed. HTTPS RR is a DNS field with many odd corners
 and complexities and we might as well avoid them if no one seems to want them.
 
@@ -51,7 +51,7 @@ or
 
 The list of ALPN IDs is parsed but may not be completely respected because of
 what the HTTP version preference is set to, which is a problem we are working
-on. Also, getting an `HTTP/1.1` ALPN in the HTTPS RR field for an HTTP://
+on. Also, getting an `HTTP/1.1` ALPN in the HTTPS RR field for an `http://`
 transfer should imply switching to HTTPS, HSTS style. Which curl currently
 does not.
 

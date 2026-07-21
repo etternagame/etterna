@@ -11,6 +11,7 @@ list(APPEND HD_PATTERN_MODS
     "RollJS.h"
     "RunningMan.h"
     "WideRangeAnchor.h"
+    "WideRangeCJAnchor.h"
     "WideRangeBalance.h"
     "WideRangeJumptrill.h"
     "WideRangeJJ.h"

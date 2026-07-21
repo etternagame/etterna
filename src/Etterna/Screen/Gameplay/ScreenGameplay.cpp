@@ -46,6 +46,7 @@
 #include "RageUtil/Misc/RageInput.h"
 
 #include <algorithm>
+#include <array>
 
 #include "Core/Platform/Platform.hpp"
 

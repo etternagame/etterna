@@ -1,59 +1,58 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
-WebSockets
+HTTP
+HTTP GET
+HTTP proxy
+cookies
 </keywords>
 </info>
 
-#
-# Sends three 4097 bytes TEXT frames, as fragments of one 12291 bytes message
+# Server-side
 <reply>
-<data nocheck="yes">
-HTTP/1.1 101 Switching to WebSockets
+<data crlf="headers">
+HTTP/1.1 200 OK
 Server: test-server/fake
-Upgrade: websocket
-Connection: Upgrade
-Something: else
-Sec-WebSocket-Accept: HkPsVga7+8LuxM4RGQ5p9tZHeYs=
+Content-Length: 21
 
-%hex[%01%7e%10%01]hex%%repeat[256 x helothisisdaniel]%
-%hex[%00%7e%10%01]hex%%repeat[256 x helothisisdaniel]%
-%hex[%80%7e%10%01]hex%%repeat[256 x helothisisdaniel]%
+This server says moo
 </data>
-# allow upgrade
-<servercmd>
-upgrade
-</servercmd>
 </reply>
 
-#
 # Client-side
 <client>
-# require debug for the forced CURL_ENTROPY
-<features>
-Debug
-ws
-</features>
 <server>
 http
 </server>
 <name>
-WebSocket curl_ws_recv() read fragmented message
+Cookie from file: control octet rejected, prefixes matched case sensitively
 </name>
-<tool>
-lib%TESTNUMBER
-</tool>
 <command>
-ws://%HOSTIP:%HTTPPORT/%TESTNUMBER %LOGDIR/save%TESTNUMBER
+http://example.fake/%TESTNUMBER -b %LOGDIR/injar%TESTNUMBER -x %HOSTIP:%HTTPPORT
 </command>
+<file name="%LOGDIR/injar%TESTNUMBER">
+example.fake	FALSE	/	FALSE	0	clean	good
+example.fake	FALSE	/	FALSE	0	bad	%hex[ba%07d]hex%
+example.fake	FALSE	/	FALSE	0	__secure-x	yes
+example.fake	FALSE	/	FALSE	0	__Secure-y	no
+</file>
+<features>
+cookies
+proxy
+</features>
 </client>
 
-#
+# Verify data after the test has been "shot"
 <verify>
-<file name="%LOGDIR/save%TESTNUMBER" mode="text">
-%repeat[256 x helothisisdaniel]%
-%repeat[256 x helothisisdaniel]%
-%repeat[256 x helothisisdaniel]%
-</file>
+<protocol crlf="headers">
+GET http://example.fake/%TESTNUMBER HTTP/1.1
+Host: example.fake
+User-Agent: curl/%VERSION
+Accept: */*
+Proxy-Connection: Keep-Alive
+Cookie: __secure-x=yes; clean=good
+
+</protocol>
 </verify>
 </testcase>

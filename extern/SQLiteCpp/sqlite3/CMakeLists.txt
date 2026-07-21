@@ -1,6 +1,6 @@
 # CMake file for compiling the sqlite3 static library under Windows (for ease of use)
 #
-# Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+# Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
 #
 # Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
 # or copy at http://opensource.org/licenses/MIT) 
@@ -43,6 +43,11 @@ if (SQLITE_ENABLE_DBSTAT_VTAB)
     target_compile_definitions(sqlite3 PUBLIC SQLITE_ENABLE_DBSTAT_VTAB)
     message(STATUS "Compile sqlite3 with SQLITE_ENABLE_DBSTAT_VTAB")
 endif (SQLITE_ENABLE_DBSTAT_VTAB)
+
+if (SQLITE_OMIT_LOAD_EXTENSION)
+    target_compile_definitions(sqlite3 PUBLIC SQLITE_OMIT_LOAD_EXTENSION)
+    message(STATUS "Compile sqlite3 with SQLITE_OMIT_LOAD_EXTENSION")
+endif (SQLITE_OMIT_LOAD_EXTENSION)
 
 if (UNIX AND (CMAKE_COMPILER_IS_GNUCXX OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
     set_target_properties(sqlite3 PROPERTIES COMPILE_FLAGS "-fPIC")

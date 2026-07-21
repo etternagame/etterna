@@ -1,6 +1,6 @@
 /*
 ** Library function support.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_lib_c
@@ -62,6 +62,7 @@ static const uint8_t *lib_read_lfunc(lua_State *L, const uint8_t *p, GCtab *tab)
   ls.pe = (const char *)~(uintptr_t)0;
   ls.c = -1;
   ls.level = (BCDUMP_F_STRIP|(LJ_BE*BCDUMP_F_BE));
+  ls.fr2 = LJ_FR2;
   ls.chunkname = name;
   pt = lj_bcread_proto(&ls);
   pt->firstline = ~(BCLine)0;
@@ -266,6 +267,23 @@ GCfunc *lj_lib_checkfunc(lua_State *L, int narg)
   return funcV(o);
 }
 
+GCproto *lj_lib_checkLproto(lua_State *L, int narg, int nolua)
+{
+  TValue *o = L->base + narg-1;
+  if (L->top > o) {
+    if (tvisproto(o)) {
+      return protoV(o);
+    } else if (tvisfunc(o)) {
+      if (isluafunc(funcV(o)))
+	return funcproto(funcV(o));
+      else if (nolua)
+	return NULL;
+    }
+  }
+  lj_err_argt(L, narg, LUA_TFUNCTION);
+  return NULL;  /* unreachable */
+}
+
 GCtab *lj_lib_checktab(lua_State *L, int narg)
 {
   TValue *o = L->base + narg-1;
@@ -331,7 +349,7 @@ int32_t lj_lib_checkintrange(lua_State *L, int narg, int32_t a, int32_t b)
       ** integer overflow. Overflow detection still works, since all FPUs
       ** return either MININT or MAXINT, which is then out of range.
       */
-      int32_t i = (int32_t)numV(o);
+      int32_t i = lj_num2int(numV(o));
       if (i >= a && i <= b) return i;
 #if LJ_HASFFI
     } else if (tviscdata(o)) {

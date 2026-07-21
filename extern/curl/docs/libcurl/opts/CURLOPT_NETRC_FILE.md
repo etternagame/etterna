@@ -51,14 +51,19 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode ret;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "ftp://example.com/");
     curl_easy_setopt(curl, CURLOPT_NETRC, CURL_NETRC_OPTIONAL);
     curl_easy_setopt(curl, CURLOPT_NETRC_FILE, "/tmp/magic-netrc");
-    ret = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
   }
 }
 ~~~
+
+# HISTORY
+
+**CURL_NETRC_*** enums became `long` types in 8.13.0, prior to this version
+a `long` cast was necessary when passed to curl_easy_setopt(3).
 
 # %AVAILABILITY%
 

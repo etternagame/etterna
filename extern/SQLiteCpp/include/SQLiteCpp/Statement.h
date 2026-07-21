@@ -3,7 +3,7 @@
  * @ingroup SQLiteCpp
  * @brief   A prepared SQLite Statement is a compiled SQL query ready to be executed, pointing to a row of result.
  *
- * Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -14,6 +14,7 @@
 #include <SQLiteCpp/Exception.h>
 #include <SQLiteCpp/Utils.h> // SQLITECPP_PURE_FUNC
 
+#include <cstdint>
 #include <string>
 #include <map>
 #include <memory>

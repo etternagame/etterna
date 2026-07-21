@@ -8,7 +8,7 @@ See-also:
   - curl_version (3)
 Protocol:
   - All
-Added-in: 7.10.0
+Added-in: 7.10
 ---
 
 # NAME
@@ -26,19 +26,10 @@ curl_version_info_data *curl_version_info(CURLversion age);
 # DESCRIPTION
 
 Returns a pointer to a filled in static struct with information about various
-features in the running version of libcurl. *age* should be set to the
-version of this functionality by the time you write your program. This way,
-libcurl always returns a proper struct that your program understands, while
-programs in the future might get a different struct. **CURLVERSION_NOW** is
-the most recent one for the library you have installed:
-~~~c
-  data = curl_version_info(CURLVERSION_NOW);
-~~~
-Applications should use this information to judge if things are possible to do
-or not, instead of using compile-time checks, as dynamic/DLL libraries can be
-changed independent of applications.
+features in the running version of libcurl. The input argument *age* has no
+use and we recommend you set it to `CURLVERSION_NOW`.
 
-This function can alter the returned static data as long as
+This function may alter the returned static data as long as
 curl_global_init(3) has not been called. It is therefore not thread-safe
 before libcurl initialization occurs.
 
@@ -111,14 +102,15 @@ typedef struct {
 } curl_version_info_data;
 ~~~
 
-*age* describes what the age of this struct is. The number depends on how
-new the libcurl you are using is. You are however guaranteed to get a struct
-that you have a matching struct for in the header, as you tell libcurl your
-"age" with the input argument.
+*age* describes what the age of this struct is. That number is different
+depending on how recent your libcurl is. The documentation above describes
+which struct fields that were added at which age. Trying to access a struct
+field that is newer than the age of your struct may cause undefined behavior
+and possibly crashes.
 
-*version* is just an ASCII string for the libcurl version.
+*version* is an ASCII string for the libcurl version.
 
-*version_num* is a 24 bit number created like this: \<8 bits major number\> |
+*version_num* is a 24-bit number created like this: \<8 bits major number\> |
 \<8 bits minor number\> | \<8 bits patch number\>. Version 7.9.8 is therefore
 returned as 0x070908.
 
@@ -137,7 +129,9 @@ entry. See the list of features names below.
 
 *ssl_version* is an ASCII string for the TLS library name + version used. If
 libcurl has no SSL support, this is NULL. For example "Schannel", "Secure
-Transport" or "OpenSSL/1.1.0g".
+Transport" or "OpenSSL/1.1.0g". For MultiSSL builds the string contains all
+SSL backend names and the inactive backend names are in parentheses. For
+example "(OpenSSL/3.0.8) Schannel" or "OpenSSL/3.0.8 (Schannel)".
 
 *ssl_version_num* is always 0.
 
@@ -157,19 +151,26 @@ entry.
 
 HTTP Alt-Svc parsing and the associated options (Added in 7.64.1)
 
+## `AppleSecTrust`
+
+*features* mask bit: non-existent
+
+libcurl was built with support for Apple's SecTrust service to verify
+server certificates (Added in 8.17.0).
+
 ## `AsynchDNS`
 
 *features* mask bit: CURL_VERSION_ASYNCHDNS
 
 libcurl was built with support for asynchronous name lookups, which allows
 more exact timeouts (even on Windows) and less blocking when using the multi
-interface. (added in 7.10.7)
+interface.
 
 ## `brotli`
 
 *features* mask bit: CURL_VERSION_BROTLI
 
-supports HTTP Brotli content encoding using libbrotlidec (Added in 7.57.0)
+supports HTTP Brotli content encoding using libbrotlidec
 
 ## `asyn-rr`
 
@@ -183,7 +184,7 @@ resolves, but uses the threaded resolver for "normal" resolves (Added in
 
 *features* mask bit: CURL_VERSION_DEBUG
 
-libcurl was built with debug capabilities (added in 7.10.6)
+libcurl was built with debug capabilities
 
 ## `ECH`
 
@@ -205,7 +206,6 @@ authentication methods. (added in 7.76.0)
 libcurl was built with support for GSS-API. This makes libcurl use provided
 functions for Kerberos and SPNEGO authentication. It also allows libcurl
 to use the current user credentials without the app having to pass them on.
-(Added in 7.38.0)
 
 ## `HSTS`
 
@@ -219,7 +219,6 @@ libcurl was built with support for HSTS (HTTP Strict Transport Security)
 *features* mask bit: CURL_VERSION_HTTP2
 
 libcurl was built with support for HTTP2.
-(Added in 7.33.0)
 
 ## `HTTP3`
 
@@ -232,7 +231,6 @@ HTTP/3 and QUIC support are built-in (Added in 7.66.0)
 *features* mask bit: CURL_VERSION_HTTPS_PROXY
 
 libcurl was built with support for HTTPS-proxy.
-(Added in 7.52.0)
 
 ## `HTTPSRR`
 
@@ -246,7 +244,7 @@ in 8.12.0)
 *features* mask bit: CURL_VERSION_IDN
 
 libcurl was built with support for IDNA, domain names with international
-letters. (Added in 7.12.0)
+letters.
 
 ## `IPv6`
 
@@ -259,19 +257,19 @@ supports IPv6
 *features* mask bit: CURL_VERSION_KERBEROS5
 
 supports Kerberos V5 authentication for FTP, IMAP, LDAP, POP3, SMTP and
-SOCKSv5 proxy. (Added in 7.40.0)
+SOCKSv5 proxy.
 
 ## `Largefile`
 
 *features* mask bit: CURL_VERSION_LARGEFILE
 
-libcurl was built with support for large files. (Added in 7.11.1)
+libcurl was built with support for large files.
 
 ## `libz`
 
 *features* mask bit: CURL_VERSION_LIBZ
 
-supports HTTP deflate using libz (Added in 7.10)
+supports HTTP deflate using libz
 
 ## `MultiSSL`
 
@@ -279,20 +277,33 @@ supports HTTP deflate using libz (Added in 7.10)
 
 libcurl was built with multiple SSL backends. For details, see
 curl_global_sslset(3).
-(Added in 7.56.0)
+
+## `NativeCA`
+
+*features* mask bit: non-existent
+
+libcurl was built to enable native CA store, to verify server certificates
+(Added in 8.19.0).
 
 ## `NTLM`
 
 *features* mask bit: CURL_VERSION_NTLM
 
-supports HTTP NTLM (added in 7.10.6)
+supports HTTP NTLM
 
 ## `NTLM_WB`
 
 *features* mask bit: CURL_VERSION_NTLM_WB
 
-libcurl was built with support for NTLM delegation to a winbind helper.
-(Added in 7.22.0) This feature was removed from curl in 8.8.0.
+libcurl was built with support for NTLM delegation to a winbind helper. This
+feature was removed from curl in 8.8.0.
+
+## `proxy-HTTP3`
+
+*features* mask bit: non-existent
+
+libcurl was built with EXPERIMENTAL support for HTTP/3 proxy tunneling
+(Added in 8.21.0)
 
 ## `PSL`
 
@@ -300,20 +311,19 @@ libcurl was built with support for NTLM delegation to a winbind helper.
 
 libcurl was built with support for Mozilla's Public Suffix List. This makes
 libcurl ignore cookies with a domain that is on the list.
-(Added in 7.47.0)
 
 ## `SPNEGO`
 
 *features* mask bit: CURL_VERSION_SPNEGO
 
 libcurl was built with support for SPNEGO authentication (Simple and Protected
-GSS-API Negotiation Mechanism, defined in RFC 2478.) (added in 7.10.8)
+GSS-API Negotiation Mechanism, defined in RFC 2478.)
 
 ## `SSL`
 
 *features* mask bit: CURL_VERSION_SSL
 
-supports SSL (HTTPS/FTPS) (Added in 7.10)
+supports SSL (HTTPS/FTPS)
 
 ## `SSLS-EXPORT`
 
@@ -329,7 +339,7 @@ libcurl was built with SSL session import/export support
 libcurl was built with support for SSPI. This is only available on Windows and
 makes libcurl use Windows-provided functions for Kerberos, NTLM, SPNEGO and
 Digest authentication. It also allows libcurl to use the current user
-credentials without the app having to pass them on. (Added in 7.13.2)
+credentials without the app having to pass them on.
 
 ## `threadsafe`
 
@@ -343,14 +353,7 @@ curl initialization. (Added in 7.84.0) See libcurl-thread(3)
 *features* mask bit: CURL_VERSION_TLSAUTH_SRP
 
 libcurl was built with support for TLS-SRP (in one or more of the built-in TLS
-backends). (Added in 7.21.4)
-
-## `TrackMemory`
-
-*features* mask bit: CURL_VERSION_CURLDEBUG
-
-libcurl was built with memory tracking debug capabilities. This is mainly of
-interest for libcurl hackers. (added in 7.19.6)
+backends).
 
 ## `Unicode`
 
@@ -364,7 +367,6 @@ characters work in filenames and options passed to libcurl. (Added in 7.72.0)
 *features* mask bit: CURL_VERSION_UNIX_SOCKETS
 
 libcurl was built with support for Unix domain sockets.
-(Added in 7.40.0)
 
 ## `zstd`
 
@@ -377,13 +379,21 @@ supports HTTP zstd content encoding using zstd library (Added in 7.72.0)
 *features* mask bit: CURL_VERSION_CONV
 
 libcurl was built with support for character conversions provided by
-callbacks. Always 0 since 7.82.0. (Added in 7.15.4, deprecated.)
+callbacks. Always 0 since 7.82.0. Deprecated.
+
+## no name
+
+*features* mask bit: CURL_VERSION_CURLDEBUG
+
+libcurl was built with memory tracking debug capabilities. This is mainly of
+interest for libcurl hackers. Always the same as CURL_VERSION_DEBUG since
+8.19.0. Deprecated.
 
 ## no name
 
 *features* mask bit: CURL_VERSION_GSSNEGOTIATE
 
-supports HTTP GSS-Negotiate (added in 7.10.6, deprecated in 7.38.0)
+supports HTTP GSS-Negotiate. Deprecated.
 
 ## no name
 

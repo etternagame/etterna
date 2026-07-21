@@ -23,26 +23,23 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "urldata.h"
-#include "curl_addrinfo.h"
-#ifdef USE_HTTPSRR
-# include <stdint.h>
-# include "httpsrr.h"
-#endif
 
-#ifndef CURL_DISABLE_DOH
+/* enums outside of the #ifdef to make the types work in unitprotos.h even on
+   builds without DoH support */
+
+struct Curl_resolv_async;
 
 typedef enum {
   DOH_OK,
-  DOH_DNS_BAD_LABEL,    /* 1 */
-  DOH_DNS_OUT_OF_RANGE, /* 2 */
-  DOH_DNS_LABEL_LOOP,   /* 3 */
-  DOH_TOO_SMALL_BUFFER, /* 4 */
-  DOH_OUT_OF_MEM,       /* 5 */
-  DOH_DNS_RDATA_LEN,    /* 6 */
-  DOH_DNS_MALFORMAT,    /* 7 */
-  DOH_DNS_BAD_RCODE,    /* 8 - no such name */
+  DOH_DNS_BAD_LABEL,        /* 1 */
+  DOH_DNS_OUT_OF_RANGE,     /* 2 */
+  DOH_DNS_LABEL_LOOP,       /* 3 */
+  DOH_TOO_SMALL_BUFFER,     /* 4 */
+  DOH_OUT_OF_MEM,           /* 5 */
+  DOH_DNS_RDATA_LEN,        /* 6 */
+  DOH_DNS_MALFORMAT,        /* 7 */
+  DOH_DNS_BAD_RCODE,        /* 8 - no such name */
   DOH_DNS_UNEXPECTED_TYPE,  /* 9 */
   DOH_DNS_UNEXPECTED_CLASS, /* 10 */
   DOH_NO_CONTENT,           /* 11 */
@@ -51,22 +48,17 @@ typedef enum {
 } DOHcode;
 
 typedef enum {
-  DNS_TYPE_A = 1,
-  DNS_TYPE_NS = 2,
-  DNS_TYPE_CNAME = 5,
-  DNS_TYPE_AAAA = 28,
-  DNS_TYPE_DNAME = 39,           /* RFC6672 */
-  DNS_TYPE_HTTPS = 65
+  CURL_DNS_TYPE_A = 1,
+  CURL_DNS_TYPE_NS = 2,
+  CURL_DNS_TYPE_CNAME = 5,
+  CURL_DNS_TYPE_AAAA = 28,
+  CURL_DNS_TYPE_DNAME = 39,           /* RFC6672 */
+  CURL_DNS_TYPE_HTTPS = 65
 } DNStype;
 
-/* one of these for each DoH request */
-struct doh_probe {
-  curl_off_t easy_mid; /* multi id of easy handle doing the lookup */
-  DNStype dnstype;
-  unsigned char req_body[512];
-  size_t req_body_len;
-  struct dynbuf resp_body;
-};
+struct dohentry; /* forward-declare for non-DoH builds */
+
+#ifndef CURL_DISABLE_DOH
 
 enum doh_slot_num {
   /* Explicit values for first two symbols so as to match hard-coded
@@ -89,28 +81,50 @@ enum doh_slot_num {
   DOH_SLOT_COUNT
 };
 
-struct doh_probes {
+#define CURL_EZM_DOH_PROBE   "ezm:doh-p"
+
+/* the largest one we can make, based on RFCs 1034, 1035 */
+#define DOH_MAX_DNSREQ_SIZE (256 + 16)
+
+/* each DoH probe request has this
+ * as easy meta for CURL_EZM_DOH_PROBE */
+struct doh_request {
+  unsigned char req_body[DOH_MAX_DNSREQ_SIZE];
   struct curl_slist *req_hds;
-  struct doh_probe probe[DOH_SLOT_COUNT];
+  struct dynbuf resp_body;
+  size_t req_body_len;
+  uint32_t resolv_id; /* id of the resolve operation */
+  DNStype dnstype;
+};
+
+struct doh_response {
+  uint32_t probe_mid;
+  struct dynbuf body;
+  DNStype dnstype;
+  CURLcode result;
+};
+
+/* each transfer firing off DoH requests has this
+ * as easy meta for CURL_EZM_DOH_MASTER */
+struct doh_probes {
+  struct doh_response probe_resp[DOH_SLOT_COUNT];
   unsigned int pending; /* still outstanding probes */
-  int port;
+  uint16_t port;
   const char *host;
 };
 
 /*
- * Curl_doh() resolve a name using DoH (DNS-over-HTTPS). It resolves a name
- * and returns a 'Curl_addrinfo *' with the address information.
+ * Curl_doh() starts a name resolve using DoH (DNS-over-HTTPS). It resolves a
+ * name and returns a 'Curl_addrinfo *' with the address information.
  */
+CURLcode Curl_doh(struct Curl_easy *data,
+                  struct Curl_resolv_async *async);
 
-struct Curl_addrinfo *Curl_doh(struct Curl_easy *data,
-                               const char *hostname,
-                               int port,
-                               int *waitp);
+CURLcode Curl_doh_take_result(struct Curl_easy *data,
+                              struct Curl_resolv_async *async,
+                              struct Curl_dns_entry **pdns);
 
-CURLcode Curl_doh_is_resolved(struct Curl_easy *data,
-                              struct Curl_dns_entry **dns);
-
-#define DOH_MAX_ADDR 24
+#define DOH_MAX_ADDR  24
 #define DOH_MAX_CNAME 4
 #define DOH_MAX_HTTPS 4
 
@@ -149,27 +163,14 @@ struct dohentry {
 #endif
 };
 
-void Curl_doh_close(struct Curl_easy *data);
-void Curl_doh_cleanup(struct Curl_easy *data);
+void Curl_doh_cleanup(struct Curl_easy *data,
+                      struct Curl_resolv_async *async);
+#define Curl_doh_wanted(d)  (!!(d)->set.doh)
 
-#ifdef UNITTESTS
-UNITTEST DOHcode doh_req_encode(const char *host,
-                                DNStype dnstype,
-                                unsigned char *dnsp,  /* buffer */
-                                size_t len,  /* buffer size */
-                                size_t *olen);  /* output length */
-UNITTEST DOHcode doh_resp_decode(const unsigned char *doh,
-                                 size_t dohlen,
-                                 DNStype dnstype,
-                                 struct dohentry *d);
-
-UNITTEST void de_init(struct dohentry *d);
-UNITTEST void de_cleanup(struct dohentry *d);
-#endif
-
-#else /* if DoH is disabled */
-#define Curl_doh(a,b,c,d) NULL
-#define Curl_doh_is_resolved(x,y) CURLE_COULDNT_RESOLVE_HOST
-#endif
+#else /* CURL_DISABLE_DOH */
+#define Curl_doh(a, b)             NULL
+#define Curl_doh_take_result(x, y, z) CURLE_COULDNT_RESOLVE_HOST
+#define Curl_doh_wanted(d)         FALSE
+#endif /* !CURL_DISABLE_DOH */
 
 #endif /* HEADER_CURL_DOH_H */

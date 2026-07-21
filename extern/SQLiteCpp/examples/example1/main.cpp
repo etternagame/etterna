@@ -4,7 +4,7 @@
  *
  *  Demonstrates how-to use the SQLite++ wrapper
  *
- * Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -87,7 +87,7 @@ int main()
 {
     // Using SQLITE_VERSION would require #include <sqlite3.h> which we want to avoid: use SQLite::VERSION if possible.
 //  std::cout << "SQlite3 version " << SQLITE_VERSION << std::endl;
-    std::cout << "SQlite3 version " << SQLite::VERSION << " (" << SQLite::getLibVersion() << ")" << std::endl;
+    std::cout << "SQlite3 compile time header version " << SQLite::VERSION << " (vs dynamic lib version " << SQLite::getLibVersion() << ")" << std::endl;
     std::cout << "SQliteC++ version " << SQLITECPP_VERSION << std::endl;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -298,16 +298,16 @@ int main()
         db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
 
         // first row
-        int nb = db.exec("INSERT INTO test VALUES (NULL, \"test\")");
-        std::cout << "INSERT INTO test VALUES (NULL, \"test\")\", returned " << nb << std::endl;
+        int nb = db.exec("INSERT INTO test VALUES (NULL, 'test')");
+        std::cout << "INSERT INTO test VALUES (NULL, 'test')\", returned " << nb << std::endl;
 
         // second row
-        nb = db.exec("INSERT INTO test VALUES (NULL, \"second\")");
-        std::cout << "INSERT INTO test VALUES (NULL, \"second\")\", returned " << nb << std::endl;
+        nb = db.exec("INSERT INTO test VALUES (NULL, 'second')");
+        std::cout << "INSERT INTO test VALUES (NULL, 'second')\", returned " << nb << std::endl;
 
         // update the second row
-        nb = db.exec("UPDATE test SET value=\"second-updated\" WHERE id='2'");
-        std::cout << "UPDATE test SET value=\"second-updated\" WHERE id='2', returned " << nb << std::endl;
+        nb = db.exec("UPDATE test SET value='second-updated' WHERE id='2'");
+        std::cout << "UPDATE test SET value='second-updated' WHERE id='2', returned " << nb << std::endl;
 
         nb = db.getTotalChanges();
         std::cout << "Nb of total changes since connection: " << nb << std::endl;
@@ -347,8 +347,8 @@ int main()
 
             db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
 
-            int nb = db.exec("INSERT INTO test VALUES (NULL, \"test\")");
-            std::cout << "INSERT INTO test VALUES (NULL, \"test\")\", returned " << nb << std::endl;
+            int nb = db.exec("INSERT INTO test VALUES (NULL, 'test')");
+            std::cout << "INSERT INTO test VALUES (NULL, 'test')\", returned " << nb << std::endl;
 
             // Commit transaction
             transaction.commit();
@@ -365,8 +365,8 @@ int main()
             // Begin transaction
             SQLite::Transaction transaction(db);
 
-            int nb = db.exec("INSERT INTO test VALUES (NULL, \"second\")");
-            std::cout << "INSERT INTO test VALUES (NULL, \"second\")\", returned " << nb << std::endl;
+            int nb = db.exec("INSERT INTO test VALUES (NULL, 'second')");
+            std::cout << "INSERT INTO test VALUES (NULL, 'second')\", returned " << nb << std::endl;
 
             nb = db.exec("INSERT INTO test ObviousError");
             std::cout << "INSERT INTO test \"error\", returned " << nb << std::endl;

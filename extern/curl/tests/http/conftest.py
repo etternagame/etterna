@@ -1,4 +1,4 @@
-#***************************************************************************
+# ***************************************************************************
 #                                  _   _ ____  _
 #  Project                     ___| | | |  _ \| |
 #                             / __| | | | |_) | |
@@ -24,62 +24,66 @@
 #
 import logging
 import os
-import sys
 import platform
-from typing import Generator
+import sys
+from typing import Generator, Union
 
 import pytest
+from testenv.env import EnvConfig
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "."))
 
-from testenv import Env, Nghttpx, Httpd, NghttpxQuic, NghttpxFwd
+from testenv import Env, Httpd, Nghttpx, NghttpxFwd, NghttpxQuic, Sshd
+from testenv.h2o import H2oProxy, H2oServer
+
+log = logging.getLogger(__name__)
+
 
 def pytest_report_header(config):
     # Env inits its base properties only once, we can report them here
     env = Env()
     report = [
-        f'Testing curl {env.curl_version()}',
-        f'  platform: {platform.platform()}',
-        f'  curl: Version: {env.curl_version_string()}',
-        f'  curl: Features: {env.curl_features_string()}',
-        f'  curl: Protocols: {env.curl_protocols_string()}',
-        f'  httpd: {env.httpd_version()}, http:{env.http_port} https:{env.https_port}',
-        f'  httpd-proxy: {env.httpd_version()}, http:{env.proxy_port} https:{env.proxys_port}'
+        f"Testing curl {env.curl_version()}",
+        f"  platform: {platform.platform()}",
+        f"  curl: Version: {env.curl_version_string()}",
+        f"  curl: Features: {env.curl_features_string()}",
+        f"  curl: Protocols: {env.curl_protocols_string()}",
+        f"  httpd: {env.httpd_version()}",
+        f"  httpd-proxy: {env.httpd_version()}",
     ]
     if env.have_h3():
-        report.extend([
-            f'  nghttpx: {env.nghttpx_version()}, h3:{env.https_port}'
-        ])
+        report.extend([f"  nghttpx: {env.nghttpx_version()}"])
+    if env.have_h2o():
+        report.extend([f"  h2o: {env.h2o_version()}"])
     if env.has_caddy():
-        report.extend([
-            f'  Caddy: {env.caddy_version()}, http:{env.caddy_http_port} https:{env.caddy_https_port}'
-        ])
+        report.extend([f"  Caddy: {env.caddy_version()}"])
     if env.has_vsftpd():
-        report.extend([
-            f'  VsFTPD: {env.vsftpd_version()}, ftp:{env.ftp_port}, ftps:{env.ftps_port}'
-        ])
-    buildinfo_fn = os.path.join(env.build_dir, 'buildinfo.txt')
+        report.extend([f"  VsFTPD: {env.vsftpd_version()}"])
+    buildinfo_fn = os.path.join(env.build_dir, "buildinfo.txt")
     if os.path.exists(buildinfo_fn):
-        with open(buildinfo_fn, 'r') as file_in:
+        with open(buildinfo_fn, "r") as file_in:
             for line in file_in:
                 line = line.strip()
-                if line and not line.startswith('#'):
+                if line and not line.startswith("#"):
                     report.extend([line])
-    return '\n'.join(report)
+    return "\n".join(report)
 
-# TODO: remove this and repeat argument everywhere, pytest-repeat can be used to repeat tests
-def pytest_generate_tests(metafunc):
-    if "repeat" in metafunc.fixturenames:
-        metafunc.parametrize('repeat', [0])
 
-@pytest.fixture(scope="package")
-def env(pytestconfig) -> Env:
-    env = Env(pytestconfig=pytestconfig)
+@pytest.fixture(scope="session")
+def env_config(pytestconfig, testrun_uid, worker_id) -> EnvConfig:
+    return EnvConfig(
+        pytestconfig=pytestconfig, testrun_uid=testrun_uid, worker_id=worker_id
+    )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def env(pytestconfig, env_config) -> Env:
+    env = Env(pytestconfig=pytestconfig, env_config=env_config)
     level = logging.DEBUG if env.verbose > 0 else logging.INFO
-    logging.getLogger('').setLevel(level=level)
-    if not env.curl_has_protocol('http'):
+    logging.getLogger("").setLevel(level=level)
+    if not env.curl_has_protocol("http"):
         pytest.skip("curl built without HTTP support")
-    if not env.curl_has_protocol('https'):
+    if not env.curl_has_protocol("https"):
         pytest.skip("curl built without HTTPS support")
     if env.setup_incomplete():
         pytest.skip(env.incomplete_reason())
@@ -87,37 +91,105 @@ def env(pytestconfig) -> Env:
     env.setup()
     return env
 
-@pytest.fixture(scope="package", autouse=True)
-def log_global_env_facts(record_testsuite_property, env):
-    record_testsuite_property("http-port", env.http_port)
 
-
-@pytest.fixture(scope='package')
+@pytest.fixture(scope="session")
 def httpd(env) -> Generator[Httpd, None, None]:
     httpd = Httpd(env=env)
     if not httpd.exists():
-        pytest.skip(f'httpd not found: {env.httpd}')
+        pytest.skip(f"httpd not found: {env.httpd}")
     httpd.clear_logs()
-    if not httpd.start():
-        pytest.fail(f'failed to start httpd: {env.httpd}')
+    assert httpd.initial_start()
     yield httpd
     httpd.stop()
 
 
-@pytest.fixture(scope='package')
-def nghttpx(env, httpd) -> Generator[Nghttpx, None, None]:
+@pytest.fixture(scope="session")
+def nghttpx(env, httpd) -> Generator[Union[Nghttpx, bool], None, None]:
     nghttpx = NghttpxQuic(env=env)
-    if nghttpx.exists() and (env.have_h3() or nghttpx.https_port > 0):
+    if nghttpx.exists():
+        if not nghttpx.supports_h3() and env.have_h3_curl():
+            log.warning("nghttpx does not support QUIC, but curl does")
         nghttpx.clear_logs()
-        assert nghttpx.start()
-    yield nghttpx
-    nghttpx.stop()
+        assert nghttpx.initial_start()
+        yield nghttpx
+        nghttpx.stop()
+    else:
+        yield False
 
-@pytest.fixture(scope='package')
-def nghttpx_fwd(env, httpd) -> Generator[Nghttpx, None, None]:
+
+@pytest.fixture(scope="session")
+def nghttpx_fwd(env, httpd) -> Generator[Union[Nghttpx, bool], None, None]:
     nghttpx = NghttpxFwd(env=env)
-    if nghttpx.exists() and (env.have_h3() or nghttpx.https_port > 0):
+    if nghttpx.exists():
         nghttpx.clear_logs()
-        assert nghttpx.start()
-    yield nghttpx
-    nghttpx.stop()
+        assert nghttpx.initial_start()
+        yield nghttpx
+        nghttpx.stop()
+    else:
+        yield False
+
+
+@pytest.fixture(scope="session")
+def sshd(env: Env) -> Generator[Union[Sshd, bool], None, None]:
+    if env.has_sshd():
+        sshd = Sshd(env=env)
+        assert sshd.initial_start(), f"{sshd.dump_log()}"
+        yield sshd
+        sshd.stop()
+    else:
+        yield False
+
+
+@pytest.fixture(scope="session")
+def configures_httpd(env, httpd) -> Generator[bool, None, None]:
+    # include this fixture as test parameter if the test configures httpd itself
+    yield True
+
+
+@pytest.fixture(scope="session")
+def configures_nghttpx(env, httpd) -> Generator[bool, None, None]:
+    # include this fixture as test parameter if the test configures nghttpx itself
+    yield True
+
+
+@pytest.fixture(autouse=True, scope="function")
+def server_reset(request, env, httpd, nghttpx):
+    # make sure httpd is in default configuration when a test starts
+    if "configures_httpd" not in request.node._fixtureinfo.argnames:
+        httpd.reset_config()
+        httpd.reload_if_config_changed()
+    if (
+        env.have_h3()
+        and "nghttpx" in request.node._fixtureinfo.argnames
+        and "configures_nghttpx" not in request.node._fixtureinfo.argnames
+    ):
+        nghttpx.reset_config()
+        nghttpx.reload_if_config_changed()
+
+
+@pytest.fixture(scope="session")
+def h2o_server(env) -> Generator[Union[H2oServer, bool], None, None]:
+    h2o = H2oServer(env=env)
+    if env.have_h2o():
+        h2o.clear_logs()
+        if not h2o.initial_start():
+            h2o_logs = "\n".join(h2o.dump_logs())
+            pytest.skip(f"h2o server failed to start\n{h2o_logs}")
+        yield h2o
+        h2o.kill()
+    else:
+        yield False
+
+
+@pytest.fixture(scope="session")
+def h2o_proxy(env) -> Generator[Union[H2oProxy, bool], None, None]:
+    h2o = H2oProxy(env=env)
+    if env.have_h2o():
+        h2o.clear_logs()
+        if not h2o.initial_start():
+            h2o_logs = "\n".join(h2o.dump_logs())
+            pytest.skip(f"h2o proxy failed to start\n{h2o_logs}")
+        yield h2o
+        h2o.kill()
+    else:
+        yield False

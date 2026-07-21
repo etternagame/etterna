@@ -39,9 +39,9 @@ the filename of your private key used for connecting to the HTTPS proxy. The
 default format is "PEM" and can be changed with
 CURLOPT_PROXY_SSLKEYTYPE(3).
 
-(Windows, iOS and macOS) This option is ignored by Secure Transport and
-Schannel SSL backends because they expect the private key to be already
-present in the key chain or PKCS#12 file containing the certificate.
+This option is ignored by the Schannel backend because it expects the private
+key to be already present in the key chain or PKCS#12 file containing the
+certificate.
 
 The application does not have to keep the string around after setting this
 option.
@@ -62,13 +62,13 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
-    curl_easy_setopt(curl, CURLOPT_PROXY, "https://proxy");
+    curl_easy_setopt(curl, CURLOPT_PROXY, "https://proxy.example");
     curl_easy_setopt(curl, CURLOPT_PROXY_SSLCERT, "client.pem");
     curl_easy_setopt(curl, CURLOPT_PROXY_SSLKEY, "key.pem");
     curl_easy_setopt(curl, CURLOPT_PROXY_KEYPASSWD, "s3cret");
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 }

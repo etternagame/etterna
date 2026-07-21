@@ -1,10 +1,10 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 FTP
 PASV
 RETR
-FAILURE
 </keywords>
 </info>
 # Server-side
@@ -30,13 +30,10 @@ ftp://%HOSTIP:%FTPPORT/dir/%TESTNUMBER ftp://%HOSTIP:%FTPPORT/dir/%TESTNUMBER
 
 # Verify data after the test has been "shot"
 <verify>
-<strip>
-QUIT
-</strip>
 <errorcode>
 78
 </errorcode>
-<protocol>
+<protocol crlf="yes">
 USER anonymous
 PASS ftp@example.com
 PWD

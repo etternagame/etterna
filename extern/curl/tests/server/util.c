@@ -21,74 +21,35 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "server_setup.h"
+#include "first.h"
 
-#ifndef UNDER_CE
-#include <signal.h>
-#endif
-#ifdef HAVE_NETINET_IN_H
-#include <netinet/in.h>
-#endif
-#ifdef _XOPEN_SOURCE_EXTENDED
-/* This define is "almost" required to build on HP-UX 11 */
-#include <arpa/inet.h>
-#endif
-#ifdef HAVE_NETDB_H
-#include <netdb.h>
-#endif
+#include <toolx/tool_time.h>
 
-#ifdef MSDOS
-#include <dos.h>  /* delay() */
+#ifdef HAVE_FCNTL_H
+#include <fcntl.h>
 #endif
 
 #ifdef _WIN32
-#include "strerror.h"
+#include <share.h>
 #endif
 
-#include "curlx.h" /* from the private lib dir */
-#include "util.h"
-
-/* need init from main() */
-const char *pidname = NULL;
-const char *portname = NULL; /* none by default */
-const char *serverlogfile = NULL;
-int serverlogslocked;
-const char *configfile = NULL;
-const char *logdir = "log";
-char loglockfile[256];
-#ifdef USE_IPV6
-bool use_ipv6 = FALSE;
-#endif
-const char *ipv_inuse = "IPv4";
-unsigned short server_port = 0;
-const char *socket_type = "IPv4";
-int socket_domain = AF_INET;
-
-/* This function returns a pointer to STATIC memory. It converts the given
- * binary lump to a hex formatted string usable for output in logs or
- * whatever.
- */
-char *data_to_hex(char *data, size_t len)
+void loghex(const unsigned char *buffer, ssize_t len)
 {
-  static char buf[256*3];
-  size_t i;
-  char *optr = buf;
-  char *iptr = data;
+  char data[12000];
+  ssize_t i;
+  const unsigned char *ptr = buffer;
+  char *optr = data;
+  ssize_t width = 0;
+  int left = sizeof(data);
 
-  if(len > 255)
-    len = 255;
-
-  for(i = 0; i < len; i++) {
-    if((data[i] >= 0x20) && (data[i] < 0x7f))
-      *optr++ = *iptr++;
-    else {
-      msnprintf(optr, 4, "%%%02x", *iptr++);
-      optr += 3;
-    }
+  for(i = 0; i < len && (left > 2); i++) {
+    snprintf(optr, left, "%02x", ptr[i]);
+    width += 2;
+    optr += 2;
+    left -= 2;
   }
-  *optr = 0; /* in case no sprintf was used */
-
-  return buf;
+  if(width)
+    logmsg("'%s'", data);
 }
 
 void logmsg(const char *msg, ...)
@@ -97,14 +58,15 @@ void logmsg(const char *msg, ...)
   char buffer[2048 + 1];
   FILE *logfp;
   struct curltime tv;
+  CURLcode result;
   time_t sec;
-  struct tm *now;
-  char timebuf[20];
+  struct tm now;
+  char timebuf[50];
   static time_t epoch_offset;
   static int    known_offset;
 
   if(!serverlogfile) {
-    fprintf(stderr, "Serverlogfile not set error\n");
+    fprintf(stderr, "Error: Server log file not set\n");
     return;
   }
 
@@ -114,76 +76,49 @@ void logmsg(const char *msg, ...)
     known_offset = 1;
   }
   sec = epoch_offset + tv.tv_sec;
-  /* !checksrc! disable BANNEDFUNC 1 */
-  now = localtime(&sec); /* not thread safe but we don't care */
+  result = toolx_localtime(sec, &now);
+  if(result)
+    memset(&now, 0, sizeof(now));
 
-  msnprintf(timebuf, sizeof(timebuf), "%02d:%02d:%02d.%06ld",
-            (int)now->tm_hour, (int)now->tm_min, (int)now->tm_sec,
-            (long)tv.tv_usec);
+  snprintf(timebuf, sizeof(timebuf), "%02d:%02d:%02d.%06ld",
+           now.tm_hour, now.tm_min, now.tm_sec, (long)tv.tv_usec);
 
   va_start(ap, msg);
-  mvsnprintf(buffer, sizeof(buffer), msg, ap);
+/* Suppress for builds where CURL_PRINTF() is not set */
+#ifdef CURL_HAVE_DIAG
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
+  vsnprintf(buffer, sizeof(buffer), msg, ap);
+#ifdef CURL_HAVE_DIAG
+#pragma GCC diagnostic pop
+#endif
   va_end(ap);
 
   do {
-    logfp = fopen(serverlogfile, "ab");
+    logfp = curlx_fopen(serverlogfile, "ab");
     /* !checksrc! disable ERRNOVAR 1 */
   } while(!logfp && (errno == EINTR));
   if(logfp) {
     fprintf(logfp, "%s %s\n", timebuf, buffer);
-    fclose(logfp);
+    curlx_fclose(logfp);
   }
   else {
+    char errbuf[STRERROR_LEN];
     int error = errno;
     fprintf(stderr, "fopen() failed with error (%d) %s\n",
-            error, strerror(error));
+            error, curlx_strerror(error, errbuf, sizeof(errbuf)));
     fprintf(stderr, "Error opening file '%s'\n", serverlogfile);
     fprintf(stderr, "Msg not logged: %s %s\n", timebuf, buffer);
   }
 }
 
-void loghex(unsigned char *buffer, ssize_t len)
-{
-  char data[12000];
-  ssize_t i;
-  unsigned char *ptr = buffer;
-  char *optr = data;
-  ssize_t width = 0;
-  int left = sizeof(data);
-
-  for(i = 0; i < len && (left >= 0); i++) {
-    msnprintf(optr, left, "%02x", ptr[i]);
-    width += 2;
-    optr += 2;
-    left -= 2;
-  }
-  if(width)
-    logmsg("'%s'", data);
-}
-
-unsigned char byteval(char *value)
-{
-  unsigned long num = strtoul(value, NULL, 10);
-  return num & 0xff;
-}
-
 #ifdef _WIN32
-/* use instead of perror() on generic Windows */
-static void win32_perror(const char *msg)
-{
-  char buf[512];
-  int err = SOCKERRNO;
-  curlx_winapi_strerror(err, buf, sizeof(buf));
-  if(msg)
-    fprintf(stderr, "%s: ", msg);
-  fprintf(stderr, "%s\n", buf);
-}
-
 static void win32_cleanup(void)
 {
 #ifdef USE_WINSOCK
   WSACleanup();
-#endif  /* USE_WINSOCK */
+#endif
 
   /* flush buffers of all streams regardless of their mode */
   _flushall();
@@ -197,117 +132,58 @@ int win32_init(void)
     WORD wVersionRequested;
     WSADATA wsaData;
     int err;
+    char buffer[STRERROR_LEN];
 
     wVersionRequested = MAKEWORD(2, 2);
     err = WSAStartup(wVersionRequested, &wsaData);
-
     if(err) {
-      win32_perror("Winsock init failed");
-      logmsg("Error initialising Winsock -- aborting");
+      curlx_strerror(SOCKERRNO, buffer, sizeof(buffer));
+      fprintf(stderr, "Winsock init failed: %s\n", buffer);
+      logmsg("Error initializing Winsock -- aborting");
       return 1;
     }
 
     if(LOBYTE(wsaData.wVersion) != LOBYTE(wVersionRequested) ||
-       HIBYTE(wsaData.wVersion) != HIBYTE(wVersionRequested) ) {
+       HIBYTE(wsaData.wVersion) != HIBYTE(wVersionRequested)) {
       WSACleanup();
-      win32_perror("Winsock init failed");
+      curlx_strerror(SOCKERRNO, buffer, sizeof(buffer));
+      fprintf(stderr, "Winsock init failed: %s\n", buffer);
       logmsg("No suitable winsock.dll found -- aborting");
       return 1;
     }
   }
-#endif  /* USE_WINSOCK */
+#endif /* USE_WINSOCK */
   atexit(win32_cleanup);
   return 0;
 }
+#endif /* _WIN32 */
 
-/* socket-safe strerror (works on Winsock errors, too) */
-const char *sstrerror(int err)
-{
-  static char buf[512];
-  return curlx_winapi_strerror(err, buf, sizeof(buf));
-}
-#endif  /* _WIN32 */
-
-/* set by the main code to point to where the test dir is */
-const char *srcpath = ".";
-
+/* fopens the test case file */
 FILE *test2fopen(long testno, const char *logdir2)
 {
   FILE *stream;
   char filename[256];
   /* first try the alternative, preprocessed, file */
-  msnprintf(filename, sizeof(filename), "%s/test%ld", logdir2, testno);
-  stream = fopen(filename, "rb");
-  if(stream)
-    return stream;
-
-  /* then try the source version */
-  msnprintf(filename, sizeof(filename), "%s/data/test%ld", srcpath, testno);
-  stream = fopen(filename, "rb");
+  snprintf(filename, sizeof(filename), "%s/test%ld", logdir2, testno);
+  stream = curlx_fopen(filename, "rb");
 
   return stream;
 }
 
-/*
- * Portable function used for waiting a specific amount of ms.
- * Waiting indefinitely with this function is not allowed, a
- * zero or negative timeout value will return immediately.
- *
- * Return values:
- *   -1 = system call error, or invalid timeout value
- *    0 = specified timeout has elapsed
- */
-int wait_ms(timediff_t timeout_ms)
-{
-  int r = 0;
-
-  if(!timeout_ms)
-    return 0;
-  if(timeout_ms < 0) {
-    SET_SOCKERRNO(SOCKEINVAL);
-    return -1;
-  }
-#if defined(MSDOS)
-  delay((unsigned int)timeout_ms);
-#elif defined(_WIN32)
-  /* prevent overflow, timeout_ms is typecast to ULONG/DWORD. */
-#if TIMEDIFF_T_MAX >= ULONG_MAX
-  if(timeout_ms >= ULONG_MAX)
-    timeout_ms = ULONG_MAX-1;
-    /* do not use ULONG_MAX, because that is equal to INFINITE */
-#endif
-  Sleep((DWORD)timeout_ms);
+#ifdef _WIN32
+#define t_getpid() GetCurrentProcessId()
 #else
-  /* avoid using poll() for this since it behaves incorrectly with no sockets
-     on Apple operating systems */
-  {
-    struct timeval pending_tv;
-    r = select(0, NULL, NULL, NULL, curlx_mstotv(&pending_tv, timeout_ms));
-  }
-#endif /* _WIN32 */
-  if(r) {
-    if((r == -1) && (SOCKERRNO == SOCKEINTR))
-      /* make EINTR from select or poll not a "lethal" error */
-      r = 0;
-    else
-      r = -1;
-  }
-  return r;
-}
+#define t_getpid() getpid()
+#endif
 
 curl_off_t our_getpid(void)
 {
-  curl_off_t pid;
-
-  pid = (curl_off_t)curlx_getpid();
+  curl_off_t pid = (curl_off_t)t_getpid();
 #ifdef _WIN32
   /* store pid + MAX_PID to avoid conflict with Cygwin/msys PIDs, see also:
-   * - 2019-01-31: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit; ↵
-   *               h=b5e1003722cb14235c4f166be72c09acdffc62ea
-   * - 2019-02-02: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit; ↵
-   *               h=448cf5aa4b429d5a9cebf92a0da4ab4b5b6d23fe
-   * - 2024-12-19: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit; ↵
-   *               h=363357c023ce01e936bdaedf0f479292a8fa4e0f
+   * - 2019-01-31: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit;h=b5e1003722cb14235c4f166be72c09acdffc62ea
+   * - 2019-02-02: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit;h=448cf5aa4b429d5a9cebf92a0da4ab4b5b6d23fe
+   * - 2024-12-19: https://cygwin.com/git/?p=newlib-cygwin.git;a=commit;h=363357c023ce01e936bdaedf0f479292a8fa4e0f
    */
   pid += 4194304;
 #endif
@@ -320,27 +196,31 @@ int write_pidfile(const char *filename)
   curl_off_t pid;
 
   pid = our_getpid();
-  pidfile = fopen(filename, "wb");
+  pidfile = curlx_fopen(filename, "wb");
   if(!pidfile) {
-    logmsg("Couldn't write pid file: %s %s", filename, strerror(errno));
+    char errbuf[STRERROR_LEN];
+    logmsg("Could not write pid file: %s (%d) %s", filename,
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
     return 0; /* fail */
   }
-  fprintf(pidfile, "%" CURL_FORMAT_CURL_OFF_T "\n", pid);
-  fclose(pidfile);
-  logmsg("Wrote pid %" CURL_FORMAT_CURL_OFF_T " to %s", pid, filename);
+  fprintf(pidfile, "%ld\n", (long)pid);
+  curlx_fclose(pidfile);
+  logmsg("Wrote pid %ld to %s", (long)pid, filename);
   return 1; /* success */
 }
 
 /* store the used port number in a file */
 int write_portfile(const char *filename, int port)
 {
-  FILE *portfile = fopen(filename, "wb");
+  FILE *portfile = curlx_fopen(filename, "wb");
   if(!portfile) {
-    logmsg("Couldn't write port file: %s %s", filename, strerror(errno));
+    char errbuf[STRERROR_LEN];
+    logmsg("Could not write port file: %s (%d) %s", filename,
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
     return 0; /* fail */
   }
   fprintf(portfile, "%d\n", port);
-  fclose(portfile);
+  curlx_fclose(portfile);
   logmsg("Wrote port %d to %s", port, filename);
   return 1; /* success */
 }
@@ -349,42 +229,97 @@ void set_advisor_read_lock(const char *filename)
 {
   FILE *lockfile;
   int error = 0;
-  int res;
+  char errbuf[STRERROR_LEN];
 
   do {
-    lockfile = fopen(filename, "wb");
+    lockfile = curlx_fopen(filename, "wb");
     /* !checksrc! disable ERRNOVAR 1 */
   } while(!lockfile && ((error = errno) == EINTR));
   if(!lockfile) {
-    logmsg("Error creating lock file %s error (%d) %s",
-           filename, error, strerror(error));
+    logmsg("Error creating lock file %s error (%d) %s", filename,
+           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
     return;
   }
 
-  res = fclose(lockfile);
-  if(res)
-    logmsg("Error closing lock file %s error (%d) %s",
-           filename, errno, strerror(errno));
+  if(curlx_fclose(lockfile))
+    logmsg("Error closing lock file %s error (%d) %s", filename,
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 }
 
 void clear_advisor_read_lock(const char *filename)
 {
   int error = 0;
-  int res;
+  int rc;
 
   /*
-  ** Log all removal failures. Even those due to file not existing.
-  ** This allows to detect if unexpectedly the file has already been
-  ** removed by a process different than the one that should do this.
-  */
+   * Log all removal failures. Even those due to file not existing.
+   * This allows to detect if unexpectedly the file has already been
+   * removed by a process different than the one that should do this.
+   */
 
   do {
-    res = unlink(filename);
+    rc = unlink(filename);
     /* !checksrc! disable ERRNOVAR 1 */
-  } while(res && ((error = errno) == EINTR));
-  if(res)
-    logmsg("Error removing lock file %s error (%d) %s",
-           filename, error, strerror(error));
+  } while(rc && ((error = errno) == EINTR));
+  if(rc) {
+    char errbuf[STRERROR_LEN];
+    logmsg("Error removing lock file %s error (%d) %s", filename,
+           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+  }
+}
+
+/* store the entire request in a file */
+void storerequest(const char *reqbuf, size_t totalsize, const char *filename)
+{
+  int error = 0;
+  char errbuf[STRERROR_LEN];
+  size_t written;
+  size_t writeleft;
+  FILE *dump;
+  char dumpfile[256];
+
+  snprintf(dumpfile, sizeof(dumpfile), "%s/%s", logdir, filename);
+
+  if(!reqbuf)
+    return;
+  if(totalsize == 0)
+    return;
+
+  do {
+    dump = curlx_fopen(dumpfile, "ab");
+    /* !checksrc! disable ERRNOVAR 1 */
+  } while(!dump && ((error = errno) == EINTR));
+  if(!dump) {
+    logmsg("storerequest: Error opening file %s error (%d) %s", dumpfile,
+           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+    return;
+  }
+
+  writeleft = totalsize;
+  do {
+    written = fwrite(&reqbuf[totalsize - writeleft], 1, writeleft, dump);
+    if(got_exit_signal)
+      goto storerequest_cleanup;
+    if(written > 0)
+      writeleft -= written;
+    error = errno;
+    /* !checksrc! disable ERRNOVAR 1 */
+  } while((writeleft > 0) && (error == EINTR));
+
+  if(writeleft == 0)
+    logmsg("Wrote request (%zu bytes) input to %s", totalsize, dumpfile);
+  else if(writeleft > 0) {
+    logmsg("Error writing file %s error (%d) %s", dumpfile,
+           error, curlx_strerror(error, errbuf, sizeof(errbuf)));
+    logmsg("Wrote only (%zu bytes) of (%zu bytes) request input to %s",
+           totalsize - writeleft, totalsize, dumpfile);
+  }
+
+storerequest_cleanup:
+
+  if(curlx_fclose(dump))
+    logmsg("Error closing file %s error (%d) %s", dumpfile,
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 }
 
 /* vars used to keep around previous signal handlers */
@@ -422,60 +357,56 @@ static SIGHANDLER_T old_sigterm_handler = SIG_ERR;
 static SIGHANDLER_T old_sigbreak_handler = SIG_ERR;
 #endif
 
-#if defined(_WIN32) && !defined(CURL_WINDOWS_UWP) && !defined(UNDER_CE)
-static unsigned int thread_main_id = 0;
+#if defined(_WIN32) && !defined(CURL_WINDOWS_UWP)
+static DWORD thread_main_id = 0;
 static HANDLE thread_main_window = NULL;
 static HWND hidden_main_window = NULL;
 #endif
 
-/* var which if set indicates that the program should finish execution */
-volatile int got_exit_signal = 0;
-
-/* if next is set indicates the first signal handled in exit_signal_handler */
-volatile int exit_signal = 0;
-
-#ifdef _WIN32
-/* event which if set indicates that the program should finish */
-HANDLE exit_event = NULL;
-#endif
-
-/* signal handler that will be triggered to indicate that the program
+/* signal handler that is triggered to indicate that the program
  * should finish its execution in a controlled manner as soon as possible.
- * The first time this is called it will set got_exit_signal to one and
- * store in exit_signal the signal that triggered its execution.
- */
-#ifndef UNDER_CE
-/*
+ * The first time this is called it sets got_exit_signal to 1 and
+ * stores in exit_signal the signal that triggered its execution.
+ *
  * Only call signal-safe functions from the signal handler, as required by
  * the POSIX specification:
  *   https://pubs.opengroup.org/onlinepubs/9699919799/functions/V2_chap02.html
  * Hence, do not call 'logmsg()', and instead use 'open/write/close' to
  * log errors.
  */
+/* suppress warnings seen in configurations where 'write()' has the attribute
+   'warn_unused_result', which is not silenced by casting to '(void)'. */
+#if defined(CURL_HAVE_DIAG) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result" /* GCC 4.5+ */
+#endif
 static void exit_signal_handler(int signum)
 {
   int old_errno = errno;
   if(!serverlogfile) {
     static const char msg[] = "exit_signal_handler: serverlogfile not set\n";
-    (void)!write(STDERR_FILENO, msg, sizeof(msg) - 1);
+    (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
   }
   else {
+    int fd = -1;
 #ifdef _WIN32
-#define OPENMODE S_IREAD | S_IWRITE
+    if(!_sopen_s(&fd, serverlogfile, _O_WRONLY | _O_CREAT | _O_APPEND,
+                 _SH_DENYNO, _S_IREAD | _S_IWRITE) &&
+       fd != -1) {
 #else
-#define OPENMODE S_IRUSR | S_IWUSR
-#endif
-    int fd = open(serverlogfile, O_WRONLY|O_CREAT|O_APPEND, OPENMODE);
+    /* !checksrc! disable BANNEDFUNC 1 */
+    fd = open(serverlogfile, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR);
     if(fd != -1) {
+#endif
       static const char msg[] = "exit_signal_handler: called\n";
-      (void)!write(fd, msg, sizeof(msg) - 1);
-      close(fd);
+      (void)write(fd, msg, sizeof(msg) - 1);
+      curlx_close(fd);
     }
     else {
       static const char msg[] = "exit_signal_handler: failed opening ";
-      (void)!write(STDERR_FILENO, msg, sizeof(msg) - 1);
-      (void)!write(STDERR_FILENO, serverlogfile, strlen(serverlogfile));
-      (void)!write(STDERR_FILENO, "\n", 1);
+      (void)write(STDERR_FILENO, msg, sizeof(msg) - 1);
+      (void)write(STDERR_FILENO, serverlogfile, strlen(serverlogfile));
+      (void)write(STDERR_FILENO, "\n", 1);
     }
   }
   if(got_exit_signal == 0) {
@@ -487,11 +418,13 @@ static void exit_signal_handler(int signum)
 #endif
   }
   (void)signal(signum, exit_signal_handler);
-  CURL_SETERRNO(old_errno);
+  errno = old_errno;
 }
+#if defined(CURL_HAVE_DIAG) && !defined(__clang__)
+#pragma GCC diagnostic pop
 #endif
 
-#if defined(_WIN32) && !defined(UNDER_CE)
+#ifdef _WIN32
 /* CTRL event handler for Windows Console applications to simulate
  * SIGINT, SIGTERM and SIGBREAK on CTRL events and trigger signal handler.
  *
@@ -499,14 +432,14 @@ static void exit_signal_handler(int signum)
  * SIGINT is not supported for any Win32 application. When a CTRL+C
  * interrupt occurs, Win32 operating systems generate a new thread
  * to specifically handle that interrupt. This can cause a single-thread
- * application, such as one in UNIX, to become multithreaded and cause
+ * application, such as one in UNIX, to become multi-threaded and cause
  * unexpected behavior.
  * [...]
- * The SIGILL and SIGTERM signals are not generated under Windows.
+ * The SIGKILL and SIGTERM signals are not generated under Windows.
  * They are included for ANSI compatibility. Therefore, you can set
  * signal handlers for these signals by using signal, and you can also
  * explicitly generate these signals by calling raise. Source:
- * https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/signal
+ * https://learn.microsoft.com/cpp/c-runtime-library/reference/signal
  */
 static BOOL WINAPI ctrl_event_handler(DWORD dwCtrlType)
 {
@@ -539,7 +472,7 @@ static BOOL WINAPI ctrl_event_handler(DWORD dwCtrlType)
 }
 #endif
 
-#if defined(_WIN32) && !defined(CURL_WINDOWS_UWP) && !defined(UNDER_CE)
+#if defined(_WIN32) && !defined(CURL_WINDOWS_UWP)
 /* Window message handler for Windows applications to add support
  * for graceful process termination via taskkill (without /f) which
  * sends WM_CLOSE to all Windows of a process (even hidden ones).
@@ -563,7 +496,7 @@ static LRESULT CALLBACK main_window_proc(HWND hwnd, UINT uMsg,
       break;
     }
     if(signum) {
-      logmsg("main_window_proc: %d -> %d", uMsg, signum);
+      logmsg("main_window_proc: %u -> %d", uMsg, signum);
       raise(signum);
     }
   }
@@ -571,19 +504,22 @@ static LRESULT CALLBACK main_window_proc(HWND hwnd, UINT uMsg,
 }
 /* Window message queue loop for hidden main window, details see above.
  */
-#include <process.h>
-static unsigned int WINAPI main_window_loop(void *lpParameter)
+static DWORD WINAPI main_window_loop(void *lpParameter)
 {
   WNDCLASS wc;
   BOOL ret;
   MSG msg;
+  DWORD err;
+  char buffer[WINAPI_ERROR_LEN];
 
   ZeroMemory(&wc, sizeof(wc));
   wc.lpfnWndProc = (WNDPROC)main_window_proc;
   wc.hInstance = (HINSTANCE)lpParameter;
   wc.lpszClassName = TEXT("MainWClass");
   if(!RegisterClass(&wc)) {
-    win32_perror("RegisterClass failed");
+    err = GetLastError();
+    curlx_winapi_strerror(err, buffer, sizeof(buffer));
+    fprintf(stderr, "RegisterClass failed: %s\n", buffer);
     return (DWORD)-1;
   }
 
@@ -593,16 +529,20 @@ static unsigned int WINAPI main_window_loop(void *lpParameter)
                                       CW_USEDEFAULT, CW_USEDEFAULT,
                                       CW_USEDEFAULT, CW_USEDEFAULT,
                                       (HWND)NULL, (HMENU)NULL,
-                                      wc.hInstance, (LPVOID)NULL);
+                                      wc.hInstance, NULL);
   if(!hidden_main_window) {
-    win32_perror("CreateWindowEx failed");
+    err = GetLastError();
+    curlx_winapi_strerror(err, buffer, sizeof(buffer));
+    fprintf(stderr, "CreateWindowEx failed: (0x%08lx) - %s\n", err, buffer);
     return (DWORD)-1;
   }
 
   do {
     ret = GetMessage(&msg, NULL, 0, 0);
     if(ret == -1) {
-      win32_perror("GetMessage failed");
+      err = GetLastError();
+      curlx_winapi_strerror(err, buffer, sizeof(buffer));
+      fprintf(stderr, "GetMessage failed: (0x%08lx) - %s\n", err, buffer);
       return (DWORD)-1;
     }
     else if(ret) {
@@ -620,7 +560,6 @@ static unsigned int WINAPI main_window_loop(void *lpParameter)
 }
 #endif
 
-#ifndef UNDER_CE
 static SIGHANDLER_T set_signal(int signum, SIGHANDLER_T handler,
                                bool restartable)
 {
@@ -642,18 +581,19 @@ static SIGHANDLER_T set_signal(int signum, SIGHANDLER_T handler,
 
 #ifdef HAVE_SIGINTERRUPT
   if(oldhdlr != SIG_ERR)
-    siginterrupt(signum, (int) restartable);
+    siginterrupt(signum, (int)restartable);
 #else
-  (void) restartable;
+  (void)restartable;
 #endif
 
   return oldhdlr;
 #endif
 }
-#endif
 
 void install_signal_handlers(bool keep_sigalrm)
 {
+  char errbuf[STRERROR_LEN];
+  (void)errbuf;
 #ifdef _WIN32
   /* setup Windows exit event before any signal can trigger */
   exit_event = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -664,20 +604,23 @@ void install_signal_handlers(bool keep_sigalrm)
   /* ignore SIGHUP signal */
   old_sighup_handler = set_signal(SIGHUP, SIG_IGN, FALSE);
   if(old_sighup_handler == SIG_ERR)
-    logmsg("cannot install SIGHUP handler: %s", strerror(errno));
+    logmsg("cannot install SIGHUP handler: (%d) %s",
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 #endif
 #ifdef SIGPIPE
   /* ignore SIGPIPE signal */
   old_sigpipe_handler = set_signal(SIGPIPE, SIG_IGN, FALSE);
   if(old_sigpipe_handler == SIG_ERR)
-    logmsg("cannot install SIGPIPE handler: %s", strerror(errno));
+    logmsg("cannot install SIGPIPE handler: (%d) %s",
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 #endif
 #ifdef SIGALRM
   if(!keep_sigalrm) {
     /* ignore SIGALRM signal */
     old_sigalrm_handler = set_signal(SIGALRM, SIG_IGN, FALSE);
     if(old_sigalrm_handler == SIG_ERR)
-      logmsg("cannot install SIGALRM handler: %s", strerror(errno));
+      logmsg("cannot install SIGALRM handler: (%d) %s",
+             errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
   }
 #else
   (void)keep_sigalrm;
@@ -686,36 +629,32 @@ void install_signal_handlers(bool keep_sigalrm)
   /* handle SIGINT signal with our exit_signal_handler */
   old_sigint_handler = set_signal(SIGINT, exit_signal_handler, TRUE);
   if(old_sigint_handler == SIG_ERR)
-    logmsg("cannot install SIGINT handler: %s", strerror(errno));
+    logmsg("cannot install SIGINT handler: (%d) %s",
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 #endif
 #ifdef SIGTERM
   /* handle SIGTERM signal with our exit_signal_handler */
   old_sigterm_handler = set_signal(SIGTERM, exit_signal_handler, TRUE);
   if(old_sigterm_handler == SIG_ERR)
-    logmsg("cannot install SIGTERM handler: %s", strerror(errno));
+    logmsg("cannot install SIGTERM handler: (%d) %s",
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 #endif
 #if defined(SIGBREAK) && defined(_WIN32)
   /* handle SIGBREAK signal with our exit_signal_handler */
   old_sigbreak_handler = set_signal(SIGBREAK, exit_signal_handler, TRUE);
   if(old_sigbreak_handler == SIG_ERR)
-    logmsg("cannot install SIGBREAK handler: %s", strerror(errno));
+    logmsg("cannot install SIGBREAK handler: (%d) %s",
+           errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
 #endif
 #ifdef _WIN32
-#ifndef UNDER_CE
   if(!SetConsoleCtrlHandler(ctrl_event_handler, TRUE))
     logmsg("cannot install CTRL event handler");
-#endif
 
-#if !defined(CURL_WINDOWS_UWP) && !defined(UNDER_CE)
-  {
-    typedef uintptr_t curl_win_thread_handle_t;
-    curl_win_thread_handle_t thread;
-    thread = _beginthreadex(NULL, 0, &main_window_loop,
-                            (void *)GetModuleHandle(NULL), 0, &thread_main_id);
-    thread_main_window = (HANDLE)thread;
-    if(!thread_main_window || !thread_main_id)
-      logmsg("cannot start main window loop");
-  }
+#ifndef CURL_WINDOWS_UWP
+  thread_main_window = CreateThread(NULL, 0, &main_window_loop,
+                                    GetModuleHandle(NULL), 0, &thread_main_id);
+  if(!thread_main_window || !thread_main_id)
+    logmsg("cannot start main window loop");
 #endif
 #endif
 }
@@ -724,37 +663,35 @@ void restore_signal_handlers(bool keep_sigalrm)
 {
 #ifdef SIGHUP
   if(SIG_ERR != old_sighup_handler)
-    (void) set_signal(SIGHUP, old_sighup_handler, FALSE);
+    (void)set_signal(SIGHUP, old_sighup_handler, FALSE);
 #endif
 #ifdef SIGPIPE
   if(SIG_ERR != old_sigpipe_handler)
-    (void) set_signal(SIGPIPE, old_sigpipe_handler, FALSE);
+    (void)set_signal(SIGPIPE, old_sigpipe_handler, FALSE);
 #endif
 #ifdef SIGALRM
   if(!keep_sigalrm) {
     if(SIG_ERR != old_sigalrm_handler)
-      (void) set_signal(SIGALRM, old_sigalrm_handler, FALSE);
+      (void)set_signal(SIGALRM, old_sigalrm_handler, FALSE);
   }
 #else
   (void)keep_sigalrm;
 #endif
 #ifdef SIGINT
   if(SIG_ERR != old_sigint_handler)
-    (void) set_signal(SIGINT, old_sigint_handler, FALSE);
+    (void)set_signal(SIGINT, old_sigint_handler, FALSE);
 #endif
 #ifdef SIGTERM
   if(SIG_ERR != old_sigterm_handler)
-    (void) set_signal(SIGTERM, old_sigterm_handler, FALSE);
+    (void)set_signal(SIGTERM, old_sigterm_handler, FALSE);
 #endif
 #if defined(SIGBREAK) && defined(_WIN32)
   if(SIG_ERR != old_sigbreak_handler)
-    (void) set_signal(SIGBREAK, old_sigbreak_handler, FALSE);
+    (void)set_signal(SIGBREAK, old_sigbreak_handler, FALSE);
 #endif
 #ifdef _WIN32
-#ifndef UNDER_CE
   (void)SetConsoleCtrlHandler(ctrl_event_handler, FALSE);
-#endif
-#if !defined(CURL_WINDOWS_UWP) && !defined(UNDER_CE)
+#ifndef CURL_WINDOWS_UWP
   if(thread_main_window && thread_main_id) {
     if(PostThreadMessage(thread_main_id, WM_APP, 0, 0)) {
       if(WaitForSingleObjectEx(thread_main_window, INFINITE, TRUE)) {
@@ -779,85 +716,238 @@ void restore_signal_handlers(bool keep_sigalrm)
 int bind_unix_socket(curl_socket_t sock, const char *unix_socket,
                      struct sockaddr_un *sau)
 {
-  int error;
+  char errbuf[STRERROR_LEN];
   int rc;
-  size_t len = strlen(unix_socket);
+  size_t len;
+
+  if(!unix_socket) {
+    logmsg("Unix socket domain path not specified.");
+    return -1;
+  }
+
+  len = strlen(unix_socket);
 
   memset(sau, 0, sizeof(struct sockaddr_un));
   sau->sun_family = AF_UNIX;
   if(len >= sizeof(sau->sun_path) - 1) {
-    logmsg("Too long unix socket domain path (%zd)", len);
+    logmsg("Too long unix socket domain path (%zu)", len);
     return -1;
   }
-  strcpy(sau->sun_path, unix_socket);
-  rc = bind(sock, (struct sockaddr*)sau, sizeof(struct sockaddr_un));
-  if(0 != rc && SOCKERRNO == SOCKEADDRINUSE) {
-    struct_stat statbuf;
+  curlx_strcopy(sau->sun_path, sizeof(sau->sun_path), unix_socket, len);
+  rc = bind(sock, (struct sockaddr *)sau, sizeof(struct sockaddr_un));
+  if(rc && SOCKERRNO == SOCKEADDRINUSE) {
+    int sockerr;
     /* socket already exists. Perhaps it is stale? */
     curl_socket_t unixfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if(CURL_SOCKET_BAD == unixfd) {
-      logmsg("Failed to create socket at %s (%d) %s",
-             unix_socket, SOCKERRNO, sstrerror(SOCKERRNO));
+    if(unixfd == CURL_SOCKET_BAD) {
+      sockerr = SOCKERRNO;
+      logmsg("Failed to create socket at %s (%d) %s", unix_socket,
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
       return -1;
     }
     /* check whether the server is alive */
     rc = connect(unixfd, (struct sockaddr*)sau, sizeof(struct sockaddr_un));
-    error = SOCKERRNO;
+    sockerr = SOCKERRNO;
     sclose(unixfd);
-    if(0 != rc && SOCKECONNREFUSED != error) {
-      logmsg("Failed to connect to %s (%d) %s",
-             unix_socket, error, sstrerror(error));
+    if(rc && sockerr != SOCKECONNREFUSED) {
+      logmsg("Failed to connect to %s (%d) %s", unix_socket,
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
       return rc;
     }
+#if !defined(_WIN32) && defined(S_IFSOCK) /* No lstat(), S_IFSOCK on Windows */
     /* socket server is not alive, now check if it was actually a socket. */
-#ifdef _WIN32
-    /* Windows does not have lstat function. */
-    rc = curlx_win32_stat(unix_socket, &statbuf);
-#else
-    rc = lstat(unix_socket, &statbuf);
-#endif
-    if(0 != rc) {
-      logmsg("Error binding socket, failed to stat %s (%d) %s",
-             unix_socket, errno, strerror(errno));
-      return rc;
-    }
-#ifdef S_IFSOCK
-    if((statbuf.st_mode & S_IFSOCK) != S_IFSOCK) {
-      logmsg("Error binding socket, failed to stat %s", unix_socket);
-      return -1;
+    {
+      curlx_struct_stat statbuf;
+      rc = lstat(unix_socket, &statbuf);
+      if(rc && errno != ENOENT) {
+        logmsg("Error binding socket, failed to stat %s (%d) %s", unix_socket,
+               errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
+        return -1;
+      }
+      if(!rc && (statbuf.st_mode & S_IFMT) != S_IFSOCK) {
+        logmsg("Error binding socket, %s is not a socket", unix_socket);
+        return -1;
+      }
     }
 #endif
     /* dead socket, cleanup and retry bind */
-    rc = unlink(unix_socket);
-    if(0 != rc) {
-      logmsg("Error binding socket, failed to unlink %s (%d) %s",
-             unix_socket, errno, strerror(errno));
-      return rc;
+    if(unlink(unix_socket) && errno != ENOENT) {
+      logmsg("Error binding socket, failed to unlink %s: %d (%s)", unix_socket,
+             errno, curlx_strerror(errno, errbuf, sizeof(errbuf)));
+      return -1;
     }
     /* stale socket is gone, retry bind */
-    rc = bind(sock, (struct sockaddr*)sau, sizeof(struct sockaddr_un));
+    rc = bind(sock, (struct sockaddr *)sau, sizeof(struct sockaddr_un));
   }
   return rc;
 }
 #endif
 
-/*
-** unsigned long to unsigned short
-*/
-#define CURL_MASK_USHORT  ((unsigned short)~0)
-#define CURL_MASK_SSHORT  (CURL_MASK_USHORT >> 1)
-
-unsigned short util_ultous(unsigned long ulnum)
+curl_socket_t sockdaemon(curl_socket_t sock,
+                         unsigned short *listenport,
+                         const char *unix_socket,
+                         bool bind_only)
 {
-#ifdef __INTEL_COMPILER
-#  pragma warning(push)
-#  pragma warning(disable:810) /* conversion may lose significant bits */
+  /* passive daemon style */
+  srvr_sockaddr_union_t listener;
+  int flag;
+  int rc;
+  int totdelay = 0;
+  int maxretr = 10;
+  int delay = 20;
+  int attempt = 0;
+  int sockerr = 0;
+  char errbuf[STRERROR_LEN];
+
+#ifndef USE_UNIX_SOCKETS
+  (void)unix_socket;
 #endif
 
-  DEBUGASSERT(ulnum <= (unsigned long) CURL_MASK_USHORT);
-  return (unsigned short)(ulnum & (unsigned long) CURL_MASK_USHORT);
-
-#ifdef __INTEL_COMPILER
-#  pragma warning(pop)
+#if defined(_WIN32) && defined(USE_UNIX_SOCKETS)
+  if(socket_domain != AF_UNIX) {
 #endif
+    do {
+      attempt++;
+      flag = 1;
+      rc = setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
+                      (void *)&flag, sizeof(flag));
+      if(rc) {
+        sockerr = SOCKERRNO;
+        logmsg("setsockopt(SO_REUSEADDR) failed with error (%d) %s",
+               sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+        if(maxretr) {
+          if(curlx_wait_ms(delay)) {
+            /* should not happen */
+            sockerr = SOCKERRNO;
+            logmsg("curlx_wait_ms() failed with error (%d) %s",
+                   sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+            sclose(sock);
+            return CURL_SOCKET_BAD;
+          }
+          if(got_exit_signal) {
+            logmsg("signalled to die, exiting...");
+            sclose(sock);
+            return CURL_SOCKET_BAD;
+          }
+          totdelay += delay;
+          delay *= 2; /* double the sleep for next attempt */
+        }
+      }
+    } while(rc && maxretr--);
+
+    if(rc) {
+      logmsg("setsockopt(SO_REUSEADDR) failed %d times in %d ms. "
+             "Error (%d) %s", attempt, totdelay,
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+      logmsg("Continuing anyway...");
+    }
+#if defined(_WIN32) && defined(USE_UNIX_SOCKETS)
+  }
+#endif
+
+  /* When the specified listener port is zero, it is actually a
+     request to let the system choose a non-zero available port. */
+
+  switch(socket_domain) {
+  case AF_INET:
+    memset(&listener.sa4, 0, sizeof(listener.sa4));
+    listener.sa4.sin_family = AF_INET;
+    listener.sa4.sin_addr.s_addr = INADDR_ANY;
+    listener.sa4.sin_port = htons(*listenport);
+    rc = bind(sock, &listener.sa, sizeof(listener.sa4));
+    break;
+#ifdef USE_IPV6
+  case AF_INET6:
+    memset(&listener.sa6, 0, sizeof(listener.sa6));
+    listener.sa6.sin6_family = AF_INET6;
+    listener.sa6.sin6_addr = in6addr_any;
+    listener.sa6.sin6_port = htons(*listenport);
+    rc = bind(sock, &listener.sa, sizeof(listener.sa6));
+    break;
+#endif /* USE_IPV6 */
+#ifdef USE_UNIX_SOCKETS
+  case AF_UNIX:
+    rc = bind_unix_socket(sock, unix_socket, &listener.sau);
+    break;
+#endif
+  default:
+    rc = 1;
+  }
+
+  if(rc) {
+    sockerr = SOCKERRNO;
+#ifdef USE_UNIX_SOCKETS
+    if(socket_domain == AF_UNIX)
+      logmsg("Error binding socket on path %s (%d) %s", unix_socket,
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+    else
+#endif
+      logmsg("Error binding socket on port %hu (%d) %s", *listenport,
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+    sclose(sock);
+    return CURL_SOCKET_BAD;
+  }
+
+  if(!*listenport
+#ifdef USE_UNIX_SOCKETS
+     && !unix_socket
+#endif
+    ) {
+    /* The system was supposed to choose a port number, figure out which
+       port we actually got and update the listener port value with it. */
+    curl_socklen_t la_size;
+    srvr_sockaddr_union_t localaddr;
+    memset(&localaddr, 0, sizeof(localaddr));
+#ifdef USE_IPV6
+    if(socket_domain == AF_INET6)
+      la_size = sizeof(localaddr.sa6);
+    else
+#endif
+      la_size = sizeof(localaddr.sa4);
+    if(getsockname(sock, &localaddr.sa, &la_size) < 0) {
+      sockerr = SOCKERRNO;
+      logmsg("getsockname() failed with error (%d) %s",
+             sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+      sclose(sock);
+      return CURL_SOCKET_BAD;
+    }
+    switch(localaddr.sa.sa_family) {
+    case AF_INET:
+      *listenport = ntohs(localaddr.sa4.sin_port);
+      break;
+#ifdef USE_IPV6
+    case AF_INET6:
+      *listenport = ntohs(localaddr.sa6.sin6_port);
+      break;
+#endif
+    default:
+      break;
+    }
+    if(!*listenport) {
+      /* Real failure, listener port shall not be zero beyond this point. */
+      logmsg("Apparently getsockname() succeeded, with listener port zero.");
+      logmsg("A valid reason for this failure is a binary built without");
+      logmsg("proper network library linkage. This might not be the only");
+      logmsg("reason, but double check it before anything else.");
+      sclose(sock);
+      return CURL_SOCKET_BAD;
+    }
+  }
+
+  /* bindonly option forces no listening */
+  if(bind_only) {
+    logmsg("instructed to bind port without listening");
+    return sock;
+  }
+
+  /* start accepting connections */
+  if(listen(sock, 5)) {
+    sockerr = SOCKERRNO;
+    logmsg("listen(%ld, 5) failed with error (%d) %s", (long)sock,
+           sockerr, curlx_strerror(sockerr, errbuf, sizeof(errbuf)));
+    sclose(sock);
+    return CURL_SOCKET_BAD;
+  }
+
+  return sock;
 }

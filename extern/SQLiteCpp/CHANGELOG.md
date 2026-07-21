@@ -274,3 +274,18 @@ Version 3.3.2 - 2024 Aug 16
 - Update SQLite from 3.43.0 to 3.46.1 (2024-08-13) (#461) and (#477)
 - Explicitly =delete; Statement::bindNoCopy(..., std::string&&) (#469)
 
+Version 3.3.3 - 2025 May 20
+
+- Update SQLite from 3.46.1 to 3.49.2 (2025-05-07) (#505)
+- SQLiteCpp/Statement.h: add missing `<cstdint>` include (#488)
+- sqlite3: set SQLITE_OMIT_LOAD_EXTENSION (#496)
+- tests/Database_test.cpp: fix a warning around `#endif` (#489)
+- Add a Github Dependabot config file (#480)
+- Bump actions/checkout from 3 to 4 in (#482)
+- Replace all double-quoted string literals in unit test (#483)
+- Use explicit versions of Ubuntu images instead of latest (#484)
+- Test linking with builtin libsqlite3-dev package on Ubuntu (#485)
+- Add logic to use different FindPackage for python if cmake is above 3.12 (#454)
+- Update googletest to v1.16.0 (#506)
+- update meson dependencies (#508)
+

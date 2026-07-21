@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -6,9 +7,6 @@ CURLOPT_OPENSOCKETFUNCTION
 </info>
 
 <client>
-<server>
-none
-</server>
 <features>
 http
 </features>

@@ -451,7 +451,16 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	for (auto k : orderedcallbacks) {
 		if (handled)
 			break;
-		m_InputCallbacks[k].PushSelf(L);
+		auto& g = m_InputCallbacks[k];
+		if (g.IsNil() || !g.IsSet()) {
+			Locator::getLogger()->warn(
+			  "An input callback was found to be nil=true or set=false? "
+			  "Skipped - nil {} ; set {}",
+			  g.IsNil(),
+			  g.IsSet());
+			continue;
+		}
+		g.PushSelf(L);
 		lua_pushvalue(L, -2);
 		std::string error = "Error running input callback: ";
 		LuaHelpers::RunScriptOnStack(L, error, 1, 1, true);

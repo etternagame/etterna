@@ -85,11 +85,11 @@ struct progress {
   size_t size;
 };
 
-static size_t progress_callback(void *clientp,
-                                curl_off_t dltotal,
-                                curl_off_t dlnow,
-                                curl_off_t ultotal,
-                                curl_off_t ulnow)
+static int xferinfo_callback(void *clientp,
+                             curl_off_t dltotal,
+                             curl_off_t dlnow,
+                             curl_off_t ultotal,
+                             curl_off_t ulnow)
 {
   struct progress *memory = clientp;
   printf("my ptr: %p\n", memory->private);
@@ -105,13 +105,13 @@ int main(void)
   if(curl) {
     struct progress data;
 
-    /* pass struct to callback  */
+    /* pass struct to callback */
     curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &data);
 
     /* enable progress callback getting called */
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 
-    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
+    curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xferinfo_callback);
   }
 }
 ~~~

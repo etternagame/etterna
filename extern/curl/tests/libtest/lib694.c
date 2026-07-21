@@ -21,57 +21,55 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "memdebug.h"
-
-CURLcode test(char *URL)
+static CURLcode test_lib694(const char *URL)
 {
-  CURLcode res;
+  CURLcode result;
   CURL *curl;
   long usedauth = 0;
   int count = 0;
 
   if(curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
-    fprintf(stderr, "curl_global_init() failed\n");
+    curl_mfprintf(stderr, "curl_global_init() failed\n");
     return TEST_ERR_MAJOR_BAD;
   }
 
   curl = curl_easy_init();
   if(!curl) {
-    fprintf(stderr, "curl_easy_init() failed\n");
+    curl_mfprintf(stderr, "curl_easy_init() failed\n");
     curl_global_cleanup();
     return TEST_ERR_MAJOR_BAD;
   }
 
-  test_setopt(curl, CURLOPT_URL, URL);
-  test_setopt(curl, CURLOPT_HEADER, 1L);
-  test_setopt(curl, CURLOPT_VERBOSE, 1L);
-  test_setopt(curl, CURLOPT_HTTPAUTH,
-              (long) (CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NTLM));
-  test_setopt(curl, CURLOPT_USERPWD, "me:password");
+  easy_setopt(curl, CURLOPT_URL, URL);
+  easy_setopt(curl, CURLOPT_HEADER, 1L);
+  easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+  easy_setopt(curl, CURLOPT_HTTPAUTH,
+              CURLAUTH_BASIC | CURLAUTH_DIGEST | CURLAUTH_NTLM);
+  easy_setopt(curl, CURLOPT_USERPWD, "me:password");
 
   do {
 
-    res = curl_easy_perform(curl);
-    if(res)
+    result = curl_easy_perform(curl);
+    if(result)
       goto test_cleanup;
 
-    res = curl_easy_getinfo(curl, CURLINFO_HTTPAUTH_USED, &usedauth);
-    if(res)
+    result = curl_easy_getinfo(curl, CURLINFO_HTTPAUTH_USED, &usedauth);
+    if(result)
       goto test_cleanup;
     if(CURLAUTH_NTLM != usedauth) {
-      printf("CURLINFO_HTTPAUTH_USED did not say NTLM\n");
+      curl_mprintf("CURLINFO_HTTPAUTH_USED did not say NTLM\n");
     }
 
-    /* set a new URL for the second, so that we don't restart NTLM */
-    test_setopt(curl, CURLOPT_URL, libtest_arg2);
-  } while(!res && ++count < 2);
+    /* set a new URL for the second, so that we do not restart NTLM */
+    easy_setopt(curl, CURLOPT_URL, libtest_arg2);
+  } while(!result && ++count < 2);
 
 test_cleanup:
 
   curl_easy_cleanup(curl);
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

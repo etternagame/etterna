@@ -15,7 +15,7 @@ Added-in: 7.20.0
 
 # NAME
 
-CURLINFO_RTSP_SESSION_ID - get RTSP session ID
+CURLINFO_RTSP_SESSION_ID - RTSP session ID
 
 # SYNOPSIS
 
@@ -33,9 +33,9 @@ most recent RTSP Session ID.
 Applications wishing to resume an RTSP session on another connection should
 retrieve this info before closing the active connection.
 
-The **id** pointer is NULL or points to private memory. You MUST NOT free - it
-gets freed when you call curl_easy_cleanup(3) on the corresponding curl
-handle.
+The **id** pointer is NULL or points to private memory. You **must not** free
+it. The memory gets freed automatically when you call curl_easy_cleanup(3) on
+the corresponding curl handle.
 
 # %PROTOCOLS%
 
@@ -46,10 +46,10 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "rtsp://rtsp.example.com");
-    res = curl_easy_perform(curl);
-    if(res == CURLE_OK) {
+    result = curl_easy_perform(curl);
+    if(result == CURLE_OK) {
       char *id;
       curl_easy_getinfo(curl, CURLINFO_RTSP_SESSION_ID, &id);
     }

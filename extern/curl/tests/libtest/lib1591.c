@@ -23,27 +23,27 @@
  ***************************************************************************/
 
 /*
- * This unit test PUT http data over proxy. Proxy header will be different
+ * This unit test PUT http data over proxy. Proxy header is different
  * from server http header
  */
 
-#include "test.h"
-#include <stdio.h>
-#include "memdebug.h"
+#include "first.h"
 
-static char testdata[] = "Hello Cloud!\r\n";
 static size_t consumed = 0;
 
-static size_t read_callback(char *ptr, size_t size, size_t nmemb, void *stream)
+static size_t t1591_read_cb(char *ptr, size_t size, size_t nmemb, void *stream)
 {
-  size_t  amount = nmemb * size; /* Total bytes curl wants */
+  static const char testdata[] = "Hello Cloud!\r\n";
+  static size_t const datalen = sizeof(testdata) - 1;
 
-  if(consumed == strlen(testdata)) {
+  size_t amount = nmemb * size; /* Total bytes curl wants */
+
+  if(consumed == datalen) {
     return 0;
   }
 
-  if(amount > strlen(testdata)-consumed) {
-    amount = strlen(testdata);
+  if(amount > datalen - consumed) {
+    amount = datalen - consumed;
   }
 
   consumed += amount;
@@ -55,7 +55,7 @@ static size_t read_callback(char *ptr, size_t size, size_t nmemb, void *stream)
 /*
  * carefully not leak memory on OOM
  */
-static int trailers_callback(struct curl_slist **list, void *userdata)
+static int t1591_trailers_callback(struct curl_slist **list, void *userdata)
 {
   struct curl_slist *nlist = NULL;
   struct curl_slist *nlist2 = NULL;
@@ -73,22 +73,21 @@ static int trailers_callback(struct curl_slist **list, void *userdata)
   }
 }
 
-CURLcode test(char *URL)
+static CURLcode test_lib1591(const char *URL)
 {
   CURL *curl = NULL;
-  CURLcode res = CURLE_FAILED_INIT;
+  CURLcode result = CURLE_FAILED_INIT;
   /* http and proxy header list */
   struct curl_slist *hhl = NULL;
 
   if(curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
-    fprintf(stderr, "curl_global_init() failed\n");
+    curl_mfprintf(stderr, "curl_global_init() failed\n");
     return TEST_ERR_MAJOR_BAD;
   }
 
-
   curl = curl_easy_init();
   if(!curl) {
-    fprintf(stderr, "curl_easy_init() failed\n");
+    curl_mfprintf(stderr, "curl_easy_init() failed\n");
     curl_global_cleanup();
     return TEST_ERR_MAJOR_BAD;
   }
@@ -99,14 +98,14 @@ CURLcode test(char *URL)
     goto test_cleanup;
   }
 
-  test_setopt(curl, CURLOPT_URL, URL);
-  test_setopt(curl, CURLOPT_HTTPHEADER, hhl);
-  test_setopt(curl, CURLOPT_UPLOAD, 1L);
-  test_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-  test_setopt(curl, CURLOPT_TRAILERFUNCTION, trailers_callback);
-  test_setopt(curl, CURLOPT_TRAILERDATA, NULL);
+  easy_setopt(curl, CURLOPT_URL, URL);
+  easy_setopt(curl, CURLOPT_HTTPHEADER, hhl);
+  easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+  easy_setopt(curl, CURLOPT_READFUNCTION, t1591_read_cb);
+  easy_setopt(curl, CURLOPT_TRAILERFUNCTION, t1591_trailers_callback);
+  easy_setopt(curl, CURLOPT_TRAILERDATA, NULL);
 
-  res = curl_easy_perform(curl);
+  result = curl_easy_perform(curl);
 
 test_cleanup:
 
@@ -116,5 +115,5 @@ test_cleanup:
 
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

@@ -1639,6 +1639,7 @@ lua_number2int(k,n);
 if(luai_numeq(cast_num(k),nvalue(key)))
 return luaH_getnum(t,k);
 }
+/*fallthrough*/
 default:{
 Node*n=mainposition(t,key);
 do{
@@ -2905,8 +2906,8 @@ if(sep>=0){
 read_long_string(ls,seminfo,sep);
 return TK_STRING;
 }
-else if(sep==-1)return'[';
-else luaX_lexerror(ls,"invalid long string delimiter",TK_STRING);
+else if (sep!=-1)luaX_lexerror(ls,"invalid long string delimiter",TK_STRING);
+return'[';
 }
 case'=':{
 next(ls);
@@ -7721,11 +7722,11 @@ static int bswap(lua_State*L){
 UB b=barg(L,1);b=(b>>24)|((b>>8)&0xff00)|((b&0xff00)<<8)|(b<<24);BRET(b)}
 static int tohex(lua_State*L){
 UB b=barg(L,1);
-int n=lua_isnone(L,2)?8:(int)barg(L,2);
+UB n=lua_isnone(L,2)?8:barg(L,2);
 const char*hexdigits="0123456789abcdef";
 char buf[8];
 int i;
-if(n<0){n=-n;hexdigits="0123456789ABCDEF";}
+if((int)n<0){n=~n+1;hexdigits="0123456789ABCDEF";}
 if(n>8)n=8;
 for(i=(int)n;--i>=0;){buf[i]=hexdigits[b&15];b>>=4;}
 lua_pushlstring(L,buf,(size_t)n);

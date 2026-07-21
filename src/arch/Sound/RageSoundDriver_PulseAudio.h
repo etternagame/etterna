@@ -15,11 +15,11 @@ class RageSoundDriver_PulseAudio : public RageSoundDriver
 	std::string Init();
 
 	inline int64_t GetPosition() const;
-	inline int GetSampleRate() const { return m_SampleRate; };
+	inline int GetSampleRate() const { return m_ss.rate; };
 
   protected:
 	int64_t m_LastPosition;
-	int m_SampleRate;
+	pa_sample_spec m_ss;
 	char* m_Error;
 
 	void m_InitStream();

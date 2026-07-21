@@ -68,6 +68,18 @@ CURLMOPT_MAX_HOST_CONNECTIONS(3)
 
 Max simultaneously open connections. See CURLMOPT_MAX_TOTAL_CONNECTIONS(3)
 
+## CURLMOPT_NETWORK_CHANGED
+
+Signal that the network has changed. See CURLMOPT_NETWORK_CHANGED(3)
+
+## CURLMOPT_NOTIFYDATA
+
+Custom pointer passed to the notify callback. See CURLMOPT_NOTIFYDATA(3)
+
+## CURLMOPT_NOTIFYFUNCTION
+
+Callback that receives notifications. See CURLMOPT_NOTIFYFUNCTION(3)
+
 ## CURLMOPT_PIPELINING
 
 Enable HTTP multiplexing. See CURLMOPT_PIPELINING(3)
@@ -87,6 +99,14 @@ Pointer to pass to push callback. See CURLMOPT_PUSHDATA(3)
 ## CURLMOPT_PUSHFUNCTION
 
 Callback that approves or denies server pushes. See CURLMOPT_PUSHFUNCTION(3)
+
+## CURLMOPT_QUICK_EXIT
+
+Enable a quicker cleanup of the multi handle. See CURLMOPT_QUICK_EXIT(3)
+
+## CURLMOPT_RESOLVE_THREADS_MAX
+
+Max threads used for threaded DNS resolver. See CURLMOPT_RESOLVE_THREADS_MAX(3)
 
 ## CURLMOPT_SOCKETDATA
 
@@ -114,7 +134,8 @@ Callback to receive timeout values. See CURLMOPT_TIMERFUNCTION(3)
 
 int main(void)
 {
-  CURLM *multi;
+  CURLM *multi = curl_multi_init();
+
   /* Limit the amount of simultaneous connections curl should allow: */
   curl_multi_setopt(multi, CURLMOPT_MAXCONNECTS, (long)MAX_PARALLEL);
 }

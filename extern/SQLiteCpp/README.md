@@ -22,8 +22,7 @@ with a few intuitive and well documented C++ classes.
 
 ### License:
 
-Copyright (c) 2012-2024 Sébastien Rombauts (sebastien.rombauts@gmail.com)
-<a href="https://www.paypal.me/SRombauts" title="Pay Me a Beer! Donate with PayPal :)"><img src="https://www.paypalobjects.com/webstatic/paypalme/images/pp_logo_small.png" width="118"></a>
+Copyright (c) 2012-2025 Sébastien Rombauts (sebastien.rombauts@gmail.com)
 
 Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
 or copy at http://opensource.org/licenses/MIT)

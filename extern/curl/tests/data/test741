@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -5,14 +6,15 @@ IPFS
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
-#
 # Client-side
 <client>
+<features>
+ipfs
+</features>
 <server>
 http
 </server>
@@ -20,7 +22,7 @@ http
 HOME=%PWD/%LOGDIR
 </setenv>
 <name>
-IPFS with malformed gateway URL from multiline gateway file, first line no url
+IPFS malformed gw URL from multiline gateway file, first line no URL
 </name>
 <command>
 ipfs://bafybeidecnvkrygux6uoukouzps5ofkeevoqland7kopseiod6pzqvjg7u
@@ -31,7 +33,6 @@ bar
 </file>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 # malformed gateway URL, first line in file must be a gateway URL

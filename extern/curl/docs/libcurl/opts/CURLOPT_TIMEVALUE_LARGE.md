@@ -49,6 +49,7 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
     /* January 1, 2020 is 1577833200 */
@@ -58,10 +59,16 @@ int main(void)
     curl_easy_setopt(curl, CURLOPT_TIMECONDITION, CURL_TIMECOND_IFMODSINCE);
 
     /* Perform the request */
-    curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
   }
 }
 ~~~
+
+# HISTORY
+
+**CURL_TIMECOND_*** enums became `long` types in 8.13.0, prior to this version
+a `long` cast was necessary when passed to curl_easy_setopt(3).
 
 # %AVAILABILITY%
 

@@ -1,6 +1,6 @@
 |// Low-level VM code for x64 CPUs in LJ_GC64 mode.
 |// Bytecode interpreter, fast functions and helper functions.
-|// Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+|// Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 |
 |.arch x64
 |.section code_op, code_sub
@@ -189,6 +189,14 @@
 |
 |.endif
 |
+|//-- Control-Flow Enforcement Technique (CET) ---------------------------
+|
+|.if BRANCH_TRACK
+|.macro endbr; endbr64; .endmacro
+|.else
+|.macro endbr; .endmacro
+|.endif
+|
 |//-----------------------------------------------------------------------
 |
 |// Instruction headers.
@@ -359,9 +367,6 @@
 |.macro sseconst_1, reg, tmp		// Synthesize 1.0.
 |  sseconst_hi reg, tmp, 3ff00000
 |.endmacro
-|.macro sseconst_m1, reg, tmp		// Synthesize -1.0.
-|  sseconst_hi reg, tmp, bff00000
-|.endmacro
 |.macro sseconst_2p52, reg, tmp		// Synthesize 2^52.
 |  sseconst_hi reg, tmp, 43300000
 |.endmacro
@@ -487,15 +492,18 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_unwind_c:			// Unwind C stack, return from vm_pcall.
   |  // (void *cframe, int errcode)
+  |  endbr
   |  mov eax, CARG2d			// Error return status for vm_pcall.
   |  mov rsp, CARG1
   |->vm_unwind_c_eh:			// Landing pad for external unwinder.
+  |  endbr
   |  mov L:RB, SAVE_L
   |  mov GL:RB, L:RB->glref
   |  mov dword GL:RB->vmstate, ~LJ_VMST_C
   |  jmp ->vm_leave_unw
   |
   |->vm_unwind_rethrow:
+  |  endbr
   |.if not X64WIN
   |  mov CARG1, SAVE_L
   |  mov CARG2d, eax
@@ -505,9 +513,11 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_unwind_ff:			// Unwind C stack, return from ff pcall.
   |  // (void *cframe)
+  |  endbr
   |  and CARG1, CFRAME_RAWMASK
   |  mov rsp, CARG1
   |->vm_unwind_ff_eh:			// Landing pad for external unwinder.
+  |  endbr
   |  mov L:RB, SAVE_L
   |  mov RDd, 1+1			// Really 1+2 results, incr. later.
   |  mov BASE, L:RB->base
@@ -709,6 +719,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.endif
   |
   |->cont_cat:				// BASE = base, RC = result, RB = mbase
+  |  endbr
   |  movzx RAd, PC_RB
   |  sub RB, 32
   |  lea RA, [BASE+RA*8]
@@ -777,6 +788,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  test RC, RC
   |  jz >3
   |->cont_ra:				// BASE = base, RC = result
+  |  endbr
   |  movzx RAd, PC_RA
   |  mov RB, [RC]
   |  mov [BASE+RA*8], RB
@@ -854,6 +866,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mov RB, [BASE+RA*8]
   |  mov [RC], RB
   |->cont_nop:				// BASE = base, (RC = result)
+  |  endbr
   |  ins_next
   |
   |3:  // Call __newindex metamethod.
@@ -924,6 +937,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  ins_next
   |
   |->cont_condt:			// BASE = base, RC = result
+  |  endbr
   |  add PC, 4
   |  mov ITYPE, [RC]
   |  sar ITYPE, 47
@@ -932,6 +946,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  jmp <6
   |
   |->cont_condf:			// BASE = base, RC = result
+  |  endbr
   |  mov ITYPE, [RC]
   |  sar ITYPE, 47
   |  cmp ITYPEd, LJ_TISTRUECOND		// Branch if result is false.
@@ -1135,16 +1150,17 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |.macro .ffunc, name
   |->ff_ .. name:
+  |  endbr
   |.endmacro
   |
   |.macro .ffunc_1, name
   |->ff_ .. name:
-  |  cmp NARGS:RDd, 1+1;  jb ->fff_fallback
+  |  endbr; cmp NARGS:RDd, 1+1;  jb ->fff_fallback
   |.endmacro
   |
   |.macro .ffunc_2, name
   |->ff_ .. name:
-  |  cmp NARGS:RDd, 2+1;  jb ->fff_fallback
+  |  endbr; cmp NARGS:RDd, 2+1;  jb ->fff_fallback
   |.endmacro
   |
   |.macro .ffunc_n, name, op
@@ -1395,17 +1411,15 @@ static void build_subroutines(BuildCtx *ctx)
   |  checkint RA, ->fff_fallback
   |.else
   |  checknumtp [BASE+8], ->fff_fallback
-  |  movsd xmm0, qword [BASE+8]
+  |  cvttsd2si RAd, qword [BASE+8]
   |.endif
   |  mov PC, [BASE-8]
-  |.if DUALNUM
   |  add RAd, 1
+  |.if DUALNUM
   |  setint ITYPE, RA
   |  mov [BASE-16], ITYPE
   |.else
-  |  sseconst_1 xmm1, TMPR
-  |  addsd xmm0, xmm1
-  |  cvttsd2si RAd, xmm0
+  |  cvtsi2sd xmm0, RAd
   |  movsd qword [BASE-16], xmm0
   |.endif
   |  cmp RAd, TAB:RB->asize;  jae >2	// Not in array part?
@@ -1466,6 +1480,9 @@ static void build_subroutines(BuildCtx *ctx)
   |//-- Base library: catch errors ----------------------------------------
   |
   |.ffunc_1 pcall
+  |  mov L:RB, SAVE_L
+  |  lea RA, [BASE+NARGS:RD*8]
+  |  cmp RA, L:RB->maxstack; ja ->fff_fallback
   |  lea RA, [BASE+16]
   |  sub NARGS:RDd, 1
   |  mov PCd, 16+FRAME_PCALL
@@ -1484,6 +1501,9 @@ static void build_subroutines(BuildCtx *ctx)
   |  jmp ->vm_call_dispatch
   |
   |.ffunc_2 xpcall
+  |  mov L:RB, SAVE_L
+  |  lea RA, [BASE+NARGS:RD*8]
+  |  cmp RA, L:RB->maxstack; ja ->fff_fallback
   |  mov LFUNC:RA, [BASE+8]
   |  checktp_nc LFUNC:RA, LJ_TFUNC, ->fff_fallback
   |  mov LFUNC:RB, [BASE]		// Swap function and traceback.
@@ -2204,6 +2224,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_record:				// Dispatch target for recording phase.
   |.if JIT
+  |  endbr
   |  movzx RDd, byte [DISPATCH+DISPATCH_GL(hookmask)]
   |  test RDL, HOOK_VMEVENT		// No recording while in vmevent.
   |  jnz >5
@@ -2217,12 +2238,14 @@ static void build_subroutines(BuildCtx *ctx)
   |.endif
   |
   |->vm_rethook:			// Dispatch target for return hooks.
+  |  endbr
   |  movzx RDd, byte [DISPATCH+DISPATCH_GL(hookmask)]
   |  test RDL, HOOK_ACTIVE		// Hook already active?
   |  jnz >5
   |  jmp >1
   |
   |->vm_inshook:			// Dispatch target for instr/line hooks.
+  |  endbr
   |  movzx RDd, byte [DISPATCH+DISPATCH_GL(hookmask)]
   |  test RDL, HOOK_ACTIVE		// Hook already active?
   |  jnz >5
@@ -2250,6 +2273,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  jmp aword [DISPATCH+OP*8+GG_DISP2STATIC]	// Re-dispatch to static ins.
   |
   |->cont_hook:				// Continue from hook yield.
+  |  endbr
   |  add PC, 4
   |  mov RA, [RB-40]
   |  mov MULTRES, RAd			// Restore MULTRES for *M ins.
@@ -2274,6 +2298,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.endif
   |
   |->vm_callhook:			// Dispatch target for call hooks.
+  |  endbr
   |  mov SAVE_PC, PC
   |.if JIT
   |  jmp >1
@@ -2310,6 +2335,7 @@ static void build_subroutines(BuildCtx *ctx)
   |->cont_stitch:			// Trace stitching.
   |.if JIT
   |  // BASE = base, RC = result, RB = mbase
+  |  endbr
   |  mov TRACE:ITYPE, [RB-40]		// Save previous trace.
   |  cleartp TRACE:ITYPE
   |  mov TMPRd, MULTRES
@@ -2361,6 +2387,7 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |->vm_profhook:			// Dispatch target for profiler hook.
 #if LJ_HASPROFILE
+  |  endbr
   |  mov L:RB, SAVE_L
   |  mov L:RB->base, BASE
   |  mov CARG2, PC			// Caveat: CARG2 == BASE
@@ -2380,6 +2407,7 @@ static void build_subroutines(BuildCtx *ctx)
   |// The 16 bit exit number is stored with two (sign-extended) push imm8.
   |->vm_exit_handler:
   |.if JIT
+  |  endbr
   |  push r13; push r12
   |  push r11; push r10; push r9; push r8
   |  push rdi; push rsi; push rbp; lea rbp, [rsp+88]; push rbp
@@ -2429,6 +2457,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.endif
   |->vm_exit_interp:
   |  // RD = MULTRES or negated error code, BASE, PC and DISPATCH set.
+  |  endbr
   |.if JIT
   |  // Restore additional callee-save registers only used in compiled code.
   |.if X64WIN
@@ -2456,7 +2485,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  mov r12, [RA]
   |  mov rsp, RA			// Reposition stack to C frame.
   |.endif
-  |  test RDd, RDd; js >9		// Check for error from exit.
+  |  cmp RDd, -LUA_ERRERR; jae >9	// Check for error from exit.
   |  mov L:RB, SAVE_L
   |  mov MULTRES, RDd
   |  mov LFUNC:KBASE, [BASE-16]
@@ -2472,6 +2501,8 @@ static void build_subroutines(BuildCtx *ctx)
   |  movzx OP, RCL
   |  add PC, 4
   |  shr RCd, 16
+  |  cmp MULTRES, -17			// Static dispatch?
+  |  je >5
   |  cmp OP, BC_FUNCF			// Function header?
   |  jb >3
   |  cmp OP, BC_FUNCC+2			// Fast function?
@@ -2494,6 +2525,15 @@ static void build_subroutines(BuildCtx *ctx)
   |  mov KBASE, [KBASE+PC2PROTO(k)]
   |  jmp <2
   |
+  |5:  // Dispatch to static entry of original ins replaced by BC_JLOOP.
+  |  mov RA, [DISPATCH+DISPATCH_J(trace)]
+  |  mov TRACE:RA, [RA+RD*8]
+  |  mov RCd, TRACE:RA->startins
+  |  movzx RAd, RCH
+  |  movzx OP, RCL
+  |  shr RCd, 16
+  |  jmp aword [DISPATCH+OP*8+GG_DISP2STATIC]
+  |
   |9:  // Rethrow error from the right C frame.
   |  mov CARG2d, RDd
   |  mov CARG1, L:RB
@@ -2510,6 +2550,7 @@ static void build_subroutines(BuildCtx *ctx)
   |.macro vm_round, name, mode, cond
   |->name:
   |->name .. _sse:
+  |  endbr
   |  sseconst_abs xmm2, RD
   |  sseconst_2p52 xmm3, RD
   |  movaps xmm1, xmm0
@@ -2530,15 +2571,17 @@ static void build_subroutines(BuildCtx *ctx)
   |  addsd xmm1, xmm3			// (|x| + 2^52) - 2^52
   |  subsd xmm1, xmm3
   |  orpd xmm1, xmm2			// Merge sign bit back in.
+  |  sseconst_1 xmm3, RD
   |  .if mode == 1		// ceil(x)?
-  |    sseconst_m1 xmm2, RD		// Must subtract -1 to preserve -0.
   |    cmpsd xmm0, xmm1, 6		// x > result?
+  |    andpd xmm0, xmm3
+  |    addsd xmm1, xmm0			// If yes, add 1.
+  |    orpd xmm1, xmm2			// Merge sign bit back in (again).
   |  .else			// floor(x)?
-  |    sseconst_1 xmm2, RD
   |    cmpsd xmm0, xmm1, 1		// x < result?
+  |    andpd xmm0, xmm3
+  |    subsd xmm1, xmm0			// If yes, subtract 1.
   |  .endif
-  |  andpd xmm0, xmm2
-  |  subsd xmm1, xmm0			// If yes, subtract +-1.
   |.endif
   |  movaps xmm0, xmm1
   |1:
@@ -2579,39 +2622,47 @@ static void build_subroutines(BuildCtx *ctx)
   |  subsd xmm0, xmm1
   |  ret
   |
-  |// Args in xmm0/eax. Ret in xmm0. xmm0-xmm1 and eax modified.
-  |->vm_powi_sse:
-  |  cmp eax, 1; jle >6			// i<=1?
-  |  // Now 1 < (unsigned)i <= 0x80000000.
-  |1:  // Handle leading zeros.
-  |  test eax, 1; jnz >2
-  |  mulsd xmm0, xmm0
-  |  shr eax, 1
-  |  jmp <1
-  |2:
-  |  shr eax, 1; jz >5
-  |  movaps xmm1, xmm0
-  |3:  // Handle trailing bits.
-  |  mulsd xmm0, xmm0
-  |  shr eax, 1; jz >4
-  |  jnc <3
-  |  mulsd xmm1, xmm0
-  |  jmp <3
-  |4:
-  |  mulsd xmm0, xmm1
-  |5:
+  |//-----------------------------------------------------------------------
+  |//-- Number conversion functions ----------------------------------------
+  |//-----------------------------------------------------------------------
+  |
+  |// int64_t lj_vm_num2int_check(double x)
+  |->vm_num2int_check:
+  |  cvttsd2si eax, xmm0
+  |  xorps xmm1, xmm1
+  |  cvtsi2sd xmm1, eax
+  |  ucomisd xmm1, xmm0
+  |  jp >1
+  |  jne >1
   |  ret
-  |6:
-  |  je <5				// x^1 ==> x
-  |  jb >7				// x^0 ==> 1
-  |  neg eax
-  |  call <1
-  |  sseconst_1 xmm1, RD
-  |  divsd xmm1, xmm0
-  |  movaps xmm0, xmm1
+  |1:
+  |  mov64 rax, U64x(80000000,80000000)
   |  ret
-  |7:
-  |  sseconst_1 xmm0, RD
+  |
+  |// int64_t lj_vm_num2i64(double x)
+  |->vm_num2i64:
+  |  cvttsd2si rax, xmm0
+  |  ret
+  |
+  |// uint64_t lj_vm_num2u64(double x)
+  |->vm_num2u64:
+  |  cvttsd2si rax, xmm0		// Convert [-2^63..2^63) range.
+  |  cmp rax, 1	// Indefinite result -0x8000000000000000LL - 1 sets overflow.
+  |  jo >1
+  |  ret
+  |1:
+  |  mov64 rdx, U64x(c3f00000,00000000)	// -0x1p64 (double).
+  |  movd xmm1, rdx
+  |  addsd xmm0,  xmm1
+  |  cvttsd2si rax, xmm0		// Convert [2^63..2^64+2^63) range.
+  |  // Note that -0x1p63 converts to -0x8000000000000000LL either way.
+  |  ret
+  |
+  |// int32_t lj_vm_tobit(double x)
+  |->vm_tobit:
+  |  sseconst_tobit xmm1, RC
+  |  addsd xmm0, xmm1
+  |  movd eax, xmm0
   |  ret
   |
   |//-----------------------------------------------------------------------
@@ -2653,6 +2704,7 @@ static void build_subroutines(BuildCtx *ctx)
   |// Next idx returned in edx.
   |->vm_next:
   |.if JIT
+  |  endbr
   |  mov NEXT_ASIZE, NEXT_TAB->asize
   |1:  // Traverse array part.
   |  cmp NEXT_IDX, NEXT_ASIZE;  jae >5
@@ -2780,12 +2832,12 @@ static void build_subroutines(BuildCtx *ctx)
   |
   |  // Copy stack slots.
   |  movzx ecx, byte CCSTATE->nsp
-  |  sub ecx, 1
+  |  sub ecx, 8
   |  js >2
   |1:
-  |  mov rax, [CCSTATE+rcx*8+offsetof(CCallState, stack)]
-  |  mov [rsp+rcx*8+CCALL_SPS_EXTRA*8], rax
-  |  sub ecx, 1
+  |  mov rax, [CCSTATE+rcx+offsetof(CCallState, stack)]
+  |  mov [rsp+rcx+CCALL_SPS_EXTRA*8], rax
+  |  sub ecx, 8
   |  jns <1
   |2:
   |
@@ -2834,6 +2886,26 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
   int vk = 0;
   |// Note: aligning all instructions does not pay off.
   |=>defop:
+
+  switch (op) {
+#if !LJ_HASJIT
+  case BC_FORL:
+  case BC_JFORI:
+  case BC_JFORL:
+  case BC_ITERL:
+  case BC_JITERL:
+  case BC_LOOP:
+  case BC_JLOOP:
+  case BC_FUNCF:
+  case BC_JFUNCF:
+  case BC_JFUNCV:
+#endif
+  case BC_FUNCV:  /* NYI: compiled vararg functions. */
+    break;  /* Avoid redundant endbr instructions. */
+  default:
+    |  endbr
+    break;
+  }
 
   switch (op) {
 
@@ -3192,11 +3264,15 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |.if DUALNUM
     |  checkint RB, >5
     |  neg RBd
+    |  jz >3
     |  jo >4
     |  setint RB
     |9:
     |  mov [BASE+RA*8], RB
     |  ins_next
+    |3:
+    |  mov64 RB, U64x(80000000,00000000)  // -0.
+    |  jmp <9
     |4:
     |  mov64 RB, U64x(41e00000,00000000)  // 2^31.
     |  jmp <9
@@ -4109,6 +4185,9 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  hotloop RBd
     |.endif
     |->vm_IITERN:
+    |.if JIT
+    |  endbr
+    |.endif
     |  ins_A	// RA = base, (RB = nresults+1, RC = nargs+1 (2+1))
     |  mov TAB:RB, [BASE+RA*8-16]
     |  cleartp TAB:RB
@@ -4867,6 +4946,30 @@ static void emit_asm_debug(BuildCtx *ctx)
 	".LEFDE3:\n\n", (int)ctx->codesz - fcofs);
 #endif
 #endif
+#if LJ_TARGET_LINUX && (LJ_ABI_BRANCH_TRACK || LJ_ABI_SHADOW_STACK)
+    fprintf(ctx->fp,
+	"\t.section .note.gnu.property,\"a\"\n"
+	"\t.align 8\n"
+	"\t.long 4\n"
+	"\t.long 16\n"
+	"\t.long 5\n"
+	"\t.long 0x00554e47\n"
+	"\t.long 0xc0000002\n"
+	"\t.long 4\n"
+	"\t.long %d\n"
+	"\t.long 0\n",
+#if LJ_ABI_BRANCH_TRACK
+	1|
+#else
+	0|
+#endif
+#if LJ_ABI_SHADOW_STACK
+	2
+#else
+	0
+#endif
+	);
+#endif
     break;
 #if !LJ_NO_UNWIND
   /* Mental note: never let Apple design an assembler.
@@ -4960,7 +5063,6 @@ static void emit_asm_debug(BuildCtx *ctx)
 	  "LEFDEY:\n\n", fcsize);
     }
 #endif
-    fprintf(ctx->fp, ".subsections_via_symbols\n");
     }
     break;
 #endif

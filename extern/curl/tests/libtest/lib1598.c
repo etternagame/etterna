@@ -23,18 +23,16 @@
  ***************************************************************************/
 
 /*
- * This unit test PUT http data over proxy. Proxy header will be different
+ * This unit test PUT http data over proxy. Proxy header is different
  * from server http header
  */
 
-#include "test.h"
-#include <stdio.h>
-#include "memdebug.h"
+#include "first.h"
 
 /*
  * carefully not leak memory on OOM
  */
-static int trailers_callback(struct curl_slist **list, void *userdata)
+static int t1598_trailers_callback(struct curl_slist **list, void *userdata)
 {
   struct curl_slist *nlist = NULL;
   struct curl_slist *nlist2 = NULL;
@@ -52,24 +50,23 @@ static int trailers_callback(struct curl_slist **list, void *userdata)
   }
 }
 
-static const char *post_data = "xxx=yyy&aaa=bbbbb";
-
-CURLcode test(char *URL)
+static CURLcode test_lib1598(const char *URL)
 {
+  static const char *post_data = "xxx=yyy&aaa=bbbbb";
+
   CURL *curl = NULL;
-  CURLcode res = CURLE_FAILED_INIT;
+  CURLcode result = CURLE_FAILED_INIT;
   /* http and proxy header list */
   struct curl_slist *hhl = NULL, *list;
 
   if(curl_global_init(CURL_GLOBAL_ALL) != CURLE_OK) {
-    fprintf(stderr, "curl_global_init() failed\n");
+    curl_mfprintf(stderr, "curl_global_init() failed\n");
     return TEST_ERR_MAJOR_BAD;
   }
 
-
   curl = curl_easy_init();
   if(!curl) {
-    fprintf(stderr, "curl_easy_init() failed\n");
+    curl_mfprintf(stderr, "curl_easy_init() failed\n");
     curl_global_cleanup();
     return TEST_ERR_MAJOR_BAD;
   }
@@ -85,15 +82,15 @@ CURLcode test(char *URL)
     hhl = list;
   }
 
-  test_setopt(curl, CURLOPT_URL, URL);
-  test_setopt(curl, CURLOPT_HTTPHEADER, hhl);
-  test_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(post_data));
-  test_setopt(curl, CURLOPT_POSTFIELDS, post_data);
-  test_setopt(curl, CURLOPT_TRAILERFUNCTION, trailers_callback);
-  test_setopt(curl, CURLOPT_TRAILERDATA, NULL);
-  test_setopt(curl, CURLOPT_VERBOSE, 1L);
+  easy_setopt(curl, CURLOPT_URL, URL);
+  easy_setopt(curl, CURLOPT_HTTPHEADER, hhl);
+  easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)strlen(post_data));
+  easy_setopt(curl, CURLOPT_POSTFIELDS, post_data);
+  easy_setopt(curl, CURLOPT_TRAILERFUNCTION, t1598_trailers_callback);
+  easy_setopt(curl, CURLOPT_TRAILERDATA, NULL);
+  easy_setopt(curl, CURLOPT_VERBOSE, 1L);
 
-  res = curl_easy_perform(curl);
+  result = curl_easy_perform(curl);
 
 test_cleanup:
 
@@ -103,5 +100,5 @@ test_cleanup:
 
   curl_global_cleanup();
 
-  return res;
+  return result;
 }

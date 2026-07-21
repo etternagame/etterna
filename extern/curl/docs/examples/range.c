@@ -30,16 +30,21 @@
 int main(void)
 {
   CURL *curl;
-  CURLcode res = CURLE_OK;
+
+  CURLcode result = curl_global_init(CURL_GLOBAL_ALL);
+  if(result != CURLE_OK)
+    return (int)result;
 
   curl = curl_easy_init();
   if(curl) {
     curl_easy_setopt(curl, CURLOPT_URL, "https://curl.se/");
     curl_easy_setopt(curl, CURLOPT_RANGE, "200-999");
 
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
     curl_easy_cleanup(curl);
   }
 
-  return (int)res;
+  curl_global_cleanup();
+
+  return (int)result;
 }

@@ -21,11 +21,15 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curl/curl.h"
+#include <curl/curl.h>
 #include <stdio.h>
 
-int main(void)
+int main(int argc, const char **argv)
 {
-  printf("curl_version(): |%s|\n", curl_version());
+  (void)argc;
+  puts("libcurl C test:");
+  puts(argv[0]);
+  puts(curl_version());
+  puts("---");
   return 0;
 }

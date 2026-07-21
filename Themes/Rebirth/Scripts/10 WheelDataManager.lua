@@ -868,18 +868,44 @@ local sortmodeImplementations = {
         function()
             WHEELDATA:ResetSorts()
             local songs = WHEELDATA:GetAllSongsPassingFilter()
+            local playlistsAreSongGroups = PREFSMAN:GetPreference("PlaylistsAreSongGroups")
 
-            -- for reasons determined by higher powers, literally mimic the behavior of AllSongsByGroup construction
-            for _, song in ipairs(songs) do
-                local fname = song:GetGroupName()
+            local function addSongToFolder(song, fname)
                 if WHEELDATA.AllSongsByFolder[fname] ~= nil then
                     WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
                 else
                     WHEELDATA.AllSongsByFolder[fname] = {song}
                     WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
                 end
+            end
+
+            -- for reasons determined by higher powers, literally mimic the behavior of AllSongsByGroup construction
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                addSongToFolder(song, fname)
                 WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
             end
+
+            -- add songs into new groups based on playlists if the preference is true
+            if playlistsAreSongGroups then
+                local lists = SONGMAN:GetPlaylists()
+                for _, playlist in ipairs(lists) do
+                    local pname = playlist:GetName()
+                    -- dont replace a pack with a playlist. dont merge them either
+                    if WHEELDATA.AllFolders[pname] == nil then
+                        local songlist = playlist:GetSonglist()
+                        for ii, chart in ipairs(playlist:GetAllSteps()) do
+                            if chart:IsLoaded() then
+                                local song = songlist[ii]
+                                addSongToFolder(song, pname)
+                                -- it's odd to do this but whatever
+                                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+                            end
+                        end
+                    end
+                end
+            end
+
             -- sort the groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
@@ -890,6 +916,8 @@ local sortmodeImplementations = {
             end
         end,
         function(song)
+            -- caring about playlistsAreSongGroups here would fix some potential song search jumping stuff
+            -- but we are only handling a single existing instance of a song on the wheel with multiple refs
             return song:GetGroupName()
         end,
         function(packName)
@@ -1877,7 +1905,7 @@ function WHEELDATA.SortByCurrentSortmode(self)
     end
 
     -- sort timing debug
-    print(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
+    print(string.format("WHEELDATA -- Sorting took %f seconds.", tafter - tbefore))
     MESSAGEMAN:Broadcast("FinishedSort")
 end
 

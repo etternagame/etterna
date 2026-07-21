@@ -64,6 +64,9 @@ NULL
 
 # EXAMPLE
 ~~~c
+extern size_t read_cb(char *ptr, size_t size,
+                      size_t nmemb, void *userdata);
+
 static int trailer_cb(struct curl_slist **tr, void *data)
 {
   /* libcurl frees the list */
@@ -75,7 +78,7 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
 
     /* Set the URL of the request */
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com/");
@@ -84,17 +87,17 @@ int main(void)
 
     /* Assuming we have a function that returns the data to be pushed
        Let that function be read_cb */
-    curl_easy_setopt(curl, CURLOPT_READFUNCTION, trailer_cb);
+    curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_cb);
 
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, "Trailer: My-super-awesome-trailer");
-    res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    result = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     /* Set the trailers filling callback */
     curl_easy_setopt(curl, CURLOPT_TRAILERFUNCTION, trailer_cb);
 
     /* Perform the transfer */
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
     curl_easy_cleanup(curl);
 

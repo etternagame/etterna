@@ -29,11 +29,10 @@ Why they occur and possibly what you can do to fix the problem are also included
 # CURLcode
 
 Almost all "easy" interface functions return a CURLcode error code. No matter
-what, using the curl_easy_setopt(3) option CURLOPT_ERRORBUFFER(3)
-is a good idea as it gives you a human readable error string that may offer
-more details about the cause of the error than just the error code.
-curl_easy_strerror(3) can be called to get an error string from a given
-CURLcode number.
+what, using the curl_easy_setopt(3) option CURLOPT_ERRORBUFFER(3) is a good
+idea as it gives you a human readable error string that may offer more details
+about the cause of the error than the error code alone. curl_easy_strerror(3)
+can be called to get an error string from a given CURLcode number.
 
 CURLcode is one of the following:
 
@@ -45,8 +44,7 @@ All fine. Proceed as usual.
 
 The URL you passed to libcurl used a protocol that this libcurl does not
 support. The support might be a compile-time option that you did not use, it
-can be a misspelled protocol string or just a protocol libcurl has no code
-for.
+can be a misspelled protocol string or a protocol libcurl has no code for.
 
 ## CURLE_FAILED_INIT (2)
 
@@ -105,7 +103,7 @@ CURLOPT_ACCEPTTIMEOUT_MS(3) (or the internal default) timeout expired.
 ## CURLE_FTP_WEIRD_PASV_REPLY (13)
 
 libcurl failed to get a sensible result back from the server as a response to
-either a PASV or a EPSV command. The server is flawed.
+either a PASV or an EPSV command. The server is flawed.
 
 ## CURLE_FTP_WEIRD_227_FORMAT (14)
 
@@ -221,7 +219,7 @@ file boundary.
 
 ## CURLE_FILE_COULDNT_READ_FILE (37)
 
-A file given with FILE:// could not be opened. Most likely because the file
+A file given with `file://` could not be opened. Most likely because the file
 path does not identify an existing file. Did you check file permissions?
 
 ## CURLE_LDAP_CANNOT_BIND (38)
@@ -349,7 +347,7 @@ Initiating the SSL Engine failed.
 
 ## CURLE_LOGIN_DENIED (67)
 
-The remote server denied curl to login (Added in 7.13.1)
+The remote server denied curl to login
 
 ## CURLE_TFTP_NOTFOUND (68)
 
@@ -403,22 +401,20 @@ Failed to shut down the SSL connection.
 
 Socket is not ready for send/recv. Wait until it is ready and try again. This
 return code is only returned from curl_easy_recv(3) and curl_easy_send(3)
-(Added in 7.18.2)
 
 ## CURLE_SSL_CRL_BADFILE (82)
 
-Failed to load CRL file (Added in 7.19.0)
+Failed to load CRL file
 
 ## CURLE_SSL_ISSUER_ERROR (83)
 
-Issuer check failed (Added in 7.19.0)
+Issuer check failed
 
 ## CURLE_FTP_PRET_FAILED (84)
 
 The FTP server does not understand the PRET command at all or does not support
 the given argument. Be careful when using CURLOPT_CUSTOMREQUEST(3), a
-custom LIST command is sent with the PRET command before PASV as well. (Added
-in 7.20.0)
+custom LIST command is sent with the PRET command before PASV as well.
 
 ## CURLE_RTSP_CSEQ_ERROR (85)
 
@@ -439,7 +435,7 @@ Chunk callback reported error.
 ## CURLE_NO_CONNECTION_AVAILABLE (89)
 
 (For internal use only, is never returned by libcurl) No connection available,
-the session is queued. (added in 7.30.0)
+the session is queued.
 
 ## CURLE_SSL_PINNEDPUBKEYNOTMATCH (90)
 
@@ -488,7 +484,7 @@ An internal call to poll() or select() returned error that is not recoverable.
 
 A value or data field grew larger than allowed.
 
-## CURLE_ECH_REQUIRED (101)"
+## CURLE_ECH_REQUIRED (101)
 
 ECH was attempted but failed.
 
@@ -504,6 +500,11 @@ curl_multi_perform(3) again without doing select() or similar in
 between. Before version 7.20.0 (released on February 9 2010) this could be returned by
 curl_multi_perform(3), but in later versions this return code is never
 used.
+
+## CURLM_CALL_MULTI_SOCKET (-1)
+
+An alias for *CURLM_CALL_MULTI_PERFORM*. Never returned by modern libcurl
+versions.
 
 ## CURLM_OK (0)
 
@@ -530,17 +531,15 @@ This can only be returned if libcurl bugs. Please report it to us.
 ## CURLM_BAD_SOCKET (5)
 
 The passed-in socket is not a valid one that libcurl already knows about.
-(Added in 7.15.4)
 
 ## CURLM_UNKNOWN_OPTION (6)
 
 curl_multi_setopt() with unsupported option
-(Added in 7.15.4)
 
 ## CURLM_ADDED_ALREADY (7)
 
 An easy handle already added to a multi handle was attempted to get added a
-second time. (Added in 7.32.1)
+second time.
 
 ## CURLM_RECURSIVE_API_CALL (8)
 
@@ -586,12 +585,11 @@ An invalid share object was passed to the function.
 ## CURLSHE_NOMEM (4)
 
 Not enough memory was available.
-(Added in 7.12.0)
 
 ## CURLSHE_NOT_BUILT_IN (5)
 
 The requested sharing could not be done because the library you use do not have
-that particular feature enabled. (Added in 7.23.0)
+that particular feature enabled.
 
 # CURLUcode
 
@@ -676,7 +674,7 @@ There is no zone id set in the URL.
 
 ## CURLUE_BAD_FILE_URL (19)
 
-The file:// URL is invalid.
+The `file://` URL is invalid.
 
 ## CURLUE_BAD_FRAGMENT (20)
 

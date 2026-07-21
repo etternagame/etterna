@@ -239,6 +239,13 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 		_hsw.full_reset();
 
 		_mitvghi.zero();
+		_diffz.full_reset();
+	}
+
+	void set_sequenced_base_diffs(const int& itv) const override {
+		_calc.init_base_diff_vals.at(hand)[TechBase].at(itv) =
+			_diffz._tc.get_itv_diff(
+				_calc.init_base_diff_vals.at(hand)[NPSBase].at(itv), _calc);
 	}
 
 	virtual void handle_dependent_interval_end(const int& itv)
@@ -248,6 +255,7 @@ struct TheFiveEaredBazoinkazoink : public Bazoinkazoink
 		set_sequenced_base_diffs(itv);
 
 		_mitvghi.interval_end();
+		_diffz.interval_end();
 	}
 
 	virtual void run_dependent_pmod_loop() {

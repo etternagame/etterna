@@ -156,6 +156,29 @@ local function createChoices()
     return t
 end
 
+-- a really sneaky way to not actually load any of the subtabs until we need them
+-- this should save a small amount of fps and load time at the cost of a tiny stutter loading them on demand
+local function actorLoader(tabExpected, filename)
+    return Def.Actor {
+        InitCommand = function(self)
+            self.opened = false
+        end,
+        GeneralTabSetMessageCommand = function(self, params)
+            if self.opened then return end
+            if params and params.tab and params.tab == tabExpected then
+                self.opened = true
+                print("Loading GeneralTab for the first time: "..filename)
+                local result = self:GetParent():AddChild(LoadActorWithParams(filename, {ratios = ratios, actuals = actuals}))
+                if result ~= nil then
+                    result:playcommand("Begin") -- just in case
+                    result:playcommand("On") -- for buttons
+                    result:playcommand("GeneralTabSet", params)
+                end
+            end
+        end,
+    }
+end
+
 t[#t+1] = Def.ActorFrame {
     Name = "Container",
     InitCommand = function(self)
@@ -205,11 +228,11 @@ t[#t+1] = Def.ActorFrame {
             self:finishtweening()
         end
     },
-    LoadActorWithParams("generalPages/scores.lua", {ratios = ratios, actuals = actuals}),
-    LoadActorWithParams("generalPages/profile.lua", {ratios = ratios, actuals = actuals}),
-    LoadActorWithParams("generalPages/goals.lua", {ratios = ratios, actuals = actuals}),
-    LoadActorWithParams("generalPages/playlists.lua", {ratios = ratios, actuals = actuals}),
-    LoadActorWithParams("generalPages/tags.lua", {ratios = ratios, actuals = actuals}),
+    actorLoader(SCUFF.scoretabindex, "generalPages/scores.lua"),
+    actorLoader(SCUFF.profiletabindex, "generalPages/profile.lua"),
+    actorLoader(SCUFF.goalstabindex, "generalPages/goals.lua"),
+    actorLoader(SCUFF.playliststabindex, "generalPages/playlists.lua"),
+    actorLoader(SCUFF.tagstabindex, "generalPages/tags.lua"),
 }
 
 return t

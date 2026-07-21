@@ -24,25 +24,27 @@
  *
  ***************************************************************************/
 #include "tool_setup.h"
+
 #include "tool_cb_hdr.h"
 #include "tool_cb_prg.h"
-#include "tool_sdecls.h"
+#include "tool_cfgable.h"
 
 struct per_transfer {
+  char errorbuffer[CURL_ERROR_SIZE];
   /* double linked */
   struct per_transfer *next;
   struct per_transfer *prev;
   struct OperationConfig *config; /* for this transfer */
-  struct curl_certinfo *certinfo;
+  const struct curl_certinfo *certinfo;
   CURL *curl;
+  /* NULL or malloced */
+  char *uploadfile;
   long retry_remaining;
-  long retry_sleep_default;
-  long retry_sleep;
   long num_retries; /* counts the performed retries */
   struct curltime start; /* start of this transfer */
   struct curltime retrystart;
   char *url;
-  unsigned int urlnum; /* the index of the given URL */
+  curl_off_t urlnum; /* the index of the given URL */
   char *outfile;
   int infd;
   struct ProgressData progressbar;
@@ -61,13 +63,10 @@ struct per_transfer {
   curl_off_t ulnow;
   curl_off_t uploadfilesize; /* expected total amount */
   curl_off_t uploadedsofar; /* amount delivered from the callback */
+  uint32_t retry_sleep_default;
+  uint32_t retry_sleep;
   BIT(dltotal_added); /* if the total has been added from this */
   BIT(ultotal_added);
-
-  /* NULL or malloced */
-  char *uploadfile;
-  char *errorbuffer; /* allocated and assigned while this is used for a
-                        transfer */
   BIT(infdopen); /* TRUE if infd needs closing */
   BIT(noprogress);
   BIT(was_last_header_empty);
@@ -75,12 +74,12 @@ struct per_transfer {
   BIT(added); /* set TRUE when added to the multi handle */
   BIT(abort); /* when doing parallel transfers and this is TRUE then a critical
                  error (eg --fail-early) has occurred in another transfer and
-                 this transfer will be aborted in the progress callback */
+                 this transfer gets aborted in the progress callback */
   BIT(skip);  /* considered already done */
 };
 
-CURLcode operate(struct GlobalConfig *config, int argc, argv_item_t argv[]);
-void single_transfer_cleanup(struct OperationConfig *config);
+CURLcode operate(int argc, argv_item_t argv[]);
+void single_transfer_cleanup(void);
 
 extern struct per_transfer *transfers; /* first node */
 

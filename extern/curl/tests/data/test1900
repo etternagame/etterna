@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -16,9 +17,6 @@ HSTS
 HSTS
 http
 </features>
-<server>
-none
-</server>
 
 <name>
 HSTS curl_easy_duphandle

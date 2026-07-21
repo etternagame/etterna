@@ -1,6 +1,6 @@
 |// Low-level VM code for MIPS64 CPUs.
 |// Bytecode interpreter, fast functions and helper functions.
-|// Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+|// Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 |//
 |// Contributed by Djordje Kovacevic and Stefan Pejic from RT-RK.com.
 |// Sponsored by Cisco Systems, Inc.
@@ -1415,10 +1415,15 @@ static void build_subroutines(BuildCtx *ctx)
   |//-- Base library: catch errors ----------------------------------------
   |
   |.ffunc pcall
-  |  daddiu NARGS8:RC, NARGS8:RC, -8
-  |  lbu TMP3, DISPATCH_GL(hookmask)(DISPATCH)
-  |  bltz NARGS8:RC, ->fff_fallback
+  |  ld TMP1, L->maxstack
+  |  daddu TMP2, BASE, NARGS8:RC
+  |  sltu AT, TMP1, TMP2
+  |  bnez AT, ->fff_fallback
+  |.  lbu TMP3, DISPATCH_GL(hookmask)(DISPATCH)
+  |  daddiu NARGS8:TMP0, NARGS8:RC, -8
+  |  bltz NARGS8:TMP0, ->fff_fallback
   |.   move TMP2, BASE
+  |  move NARGS8:RC, NARGS8:TMP0
   |   daddiu BASE, BASE, 16
   |  // Remember active hook before pcall.
   |  srl TMP3, TMP3, HOOK_ACTIVE_SHIFT
@@ -1437,8 +1442,12 @@ static void build_subroutines(BuildCtx *ctx)
   |.  nop
   |
   |.ffunc xpcall
+  |  ld TMP1, L->maxstack
+  |  daddu TMP2, BASE, NARGS8:RC
+  |  sltu AT, TMP1, TMP2
+  |  bnez AT, ->fff_fallback
+  |.  ld CARG1, 0(BASE)
   |  daddiu NARGS8:TMP0, NARGS8:RC, -16
-  |  ld CARG1, 0(BASE)
   |   ld CARG2, 8(BASE)
   |    bltz NARGS8:TMP0, ->fff_fallback
   |.    lbu TMP1, DISPATCH_GL(hookmask)(DISPATCH)
@@ -2104,7 +2113,7 @@ static void build_subroutines(BuildCtx *ctx)
   |  dinsu CRET2, AT, 21, 21
   |  slt AT, CARG1, r0
   |  dsrlv CRET1, CRET2, TMP0
-  |  dsubu CARG1, r0, CRET1
+  |  negu CARG1, CRET1
   |.if MIPSR6
   |  seleqz CRET1, CRET1, AT
   |  selnez CARG1, CARG1, AT
@@ -2112,20 +2121,12 @@ static void build_subroutines(BuildCtx *ctx)
   |.else
   |  movn CRET1, CARG1, AT
   |.endif
-  |  li CARG1, 64
-  |  subu TMP0, CARG1, TMP0
+  |  negu TMP0, TMP0
   |  dsllv CRET2, CRET2, TMP0	// Integer check.
   |  sextw AT, CRET1
   |  xor AT, CRET1, AT		// Range check.
-  |.if MIPSR6
-  |  seleqz AT, AT, CRET2
-  |  selnez CRET2, CRET2, CRET2
   |  jr ra
   |.  or CRET2, AT, CRET2
-  |.else
-  |  jr ra
-  |.  movz CRET2, AT, CRET2
-  |.endif
   |1:
   |  jr ra
   |.  li CRET2, 1
@@ -2571,7 +2572,8 @@ static void build_subroutines(BuildCtx *ctx)
   |   daddiu DISPATCH, JGL, -GG_DISP2G-32768
   |  sd BASE, L->base
   |1:
-  |  bltz CRET1, >9			// Check for error from exit.
+  |  sltiu TMP0, CRET1, -LUA_ERRERR	// Check for error from exit.
+  |  beqz TMP0, >9
   |.  ld LFUNC:RB, FRAME_FUNC(BASE)
   |    .FPU lui TMP3, 0x59c0		// TOBIT = 2^52 + 2^51 (float).
   |  dsll MULTRES, CRET1, 3
@@ -2580,24 +2582,26 @@ static void build_subroutines(BuildCtx *ctx)
   |    li TISNIL, LJ_TNIL
   |     li TISNUM, LJ_TISNUM		// Setup type comparison constants.
   |    .FPU mtc1 TMP3, TOBIT
-  |  ld TMP1, LFUNC:RB->pc
+  |  ld TMP3, LFUNC:RB->pc
   |   sd r0, DISPATCH_GL(jit_base)(DISPATCH)
-  |  ld KBASE, PC2PROTO(k)(TMP1)
   |    .FPU cvt.d.s TOBIT, TOBIT
   |  // Modified copy of ins_next which handles function header dispatch, too.
   |  lw INS, 0(PC)
-  |   daddiu PC, PC, 4
+  |  addiu CRET1, CRET1, 17		// Static dispatch?
   |    // Assumes TISNIL == ~LJ_VMST_INTERP == -1
   |    sw TISNIL, DISPATCH_GL(vmstate)(DISPATCH)
+  |   decode_RD8a RD, INS
+  |  beqz CRET1, >5
+  |.  daddiu PC, PC, 4
   |  decode_OP8a TMP1, INS
   |  decode_OP8b TMP1
-  |    sltiu TMP2, TMP1, BC_FUNCF*8
   |  daddu TMP0, DISPATCH, TMP1
-  |   decode_RD8a RD, INS
+  |    sltiu TMP2, TMP1, BC_FUNCF*8
   |  ld AT, 0(TMP0)
   |   decode_RA8a RA, INS
   |    beqz TMP2, >2
   |.  decode_RA8b RA
+  |  ld KBASE, PC2PROTO(k)(TMP3)
   |  jr AT
   |.  decode_RD8b RD
   |2:
@@ -2615,12 +2619,29 @@ static void build_subroutines(BuildCtx *ctx)
   |  dsubu TMP1, BASE, TMP0
   |  ld LFUNC:TMP2, -32(TMP1)
   |  cleartp LFUNC:TMP2
-  |  ld TMP1, LFUNC:TMP2->pc
-  |  ld KBASE, PC2PROTO(k)(TMP1)
+  |  ld TMP3, LFUNC:TMP2->pc
+  |  ld KBASE, PC2PROTO(k)(TMP3)
   |3:
   |  daddiu RC, MULTRES, -8
   |  jr AT
   |.  daddu RA, RA, BASE
+  |
+  |5:  // Dispatch to static entry of original ins replaced by BC_JLOOP.
+  |  ld TMP0, DISPATCH_J(trace)(DISPATCH)
+  |  decode_RD8b RD
+  |  daddu TMP0, TMP0, RD
+  |  ld TRACE:TMP2, 0(TMP0)
+  |  lw INS, TRACE:TMP2->startins
+  |  decode_OP8a TMP1, INS
+  |  decode_OP8b TMP1
+  |  daddu TMP0, DISPATCH, TMP1
+  |   decode_RD8a RD, INS
+  |  ld AT, GG_DISP2STATIC(TMP0)
+  |   decode_RA8a RA, INS
+  |   decode_RD8b RD
+  |  ld KBASE, PC2PROTO(k)(TMP3)
+  |  jr AT
+  |.  decode_RA8b RA
   |
   |9:  // Rethrow error from the right C frame.
   |  load_got lj_err_trace
@@ -2901,6 +2922,136 @@ static void build_subroutines(BuildCtx *ctx)
   |  sfmin_max max, vm_sfcmpogt
   |
   |//-----------------------------------------------------------------------
+  |//-- Number conversion functions ----------------------------------------
+  |//-----------------------------------------------------------------------
+  |
+  |// int64_t lj_vm_num2int_check(double x)
+  |->vm_num2int_check:
+  |.if FPU
+  |  trunc.w.d FARG2, FARG1
+  |  mfc1 CRET1, FARG2
+  |  cvt.d.w FARG2, FARG2
+  |.if MIPSR6
+  |  cmp.eq.d FARG2, FARG1, FARG2
+  |  bc1eqz FARG2, >2
+  |.else
+  |  c.eq.d FARG1, FARG2
+  |  bc1f 0, >2
+  |.endif
+  |.  nop
+  |  jr ra
+  |.  zextw CRET1, CRET1
+  |
+  |.else
+  |
+  |  dsll CRET2, CARG1, 1
+  |  beqz CRET2, >1
+  |.  li TMP0, 1076
+  |  dsrl AT, CRET2, 53
+  |  dsubu TMP0, TMP0, AT
+  |  sltiu AT, TMP0, 54
+  |  beqz AT, >2
+  |.  dextm CRET2, CRET2, 0, 20
+  |  dinsu CRET2, AT, 21, 21
+  |  slt AT, CARG1, r0
+  |  dsrlv CRET1, CRET2, TMP0
+  |  negu CARG1, CRET1
+  |.if MIPSR6
+  |  seleqz CRET1, CRET1, AT
+  |  selnez CARG1, CARG1, AT
+  |  or CRET1, CRET1, CARG1
+  |.else
+  |  movn CRET1, CARG1, AT
+  |.endif
+  |  negu TMP0, TMP0
+  |  dsllv CRET2, CRET2, TMP0	// Integer check.
+  |  sextw AT, CRET1
+  |  xor AT, CRET1, AT		// Range check.
+  |  or AT, AT, CRET2
+  |  bnez AT, >2
+  |.  nop
+  |  jr ra
+  |.  zextw CRET1, CRET1
+  |1:
+  |  jr ra
+  |.  move CRET1, r0
+  |.endif
+  |2:
+  |  lui CRET1, 0x8000
+  |  dsll CRET1, CRET1, 16
+  |  ori CRET1, CRET1, 0x8000
+  |  jr ra
+  |.  dsll CRET1, CRET1, 16
+  |
+  |// int64_t lj_vm_num2i64(double x)
+  |->vm_num2i64:
+  |.if FPU
+  |  trunc.l.d FARG1, FARG1
+  |  jr ra
+  |.  dmfc1 CRET1, FARG1
+  |.else
+  |// fallthrough, same as lj_vm_num2u64 for soft-float.
+  |.endif
+  |
+  |// uint64_t lj_vm_num2u64(double x)
+  |->vm_num2u64:
+  |.if FPU
+  |  trunc.l.d FARG2, FARG1
+  |  dmfc1 CRET1, FARG2
+  |  li AT, -1
+  |  dsrl AT, AT, 1
+  |  beq CRET1, AT, >1
+  |.  lui AT, 0xdf80		// -2^64 (float).
+  |  jr ra
+  |.  nop
+  |1:
+  |  mtc1 AT, FARG2
+  |  cvt.d.s FARG2, FARG2
+  |  add.d FARG1, FARG1, FARG2
+  |  trunc.l.d FARG2, FARG1
+  |  jr ra
+  |.  dmfc1 CRET1, FARG2
+  |
+  |.else
+  |
+  |  dextu CARG2, CARG1, 20, 10
+  |  addiu AT, CARG2, -1023
+  |  sltiu AT, AT, 116
+  |  beqz AT, >2			// Exponent out of range.
+  |.  addiu CARG2, CARG2, -1075
+  |  dextm CRET1, CARG1, 0, 19
+  |  dsll AT, AT, 52
+  |  dsra CARG1, CARG1, 63		// sign = 0 or -1.
+  |  bgez CARG2, >1			// Shift mantissa left or right?
+  |.  or CRET1, CRET1, AT		// Merge leading 1 into masked mantissa.
+  |  subu CARG2, r0, CARG2
+  |  dsrlv CRET1, CRET1, CARG2		// Shift mantissa right for low exp.
+  |  daddu CRET1, CRET1, CARG1
+  |  jr ra
+  |.  xor CRET1, CRET1, CARG1		// m = sign?-m:m = (m+sign)^sign.
+  |1:
+  |  dsllv CRET1, CRET1, CARG2		// Shift mantissa left for high exp.
+  |  daddu CRET1, CRET1, CARG1
+  |  jr ra
+  |.  xor CRET1, CRET1, CARG1		// m = sign?-m:m = (m+sign)^sign.
+  |2:
+  |  jr ra
+  |.  move CRET1, r0
+  |.endif
+  |
+  |// int32_t lj_vm_tobit(double x)
+  |.if FPU
+  |->vm_tobit:
+  |  lui AT, 0x59c0		// 2^52 + 2^51 (float).
+  |  mtc1 AT, FARG2
+  |  cvt.d.s FARG2, FARG2
+  |  add.d FARG1, FARG1, FARG2
+  |  mfc1 CRET1, FARG1
+  |  jr ra
+  |.  sextw CRET1, CRET1
+  |.endif
+  |
+  |//-----------------------------------------------------------------------
   |//-- Miscellaneous functions --------------------------------------------
   |//-----------------------------------------------------------------------
   |
@@ -3046,7 +3197,6 @@ static void build_subroutines(BuildCtx *ctx)
   |  move TMP2, sp
   |  dsubu sp, sp, TMP1
   |  sd ra, -8(TMP2)
-  |   sll CARG2, CARG2, 3
   |  sd r16, -16(TMP2)
   |  sd CCSTATE, -24(TMP2)
   |  move r16, TMP2
@@ -3655,7 +3805,8 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |  sextw CARG1, CARG1
     |  beq CARG1, TMP1, ->vmeta_unm	// Meta handler deals with -2^31.
     |.  negu CARG1, CARG1
-    |  zextw CARG1, CARG1
+    |  beqz CARG1, >3
+    |.  zextw CARG1, CARG1
     |  settp CARG1, TISNUM
     |1:
     |  ins_next1
@@ -3667,6 +3818,9 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |.  dsll TMP1, TMP1, 32
     |  b <1
     |.  xor CARG1, CARG1, TMP1
+    |3:
+    |  b <1
+    |.  dsll CARG1, TMP1, 32
     break;
   case BC_LEN:
     |  // RA = dst*8, RD = src*8
@@ -5378,6 +5532,7 @@ static void build_ins(BuildCtx *ctx, BCOp op, int defop)
     |   settp LFUNC:RB, TMP0
     |  daddu TMP0, RA, RC
     |   sd LFUNC:RB, 0(TMP1)		// Store (tagged) copy of LFUNC.
+    |  daddiu TMP2, TMP2, -8
     |   daddiu TMP3, RC, 16+FRAME_VARG
     |  sltu AT, TMP0, TMP2
     |    ld KBASE, -4+PC2PROTO(k)(PC)

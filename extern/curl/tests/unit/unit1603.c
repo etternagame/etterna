@@ -21,52 +21,51 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-#include "curlcheck.h"
-
-#include "curlx.h"
-
+#include "unitcheck.h"
 #include "hash.h"
 
-#include "memdebug.h" /* LAST include file */
-
-static struct Curl_hash hash_static;
 static const size_t slots = 3;
 
-static void mydtor(void *p)
+static void t1603_mydtor(void *p)
 {
   /* Data are statically allocated */
- (void)p; /* unused */
+  (void)p;
 }
 
 static size_t elem_dtor_calls;
 
 static void my_elem_dtor(void *key, size_t key_len, void *p)
 {
-  (void)p; /* unused */
-  (void)key; /* unused */
-  (void)key_len; /* unused */
+  (void)p;
+  (void)key;
+  (void)key_len;
   ++elem_dtor_calls;
 }
 
-static CURLcode unit_setup(void)
+static CURLcode t1603_setup(struct Curl_hash *hash_static)
 {
-  Curl_hash_init(&hash_static, slots, Curl_hash_str,
-                 Curl_str_key_compare, mydtor);
+  Curl_hash_init(hash_static, slots, Curl_hash_str,
+                 curlx_str_key_compare, t1603_mydtor);
   return CURLE_OK;
 }
 
-static void unit_stop(void)
+static void t1603_stop(struct Curl_hash *hash_static)
 {
-  Curl_hash_destroy(&hash_static);
+  Curl_hash_destroy(hash_static);
 }
 
-UNITTEST_START
+static CURLcode test_unit1603(const char *arg)
+{
+  struct Curl_hash hash_static;
+
+  UNITTEST_BEGIN(t1603_setup(&hash_static))
+
   char key1[] = "key1";
   char key2[] = "key2b";
   char key3[] = "key3";
   char key4[] = "key4";
   char notakey[] = "notakey";
-  char *nodep;
+  const char *nodep;
   int rc;
 
   /* Ensure the key hashes are as expected in order to test both hash
@@ -76,8 +75,9 @@ UNITTEST_START
      Curl_hash_str(key2, strlen(key2), slots) != 0 ||
      Curl_hash_str(key3, strlen(key3), slots) != 2 ||
      Curl_hash_str(key4, strlen(key4), slots) != 1)
-    fprintf(stderr, "Warning: hashes are not computed as expected on this "
-            "architecture; test coverage will be less comprehensive\n");
+    curl_mfprintf(stderr,
+                  "Warning: hashes are not computed as expected on this "
+                  "architecture; test coverage is less comprehensive\n");
 
   nodep = Curl_hash_add(&hash_static, &key1, strlen(key1), &key1);
   fail_unless(nodep, "insertion into hash failed");
@@ -171,8 +171,8 @@ UNITTEST_START
   fail_unless(rc == 0, "hash delete failed");
   fail_unless(elem_dtor_calls == 2, "element destructor count should be 1");
 
-
   /* Clean up */
   Curl_hash_clean(&hash_static);
 
-UNITTEST_STOP
+  UNITTEST_END(t1603_stop(&hash_static))
+}

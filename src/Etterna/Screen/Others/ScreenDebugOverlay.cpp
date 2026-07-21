@@ -1071,6 +1071,11 @@ class DebugLineReloadCurrentScreen : public IDebugLine
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
+		if (SCREENMAN->GetScreen(0) == nullptr) {
+			Locator::getLogger()->warn(
+			  "Cant reload the screen when there is no screen. wait a bit");
+			return;
+		}
 		std::string sScreenName = SCREENMAN->GetScreen(0)->GetName();
 		SCREENMAN->PopAllScreens();
 

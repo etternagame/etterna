@@ -89,11 +89,11 @@ struct progress {
   size_t size;
 };
 
-static size_t progress_callback(void *clientp,
-                                double dltotal,
-                                double dlnow,
-                                double ultotal,
-                                double ulnow)
+static int progress_callback(void *clientp,
+                             double dltotal,
+                             double dlnow,
+                             double ultotal,
+                             double ulnow)
 {
   struct progress *memory = clientp;
   printf("private: %p\n", memory->private);
@@ -109,11 +109,13 @@ int main(void)
 
   CURL *curl = curl_easy_init();
   if(curl) {
-    /* pass struct to callback  */
+    CURLcode result;
+    /* pass struct to callback */
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_callback);
 
-    curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
   }
 }
 ~~~

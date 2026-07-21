@@ -42,6 +42,7 @@
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
 #include "Dependent/HD_PatternMods/WideRangeJJ.h"
 #include "Dependent/HD_PatternMods/WideRangeAnchor.h"
+#include "Dependent/HD_PatternMods/WideRangeCJAnchor.h"
 #include "Dependent/HD_PatternMods/Minijack.h"
 #include "Dependent/HD_PatternMods/RunningMan.h"
 #include "Dependent/HD_PatternMods/OldAnchorScaler.h"
@@ -91,6 +92,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	WideRangeJumptrillMod _wrjt;
 	WideRangeJJMod _wrjj;
 	WideRangeAnchorMod _wra;
+	WideRangeCJAnchorMod _wrcja;
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
 	TheThingLookerFinderThing2 _tt2;
@@ -182,16 +184,16 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 
 	  // chordjack
 	  {
-		// the mods are applied directly in adj_diff_func instead.
-		// CJ,
-		// CJDensity,
-		// CJOHJump,
-		// CJOHAnchor,
-		// WideRangeAnchor,
-		// WideRangeJJ,
-		// WideRangeJumptrill,
-		// VOHTrill,
-		// FlamJam, // you may say, why? why not?
+		// OldOHJScaler is applied directly in a adj_diff_func
+		CJ,
+		OldAnchorScaler,
+		OldJumpScaler,
+		OldRollScaler,
+		CJDensity,
+		WideRangeCJAnchor,
+		WideRangeJumptrill,
+		VOHTrill,
+		FlamJam,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -278,11 +280,9 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 			case Skill_Chordjack: {
 				// nps based chordjacks (0.57.1 calc 263)
 				auto& pmods = _calc.pmod_vals.at(hand);
-				*adj_diff *= pmods.at(OldAnchorScaler).at(itv) *
-							 fastsqrt(pmods.at(OldOHJScaler).at(itv)) *
-							 pmods.at(OldRollScaler).at(itv) *
-							 pmods.at(OldJumpScaler).at(itv) *
-							 pmods.at(CJ).at(itv);
+				// (pmod_product_cur_interval is applied before here)
+				*adj_diff *= fastsqrt(pmods.at(OldOHJScaler).at(itv));
+
 			} break;
 			case Skill_Technical:
 				*adj_diff =
@@ -417,6 +417,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_wrjj.setup();
 		_wrb.setup();
 		_wra.setup();
+		_wrcja.setup();
 	}
 
 	void set_dependent_pmods(const int& itv) override
@@ -451,6 +452,8 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		PatternMods::set_dependent(
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
 		PatternMods::set_dependent(
+		  hand, _wrcja._pmod, _wrcja(_mitvhi._itvhi, _seq._as), itv, _calc);
+		PatternMods::set_dependent(
 		  hand, _mj._pmod, _mj(_mitvhi._itvhi), itv, _calc);
 		PatternMods::set_dependent(
 		  hand, _old_anch._pmod, _old_anch(_mitvhi._itvhi), itv, _calc);
@@ -480,6 +483,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_wrjj.full_reset();
 		_wrb.full_reset();
 		_wra.full_reset();
+		_wrcja.full_reset();
 		_mj.full_reset();
 		_old_anch.full_reset();
 		_old_ohj.full_reset();
@@ -735,6 +739,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
 		load_params_for_mod(&params, _wrjj._params, _wrjj.name);
 		load_params_for_mod(&params, _wra._params, _wra.name);
+		load_params_for_mod(&params, _wrcja._params, _wrcja.name);
 		load_params_for_mod(&params, _mj._params, _mj.name);
 		load_params_for_mod(&params, _fj._params, _fj.name);
 		load_params_for_mod(&params, _tt._params, _tt.name);
@@ -778,6 +783,8 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));
 		calcparams->AppendChild(make_mod_param_node(_wrjj._params, _wrjj.name));
 		calcparams->AppendChild(make_mod_param_node(_wra._params, _wra.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_wrcja._params, _wrcja.name));
 		calcparams->AppendChild(make_mod_param_node(_mj._params, _mj.name));
 		calcparams->AppendChild(make_mod_param_node(_fj._params, _fj.name));
 		calcparams->AppendChild(make_mod_param_node(_tt._params, _tt.name));

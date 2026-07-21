@@ -61,7 +61,7 @@
 # SPDX-License-Identifier: curl
 #
 ###########################################################################
-# Shared between Makefile.am and CMakeLists.txt
+# Shared between CMakeLists.txt and Makefile.am
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -139,7 +139,7 @@ host_triplet = @host@
 subdir = docs/cmdline-opts
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
-	$(top_srcdir)/m4/curl-bearssl.m4 \
+	$(top_srcdir)/m4/curl-apple-sectrust.m4 \
 	$(top_srcdir)/m4/curl-compilers.m4 \
 	$(top_srcdir)/m4/curl-confopts.m4 \
 	$(top_srcdir)/m4/curl-functions.m4 \
@@ -150,7 +150,6 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/curl-reentrant.m4 \
 	$(top_srcdir)/m4/curl-rustls.m4 \
 	$(top_srcdir)/m4/curl-schannel.m4 \
-	$(top_srcdir)/m4/curl-sectransp.m4 \
 	$(top_srcdir)/m4/curl-sysconfig.m4 \
 	$(top_srcdir)/m4/curl-wolfssl.m4 $(top_srcdir)/m4/libtool.m4 \
 	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
@@ -160,8 +159,7 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/curl-amissl.m4 \
 	$(top_srcdir)/m4/xc-lt-iface.m4 \
 	$(top_srcdir)/m4/xc-val-flgs.m4 \
 	$(top_srcdir)/m4/zz40-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz50-xc-ovr.m4 \
-	$(top_srcdir)/m4/zz60-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/m4/zz50-xc-ovr.m4 $(top_srcdir)/acinclude.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -242,6 +240,7 @@ CC = @CC@
 CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CFLAG_CURL_SYMBOL_HIDING = @CFLAG_CURL_SYMBOL_HIDING@
+CLANG_TIDY = @CLANG_TIDY@
 CONFIGURE_OPTIONS = @CONFIGURE_OPTIONS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
@@ -256,6 +255,7 @@ CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX = @CURL_LIBCURL_VERSIONED_SYMBOLS_PREFIX@
 CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME = @CURL_LIBCURL_VERSIONED_SYMBOLS_SONAME@
 CURL_NETWORK_AND_TIME_LIBS = @CURL_NETWORK_AND_TIME_LIBS@
 CYGPATH_W = @CYGPATH_W@
+DANTED = @DANTED@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DLLTOOL = @DLLTOOL@
@@ -274,6 +274,7 @@ FILECMD = @FILECMD@
 FISH_FUNCTIONS_DIR = @FISH_FUNCTIONS_DIR@
 GCOV = @GCOV@
 GREP = @GREP@
+H2O = @H2O@
 HAVE_LIBZ = @HAVE_LIBZ@
 HTTPD = @HTTPD@
 HTTPD_NGHTTPX = @HTTPD_NGHTTPX@
@@ -323,7 +324,9 @@ RANLIB = @RANLIB@
 RC = @RC@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
+SFTPD = @SFTPD@
 SHELL = @SHELL@
+SSHD = @SSHD@
 SSL_BACKENDS = @SSL_BACKENDS@
 STRIP = @STRIP@
 SUPPORT_FEATURES = @SUPPORT_FEATURES@
@@ -469,6 +472,7 @@ DPAGES = \
   fail-with-body.md \
   fail.md \
   false-start.md \
+  follow.md \
   form-escape.md \
   form-string.md \
   form.md \
@@ -514,6 +518,7 @@ DPAGES = \
   keepalive-time.md \
   key-type.md \
   key.md \
+  knownhosts.md \
   krb.md \
   libcurl.md \
   limit-rate.md \
@@ -549,8 +554,10 @@ DPAGES = \
   ntlm.md \
   oauth2-bearer.md \
   output-dir.md \
+  out-null.md \
   output.md \
   parallel-immediate.md \
+  parallel-max-host.md \
   parallel-max.md \
   parallel.md \
   pass.md \
@@ -576,6 +583,7 @@ DPAGES = \
   proxy-digest.md \
   proxy-header.md \
   proxy-http2.md \
+  proxy-http3.md \
   proxy-insecure.md \
   proxy-key-type.md \
   proxy-key.md \
@@ -621,6 +629,7 @@ DPAGES = \
   show-error.md \
   show-headers.md \
   silent.md \
+  sigalgs.md \
   skip-existing.md \
   socks4.md \
   socks4a.md \
@@ -682,6 +691,8 @@ DPAGES = \
   write-out.md \
   xattr.md
 
+
+# Get SUPPORT, DPAGES variables
 EXTRA_DIST = $(DPAGES) MANPAGE.md $(SUPPORT) CMakeLists.txt mainpage.idx
 GEN = $(GN_$(V))
 GN_0 = @echo "  GENERATE" $@;
@@ -690,7 +701,7 @@ GN_ = $(GN_0)
 MANAGEN = $(top_srcdir)/scripts/managen
 MAXLINE = $(top_srcdir)/scripts/maxline
 
-# Maximum number of columns accepted in the ASCII version of the manpage
+# Maximum number of columns accepted in the ASCII version of the man page
 INCDIR = $(top_srcdir)/include
 @BUILD_DOCS_TRUE@CLEANFILES = $(MANPAGE) $(ASCIIPAGE)
 @BUILD_DOCS_TRUE@man_MANS = $(MANPAGE)

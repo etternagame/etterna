@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -6,16 +7,15 @@ verbose logs
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
 # Client-side
 <client>
-<server>
-none
-</server>
+<features>
+verbose-strings
+</features>
 <tool>
 lib%TESTNUMBER
 </tool>
@@ -23,12 +23,8 @@ lib%TESTNUMBER
 <name>
 libcurl strerror API call tests
 </name>
-<command>
-nothing
-</command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 <stdout>
@@ -98,7 +94,7 @@ e62: Unknown error
 e63: Maximum file size exceeded
 e64: Requested SSL level failed
 e65: Send failed since rewinding of the data stream failed
-e66: Failed to initialise SSL crypto engine
+e66: Failed to initialize SSL crypto engine
 e67: Login denied
 e68: TFTP: File Not Found
 e69: TFTP: Access Violation

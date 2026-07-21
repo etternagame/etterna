@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -8,9 +9,6 @@ expand
 
 # Client-side
 <client>
-<server>
-none
-</server>
 <name>
 try --expand without an argument
 </name>
@@ -19,7 +17,6 @@ try --expand without an argument
 </command>
 </client>
 
-#
 <verify>
 <errorcode>
 2

@@ -2,7 +2,7 @@
 -- Lua script to generate a customized, minified version of Lua.
 -- The resulting 'minilua' is used for the build process of LuaJIT.
 ----------------------------------------------------------------------------
--- Copyright (C) 2005-2021 Mike Pall. All rights reserved.
+-- Copyright (C) 2005-2026 Mike Pall. All rights reserved.
 -- Released under the MIT license. See Copyright Notice in luajit.h
 ----------------------------------------------------------------------------
 
@@ -90,11 +90,11 @@ static int bswap(lua_State *L){
 UB b=barg(L,1);b=(b>>24)|((b>>8)&0xff00)|((b&0xff00)<<8)|(b<<24);BRET(b)}
 static int tohex(lua_State *L){
 UB b=barg(L,1);
-int n=lua_isnone(L,2)?8:(int)barg(L,2);
+UB n=lua_isnone(L,2)?8:barg(L,2);
 const char *hexdigits="0123456789abcdef";
 char buf[8];
 int i;
-if(n<0){n=-n;hexdigits="0123456789ABCDEF";}
+if((int)n<0){n=~n+1;hexdigits="0123456789ABCDEF";}
 if(n>8)n=8;
 for(i=(int)n;--i>=0;){buf[i]=hexdigits[b&15];b>>=4;}
 lua_pushlstring(L,buf,(size_t)n);
@@ -327,6 +327,12 @@ local function rename_tokens2(src)
   return gsub(src, "ZY([%w_]+)", "union %1")
 end
 
+local function fix_bugs_and_warnings(src)
+ src = gsub(src, "(luaD_checkstack%(L,p%->maxstacksize)%)", "%1+p->numparams)")
+ src = gsub(src, "if%(sep==%-1%)(return'%[';)\nelse (luaX_lexerror%b();)", "if (sep!=-1)%2\n%1")
+ return gsub(src, "(default:{\nNode%*n=mainposition)", "/*fallthrough*/\n%1")
+end
+
 local function func_gather(src)
   local nodes, list = {}, {}
   local pos, len = 1, #src
@@ -425,5 +431,6 @@ src = rename_tokens1(src)
 src = func_collect(src)
 src = rename_tokens2(src)
 src = restore_strings(src)
+src = fix_bugs_and_warnings(src)
 src = merge_header(src, license)
 io.write(src)

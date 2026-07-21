@@ -41,7 +41,12 @@ local function getColorForDensity(density, nColumns)
 	return color(tostring(value)..","..tostring(value)..","..tostring(value))
 end
 
-local function updateGraphMultiVertex(parent, realgraph)
+local function getColorForMine()
+	-- this is white because the diffuseshift does the coloring
+	return color("1,1,1,1")
+end
+
+local function updateGraphMultiVertex(parent, realgraph, minegraph)
 	local steps = GAMESTATE:GetCurrentSteps()
 	if steps then
 		local ncol = steps:GetNumColumns()
@@ -51,13 +56,17 @@ local function updateGraphMultiVertex(parent, realgraph)
 			-- reset everything if theres nothing to show
 			realgraph:SetVertices({})
 			realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
+			minegraph:SetVertices({})
+			minegraph:SetDrawState( {Mode = "DrawMode_Quads", First = 0, Num = 0} )
 			return
 		end
 		
 		local npsVector = graphVectors[1] -- refers to the cps vector for 1 (tap notes)
+		local mineVector = steps:GetCDGraphVectors(rate, "TapNoteType_Mine")
 		parent.npsVector = npsVector
 		local numberOfColumns = #npsVector
 		local columnWidth = wodth/numberOfColumns
+
 		-- set height scale of graph relative to the max nps
 		local hodth = 0
 		for i=1,#npsVector do
@@ -65,21 +74,37 @@ local function updateGraphMultiVertex(parent, realgraph)
 				hodth = npsVector[i] * 2
 			end
 		end
+		local maxValueAllowed = hodth
 		
 		parent:GetChild("npsline"):y(-hidth * 0.7)
 		parent:GetChild("npstext"):settext(hodth / 2 * 0.7 .. translated_info["nps"]):y(-hidth * 0.9)
+
 		hodth = hidth/hodth
+		maxValueAllowed = maxValueAllowed * hodth
+
 		local verts = {} -- reset the vertices for the graph
+		local mverts = {}
 		local yOffset = 0 -- completely unnecessary, just a Y offset from the graph
 		local lastIndex = 1
 		for density = 1,ncol do
 			for column = 1,numberOfColumns do
-				if graphVectors[density][column] > 0 then
+				local val = graphVectors[density][column]
+				if val > 0 then
 					local barColor = getColorForDensity(density, ncol)
-					makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, graphVectors[density][column] * 2 * hodth, barColor)
+					makeABar(verts, math.min(column * columnWidth, wodth), yOffset, columnWidth, val * 2 * hodth, barColor)
 					if column > lastIndex then
 						lastIndex = column
 					end
+				end
+			end
+		end
+		for column = 1, numberOfColumns do
+			local val = mineVector[column]
+			if val > 0 then
+				local barColor = getColorForMine()
+				makeABar(mverts, math.min(column * columnWidth, wodth), yOffset, columnWidth, math.min(maxValueAllowed, val * 2 * hodth), barColor)
+				if column > lastIndex then
+					lastIndex = column
 				end
 			end
 		end
@@ -88,6 +113,8 @@ local function updateGraphMultiVertex(parent, realgraph)
 		
 		realgraph:SetVertices(verts)
 		realgraph:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #verts} )
+		minegraph:SetVertices(mverts)
+		minegraph:SetDrawState( {Mode = "DrawMode_Quads", First = 1, Num = #mverts} )
 	end
 end
 
@@ -122,18 +149,28 @@ local t = Def.ActorFrame {
 }
 
 t[#t+1] = Def.ActorMultiVertex {
-		Name = "CDGraphDrawer",
-		GraphUpdateCommand = function(self)
-			if self:IsVisible() then
-				self:GetParent():SetUpdateFunction(textmover)
-				updateGraphMultiVertex(cdg, self)
-				self:GetParent():linear(0.3)
-				self:GetParent():diffusealpha(1)
-			else
-				self:GetParent():SetUpdateFunction(nil)
-			end
+	Name = "CDGraphDrawer",
+	GraphUpdateCommand = function(self)
+		if self:IsVisible() then
+			self:GetParent():SetUpdateFunction(textmover)
+			updateGraphMultiVertex(cdg, self, self:GetParent():GetChild("CDGraphDrawerMines"))
+			self:GetParent():linear(0.3)
+			self:GetParent():diffusealpha(1)
+		else
+			self:GetParent():SetUpdateFunction(nil)
 		end
-	}
+	end
+}
+t[#t+1] = Def.ActorMultiVertex {
+	Name = "CDGraphDrawerMines",
+	InitCommand = function(self)
+		self:diffuseshift()
+		self:effectclock("timer")
+		self:effectperiod(2)
+		self:effectcolor1(color("#FF000000"))
+		self:effectcolor2(color("#FF0000FF"))
+	end,
+}
 
 -- down here for draw order
 t[#t + 1] = Def.Quad {

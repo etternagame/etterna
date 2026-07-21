@@ -23,17 +23,16 @@
  * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
-
 #include "curl_setup.h"
 
-#include "sendf.h"
+struct Curl_easy;
 
 /**
  * The client writer type "cw-out" that does the actual writing to
  * the client callbacks. Intended to be the last installed in the
  * client writer stack of a transfer.
  */
-extern struct Curl_cwtype Curl_cwt_out;
+extern const struct Curl_cwtype Curl_cwt_out;
 
 /**
  * Return TRUE iff 'cw-out' client write has paused data.

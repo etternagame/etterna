@@ -100,8 +100,8 @@
 
 #if LJ_GC64
 #define LJ_ALLOC_MBITS		47	/* 128 TB in LJ_GC64 mode. */
-#elif LJ_TARGET_X64 && LJ_HASJIT
-/* Due to limitations in the x64 compiler backend. */
+#elif LJ_TARGET_X64
+/* Due to limitations in the x64 non-GC64 VM. */
 #define LJ_ALLOC_MBITS		31	/* 2 GB on x64 with !LJ_GC64. */
 #else
 #define LJ_ALLOC_MBITS		32	/* 4 GB on other archs with !LJ_GC64. */
@@ -330,7 +330,7 @@ static void *mmap_plain(size_t size)
 #define CALL_MMAP(prng, size)	mmap_plain(size)
 #endif
 
-#if LJ_64 && !LJ_GC64 && ((defined(__FreeBSD__) && __FreeBSD__ < 10) || defined(__FreeBSD_kernel__)) && !LJ_TARGET_PS4
+#if LJ_64 && !LJ_GC64 && ((defined(__FreeBSD__) && __FreeBSD__ < 10) || defined(__FreeBSD_kernel__)) && !LJ_TARGET_PS4 && !LJ_TARGET_PS5
 
 #include <sys/resource.h>
 
@@ -1057,7 +1057,7 @@ static size_t release_unused_segments(mstate m)
       mchunkptr p = align_as_chunk(base);
       size_t psize = chunksize(p);
       /* Can unmap if first chunk holds entire segment and not pinned */
-      if (!cinuse(p) && (char *)p + psize >= base + size - TOP_FOOT_SIZE) {
+      if (!cinuse(p) && (char *)p + psize == (char *)mem2chunk(sp)) {
 	tchunkptr tp = (tchunkptr)p;
 	if (p == m->dv) {
 	  m->dv = 0;

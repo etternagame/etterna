@@ -15,7 +15,7 @@ Added-in: 7.6.1
 
 # NAME
 
-CURLINFO_CONTENT_LENGTH_DOWNLOAD - get content-length of download
+CURLINFO_CONTENT_LENGTH_DOWNLOAD - content-length of download
 
 # SYNOPSIS
 
@@ -29,8 +29,8 @@ CURLcode curl_easy_getinfo(CURL *handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD,
 # DESCRIPTION
 
 Pass a pointer to a double to receive the content-length of the download. This
-is the value read from the Content-Length: field. Since 7.19.4, this returns
--1 if the size is not known.
+is the value read from the Content-Length: field. This returns -1 if the size
+is not known.
 
 CURLINFO_CONTENT_LENGTH_DOWNLOAD_T(3) is a newer replacement that returns a more
 sensible variable type.
@@ -44,17 +44,17 @@ int main(void)
 {
   CURL *curl = curl_easy_init();
   if(curl) {
-    CURLcode res;
+    CURLcode result;
     curl_easy_setopt(curl, CURLOPT_URL, "https://example.com");
 
     /* Perform the request */
-    res = curl_easy_perform(curl);
+    result = curl_easy_perform(curl);
 
-    if(!res) {
+    if(result == CURLE_OK) {
       /* check the size */
       double cl;
-      res = curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &cl);
-      if(!res) {
+      result = curl_easy_getinfo(curl, CURLINFO_CONTENT_LENGTH_DOWNLOAD, &cl);
+      if(result == CURLE_OK) {
         printf("Size: %.0f\n", cl);
       }
     }

@@ -214,7 +214,7 @@ class RageSoundDriver : public RageDriver
 	};
 
 	/* List of currently playing sounds: XXX no vector */
-	Sound m_Sounds[32];
+	Sound m_Sounds[128];
 
 	int64_t ClampHardwareFrame(int64_t iHardwareFrame) const;
 	mutable int64_t m_iMaxHardwareFrame;

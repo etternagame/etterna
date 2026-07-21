@@ -27,15 +27,15 @@ dnl ----------------------------------------------------
 dnl check for Rustls
 dnl ----------------------------------------------------
 
-if test "x$OPT_RUSTLS" != xno; then
+if test "x$OPT_RUSTLS" != "xno"; then
   ssl_msg=
 
-  dnl backup the pre-ssl variables
+  dnl backup the pre-detection variables
   CLEANLDFLAGS="$LDFLAGS"
   CLEANLDFLAGSPC="$LDFLAGSPC"
   CLEANCPPFLAGS="$CPPFLAGS"
 
-  ## NEW CODE
+  dnl NEW CODE
 
   dnl use pkg-config unless we have been given a path
   dnl even then, try pkg-config first
@@ -57,15 +57,15 @@ if test "x$OPT_RUSTLS" != xno; then
 
       RUSTLS_PCDIR="$PREFIX_RUSTLS/lib/pkgconfig"
       if test -f "$RUSTLS_PCDIR/rustls.pc"; then
-        AC_MSG_NOTICE([PKG_CONFIG_LIBDIR will be set to "$RUSTLS_PCDIR"])
+        AC_MSG_NOTICE([PKG_CONFIG_LIBDIR is set to "$RUSTLS_PCDIR"])
         PKGTEST="yes"
       fi
 
       if test "$PKGTEST" != "yes"; then
-        # try lib64 instead
+        dnl try lib64 instead
         RUSTLS_PCDIR="$PREFIX_RUSTLS/lib64/pkgconfig"
         if test -f "$RUSTLS_PCDIR/rustls.pc"; then
-          AC_MSG_NOTICE([PKG_CONFIG_LIBDIR will be set to "$RUSTLS_PCDIR"])
+          AC_MSG_NOTICE([PKG_CONFIG_LIBDIR is set to "$RUSTLS_PCDIR"])
           PKGTEST="yes"
         fi
       fi
@@ -83,27 +83,21 @@ if test "x$OPT_RUSTLS" != xno; then
           CPPFLAGS="$CPPFLAGS $addcflags"
         fi
 
-        if test "$curl_cv_apple" = 'yes'; then
+        if test "$curl_cv_apple" = "yes"; then
           RUSTLS_LDFLAGS="-framework Security -framework Foundation"
         else
           RUSTLS_LDFLAGS="-lpthread -ldl -lm"
         fi
-        AC_CHECK_LIB(rustls, rustls_connection_read,
-          [
-          AC_DEFINE(USE_RUSTLS, 1, [if Rustls is enabled])
-          RUSTLS_ENABLED=1
-          USE_RUSTLS="yes"
-          ssl_msg="rustls"
-          test rustls != "$DEFAULT_SSL_BACKEND" || VALID_DEFAULT_SSL_BACKEND=yes
-          ],
-          AC_MSG_ERROR([--with-rustls was specified but could not find Rustls.]),
-          $RUSTLS_LDFLAGS)
 
         LIB_RUSTLS="$PREFIX_RUSTLS/lib$libsuff"
-        if test "$PREFIX_RUSTLS" != "/usr" ; then
+        if test "$PREFIX_RUSTLS" != "/usr"; then
           SSL_LDFLAGS="-L$LIB_RUSTLS $RUSTLS_LDFLAGS"
           SSL_CPPFLAGS="-I$PREFIX_RUSTLS/include"
         fi
+
+        dnl we verify AC_CHECK_LIB later on
+        AC_DEFINE(USE_RUSTLS, 1, [if Rustls is enabled])
+        USE_RUSTLS="yes"
       fi
       ;;
   esac
@@ -114,14 +108,14 @@ if test "x$OPT_RUSTLS" != xno; then
 
     CURL_CHECK_PKGCONFIG(rustls, [$RUSTLS_PCDIR])
 
-    if test "$PKGCONFIG" != "no" ; then
-      SSL_LIBS=`CURL_EXPORT_PCDIR([$RUSTLS_PCDIR]) dnl
+    if test "$PKGCONFIG" != "no"; then
+      SSL_LIBS=`CURL_EXPORT_PCDIR([$RUSTLS_PCDIR])
         $PKGCONFIG --libs-only-l --libs-only-other rustls 2>/dev/null`
 
-      SSL_LDFLAGS=`CURL_EXPORT_PCDIR([$RUSTLS_PCDIR]) dnl
+      SSL_LDFLAGS=`CURL_EXPORT_PCDIR([$RUSTLS_PCDIR])
         $PKGCONFIG --libs-only-L rustls 2>/dev/null`
 
-      SSL_CPPFLAGS=`CURL_EXPORT_PCDIR([$RUSTLS_PCDIR]) dnl
+      SSL_CPPFLAGS=`CURL_EXPORT_PCDIR([$RUSTLS_PCDIR])
         $PKGCONFIG --cflags-only-I rustls 2>/dev/null`
 
       AC_MSG_NOTICE([pkg-config: SSL_LIBS: "$SSL_LIBS"])
@@ -133,16 +127,16 @@ if test "x$OPT_RUSTLS" != xno; then
       dnl use the values pkg-config reported.  This is here
       dnl instead of below with CPPFLAGS and LDFLAGS because we only
       dnl learn about this via pkg-config.  If we only have
-      dnl the argument to --with-rustls we don't know what
+      dnl the argument to --with-rustls we do not know what
       dnl additional libs may be necessary.  Hope that we
-      dnl don't need any.
+      dnl do not need any.
       LIBS="$SSL_LIBS $LIBS"
       link_pkgconfig=1
-      ssl_msg="rustls"
+      ssl_msg="Rustls"
       AC_DEFINE(USE_RUSTLS, 1, [if Rustls is enabled])
       USE_RUSTLS="yes"
       RUSTLS_ENABLED=1
-      test rustls != "$DEFAULT_SSL_BACKEND" || VALID_DEFAULT_SSL_BACKEND=yes
+      test "rustls" != "$DEFAULT_SSL_BACKEND" || VALID_DEFAULT_SSL_BACKEND=yes
     else
       AC_MSG_ERROR([pkg-config: Could not find Rustls])
     fi
@@ -158,16 +152,16 @@ if test "x$OPT_RUSTLS" != xno; then
   LDFLAGS="$CLEANLDFLAGS $SSL_LDFLAGS"
   LDFLAGSPC="$CLEANLDFLAGSPC $SSL_LDFLAGS"
 
-  if test "x$USE_RUSTLS" = "xyes"; then
+  if test "$USE_RUSTLS" = "yes"; then
     AC_MSG_NOTICE([detected Rustls])
     check_for_ca_bundle=1
 
     if test -n "$LIB_RUSTLS"; then
-      dnl when shared libs were found in a path that the run-time
+      dnl when shared libs were found in a path that the runtime
       dnl linker does not search through, we need to add it to
       dnl CURL_LIBRARY_PATH so that further configure tests do not
       dnl fail due to this
-      if test "x$cross_compiling" != "xyes"; then
+      if test "$cross_compiling" != "yes"; then
         CURL_LIBRARY_PATH="$CURL_LIBRARY_PATH:$LIB_RUSTLS"
         export CURL_LIBRARY_PATH
         AC_MSG_NOTICE([Added $LIB_RUSTLS to CURL_LIBRARY_PATH])
@@ -176,17 +170,25 @@ if test "x$OPT_RUSTLS" != xno; then
     if test -n "$link_pkgconfig"; then
       LIBCURL_PC_REQUIRES_PRIVATE="$LIBCURL_PC_REQUIRES_PRIVATE rustls"
     fi
+
+    AC_CHECK_LIB(rustls, rustls_supported_hpke,
+        [
+        AC_DEFINE(USE_RUSTLS, 1, [if Rustls is enabled])
+        RUSTLS_ENABLED=1
+        USE_RUSTLS="yes"
+        ssl_msg="Rustls"
+        test "rustls" != "$DEFAULT_SSL_BACKEND" || VALID_DEFAULT_SSL_BACKEND=yes
+        ],
+        AC_MSG_ERROR([--with-rustls was specified but could not find compatible Rustls.]),
+        $RUSTLS_LDFLAGS)
   fi
 
   test -z "$ssl_msg" || ssl_backends="${ssl_backends:+$ssl_backends, }$ssl_msg"
 
-  if test X"$OPT_RUSTLS" != Xno &&
-    test "$RUSTLS_ENABLED" != "1"; then
+  if test "$RUSTLS_ENABLED" != "1"; then
     AC_MSG_NOTICE([OPT_RUSTLS: $OPT_RUSTLS])
     AC_MSG_NOTICE([RUSTLS_ENABLED: $RUSTLS_ENABLED])
     AC_MSG_ERROR([--with-rustls was given but Rustls could not be detected])
   fi
 fi
 ])
-
-RUSTLS_ENABLED

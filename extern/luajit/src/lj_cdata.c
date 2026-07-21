@@ -1,6 +1,6 @@
 /*
 ** C data management.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #include "lj_obj.h"
@@ -86,7 +86,7 @@ void LJ_FASTCALL lj_cdata_free(global_State *g, GCcdata *cd)
 
 void lj_cdata_setfin(lua_State *L, GCcdata *cd, GCobj *obj, uint32_t it)
 {
-  GCtab *t = ctype_ctsG(G(L))->finalizer;
+  GCtab *t = tabref(G(L)->gcroot[GCROOT_FFI_FIN]);
   if (gcref(t->metatable)) {
     /* Add cdata to finalizer table, if still enabled. */
     TValue *tv, tmp;
@@ -133,12 +133,7 @@ collect_attrib:
     idx = (ptrdiff_t)intV(key);
     goto integer_key;
   } else if (tvisnum(key)) {  /* Numeric key. */
-#ifdef _MSC_VER
-    /* Workaround for MSVC bug. */
-    volatile
-#endif
-    lua_Number n = numV(key);
-    idx = LJ_64 ? (ptrdiff_t)n : (ptrdiff_t)lj_num2int(n);
+    idx = lj_num2int_type(numV(key), ptrdiff_t);
   integer_key:
     if (ctype_ispointer(ct->info)) {
       CTSize sz = lj_ctype_size(cts, ctype_cid(ct->info));  /* Element size. */

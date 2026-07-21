@@ -1,21 +1,18 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 proxy
+unsupported scheme
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
 <features>
 http
 proxy
@@ -28,7 +25,6 @@ try using proxy with unsupported scheme
 </command>
 </client>
 
-#
 # Verify after the test has been "shot"
 <verify>
 <errorcode>

@@ -20,7 +20,7 @@ Added-in: 7.84.0
 
 # NAME
 
-CURLINFO_CAPATH - get the default built-in CA path string
+CURLINFO_CAPATH - default built-in CA path string
 
 # SYNOPSIS
 
@@ -56,7 +56,7 @@ int main(void)
     char *capath = NULL;
     curl_easy_getinfo(curl, CURLINFO_CAPATH, &capath);
     if(capath) {
-      printf("default ca path: %s\n", capath);
+      printf("default CA path: %s\n", capath);
     }
     curl_easy_cleanup(curl);
   }
