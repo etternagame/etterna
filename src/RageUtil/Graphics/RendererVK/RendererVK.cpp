@@ -202,19 +202,6 @@ RendererVK::UpdateTexture(intptr_t textureHandle,
 	assert(img->pitch == width * sizeof(uint32_t));
 	assert(m_Textures.contains(textureHandle));
 
-	vk::CommandBufferAllocateInfo bufferInfo = {};
-	bufferInfo.level = vk::CommandBufferLevel::ePrimary;
-	bufferInfo.commandPool = m_CommandPool;
-	bufferInfo.commandBufferCount = 1;
-
-	auto buffers = m_Device.allocateCommandBuffers(bufferInfo);
-	assert(buffers.size() == 1);
-	auto& copyBuffer = buffers[0];
-
-	vk::CommandBufferBeginInfo beginInfo = {};
-	beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-	copyBuffer.begin(beginInfo);
-
 	auto& texture = m_Textures[textureHandle];
 	std::memcpy(texture.imageBuffer.GetMappedData(),
 				img->pixels,
