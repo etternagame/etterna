@@ -858,25 +858,6 @@ RendererVK::GetTextureBindings()
 }
 
 void
-RendererVK::UpdateTextureDescriptor(int index)
-{
-	vk::DescriptorImageInfo imageInfo{};
-	imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-	imageInfo.imageView = m_EmptyTextureSlots.contains(index)
-							? m_Textures[0].view
-							: m_Textures[index].view;
-
-	vk::WriteDescriptorSet write{};
-	write.dstSet = m_TextureDescriptorSet;
-	write.dstBinding = 2;
-	write.dstArrayElement = index;
-	write.descriptorCount = 1;
-	write.descriptorType = vk::DescriptorType::eSampledImage;
-	write.pImageInfo = &imageInfo;
-	m_Device.updateDescriptorSets({ write }, {});
-}
-
-void
 RendererVK::InitCommandPool()
 {
 	vk::CommandPoolCreateInfo poolInfo{};
@@ -1008,8 +989,32 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	}
 	m_DirtyTextures.clear();
 
-	for (auto& handle : m_DirtyTextureDescriptors) {
-		UpdateTextureDescriptor(handle);
+	std::vector<vk::DescriptorImageInfo> imageInfos;
+	imageInfos.reserve(m_DirtyTextureDescriptors.size());
+
+	std::vector<vk::WriteDescriptorSet> writes;
+	writes.reserve(m_DirtyTextureDescriptors.size());
+
+	for (int handle : m_DirtyTextureDescriptors) {
+		vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		imageInfo.imageView = m_EmptyTextureSlots.contains(handle)
+								? m_Textures[0].view
+								: m_Textures[handle].view;
+
+		vk::WriteDescriptorSet write{};
+		write.dstSet = m_TextureDescriptorSet;
+		write.dstBinding = 2;
+		write.dstArrayElement = handle;
+		write.descriptorCount = 1;
+		write.descriptorType = vk::DescriptorType::eSampledImage;
+		write.pImageInfo = &imageInfo;
+
+		writes.push_back(write);
+	}
+
+	if (!writes.empty()) {
+		m_Device.updateDescriptorSets(writes, {});
 	}
 
 	m_DirtyTextureDescriptors.clear();

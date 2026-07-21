@@ -102,7 +102,6 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::vector<vk::DescriptorSetLayoutBinding> GetTextureBindings();
 	vk::raii::DescriptorPool m_TextureDescriptorPool = nullptr;
 	vk::raii::DescriptorSet m_TextureDescriptorSet = nullptr;
-	void UpdateTextureDescriptor(int index);
 
 	vk::raii::CommandPool m_CommandPool = nullptr;
 	void InitCommandPool();
