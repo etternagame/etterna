@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <thread>
+#include <optional>
 
 #ifdef _WIN32
 #include "archutils/Win32/GraphicsWindow.h"

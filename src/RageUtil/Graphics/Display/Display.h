@@ -14,7 +14,7 @@ class Display : public RageDisplay
 {
   public:
 	static constexpr size_t TexturePixelSize = 4;
-	static constexpr size_t MaxTextureSize = 4096;
+	static constexpr size_t MaxTextureSize = 8192;
 
 	Display(std::unique_ptr<Renderer> renderer);
 	~Display() override {}

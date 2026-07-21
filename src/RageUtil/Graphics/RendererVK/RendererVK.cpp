@@ -182,7 +182,7 @@ RendererVK::CreateTexture(RageSurface* img, bool RGBA8)
 	m_Textures.insert({ currentHandle, texture });
 
 	UpdateTexture(currentHandle, img, 0, 0, img->w, img->h);
-	UpdateTextureDescriptor(currentHandle);
+	m_DirtyTextureDescriptors.push_back(currentHandle);
 
 	return currentHandle;
 }
@@ -234,7 +234,7 @@ RendererVK::DeleteTexture(intptr_t handle)
 	DestroyTexture(m_Textures[handle]);
 	m_Textures.erase(handle);
 	m_EmptyTextureSlots.insert(handle);
-	UpdateTextureDescriptor(handle);
+	m_DirtyTextureDescriptors.push_back(handle);
 }
 
 void
@@ -256,7 +256,7 @@ RendererVK::ClearAllTextures()
 
 	m_Textures[0] = emptyTexture;
 	for (int i = 1; i < GetMaxTextureCount(); i++) {
-		UpdateTextureDescriptor(i);
+		m_DirtyTextureDescriptors.push_back(i);
 	}
 }
 
@@ -921,10 +921,6 @@ RendererVK::TransitionImageLayout(vk::Image& image,
 								  vk::PipelineStageFlags2 dstStageMask,
 								  vk::raii::CommandBuffer& commandBuffer)
 {
-	if (oldLayout == newLayout) {
-		return;
-	}
-
 	vk::ImageMemoryBarrier2 barrier{};
 	barrier.srcStageMask = srcStageMask;
 	barrier.srcAccessMask = srcAccessMask;
@@ -997,7 +993,8 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		vk::BufferImageCopy2 copyRegion{};
 		copyRegion.imageExtent =
 		  vk::Extent3D{ texture->width, texture->height, 1 };
-		copyRegion.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
+		copyRegion.imageSubresource.aspectMask =
+		  vk::ImageAspectFlagBits::eColor;
 		copyRegion.imageSubresource.layerCount = 1;
 
 		vk::CopyBufferToImageInfo2 copyInfo{};
@@ -1019,9 +1016,16 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 
 		texture->currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		texture->dirty = false;
-		texture->initialized = true; // technically not yet because we didn't wait for the GPU to do its thing but eh
+		texture->initialized = true; // technically not yet because we didn't
+									 // wait for the GPU to do its thing but eh
 	}
 	m_DirtyTextures.clear();
+
+	for (auto& handle : m_DirtyTextureDescriptors) {
+		UpdateTextureDescriptor(handle);
+	}
+
+	m_DirtyTextureDescriptors.clear();
 
 	vk::BufferCopy stagingCopy{};
 	stagingCopy.srcOffset = 0;
@@ -1675,7 +1679,7 @@ RendererVK::CreateRenderTargetTexture(int width, int height)
 	texture.currentLayout = vk::ImageLayout::eUndefined;
 
 	m_Textures.insert({ currentHandle, texture });
-	UpdateTextureDescriptor(currentHandle);
+	m_DirtyTextureDescriptors.push_back(currentHandle);
 
 	return currentHandle;
 }

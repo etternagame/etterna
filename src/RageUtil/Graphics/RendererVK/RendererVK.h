@@ -142,7 +142,9 @@ class RendererVK : public DisplayAdapter::Renderer
 
 	std::map<intptr_t, Texture> m_Textures;
 	std::set<intptr_t> m_EmptyTextureSlots;
-	std::vector<Texture*> m_DirtyTextures; // replace with SpscChannel or a lock later...
+
+	std::vector<Texture*> m_DirtyTextures;
+	std::vector<intptr_t> m_DirtyTextureDescriptors;
 	int GetMaxTextureCount();
 	int m_TextureCount = 0;
 	int m_TextureSize = -1;
