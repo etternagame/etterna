@@ -184,16 +184,16 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 
 	  // chordjack
 	  {
-		// the mods are applied directly in adj_diff_func instead.
-		// CJ,
-		// CJDensity,
-		// CJOHJump,
-		// CJOHAnchor,
-		// WideRangeAnchor,
-		// WideRangeJJ,
-		// WideRangeJumptrill,
-		// VOHTrill,
-		// FlamJam, // you may say, why? why not?
+		// OldOHJScaler is applied directly in a adj_diff_func
+		CJ,
+		OldAnchorScaler,
+		OldJumpScaler,
+		OldRollScaler,
+		CJDensity,
+		WideRangeCJAnchor,
+		WideRangeJumptrill,
+		VOHTrill,
+		FlamJam,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -280,13 +280,9 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 			case Skill_Chordjack: {
 				// nps based chordjacks (0.57.1 calc 263)
 				auto& pmods = _calc.pmod_vals.at(hand);
-				*adj_diff *= pmods.at(OldAnchorScaler).at(itv) *
-							 fastsqrt(pmods.at(OldOHJScaler).at(itv)) *
-							 pmods.at(OldRollScaler).at(itv) *
-							 pmods.at(OldJumpScaler).at(itv) *
-							 pmods.at(CJ).at(itv) *
-							 pmods.at(CJDensity).at(itv) *
-							 pmods.at(WideRangeCJAnchor).at(itv);
+				// (pmod_product_cur_interval is applied before here)
+				*adj_diff *= fastsqrt(pmods.at(OldOHJScaler).at(itv));
+
 			} break;
 			case Skill_Technical:
 				*adj_diff =
