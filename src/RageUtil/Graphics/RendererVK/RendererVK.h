@@ -2,26 +2,20 @@
 #define RENDERER_VULKAN_H
 
 #include "RageUtil/Graphics/Display/Renderer.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
 
-#ifdef DEBUG
-#define VKDEBUG 1
-#endif
-#ifdef _DEBUG
-#define VKDEBUG 1
-#endif
-
-#ifdef VKDEBUG
 #define VMA_DEBUG_LOG
 #define VMA_DEBUG_INITIALIZE_ALLOCATIONS 1
 #define VMA_DEBUG_LOG_FORMAT(format, ...)                                      \
 	do {                                                                       \
-		char buffer[256];                                                      \
-		snprintf(buffer, sizeof(buffer), format, __VA_ARGS__);                 \
-		std::string str(buffer);                                               \
-		Locator::getLogger()->debug("VulkanMemoryAllocator: " + str);          \
+		if (DISPLAY->DisplayDebugModeEnabled()) {                              \
+			char buffer[256];                                                  \
+			snprintf(buffer, sizeof(buffer), format, __VA_ARGS__);             \
+			std::string str(buffer);                                           \
+			Locator::getLogger()->debug("VulkanMemoryAllocator: " + str);      \
+		}                                                                      \
 	} while (false)
-#endif
 
 #include <vulkan/vulkan_raii.hpp>
 #include <vk_mem_alloc.h>
@@ -64,6 +58,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	  const std::string& fragmentShaderPath) override;
 	void ReloadPipelines() override;
 	void TryVideoMode(const VideoModeParams& params) override;
+	int GetMaxTextureSize() override;
 	~RendererVK() override;
 
   private:
@@ -148,9 +143,9 @@ class RendererVK : public DisplayAdapter::Renderer
 
 	std::map<intptr_t, Texture> m_Textures;
 	std::set<intptr_t> m_EmptyTextureSlots;
-	int GetMaxTextureSize();
 	int GetMaxTextureCount();
 	int m_TextureCount = 0;
+	int m_TextureSize = -1;
 	void DestroyTexture(Texture& texture);
 
 	std::array<vk::raii::Sampler, Texture::PossibleSamplerCount> m_Samplers;

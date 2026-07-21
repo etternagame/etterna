@@ -26,6 +26,7 @@
 // intrinsics
 #include "sse2neon.h"
 #endif
+#include <RageUtil/Graphics/Display/Display.h>
 
 constexpr uint64_t Timeout = 2000'000'000;
 
@@ -679,10 +680,11 @@ RendererVK::InitVulkanState()
 	}
 
 	m_Instance = vk::raii::Instance(m_Context, instanceResult->instance);
-#ifdef VKDEBUG
-	m_DebugMessenger = vk::raii::DebugUtilsMessengerEXT(
-	  m_Instance, instanceResult->debug_messenger);
-#endif
+
+	if (DISPLAY->DisplayDebugModeEnabled()) {
+		m_DebugMessenger = vk::raii::DebugUtilsMessengerEXT(
+		  m_Instance, instanceResult->debug_messenger);
+	}
 
 	m_Surface = CreateSurfaceKHR(m_Instance);
 
@@ -1589,7 +1591,7 @@ RendererVK::UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher)
 				sizeof(DisplayAdapter::MatrixState) *
 				  batcher.m_MatrixStateBuffer.size());
 
-	std::memcpy(m_ShaderScratchBuffer[m_CurrentFrame].GetMappedData(),	
+	std::memcpy(m_ShaderScratchBuffer[m_CurrentFrame].GetMappedData(),
 				batcher.m_ShaderScratchBuffer.data(),
 				sizeof(uint8_t) * batcher.m_ShaderScratchBuffer.size());
 }
@@ -1597,18 +1599,23 @@ RendererVK::UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher)
 int
 RendererVK::GetMaxTextureSize()
 {
-	return std::min(
-	  4096u, m_PhysicalDevice.getProperties().limits.maxImageDimension2D);
+	if (m_TextureSize == -1) {
+		m_TextureSize = std::min(
+		  DisplayAdapter::Display::MaxTextureSize,
+		  static_cast<size_t>(
+			m_PhysicalDevice.getProperties().limits.maxImageDimension2D));
+	}
+	return m_TextureSize;
 }
 
 int
 RendererVK::GetMaxTextureCount()
 {
 	if (!m_TextureCount) {
-		m_TextureCount = std::min(static_cast<size_t>(Texture::MaxTextures),
-								  m_PhysicalDevice.getProperties()
-									  .limits.maxDescriptorSetSampledImages /
-									FramesInFlight);
+		m_TextureCount = std::min(
+		  static_cast<size_t>(Texture::MaxTextures),
+		  static_cast<size_t>(m_PhysicalDevice.getProperties()
+								.limits.maxDescriptorSetSampledImages));
 	}
 
 	return m_TextureCount;
@@ -1693,7 +1700,7 @@ RendererVK::CreateRenderTargetTexture(int width, int height)
 	texture.height = height;
 
 	VmaAllocationCreateInfo allocCreateInfo = {};
-	allocCreateInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 
 	VkImageCreateInfo imageInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;

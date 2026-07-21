@@ -12,24 +12,27 @@
 #ifdef __unix__
 #include "archutils/Unix/X11Helper.h"
 #endif
+#include <RageUtil/Graphics/RageDisplay.h>
 
 vkb::Result<vkb::Instance>
 CreateInstance(PFN_vkDebugUtilsMessengerCallbackEXT debugCallback)
 {
 	vkb::InstanceBuilder builder;
+
+	if (DISPLAY->DisplayDebugModeEnabled()) {
+		builder = builder.request_validation_layers(true)
+		  .use_default_debug_messenger()
+		  .add_validation_feature_enable(
+			VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT)
+		  .add_validation_feature_enable(
+			VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT)
+		  .add_validation_feature_enable(
+			VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT)
+		  .set_debug_callback(debugCallback);
+	}
+
 	auto instanceResult =
 	  builder
-#ifdef VKDEBUG
-		.request_validation_layers(true)
-		.use_default_debug_messenger()
-		.add_validation_feature_enable(
-		  VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT)
-		.add_validation_feature_enable(
-		  VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT)
-		.add_validation_feature_enable(
-		  VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT)
-		.set_debug_callback(debugCallback)
-#endif
 		.require_api_version(1, 3, 0)
 		.enable_extension(VK_KHR_SURFACE_EXTENSION_NAME)
 #ifdef _WIN32
@@ -68,7 +71,7 @@ CreateSurfaceKHR(const vk::raii::Instance& instance)
 	return instance.createXlibSurfaceKHR(createInfo);
 #endif
 #ifdef __APPLE__
-	// TODO: use vkCreateMacOSSurfaceMVK or vkCreateMetalSurfaceEXT?
+	// TODO: use vkCreateMetalSurfaceEXT for that MoltenVK support
 	return nullptr;
 #endif
 }

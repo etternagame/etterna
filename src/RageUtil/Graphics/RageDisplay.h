@@ -480,6 +480,8 @@ class RageDisplay
 		return nullptr;
 	} // allocates a surface.  Caller must delete it.
 
+	bool DisplayDebugModeEnabled(); 
+
 protected:
 	virtual void DrawQuadsInternal(const RageSpriteVertex v[],
 								   int iNumVerts) = 0;

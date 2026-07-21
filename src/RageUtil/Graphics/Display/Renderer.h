@@ -35,6 +35,7 @@ class Renderer
 	  const std::string& fragmentShaderPath) = 0;
 	virtual void ReloadPipelines() = 0;
 	virtual void TryVideoMode(const VideoModeParams& params) = 0;
+	virtual int GetMaxTextureSize() = 0;
 };
 }
 

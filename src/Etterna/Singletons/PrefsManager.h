@@ -208,6 +208,7 @@ class PrefsManager
 	Preference<std::string> m_sLastSeenVideoDriver;
 	Preference<std::string> m_sVideoRenderers; // StepMania.cpp sets these on
 											   // first run based on the card
+	Preference<bool> m_bVideoRendererDebugMode;
 	Preference<bool> m_bSmoothLines;
 	Preference<int> m_iSoundWriteAhead;
 	Preference<std::string> m_iSoundDevice;

@@ -10,6 +10,10 @@ DisplayAdapter::CommandBatcher::InsertPipelineChangeCommand(
   const std::vector<uint8_t>& fragShaderArgs,
   bool persist)
 {
+	if (!persist && m_PipelineStack.size()) {
+		return;
+	}
+
 	uint64_t vertexShaderInfo = UINT64_MAX;
 	uint64_t fragShaderInfo = UINT64_MAX;
 
@@ -41,9 +45,6 @@ DisplayAdapter::CommandBatcher::InsertPipelineChangeCommand(
 		}
 		settings = m_PipelineStack.top();
 	} else {
-		if (m_PipelineStack.size()) {
-			return;
-		}
 		settings = { pipeline, vertexShaderInfo, fragShaderInfo };
 	}
 
@@ -165,12 +166,12 @@ DisplayAdapter::CommandBatcher::InsertSpriteDrawCommand(
 		}
 		case DrawMode::Fan: {
 			assert(vertexCount >= 3);
-			m_IndexBuffer.resize(prevCount + 3 * (vertexCount - 1));
+			m_IndexBuffer.resize(prevCount + 3 * (vertexCount - 2));
 			for (size_t i = 1; i < vertexCount - 1; i++) {
-				m_IndexBuffer[prevCount + 3 * i] = previousVertexCount;
-				m_IndexBuffer[prevCount + 3 * i + 1] = previousVertexCount + i;
-				m_IndexBuffer[prevCount + 3 * i + 2] =
-				  previousVertexCount + i + 1;
+				const size_t offset = prevCount + 3 * (i - 1);
+				m_IndexBuffer[offset] = previousVertexCount;
+				m_IndexBuffer[offset + 1] = previousVertexCount + i;
+				m_IndexBuffer[offset + 2] = previousVertexCount + i + 1;
 			}
 
 			break;

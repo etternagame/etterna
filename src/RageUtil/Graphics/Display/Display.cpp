@@ -46,6 +46,7 @@ DisplayAdapter::Display::BeginFrame()
 	m_Batcher.Clear();
 	m_RenderState.textureFiltering = true;
 	m_RenderState.textureWrapping = false;
+	m_CurrentRenderTarget = 0;
 
 	return m_IsInitDone && RageDisplay::BeginFrame();
 }
@@ -148,7 +149,7 @@ DisplayAdapter::Display::GetNumTextureUnits()
 int
 DisplayAdapter::Display::GetMaxTextureSize() const
 {
-	return DisplayAdapter::Display::MaxTextureSize;
+	return m_Renderer->GetMaxTextureSize();
 }
 
 #pragma endregion

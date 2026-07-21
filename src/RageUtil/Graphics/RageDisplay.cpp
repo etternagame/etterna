@@ -1351,6 +1351,12 @@ RageCompiledGeometry::Set(const std::vector<msMesh>& vMeshes, bool bNeedsNormals
 	Change(vMeshes);
 }
 
+bool
+RageDisplay::DisplayDebugModeEnabled()
+{
+	return PREFSMAN->m_bVideoRendererDebugMode;
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
