@@ -481,35 +481,45 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	error = false;
 	bool finished_connecting = false;
 
-	curl = curl_easy_init();
-	if (curl == nullptr) {
-		throw std::runtime_error("failed to initialize curl");
-	}
+	try {
 
-	std::string url = fmt::format(
-	  "{}{}:{}", starts_with("wss://", address) ? "" : "ws://", address, port);
-	auto res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	if (res != CURLE_OK) {
-		throw std::runtime_error(
-		  fmt::format("curlopt_url failed: {}", curl_easy_strerror(res)));
-	}
+		curl = curl_easy_init();
+		if (curl == nullptr) {
+			throw std::runtime_error("failed to initialize curl");
+		}
 
-	res = curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, INCOMING_BUFFER_SIZE);
-	if (res != CURLE_OK) {
-		throw std::runtime_error(fmt::format("curlopt_buffersize failed: {}",
-											 curl_easy_strerror(res)));
-	}
+		std::string url =
+		  fmt::format("{}{}:{}",
+					  starts_with("wss://", address) ? "" : "ws://",
+					  address,
+					  port);
+		auto res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		if (res != CURLE_OK) {
+			throw std::runtime_error(
+			  fmt::format("curlopt_url failed: {}", curl_easy_strerror(res)));
+		}
 
-	res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
-	if (res != CURLE_OK) {
-		throw std::runtime_error(
-		  fmt::format("curlopt_connect_only failed: {}", curl_easy_strerror(res)));
-	}
+		res = curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, INCOMING_BUFFER_SIZE);
+		if (res != CURLE_OK) {
+			throw std::runtime_error(fmt::format(
+			  "curlopt_buffersize failed: {}", curl_easy_strerror(res)));
+		}
 
-	res = curl_easy_perform(curl);
-	if (res != CURLE_OK) {
-		throw std::runtime_error(
-		  fmt::format("curl_easy_perform failed: {}", curl_easy_strerror(res)));
+		res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
+		if (res != CURLE_OK) {
+			throw std::runtime_error(fmt::format(
+			  "curlopt_connect_only failed: {}", curl_easy_strerror(res)));
+		}
+
+		res = curl_easy_perform(curl);
+		if (res != CURLE_OK) {
+			throw std::runtime_error(fmt::format("curl_easy_perform failed: {}",
+												 curl_easy_strerror(res)));
+		}
+	} catch (std::runtime_error& e) {
+		Locator::getLogger()->error(
+		  "There was a problem connecting to multiplayer:: {}", e.what());
+		return false;
 	}
 
 	finished_connecting = true;
