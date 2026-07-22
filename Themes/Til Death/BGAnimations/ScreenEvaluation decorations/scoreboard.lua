@@ -160,7 +160,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 					local date = p:GetChild("date")
 					local option = p:GetChild("option")
 					local cleartype = p:GetChild("ClearType")
-					
+
 					grade:visible(not grade:GetVisible())
 					judge:visible(not judge:GetVisible())
 					date:visible(not date:GetVisible())
@@ -343,7 +343,7 @@ local function scoreitem(pn, index, scoreIndex, drawindex)
 			BeginCommand = function(self)
 				if hsTable[index] == nil then return end
 				if #hsTable >= 1 and index >= 1 then
-					self:settext(hsTable[index]:GetDate())
+					self:settext(getScoreDate(hsTable[index]))
 				end
 				self:visible(false)
 			end

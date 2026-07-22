@@ -548,9 +548,9 @@ local function recentLabel(i)
 			DisplayProfileRankingLabelsMessageCommand = function(self)
 				if ths then
 					if not IsUsingWideScreen() then
-						self:settext(ths:GetDate():sub(1,10)):x(318)
+						self:settext(getScoreDate(ths):sub(1,10)):x(318)
 					else
-						self:settext(ths:GetDate())
+						self:settext(getScoreDate(ths))
 					end
 				else
 					self:settext("")
@@ -810,7 +810,7 @@ r[#r + 1] = Def.ActorFrame {
 			local alpha = 1
 			self:GetParent():GetChild("NextP"):diffusealpha(alpha)
 		end,
-		
+
 	},
 	LoadFont("Common Large") .. {
 		Name = "NextP",

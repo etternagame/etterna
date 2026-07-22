@@ -631,9 +631,7 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MintyFreshCommand = function(self)
 			if song and score then
-				self:settext(score:GetDate())
-			else
-				self:settext("")
+				self:settext(getScoreDate(score))
 			end
 		end
 	},
@@ -953,7 +951,7 @@ local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, y, en
 					else
 						ison = (not ison)
 					end
-					
+
 					-- wtf 2
 					self:diffuse(ison and color(enabledC) or getMainColor("highlight"))
 					NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())

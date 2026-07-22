@@ -543,7 +543,7 @@ local function scoreList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        local date = score:GetDate()
+                        local date = getScoreDate(score)
                         local m, d, y = expandDateString(date)
                         local dstr = string.format("%s %s, %s", m, d, y)
                         local ssr = score:GetSkillsetSSR("Overall")

@@ -672,9 +672,9 @@ local function makeScoreDisplay(i)
 			end,
 			DisplayCommand = function(self)
 				if IsUsingWideScreen() then
-					self:settext(hs:GetDate())
+					self:settext(getScoreDate(hs))
 				else
-					self:settext(hs:GetDate():sub(1, 10))
+					self:settext(getScoreDate(hs):sub(1, 10))
 				end
 			end,
 			CollapseCommand = function(self)

@@ -411,7 +411,7 @@ local function createList()
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
                     self:x(actuals.ItemSongNameLeftGap)
-                    
+
                     txt:halign(0):valign(0)
                     bg:halign(0):valign(0)
                     bg:y(-scoreitembgbump)
@@ -520,8 +520,8 @@ local function createList()
                     if score ~= nil then
                         if chosenSkillset == "Recent" then
                             self:diffusealpha(1)
-                            local d = score:GetDate()
-                            if d ~= nil then
+                            local d = getScoreDate(score)
+                            if d ~= nil then -- ??
                                 self:settext(d)
                             else
                                 self:settext("")
@@ -554,7 +554,7 @@ local function createList()
                     end
                 end
             },
-            LoadFont("Common Normal") .. { 
+            LoadFont("Common Normal") .. {
                 Name = "WifePercent",
                 InitCommand = function(self)
                     self:halign(1):valign(0)
@@ -610,7 +610,7 @@ local function createList()
                     end
                 end
             }
-            
+
         }
     end
 
@@ -706,7 +706,7 @@ local function createList()
                 -- Upload all scores button
                 function(self)
                     if DLMAN:IsLoggedIn() then
-                        self:settext(translations["UploadAllScores"]) 
+                        self:settext(translations["UploadAllScores"])
                     else
                         self:settext("")
                     end
@@ -1141,14 +1141,14 @@ local function createList()
                     -- this is the ultimate fudge value
                     -- meant to be the approximate size of the text vertically but a lot smaller
                     bg:y(-actuals.NameInfoLargeLineSpacing / 3)
-    
+
                     self.ratings = true
                     self:queuecommand("UpdateToggle")
                 end,
                 UpdateToggleCommand = function(self)
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
-        
+
                     if self.ratings then
                         if DLMAN:IsLoggedIn() then
                             txt:settextf("%s (%s):", translations["PlayerRatings"], translations["OnlineSlashOffline"])
@@ -1158,7 +1158,7 @@ local function createList()
                     else
                         txt:settextf("%s:", translations["PlayerStats"])
                     end
-        
+
                     bg:zoomto(txt:GetZoomedWidth(), actuals.NameInfoLargeLineSpacing + textzoomFudge)
                 end,
                 ClickCommand = function(self, params)

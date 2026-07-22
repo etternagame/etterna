@@ -756,7 +756,7 @@ local function createList()
                 end,
                 SetScoreCommand = function(self)
                     if score ~= nil then
-                        self:settext(score:GetDate())
+                        self:settext(getScoreDate(score))
                         diffuseScore(self, "main", "SecondaryText")
                     end
                 end
@@ -1429,7 +1429,7 @@ local function createList()
                     self:visible(false)
                     return
                 end
-                
+
                 if localscore ~= nil then
                     if localscore:HasReplayData() then
                         self:diffusealpha(1)
