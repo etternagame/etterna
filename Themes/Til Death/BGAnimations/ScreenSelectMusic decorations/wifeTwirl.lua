@@ -632,7 +632,9 @@ t[#t + 1] = Def.ActorFrame {
 		MintyFreshCommand = function(self)
 			if song and score then
 				self:settext(getScoreDate(score))
-			end
+            else
+                self:settext("")
+            end
 		end
 	},
 	-- MaxCombo
