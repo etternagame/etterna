@@ -144,6 +144,10 @@ class RendererVK : public DisplayAdapter::Renderer
 
 	std::vector<Texture*> m_DirtyTextures;
 	std::vector<intptr_t> m_DirtyTextureDescriptors;
+	std::vector<vk::ImageMemoryBarrier2> m_DirtyPreBarriers;
+	std::vector<vk::ImageMemoryBarrier2> m_DirtyPostBarriers;
+	std::vector<vk::DescriptorImageInfo> m_DirtyImageInfos;
+	std::vector<vk::WriteDescriptorSet> m_DirtyImageDescWrites;
 	int GetMaxTextureCount();
 	int m_TextureCount = 0;
 	int m_TextureSize = -1;

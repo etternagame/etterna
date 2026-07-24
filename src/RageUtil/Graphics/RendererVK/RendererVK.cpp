@@ -221,7 +221,6 @@ RendererVK::DeleteTexture(intptr_t handle)
 	DestroyTexture(m_Textures[handle]);
 	m_Textures.erase(handle);
 	m_EmptyTextureSlots.insert(handle);
-	m_DirtyTextureDescriptors.push_back(handle);
 }
 
 void
@@ -242,9 +241,6 @@ RendererVK::ClearAllTextures()
 	m_Textures.clear();
 
 	m_Textures[0] = emptyTexture;
-	for (int i = 1; i < GetMaxTextureCount(); i++) {
-		m_DirtyTextureDescriptors.push_back(i);
-	}
 }
 
 RageSurface*
@@ -941,23 +937,43 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 						   const DisplayAdapter::CommandBatcher& batcher)
 {
 	auto& buffer = m_CommandBuffers[m_CurrentFrame];
-	buffer.begin({});
+	buffer.begin(vk::CommandBufferBeginInfo(
+	  vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
+
+	m_DirtyPreBarriers.reserve(m_DirtyTextures.size());
+	m_DirtyPostBarriers.reserve(m_DirtyTextures.size());
 
 	for (auto& texture : m_DirtyTextures) {
-		TransitionImageLayout(
-		  texture->image,
-		  texture->currentLayout,
-		  vk::ImageLayout::eTransferDstOptimal,
-		  (texture->currentLayout == vk::ImageLayout::eUndefined)
-			? vk::AccessFlags2()
-			: vk::AccessFlagBits2::eShaderRead,
-		  vk::AccessFlagBits2::eTransferWrite,
+		vk::ImageMemoryBarrier2 barrier{};
+		barrier.srcStageMask =
 		  (texture->currentLayout == vk::ImageLayout::eUndefined)
 			? vk::PipelineStageFlagBits2::eNone
-			: vk::PipelineStageFlagBits2::eAllGraphics,
-		  vk::PipelineStageFlagBits2::eTransfer,
-		  buffer);
+			: vk::PipelineStageFlagBits2::eAllGraphics;
+		barrier.srcAccessMask =
+		  (texture->currentLayout == vk::ImageLayout::eUndefined)
+			? vk::AccessFlags2()
+			: vk::AccessFlagBits2::eShaderRead;
+		barrier.dstStageMask = vk::PipelineStageFlagBits2::eTransfer;
+		barrier.dstAccessMask = vk::AccessFlagBits2::eTransferWrite;
+		barrier.oldLayout = texture->currentLayout;
+		barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = texture->image;
+		barrier.subresourceRange = vk::ImageSubresourceRange(
+		  vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		m_DirtyPreBarriers.push_back(barrier);
+	}
 
+	if (!m_DirtyPreBarriers.empty()) {
+		vk::DependencyInfo depInfo{};
+		depInfo.imageMemoryBarrierCount =
+		  static_cast<uint32_t>(m_DirtyPreBarriers.size());
+		depInfo.pImageMemoryBarriers = m_DirtyPreBarriers.data();
+		buffer.pipelineBarrier2(depInfo);
+	}
+
+	for (auto& texture : m_DirtyTextures) {
 		vk::BufferImageCopy2 copyRegion{};
 		copyRegion.imageExtent =
 		  vk::Extent3D{ texture->width, texture->height, 1 };
@@ -966,37 +982,51 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		copyRegion.imageSubresource.layerCount = 1;
 
 		vk::CopyBufferToImageInfo2 copyInfo{};
-		copyInfo.setRegions({ copyRegion });
+		copyInfo.srcBuffer = texture->imageBuffer.buffer;
 		copyInfo.dstImage = texture->image;
 		copyInfo.dstImageLayout = vk::ImageLayout::eTransferDstOptimal;
-		copyInfo.srcBuffer = texture->imageBuffer.buffer;
-
+		copyInfo.setRegions({ copyRegion });
 		buffer.copyBufferToImage2(copyInfo);
+	}
 
-		TransitionImageLayout(texture->image,
-							  vk::ImageLayout::eTransferDstOptimal,
-							  vk::ImageLayout::eShaderReadOnlyOptimal,
-							  vk::AccessFlagBits2::eTransferWrite,
-							  vk::AccessFlagBits2::eShaderRead,
-							  vk::PipelineStageFlagBits2::eTransfer,
-							  vk::PipelineStageFlagBits2::eAllGraphics,
-							  buffer);
+	for (auto& texture : m_DirtyTextures) {
+		vk::ImageMemoryBarrier2 barrier{};
+		barrier.srcStageMask = vk::PipelineStageFlagBits2::eTransfer;
+		barrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
+		barrier.dstStageMask = vk::PipelineStageFlagBits2::eAllGraphics;
+		barrier.dstAccessMask = vk::AccessFlagBits2::eShaderRead;
+		barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
+		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		barrier.image = texture->image;
+		barrier.subresourceRange = vk::ImageSubresourceRange(
+		  vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+		m_DirtyPostBarriers.push_back(barrier);
+	}
 
+	if (!m_DirtyPostBarriers.empty()) {
+		vk::DependencyInfo depInfo{};
+		depInfo.imageMemoryBarrierCount =
+		  static_cast<uint32_t>(m_DirtyPostBarriers.size());
+		depInfo.pImageMemoryBarriers = m_DirtyPostBarriers.data();
+		buffer.pipelineBarrier2(depInfo);
+	}
+
+	for (auto& texture : m_DirtyTextures) {
 		texture->currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		texture->dirty = false;
-		texture->initialized = true; // technically not yet because we didn't
-									 // wait for the GPU to do its thing but eh
+		texture->initialized = true;
 	}
 	m_DirtyTextures.clear();
+	m_DirtyPreBarriers.clear();
+	m_DirtyPostBarriers.clear();
 
-	std::vector<vk::DescriptorImageInfo> imageInfos;
-	imageInfos.reserve(m_DirtyTextureDescriptors.size());
-
-	std::vector<vk::WriteDescriptorSet> writes;
-	writes.reserve(m_DirtyTextureDescriptors.size());
+	m_DirtyImageInfos.reserve(m_DirtyTextureDescriptors.size());
+	m_DirtyImageDescWrites.reserve(m_DirtyTextureDescriptors.size());
 
 	for (int handle : m_DirtyTextureDescriptors) {
-		vk::DescriptorImageInfo& imageInfo = imageInfos.emplace_back();
+		vk::DescriptorImageInfo& imageInfo = m_DirtyImageInfos.emplace_back();
 		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		imageInfo.imageView = m_EmptyTextureSlots.contains(handle)
 								? m_Textures[0].view
@@ -1010,14 +1040,16 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		write.descriptorType = vk::DescriptorType::eSampledImage;
 		write.pImageInfo = &imageInfo;
 
-		writes.push_back(write);
+		m_DirtyImageDescWrites.push_back(write);
 	}
 
-	if (!writes.empty()) {
-		m_Device.updateDescriptorSets(writes, {});
+	if (!m_DirtyImageDescWrites.empty()) {
+		m_Device.updateDescriptorSets(m_DirtyImageDescWrites, {});
 	}
 
 	m_DirtyTextureDescriptors.clear();
+	m_DirtyImageInfos.clear();
+	m_DirtyImageDescWrites.clear();
 
 	vk::BufferCopy stagingCopy{};
 	stagingCopy.srcOffset = 0;
