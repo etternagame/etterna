@@ -1449,7 +1449,8 @@ RendererVK::InitBatchBuffers()
 
 	for (int i = 0; i < FramesInFlight; i++) {
 		vk::BufferCreateInfo vertexBufferInfo{};
-		vertexBufferInfo.size = sizeof(DisplayAdapter::Vertex) * MaxDrawCount;
+		vertexBufferInfo.size =
+		  sizeof(DisplayAdapter::Vertex) * DisplayAdapter::MaxVertexCount;
 		vertexBufferInfo.usage = vk::BufferUsageFlagBits::eTransferDst |
 								 vk::BufferUsageFlagBits::eStorageBuffer;
 		VmaAllocationCreateInfo vertexAllocInfo = {};
@@ -1457,7 +1458,8 @@ RendererVK::InitBatchBuffers()
 		m_VertexBuffer[i].Init(m_Allocator, vertexBufferInfo, vertexAllocInfo);
 
 		vk::BufferCreateInfo indexBufferInfo{};
-		indexBufferInfo.size = sizeof(uint32_t) * 4 * MaxDrawCount;
+		indexBufferInfo.size =
+		  sizeof(uint32_t) * 4 * DisplayAdapter::MaxVertexCount;
 		indexBufferInfo.usage = vk::BufferUsageFlagBits::eIndexBuffer |
 								vk::BufferUsageFlagBits::eTransferDst;
 		VmaAllocationCreateInfo indexAllocInfo = {};
@@ -1466,7 +1468,7 @@ RendererVK::InitBatchBuffers()
 
 		vk::BufferCreateInfo matrixBufferInfo{};
 		matrixBufferInfo.size =
-		  sizeof(DisplayAdapter::MatrixState) * MaxDrawCount;
+		  sizeof(DisplayAdapter::MatrixState) * DisplayAdapter::MaxVertexCount;
 		matrixBufferInfo.usage = vk::BufferUsageFlagBits::eStorageBuffer |
 								 vk::BufferUsageFlagBits::eTransferDst;
 		VmaAllocationCreateInfo matrixAllocInfo = {};
@@ -1476,9 +1478,9 @@ RendererVK::InitBatchBuffers()
 
 		vk::BufferCreateInfo stagingBufferInfo{};
 		stagingBufferInfo.size =
-		  sizeof(DisplayAdapter::Vertex) * MaxDrawCount +
-		  sizeof(uint32_t) * 4 * MaxDrawCount +
-		  sizeof(DisplayAdapter::MatrixState) * MaxDrawCount;
+		  sizeof(DisplayAdapter::Vertex) * DisplayAdapter::MaxVertexCount +
+		  sizeof(uint32_t) * 4 * DisplayAdapter::MaxVertexCount +
+		  sizeof(DisplayAdapter::MatrixState) * DisplayAdapter::MaxVertexCount;
 		stagingBufferInfo.usage = vk::BufferUsageFlagBits::eTransferSrc;
 		VmaAllocationCreateInfo stagingAllocInfo{};
 		stagingAllocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;

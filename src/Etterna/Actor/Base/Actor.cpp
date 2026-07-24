@@ -181,7 +181,8 @@ Actor::Actor(const Actor& cpy)
 
 	*this = cpy;
 }
-Actor& Actor::operator=(const Actor& x)
+Actor&
+Actor::operator=(const Actor& x)
 {
 #define CPY(membername) this->membername = x.membername
 	CPY(m_pTempState);
@@ -520,10 +521,23 @@ Actor::Draw()
 		if (PartiallyOpaque()) {
 			this->BeginDraw();
 
-			DISPLAY->SetGraphicsPipeline(m_CustomShaders, m_VertexShaderArgs, m_FragmentShaderArgs, m_ShaderPersistence);
+			const bool hasCustomShaders = m_CustomShaders.id != 0;
+
+			if (hasCustomShaders) {
+				DISPLAY->SetGraphicsPipeline(m_CustomShaders,
+											 m_VertexShaderArgs,
+											 m_FragmentShaderArgs,
+											 m_ShaderPersistence);
+			}
 			this->DrawPrimitives();
-			DISPLAY->SetGraphicsPipeline(
-			  DisplayAdapter::PipelineHandle{ 0 }, {}, {}, m_ShaderPersistence);
+
+			if (hasCustomShaders) {
+				DISPLAY->SetGraphicsPipeline(
+				  DisplayAdapter::PipelineHandle{ 0 },
+				  {},
+				  {},
+				  m_ShaderPersistence);
+			}
 
 			this->EndDraw();
 		}
@@ -1659,8 +1673,8 @@ void
 Actor::SetShaders(const std::string& vertexShaderPath,
 				  const std::string& fragmentShaderPath)
 {
-	m_CustomShaders = DISPLAY->CreateGraphicsPipeline(
-	  vertexShaderPath, fragmentShaderPath);
+	m_CustomShaders =
+	  DISPLAY->CreateGraphicsPipeline(vertexShaderPath, fragmentShaderPath);
 }
 
 void
@@ -2760,7 +2774,7 @@ class LunaActor : public Luna<Actor>
 	}
 	static int GetShaderPersistence(T* p, lua_State* L)
 	{
-		lua_pushboolean(L,p->GetShaderPersistence());
+		lua_pushboolean(L, p->GetShaderPersistence());
 		return 1;
 	}
 	static int SetShaderParameters(T* p, lua_State* L)
@@ -2778,8 +2792,7 @@ class LunaActor : public Luna<Actor>
 		}
 
 		if (!lua_istable(L, 2)) {
-			luaL_error(L,
-					   "expected shader parameter table to be... a table");
+			luaL_error(L, "expected shader parameter table to be... a table");
 		}
 
 		std::vector<uint8_t>& scratchBuffer = shaderType == ShaderType_Vertex
@@ -2789,7 +2802,8 @@ class LunaActor : public Luna<Actor>
 		size_t scratchOffset = 0;
 
 		// turn the table into key-value pairs and gather up all the keys
-		// (because iterating through the table with lua_objlen is yucky sometimes)
+		// (because iterating through the table with lua_objlen is yucky
+		// sometimes)
 		std::vector<int> keys;
 		lua_pushnil(L);
 		while (lua_next(L, 2) != 0) {

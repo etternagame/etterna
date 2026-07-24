@@ -44,6 +44,7 @@ DisplayAdapter::Display::BeginFrame()
 	m_Window->Update();
 
 	m_Batcher.Clear();
+
 	m_RenderState.textureFiltering = true;
 	m_RenderState.textureWrapping = false;
 	m_CurrentRenderTarget = 0;

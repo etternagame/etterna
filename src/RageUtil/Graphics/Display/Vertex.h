@@ -3,6 +3,9 @@
 #define DISPLAY_VERTEX_H
 
 namespace DisplayAdapter {
+
+constexpr size_t MaxVertexCount = 400'000;
+
 struct Vertex
 {
 	RageSpriteVertex VertexData;
