@@ -306,7 +306,8 @@ DisplayAdapter::CommandBatcher::HandleDrawCommand(
 					(size_t)0,
 					renderState.blendingMode,
 					renderState.depthTestMode,
-					renderState.depthWriteEnabled });
+					renderState.depthWriteEnabled,
+					renderState.cullMode });
 	}
 
 	// if we previously filled in a different draw call, we should create a new
@@ -322,10 +323,12 @@ DisplayAdapter::CommandBatcher::HandleDrawCommand(
 	  !filledPreviousCall &&
 	  std::tie(node.DrawCalls[node.DrawCalls.size() - 1].BlendingMode,
 			   node.DrawCalls[node.DrawCalls.size() - 1].DepthTestMode,
-			   node.DrawCalls[node.DrawCalls.size() - 1].DepthWriteEnabled) !=
+			   node.DrawCalls[node.DrawCalls.size() - 1].DepthWriteEnabled,
+			   node.DrawCalls[node.DrawCalls.size() - 1].cullMode) !=
 		std::tie(renderState.blendingMode,
 				 renderState.depthTestMode,
-				 renderState.depthWriteEnabled);
+				 renderState.depthWriteEnabled,
+				 renderState.cullMode);
 
 	if (filledPreviousCall || differentRenderState) {
 		node.DrawCalls.push_back(DrawCall{ *m_CurrentPipeline,
@@ -333,7 +336,7 @@ DisplayAdapter::CommandBatcher::HandleDrawCommand(
 										   (size_t)0,
 										   renderState.blendingMode,
 										   renderState.depthTestMode,
-										   renderState.depthWriteEnabled });
+										   renderState.depthWriteEnabled, renderState.cullMode });
 	}
 
 	node.DrawCalls[node.DrawCalls.size() - 1].IndexCount += indexCount;

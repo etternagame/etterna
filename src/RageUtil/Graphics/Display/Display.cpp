@@ -51,6 +51,7 @@ DisplayAdapter::Display::BeginFrame()
 	m_RenderState.depthTestMode = ZTEST_OFF;
 	m_RenderState.depthWriteEnabled = false;
 	m_RenderState.textureHandle = 0;
+	m_RenderState.cullMode = CULL_BACK;
 	m_CurrentRenderTarget = 0;
 
 	static std::vector<uint8_t> dummyBuffer = {};
@@ -404,6 +405,12 @@ DisplayAdapter::Display::ReloadPipelines()
 	m_Renderer->ReloadPipelines();
 }
 
+void
+DisplayAdapter::Display::SetCullMode(CullMode mode)
+{
+	m_RenderState.cullMode = mode;
+}
+
 #pragma region Unsupported / old graphics API functions
 
 void
@@ -413,11 +420,6 @@ DisplayAdapter::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
 
 void
 DisplayAdapter::Display::SetZBias(float f)
-{
-}
-
-void
-DisplayAdapter::Display::SetCullMode(CullMode mode)
 {
 }
 

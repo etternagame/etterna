@@ -22,6 +22,7 @@ struct DrawCall
 	BlendMode BlendingMode = BLEND_NORMAL;
 	ZTestMode DepthTestMode = ZTEST_OFF;
 	bool DepthWriteEnabled = false;
+	CullMode cullMode = CULL_BACK;
 };
 
 struct RenderNode

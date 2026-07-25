@@ -1260,6 +1260,26 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 			}
 			buffer.setDepthCompareOp(depthCompareOp);
 
+			vk::CullModeFlags cullMode = {};
+			switch (call.cullMode) {
+				case CULL_BACK:
+				{
+					cullMode = vk::CullModeFlagBits::eBack;
+					break;
+				}
+				case CULL_FRONT:
+				{
+					cullMode = vk::CullModeFlagBits::eFront;
+					break;
+				}
+				case CULL_NONE:
+				{
+					cullMode = vk::CullModeFlagBits::eNone;
+					break;
+				}
+			}
+			buffer.setCullMode(cullMode);
+
 			SetBlendMode(call.BlendingMode, buffer);
 
 			if (call.Settings.GraphicsPipeline != currentPipeline) {

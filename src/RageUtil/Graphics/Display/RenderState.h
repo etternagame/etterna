@@ -14,6 +14,7 @@ struct RenderState
 	BlendMode blendingMode = BLEND_NORMAL;
 	ZTestMode depthTestMode = ZTEST_OFF;
 	bool depthWriteEnabled = false;
+	CullMode cullMode = CULL_BACK;
 };
 
 } // namespace DisplayAdapter

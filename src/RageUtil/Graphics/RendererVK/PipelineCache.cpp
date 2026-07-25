@@ -94,6 +94,7 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 
 	std::vector dynamicStates = { vk::DynamicState::eViewport,
 								  vk::DynamicState::eScissor,
+								  vk::DynamicState::eCullMode,
 								  vk::DynamicState::eDepthWriteEnable,
 								  vk::DynamicState::eDepthTestEnable,
 								  vk::DynamicState::eDepthCompareOp,
@@ -115,7 +116,6 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 	rasterizer.depthClampEnable = vk::False;
 	rasterizer.rasterizerDiscardEnable = vk::False;
 	rasterizer.polygonMode = vk::PolygonMode::eFill;
-	rasterizer.cullMode = vk::CullModeFlagBits::eBack;
 	rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
 	rasterizer.depthBiasEnable = vk::False;
 	rasterizer.depthBiasSlopeFactor = 1.0f;
@@ -138,8 +138,7 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 	pipelineLayoutInfo.pushConstantRangeCount = 1;
 	pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
 
-	info.PipelineLayout =
-	  vk::raii::PipelineLayout(device, pipelineLayoutInfo);
+	info.PipelineLayout = vk::raii::PipelineLayout(device, pipelineLayoutInfo);
 
 	vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
 	colorBlendAttachment.blendEnable = VK_FALSE;
