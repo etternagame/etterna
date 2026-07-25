@@ -36,13 +36,9 @@ DisplayAdapter::CommandBatcher::InsertPipelineChangeCommand(
 	}
 
 	PipelineSettings settings = {};
-	if (persist) {
-		if (pipeline) {
-			m_PipelineStack.push(
-			  { pipeline, vertexShaderInfo, fragShaderInfo });
-		} else {
-			m_PipelineStack.pop();
-		}
+
+	if (persist && pipeline) {
+		m_PipelineStack.emplace(pipeline, vertexShaderInfo, fragShaderInfo);
 		settings = m_PipelineStack.top();
 	} else {
 		settings = { pipeline, vertexShaderInfo, fragShaderInfo };
@@ -280,7 +276,7 @@ DisplayAdapter::CommandBatcher::InsertCompiledGeometryDrawCommand(
 		for (int j = 0; j < 3; j++) {
 			m_IndexBuffer.emplace_back(
 			  previousVertexCount + geometry->m_Triangles[i].nVertexIndices[j] -
-									meshInfo.iVertexStart);
+			  meshInfo.iVertexStart);
 		}
 	}
 
@@ -363,7 +359,7 @@ DisplayAdapter::CommandBatcher::Clear()
 void
 DisplayAdapter::CommandBatcher::FixRenderNodeOrder()
 {
-	if (!m_RenderNodes.size()) {
+	if (!m_RenderNodes.size() || !m_SwapchainNodeIndex.has_value()) {
 		return;
 	}
 

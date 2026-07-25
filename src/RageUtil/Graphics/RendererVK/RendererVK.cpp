@@ -69,6 +69,7 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 
 	auto [result, imageIndex] = m_Swapchain.acquireNextImage(
 	  Timeout, *m_PresentCompleteSemaphore[m_CurrentFrame], nullptr);
+	m_CurrentImage = imageIndex;
 
 	if (result == vk::Result::eErrorOutOfDateKHR ||
 		result == vk::Result::eSuboptimalKHR || m_SwapchainIsInvalid) {
@@ -153,8 +154,9 @@ RendererVK::CreateTexture(RageSurface* img, bool RGBA8)
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-	imageInfo.usage =
-	  VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+					  VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+					  VK_IMAGE_USAGE_SAMPLED_BIT;
 
 	VkImage imagePtr = nullptr;
 	VmaAllocationInfo allocInfo = {};
@@ -246,6 +248,8 @@ RendererVK::ClearAllTextures()
 RageSurface*
 RendererVK::CreateScreenshot()
 {
+	m_Device.waitIdle();
+
 	// synchronization2 would require CreateScreenshot to basically return a
 	// future / allow OnRender to run to copy the frame without hazards and then
 	// go back to CreateScreenshot? so using legacy synchronization...
@@ -257,8 +261,7 @@ RendererVK::CreateScreenshot()
 	  (props.linearTilingFeatures & vk::FormatFeatureFlagBits::eBlitDst);
 
 	auto sourceImage =
-	  m_SwapchainImages[((int)m_CurrentFrame - 1 + FramesInFlight) %
-						FramesInFlight];
+	  m_SwapchainImages[m_CurrentImage % m_SwapchainImages.size()];
 
 	vk::ImageCreateInfo destImageInfo = {};
 	destImageInfo.imageType = vk::ImageType::e2D;
@@ -314,7 +317,7 @@ RendererVK::CreateScreenshot()
 							   {},
 							   { barrier });
 
-	barrier.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+	barrier.srcAccessMask = vk::AccessFlagBits::eNone;
 	barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 	barrier.oldLayout = vk::ImageLayout::ePresentSrcKHR;
 	barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
@@ -367,7 +370,7 @@ RendererVK::CreateScreenshot()
 	barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
 	barrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
 	barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
-	barrier.newLayout = vk::ImageLayout::eTransferSrcOptimal;
+	barrier.newLayout = vk::ImageLayout::eGeneral;
 	barrier.image = destImageRaw;
 
 	copyBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
@@ -378,7 +381,7 @@ RendererVK::CreateScreenshot()
 							   { barrier });
 
 	barrier.srcAccessMask = vk::AccessFlagBits::eTransferRead;
-	barrier.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+	barrier.dstAccessMask = vk::AccessFlagBits::eNone;
 	barrier.oldLayout = vk::ImageLayout::eTransferSrcOptimal;
 	barrier.newLayout = vk::ImageLayout::ePresentSrcKHR;
 	barrier.image = sourceImage;
@@ -506,7 +509,9 @@ RendererVK::~RendererVK()
 		m_Device.waitIdle();
 	}
 
-	m_Cache->WriteToDisk();
+	if (m_Cache.has_value()) {
+		m_Cache->WriteToDisk();
+	}
 
 	for (auto& [handle, texture] : m_Textures) {
 		DestroyTexture(texture);
@@ -1517,6 +1522,7 @@ RendererVK::InitBatchBuffers()
 		stagingAllocInfo.flags =
 		  VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
 		  VMA_ALLOCATION_CREATE_MAPPED_BIT;
+		stagingAllocInfo.requiredFlags = VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		m_StagingBuffer[i].Init(
 		  m_Allocator, stagingBufferInfo, stagingAllocInfo);
 

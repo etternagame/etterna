@@ -47,7 +47,14 @@ DisplayAdapter::Display::BeginFrame()
 
 	m_RenderState.textureFiltering = true;
 	m_RenderState.textureWrapping = false;
+	m_RenderState.blendingMode = BLEND_NORMAL;
+	m_RenderState.depthTestMode = ZTEST_OFF;
+	m_RenderState.depthWriteEnabled = false;
+	m_RenderState.textureHandle = 0;
 	m_CurrentRenderTarget = 0;
+
+	static std::vector<uint8_t> dummyBuffer = {};
+	m_Batcher.InsertPipelineChangeCommand(0, dummyBuffer, dummyBuffer, false);
 
 	return m_IsInitDone && RageDisplay::BeginFrame();
 }

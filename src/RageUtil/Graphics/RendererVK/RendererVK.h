@@ -122,6 +122,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::vector<vk::raii::Semaphore> m_RenderFinishedSemaphore;
 	std::vector<vk::raii::Fence> m_InFlightFence;
 	uint32_t m_CurrentFrame = 0;
+	int m_CurrentImage = 0;
 	void InitSyncStructures();
 	void RecordCommands(uint32_t imageIndex,
 						const DisplayAdapter::CommandBatcher& batcher);
