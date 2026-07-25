@@ -56,6 +56,28 @@ void
 DisplayAdapter::Display::EndFrame()
 {
 	m_Batcher.FixRenderNodeOrder();
+
+	if (m_Batcher.m_VertexBuffer.size() > MaxVertexCount) {
+		Locator::getLogger()->fatal("Display: exceeded maximum vertex count of {}",
+									MaxVertexCount);
+		throw std::runtime_error("Display: exceeded maximum vertex count");
+	}
+	if (m_Batcher.m_IndexBuffer.size() > 4 * MaxVertexCount) {
+		Locator::getLogger()->fatal("Display: exceeded maximum vertex index count of {}",
+									4 * MaxVertexCount);
+		throw std::runtime_error("Display: exceeded maximum vertex index count");
+	}
+	if (m_Batcher.m_MatrixStateBuffer.size() > MaxVertexCount) {
+		Locator::getLogger()->fatal("Display: exceeded maximum matrix count of {}",
+									MaxVertexCount);
+		throw std::runtime_error("Display: exceeded maximum matrix count");
+	}
+	if (m_Batcher.m_ShaderScratchBuffer.size() > 1'000'000) {
+		Locator::getLogger()->fatal("Display: exceeded maximum shader scratch buffer size of {}",
+									1'000'000);
+		throw std::runtime_error("Display: exceeded maximum shader scratch buffer size");
+	}
+
 	m_Renderer->OnRender(GetActualVideoModeParams(), m_Batcher);
 	RageDisplay::EndFrame();
 }
