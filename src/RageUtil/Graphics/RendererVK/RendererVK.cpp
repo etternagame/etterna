@@ -221,6 +221,11 @@ RendererVK::DeleteTexture(intptr_t handle)
 	m_GraphicsQueue.waitIdle();
 
 	DestroyTexture(m_Textures[handle]);
+	if (m_DepthTextures.contains(handle)) {
+		DestroyTexture(m_DepthTextures[handle]);
+		m_DepthTextures.erase(handle);
+	}
+
 	m_Textures.erase(handle);
 	m_EmptyTextureSlots.insert(handle);
 }
@@ -237,6 +242,11 @@ RendererVK::ClearAllTextures()
 		}
 
 		DestroyTexture(texture);
+		if (m_DepthTextures.contains(handle)) {
+			DestroyTexture(m_DepthTextures[handle]);
+			m_DepthTextures.erase(handle);
+		}
+
 		m_EmptyTextureSlots.insert(handle);
 	}
 
@@ -299,7 +309,7 @@ RendererVK::CreateScreenshot()
 	vk::raii::CommandBuffer copyBuffer =
 	  std::move(m_Device.allocateCommandBuffers(copyBufferInfo)[0]);
 
-	copyBuffer.begin({});
+	copyBuffer.begin({ vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
 	vk::ImageMemoryBarrier barrier = {};
 	barrier.srcAccessMask = vk::AccessFlagBits::eNone;
@@ -499,7 +509,9 @@ RendererVK::CreateRenderTarget(const RenderTargetParam& param,
 	RenderTargetVK target = {};
 	target.Create(param, iTextureWidthOut, iTextureHeightOut);
 	target.m_Texture = CreateRenderTargetTexture(target.GetParam().iWidth,
-												 target.GetParam().iHeight);
+												 target.GetParam().iHeight,
+												 param.bWithAlpha,
+												 param.bWithDepthBuffer);
 	return target.m_Texture;
 }
 
@@ -514,6 +526,10 @@ RendererVK::~RendererVK()
 	}
 
 	for (auto& [handle, texture] : m_Textures) {
+		DestroyTexture(texture);
+	}
+
+	for (auto& [handle, texture] : m_DepthTextures) {
 		DestroyTexture(texture);
 	}
 
@@ -1180,11 +1196,19 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		}
 
 		vk::RenderingAttachmentInfo depthInfo = {};
-		depthInfo.imageView = m_DepthView;
-		depthInfo.imageLayout = vk::ImageLayout::eAttachmentOptimal;
-		depthInfo.loadOp = vk::AttachmentLoadOp::eClear;
+		depthInfo.imageView =
+		  (!swapchain && m_DepthTextures.contains(node.RenderTarget))
+			? m_DepthTextures[node.RenderTarget].view
+			: m_DepthView;
+		depthInfo.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 		depthInfo.storeOp = vk::AttachmentStoreOp::eDontCare;
-		depthInfo.clearValue = vk::ClearDepthStencilValue(1.0f, 0);
+		if (node.PreserveRenderTarget && !swapchain &&
+			m_DepthTextures.contains(node.RenderTarget)) {
+			depthInfo.loadOp = vk::AttachmentLoadOp::eLoad;
+		} else {
+			depthInfo.loadOp = vk::AttachmentLoadOp::eClear;
+			depthInfo.clearValue = vk::ClearDepthStencilValue(1.0f, 0);
+		}
 
 		vk::RenderingInfo renderInfo = {};
 		renderInfo.renderArea =
@@ -1697,7 +1721,10 @@ RendererVK::ResolutionChanged()
 }
 
 intptr_t
-RendererVK::CreateRenderTargetTexture(int width, int height)
+RendererVK::CreateRenderTargetTexture(int width,
+									  int height,
+									  bool withAlpha,
+									  bool withDepth)
 {
 	assert(m_EmptyTextureSlots.size());
 	intptr_t currentHandle = *m_EmptyTextureSlots.begin();
@@ -1740,8 +1767,60 @@ RendererVK::CreateRenderTargetTexture(int width, int height)
 	texture.view = (*m_Device).createImageView(viewInfo);
 	texture.currentLayout = vk::ImageLayout::eUndefined;
 
+	viewInfo.components.r = vk::ComponentSwizzle::eR;
+	viewInfo.components.g = vk::ComponentSwizzle::eG;
+	viewInfo.components.b = vk::ComponentSwizzle::eB;
+
+	if (withAlpha) {
+		viewInfo.components.a = vk::ComponentSwizzle::eA;
+	} else {
+		viewInfo.components.a = vk::ComponentSwizzle::eOne;
+	}
+
 	m_Textures.insert({ currentHandle, texture });
 	m_DirtyTextureDescriptors.push_back(currentHandle);
+
+	if (withDepth) {
+		Texture depthTexture = {};
+		depthTexture.width = width;
+		depthTexture.height = height;
+		depthTexture.initialized = true;
+
+		vk::ImageCreateInfo depthImageInfo = {};
+		depthImageInfo.imageType = vk::ImageType::e2D;
+		depthImageInfo.format = m_DepthFormat;
+		depthImageInfo.extent = vk::Extent3D(width, height, 1);
+		depthImageInfo.mipLevels = 1;
+		depthImageInfo.arrayLayers = 1;
+		depthImageInfo.samples = vk::SampleCountFlagBits::e1;
+		depthImageInfo.tiling = vk::ImageTiling::eOptimal;
+		depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+		depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
+
+		VmaAllocationCreateInfo depthAllocInfo = {};
+		depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		VkImage depthImagePtr = nullptr;
+		ThrowIfFail(vmaCreateImage(m_Allocator,
+								   &*depthImageInfo,
+								   &depthAllocInfo,
+								   &depthImagePtr,
+								   &depthTexture.allocation,
+								   nullptr));
+		depthTexture.image = depthImagePtr;
+
+		vk::ImageViewCreateInfo depthViewInfo = {};
+		depthViewInfo.image = depthTexture.image;
+		depthViewInfo.viewType = vk::ImageViewType::e2D;
+		depthViewInfo.format = m_DepthFormat;
+		vk::ImageSubresourceRange subRange = {};
+		subRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+		subRange.levelCount = 1;
+		subRange.layerCount = 1;
+		depthViewInfo.subresourceRange = subRange;
+		depthTexture.view = (*m_Device).createImageView(depthViewInfo);
+
+		m_DepthTextures.insert({ currentHandle, depthTexture });
+	}
 
 	return currentHandle;
 }

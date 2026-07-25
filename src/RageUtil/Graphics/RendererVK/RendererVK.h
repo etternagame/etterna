@@ -140,6 +140,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	void UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher);
 
 	std::map<intptr_t, Texture> m_Textures;
+	std::map<intptr_t, Texture> m_DepthTextures;
 	std::set<intptr_t> m_EmptyTextureSlots;
 
 	std::vector<Texture*> m_DirtyTextures;
@@ -156,7 +157,10 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::array<vk::raii::Sampler, Texture::PossibleSamplerCount> m_Samplers;
 	void InitTextures();
 	void ResolutionChanged() override;
-	intptr_t CreateRenderTargetTexture(int width, int height);
+	intptr_t CreateRenderTargetTexture(int width,
+									   int height,
+									   bool withAlpha,
+									   bool withDepth);
 
 	std::optional<PipelineCache> m_Cache;
 };
