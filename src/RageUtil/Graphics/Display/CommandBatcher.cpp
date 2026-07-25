@@ -53,8 +53,8 @@ DisplayAdapter::CommandBatcher::InsertPipelineChangeCommand(
 		  std::tie(m_CurrentPipeline->GraphicsPipeline,
 				   m_CurrentPipeline->VertexShaderArg,
 				   m_CurrentPipeline->FragShaderArg)) {
-		m_RenderNodes[m_CurrentNodeIndex].DrawCalls.emplace_back(
-		  settings, m_IndexBuffer.size(), (size_t)0);
+		m_RenderNodes[m_CurrentNodeIndex].DrawCalls.push_back(
+		  DrawCall{ settings, m_IndexBuffer.size(), (size_t)0 });
 	}
 
 	m_CurrentPipeline = settings;
@@ -66,16 +66,16 @@ DisplayAdapter::CommandBatcher::InsertRenderTargetCommand(intptr_t renderTarget,
 {
 	if (renderTarget == 0) {
 		if (!m_SwapchainNodeIndex.has_value()) {
-			m_RenderNodes.emplace_back(
-			  renderTarget, preserveTexture, std::vector<DrawCall>());
+			m_RenderNodes.push_back(RenderNode{
+			  renderTarget, preserveTexture, std::vector<DrawCall>() });
 			m_SwapchainNodeIndex = m_RenderNodes.size() - 1;
 		}
 		m_CurrentNodeIndex = *m_SwapchainNodeIndex;
 		m_RenderNodes[m_CurrentNodeIndex].PreserveRenderTarget =
 		  preserveTexture;
 	} else {
-		m_RenderNodes.emplace_back(
-		  renderTarget, preserveTexture, std::vector<DrawCall>());
+		m_RenderNodes.push_back(
+		  RenderNode{ renderTarget, preserveTexture, std::vector<DrawCall>() });
 		m_CurrentNodeIndex = m_RenderNodes.size() - 1;
 	}
 }
@@ -102,11 +102,11 @@ DisplayAdapter::CommandBatcher::InsertSpriteDrawCommand(
 
 	const auto previousVertexCount = m_VertexBuffer.size();
 	for (int i = 0; i < vertexCount; i++) {
-		m_VertexBuffer.emplace_back(
-		  vertexData[i],
-		  (uint32_t)m_MatrixStateBuffer.size() - 1,
-		  (uint32_t)renderState.textureHandle,
-		  GetSamplerFlagsFromRenderState(renderState));
+		m_VertexBuffer.push_back(
+		  Vertex{ vertexData[i],
+				  (uint32_t)m_MatrixStateBuffer.size() - 1,
+				  (uint32_t)renderState.textureHandle,
+				  GetSamplerFlagsFromRenderState(renderState) });
 	}
 
 	const auto prevCount = m_IndexBuffer.size();
@@ -261,11 +261,12 @@ DisplayAdapter::CommandBatcher::InsertCompiledGeometryDrawCommand(
 	const auto previousVertexCount = m_VertexBuffer.size();
 	for (int i = 0; i < meshInfo.iVertexCount; i++) {
 		const auto& vertex = geometry->m_Vertices[meshInfo.iVertexStart + i];
-		m_VertexBuffer.emplace_back(
+		m_VertexBuffer.push_back(Vertex{
+
 		  RageSpriteVertex{ vertex.p, vertex.n, whiteVColor, vertex.t },
 		  (uint32_t)m_MatrixStateBuffer.size() - 1,
 		  (uint32_t)renderState.textureHandle,
-		  GetSamplerFlagsFromRenderState(renderState));
+		  GetSamplerFlagsFromRenderState(renderState) });
 	}
 
 	const auto prevIndexCount = m_IndexBuffer.size();
@@ -298,13 +299,13 @@ DisplayAdapter::CommandBatcher::HandleDrawCommand(
 
 	auto& node = m_RenderNodes[m_CurrentNodeIndex];
 	if (!node.DrawCalls.size()) {
-		m_RenderNodes[m_CurrentNodeIndex].DrawCalls.emplace_back(
-		  *m_CurrentPipeline,
-		  (size_t)indexOffset,
-		  (size_t)0,
-		  renderState.blendingMode,
-		  renderState.depthTestMode,
-		  renderState.depthWriteEnabled);
+		m_RenderNodes[m_CurrentNodeIndex].DrawCalls.push_back(
+		  DrawCall{ *m_CurrentPipeline,
+					(size_t)indexOffset,
+					(size_t)0,
+					renderState.blendingMode,
+					renderState.depthTestMode,
+					renderState.depthWriteEnabled });
 	}
 
 	// if we previously filled in a different draw call, we should create a new
@@ -326,12 +327,12 @@ DisplayAdapter::CommandBatcher::HandleDrawCommand(
 				 renderState.depthWriteEnabled);
 
 	if (filledPreviousCall || differentRenderState) {
-		node.DrawCalls.emplace_back(*m_CurrentPipeline,
-									(size_t)indexOffset,
-									(size_t)0,
-									renderState.blendingMode,
-									renderState.depthTestMode,
-									renderState.depthWriteEnabled);
+		node.DrawCalls.push_back(DrawCall{ *m_CurrentPipeline,
+										   (size_t)indexOffset,
+										   (size_t)0,
+										   renderState.blendingMode,
+										   renderState.depthTestMode,
+										   renderState.depthWriteEnabled });
 	}
 
 	node.DrawCalls[node.DrawCalls.size() - 1].IndexCount += indexCount;
