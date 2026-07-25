@@ -38,7 +38,8 @@ DisplayAdapter::CommandBatcher::InsertPipelineChangeCommand(
 	PipelineSettings settings = {};
 
 	if (persist && pipeline) {
-		m_PipelineStack.emplace(pipeline, vertexShaderInfo, fragShaderInfo);
+		m_PipelineStack.push(
+		  PipelineSettings{ pipeline, vertexShaderInfo, fragShaderInfo });
 		settings = m_PipelineStack.top();
 	} else {
 		settings = { pipeline, vertexShaderInfo, fragShaderInfo };
