@@ -1865,6 +1865,11 @@ RendererVK::TryVideoMode(const VideoModeParams& params)
 {
 	m_Device.waitIdle();
 
+	if (m_Surface != nullptr) {
+		CleanupSwapchain();
+		m_Surface = nullptr;
+	}
+
 	m_Surface = CreateSurfaceKHR(m_Instance);
 	RecreateSwapchain(params);
 }
