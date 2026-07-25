@@ -1073,23 +1073,53 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 					  m_MatrixStateBuffer[m_CurrentFrame].buffer,
 					  { stagingCopy });
 
-	vk::MemoryBarrier2 memoryBarrier{};
-	memoryBarrier.srcStageMask = vk::PipelineStageFlagBits2::eCopy;
-	memoryBarrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
-	memoryBarrier.dstStageMask =
-	  vk::PipelineStageFlagBits2::eVertexAttributeInput |
-	  vk::PipelineStageFlagBits2::eIndexInput |
-	  vk::PipelineStageFlagBits2::eVertexShader |
-	  vk::PipelineStageFlagBits2::eFragmentShader;
-	memoryBarrier.dstAccessMask = vk::AccessFlagBits2::eVertexAttributeRead |
-								  vk::AccessFlagBits2::eIndexRead |
-								  vk::AccessFlagBits2::eShaderRead;
+	std::vector<vk::BufferMemoryBarrier2> bufferBarriers;
+	bufferBarriers.reserve(4);
+
+	vk::BufferMemoryBarrier2 vertexBarrier{};
+	vertexBarrier.srcStageMask = vk::PipelineStageFlagBits2::eCopy;
+	vertexBarrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
+	vertexBarrier.dstStageMask = vk::PipelineStageFlagBits2::eVertexShader;
+	vertexBarrier.dstAccessMask = vk::AccessFlagBits2::eShaderRead;
+	vertexBarrier.buffer = m_VertexBuffer[m_CurrentFrame].buffer;
+	vertexBarrier.offset = 0;
+	vertexBarrier.size = VK_WHOLE_SIZE;
+	bufferBarriers.push_back(vertexBarrier);
+
+	vk::BufferMemoryBarrier2 indexBarrier{};
+	indexBarrier.srcStageMask = vk::PipelineStageFlagBits2::eCopy;
+	indexBarrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
+	indexBarrier.dstStageMask = vk::PipelineStageFlagBits2::eIndexInput;
+	indexBarrier.dstAccessMask = vk::AccessFlagBits2::eIndexRead;
+	indexBarrier.buffer = m_IndexBuffer[m_CurrentFrame].buffer;
+	indexBarrier.offset = 0;
+	indexBarrier.size = VK_WHOLE_SIZE;
+	bufferBarriers.push_back(indexBarrier);
+
+	vk::BufferMemoryBarrier2 matrixBarrier{};
+	matrixBarrier.srcStageMask = vk::PipelineStageFlagBits2::eCopy;
+	matrixBarrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
+	matrixBarrier.dstStageMask = vk::PipelineStageFlagBits2::eVertexShader;
+	matrixBarrier.dstAccessMask = vk::AccessFlagBits2::eShaderRead;
+	matrixBarrier.buffer = m_MatrixStateBuffer[m_CurrentFrame].buffer;
+	matrixBarrier.offset = 0;
+	matrixBarrier.size = VK_WHOLE_SIZE;
+	bufferBarriers.push_back(matrixBarrier);
+
+	vk::BufferMemoryBarrier2 scratchBarrier{};
+	scratchBarrier.srcStageMask = vk::PipelineStageFlagBits2::eHost;
+	scratchBarrier.srcAccessMask = vk::AccessFlagBits2::eHostWrite;
+	scratchBarrier.dstStageMask = vk::PipelineStageFlagBits2::eVertexShader |
+								  vk::PipelineStageFlagBits2::eFragmentShader;
+	scratchBarrier.dstAccessMask = vk::AccessFlagBits2::eShaderRead;
+	scratchBarrier.buffer = m_ShaderScratchBuffer[m_CurrentFrame].buffer;
+	scratchBarrier.offset = 0;
+	scratchBarrier.size = VK_WHOLE_SIZE;
+	bufferBarriers.push_back(scratchBarrier);
 
 	vk::DependencyInfo dependencyInfo{};
 	dependencyInfo.dependencyFlags = {};
-	dependencyInfo.memoryBarrierCount = 1;
-	dependencyInfo.pMemoryBarriers = &memoryBarrier;
-
+	dependencyInfo.setBufferMemoryBarriers(bufferBarriers);
 	buffer.pipelineBarrier2(dependencyInfo);
 
 	buffer.bindDescriptorSets(
