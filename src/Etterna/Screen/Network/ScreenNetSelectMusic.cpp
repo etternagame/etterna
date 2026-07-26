@@ -280,7 +280,6 @@ ScreenNetSelectMusic::SelectCurrent(bool useWheel)
 bool
 ScreenNetSelectMusic::MenuBack(const InputEventPlus& input)
 {
-	SOUND->StopMusic();
 	TweenOffScreen();
 
 	Cancel(SM_GoToPrevScreen);
