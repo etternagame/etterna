@@ -33,6 +33,7 @@ ScreenWithMenuElements::Init()
 	MUSIC_ALIGN_BEAT.Load(m_sName, "MusicAlignBeat");
 	DELAY_MUSIC_SECONDS.Load(m_sName, "DelayMusicSeconds");
 	CANCEL_TRANSITIONS_OUT.Load(m_sName, "CancelTransitionsOut");
+	DONT_RESTART_MUSIC_IF_SAME.Load(m_sName, "DontRestartMusicIfSame");
 	TIMER_SECONDS.Load(m_sName, "TimerSeconds");
 	TIMER_METRICS_GROUP.Load(m_sName, "TimerMetricsGroup");
 	Screen::Init();
@@ -205,6 +206,11 @@ ScreenWithMenuElements::StartPlayingMusic()
 			pmp.bAlignBeat = MUSIC_ALIGN_BEAT;
 			if (DELAY_MUSIC_SECONDS > 0.0f) {
 				pmp.fStartSecond = -DELAY_MUSIC_SECONDS;
+			}
+			if (DONT_RESTART_MUSIC_IF_SAME) {
+				if (pmp.sFile == SOUND->GetMusicPath()) {
+					return;
+				}
 			}
 			SOUND->PlayMusic(pmp);
 		}

@@ -1544,6 +1544,11 @@ ScreenSelectMusic::AfterMusicChange()
 
 	// Don't stop music if it's already playing the right file.
 	g_bSampleMusicWaiting = false;
+
+	if (m_sSampleMusicToPlay != "") {
+		m_sSampleMusicToPlay = HandleLuaMusicFile(m_sSampleMusicToPlay);
+	}
+
 	if (!m_MusicWheel.IsRouletting() &&
 		SOUND->GetMusicPath() != m_sSampleMusicToPlay &&
 		SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_Nothing) {
