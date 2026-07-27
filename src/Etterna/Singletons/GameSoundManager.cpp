@@ -999,6 +999,11 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->ResyncMusicPlaying();
 		COMMON_RETURN_SELF;
 	}
+	static int GetMusicPath(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->GetMusicPath().c_str());
+		return 1;
+	}
 
 	LunaGameSoundManager()
 	{
@@ -1013,6 +1018,7 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(IsTimingDelayed);
 		ADD_METHOD(SetVolume);
 		ADD_METHOD(ResyncMusicPlaying);
+		ADD_METHOD(GetMusicPath);
 	}
 };
 
