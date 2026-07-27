@@ -6,6 +6,16 @@
 #include <array>
 
 class PlayerState;
+
+namespace FilterManagerDefault
+{
+	inline constexpr float MinFilterRate = 1.F;
+	inline constexpr float MaxFilterRate = 1.F;
+	inline constexpr bool ExclusiveFilter = false;
+	inline constexpr bool HighestSkillsetsOnly = false;
+	inline constexpr bool HighestDifficultyOnly = false;
+}
+
 class FilterManager
 {
   public:
@@ -28,18 +38,18 @@ class FilterManager
 	 * Length, //REQUIRED in non-exclusive filter if set
 	 * Clear % //REQUIRED in non-exclusive filter if set
 	 */
-	float MaxFilterRate = 1.F;
-	float MinFilterRate = 1.F;
-	bool ExclusiveFilter = false; // if true the filter system will only match
+	float MaxFilterRate = FilterManagerDefault::MaxFilterRate;
+	float MinFilterRate = FilterManagerDefault::MinFilterRate;
+	bool ExclusiveFilter = FilterManagerDefault::ExclusiveFilter; // if true the filter system will only match
 								  // songs that meet all criteria rather than
 								  // all that meet any - mina
 	auto GetFilter(Skillset ss, int bound) -> float;
 	void SetFilter(float v, Skillset ss, int bound);
 	void ResetSSFilters(); // reset button for filters
 	void ResetAllFilters();
-	bool HighestSkillsetsOnly = false;
+	bool HighestSkillsetsOnly = FilterManagerDefault::HighestSkillsetsOnly;
 	// Skillset is highest of the chart's skillset
-	bool HighestDifficultyOnly = false;
+	bool HighestDifficultyOnly = FilterManagerDefault::HighestDifficultyOnly;
 	// Chart's skillset's MSD is the highest of all the MSDS of that
 	// skillset for all charts for that song.
 
