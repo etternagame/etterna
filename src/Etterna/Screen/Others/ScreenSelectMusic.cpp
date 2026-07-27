@@ -302,6 +302,28 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 }
 
 void
+ScreenSelectMusic::PlayLoopMusic()
+{
+	// this is just ScreenWithMenuElements::StartPlayingMusic
+	if (PLAY_MUSIC) {
+		GameSoundManager::PlayMusicParams pmp;
+		pmp.sFile = HandleLuaMusicFile(m_sLoopMusicPath);
+		if (!pmp.sFile.empty()) {
+			pmp.bAlignBeat = MUSIC_ALIGN_BEAT;
+			if (DELAY_MUSIC_SECONDS > 0.0f) {
+				pmp.fStartSecond = -DELAY_MUSIC_SECONDS;
+			}
+			if (DONT_RESTART_MUSIC_IF_SAME) {
+				if (pmp.sFile == SOUND->GetMusicPath()) {
+					return;
+				}
+			}
+			SOUND->PlayMusic(pmp);
+		}
+	}
+}
+
+void
 ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate, bool bExtended)
 {
 	if (g_bSampleMusicWaiting || bForcePlay) {
@@ -2135,6 +2157,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
+	static int PlayLoopMusic(T* p, lua_State* L)
+	{
+		p->PlayLoopMusic();
+		return 0;
+	}
 	static int DeleteCurrentSong(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->DeleteCurrentSong());
@@ -2200,6 +2227,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(IsSampleMusicPaused);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
+		ADD_METHOD(PlayLoopMusic);
 		ADD_METHOD(DeleteCurrentSong);
 		ADD_METHOD(ReloadCurrentSong);
 		ADD_METHOD(ReloadCurrentPack);
