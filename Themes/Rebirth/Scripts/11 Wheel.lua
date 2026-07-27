@@ -50,18 +50,22 @@ Wheel.mt = {
         -- if transitioning into a song dont let the wheel do anything
         if enteringSong then return end
 
-        SOUND:StopMusic()
-
         local top = SCREENMAN:GetTopScreen()
         -- only for ScreenSelectMusic
         if top.PlayCurrentSongSampleMusic then
             if GAMESTATE:GetCurrentSong() ~= nil then
+                SOUND:StopMusic()
+                whee.playingBGMLoop = false
                 -- chart preview active? dont play music
                 -- chart preview handles music on its own
                 if SCUFF.preview.active then return end
 
                 -- currentItem should be a song
                 top:PlayCurrentSongSampleMusic(false, false)
+            else
+                -- no song, fallback to loop music
+                top:PlayLoopMusic()
+                whee.playingBGMLoop = true
             end
         end
     end,
@@ -196,7 +200,9 @@ Wheel.mt = {
         end
 
         -- stop the music if moving so we dont leave it playing in a random place
-        SOUND:StopMusic()
+        if not whee.playingBGMLoop then
+            SOUND:StopMusic()
+        end
     end,
     changemusic = function(whee, num)
         -- if transitioning into a song dont let the wheel do anything
@@ -615,6 +621,7 @@ function Wheel:new(params)
     whee.x = params.x
     whee.y = params.y
     whee.items = {}
+    whee.playingBGMLoop = false
 
     whee.ReloadedScriptsMessageCommand = function(self)
         local tscr = SCREENMAN:GetTopScreen()
