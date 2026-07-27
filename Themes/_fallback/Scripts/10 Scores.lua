@@ -247,7 +247,14 @@ end
 
 function getScoreDate(score)
 	if score ~= nil then
-		return score:GetDate()
+        local scoreDate = score:GetDate()
+
+        -- in case if the score was set at midnight
+        if scoreDate:sub(11, 19) == "" then
+           return scoreDate .. " 00:00:00"
+        else
+            return scoreDate
+        end
 	else
 		return ""
 	end

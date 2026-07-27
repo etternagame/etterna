@@ -157,7 +157,7 @@ Wheel.mt = {
                     GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
                 else
                     local prefdiff = GAMESTATE:GetPreferredDifficulty()
-                    
+
                     diffSelection = findTheDiffToUseBasedOnStepsTypeAndDifficultyBothPreferred(stepslist, prefdiff, GAMESTATE:GetPreferredStepsType())
                     diffSelection = clamp(diffSelection, 1, #stepslist)
 
@@ -178,7 +178,7 @@ Wheel.mt = {
     move = function(whee, num)
         -- if transitioning into a song dont let the wheel do anything
         if enteringSong then return end
-        
+
         if num == whee.moving then return end
 
         if whee.moving ~= 0 and num == 0 and whee.timeBeforeMovingBegins == 0 then
@@ -207,7 +207,7 @@ Wheel.mt = {
     changemusic = function(whee, num)
         -- if transitioning into a song dont let the wheel do anything
         if enteringSong then return end
-        
+
         whee.index = getIndexCircularly(whee.items, whee.index + num)
         whee.positionOffsetFromSelection = whee.positionOffsetFromSelection + num
         MESSAGEMAN:Broadcast("WheelIndexChanged", {
@@ -441,7 +441,7 @@ Wheel.mt = {
 
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-        
+
         MESSAGEMAN:Broadcast("ClosedGroup", {
             group = w.group
         })
@@ -672,7 +672,7 @@ function Wheel:new(params)
                 local up = gameButton == "Up" or gameButton == "MenuUp"
                 local down = gameButton == "Down" or gameButton == "MenuDown"
                 local keydirection = key == "DeviceButton_left" or key == "DeviceButton_right"
-                
+
 
                 -- if transitioning into a song dont let the wheel do anything
                 if enteringSong then return end
@@ -799,7 +799,7 @@ function Wheel:new(params)
                         -- dont allow input, but do allow left and right arrow input
                         if not CONTEXTMAN:CheckContextSet(snm, "Main1") and not keydirection then return end
                         heldButtons[direction] = true
-                        
+
                         if (left and heldButtons["right"]) or (right and heldButtons["left"]) then
                             -- dont move if holding both buttons
                             whee:move(0)
@@ -835,7 +835,7 @@ function Wheel:new(params)
                         else
                             lastPressedDown = GetTimeSinceStart()
                         end
-                        
+
                         local UPDOWN_THRESHOLD = 0.05
                         if math.abs(lastPressedDown - lastPressedUp) < UPDOWN_THRESHOLD then
                             whee:exitGroup()
@@ -900,7 +900,10 @@ function Wheel:new(params)
             end
         )
         -- default interval is 0.016 which is TOO SLOW C++ IS LITERALLY 0 WTF
-        self:SetUpdateFunctionInterval(0.001)
+        --
+        -- at the FPS higher than this number here (e.g. 0.001 = 1ms)
+        -- song wheel starts spinning slower than expected
+        self:SetUpdateFunctionInterval(0.0001)
 
         -- mega hack to make things init 0.1 seconds after real init
         tscr:setTimeout(
@@ -1067,10 +1070,10 @@ function MusicWheel:new(params)
                     -- PICKING SORT
                     -- group is the name of the sortmode
                     group = group:gsub("Sort by ", "")
-                    
+
                     WHEELDATA:SetCurrentSort(group)
                     WHEELDATA:UpdateFilteredSonglist()
-        
+
                     local newItems = WHEELDATA:GetFilteredFolders()
                     WHEELDATA:SetWheelItems(newItems)
 
@@ -1141,7 +1144,7 @@ function MusicWheel:new(params)
 
                     local newItems = WHEELDATA:GetWheelItemsForOpenedFolder(group)
                     WHEELDATA:SetWheelItems(newItems)
-                    
+
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
 
@@ -1257,7 +1260,7 @@ function MusicWheel:new(params)
             forceGroupCheck = true
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-            
+
             MESSAGEMAN:Broadcast("ClosedGroup", {
                 group = w.group,
             })
@@ -1345,7 +1348,7 @@ function MusicWheel:new(params)
             forceGroupCheck = true
             GAMESTATE:SetCurrentSong(nil)
             GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
-            
+
             MESSAGEMAN:Broadcast("ClosedGroup", {
                 group = w.group,
             })

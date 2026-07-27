@@ -1313,7 +1313,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:y(-(actuals.HeaderHeight + actuals.ItemHeight) / 2)
             self:playcommand("SetPosition")
-            self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.45)
+            self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.55)
         end,
         SetPositionCommand = function(self)
             if getWheelPosition() then
