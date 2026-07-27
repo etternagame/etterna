@@ -118,7 +118,9 @@ function audioVisualizer:new(params)
         CurrentSongChangedMessageCommand = function(self)
             self:RunCommandsOnChildren(
                 function(self)
-                    self:finishtweening():smooth(0.3):zoomtoheight(0)
+                    if GAMESTATE:GetCurrentSong() ~= nil then
+                        self:finishtweening():smooth(0.3):zoomtoheight(0)
+                    end
                 end
             )
         end
