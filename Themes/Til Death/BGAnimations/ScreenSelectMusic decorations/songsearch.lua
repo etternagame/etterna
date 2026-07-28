@@ -118,8 +118,11 @@ local t = Def.ActorFrame {
 			self:queuecommand("Set")
 		end,
 		SetSearchStringMessageCommand = function(self, params)
-			searchstring = params.searchstring or searchstring
-			MESSAGEMAN:Broadcast("UpdateString")
+			if params.searchstring then
+				searchstring = params.searchstring
+				lastsearchstring = searchstring --i dont like this
+				MESSAGEMAN:Broadcast("UpdateString")
+			end
 		end
 	},
 	Def.Quad {
