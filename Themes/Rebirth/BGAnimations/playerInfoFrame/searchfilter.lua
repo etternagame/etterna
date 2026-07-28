@@ -140,8 +140,8 @@ local function upperSection()
     }
 
     -- used to actually search for things in WheelDataManager
-    -- get an empty one because we dont want to init with a search entry
-    searchentry = getEmptyActiveFilterMetadata()
+    -- set searchentry to the current filters so the search tab reflects the wheel
+    searchentry = WHEELDATA:GetSearch() or getEmptyActiveFilterMetadata()
 
     -- search on the wheel immediately based on the text entered
     local function searchNow()
@@ -417,43 +417,10 @@ local function upperSection()
             local snm = SCREENMAN:GetTopScreen():GetName()
             local anm = self:GetName()
 
-            local function updateFields()
-                -- im just gonna.. update all the fields... for your information....
-                -- this is ... the ... worst possible way .... but also the best....
-                if focusedField == 1 then
-                    self:GetDescendant("RowFrame_2", "RowInput"):settext(searchentry.Title)
-                    self:GetDescendant("RowFrame_3", "RowInput"):settext(searchentry.Subtitle)
-                    self:GetDescendant("RowFrame_4", "RowInput"):settext(searchentry.Artist)
-                    self:GetDescendant("RowFrame_5", "RowInput"):settext(searchentry.Author)
-                    self:GetDescendant("RowFrame_6", "RowInput"):settext(searchentry.Group)
-                else
-                    -- backwards engineering the any search field
-                    -- for the kids who have big brains and want bigger brains
-                    local finalstr = ""
-                    if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" or searchentry.Group ~= "" then
-                        if searchentry.Title ~= "" then
-                            finalstr = finalstr .. "title="..searchentry.Title..";"
-                        end
-                        if searchentry.Subtitle ~= "" then
-                            finalstr = finalstr .. "subtitle="..searchentry.Subtitle..";"
-                        end
-                        if searchentry.Artist ~= "" then
-                            finalstr = finalstr .. "artist="..searchentry.Artist..";"
-                        end
-                        if searchentry.Author ~= "" then
-                            finalstr = finalstr .. "author="..searchentry.Author..";"
-                        end
-                        if searchentry.Group ~= "" then
-                            finalstr = finalstr .. "group="..searchentry.Group..";"
-                        end 
-                    end
-                    self:GetDescendant("RowFrame_1", "RowInput"):settext(finalstr)
-                end
-            end
             -- update all the search fields
-            updateFields()
+            self:playcommand("UpdateFields")
             focusedField = 2
-            updateFields()
+            self:playcommand("UpdateFields")
             focusedField = 1
             -- it works
 
@@ -498,13 +465,48 @@ local function upperSection()
 
                             focusedChild:playcommand("Input", {delete = del, backspace = bs, char = char})
 
-                            updateFields()
+                            self:playcommand("UpdateFields")
                         end
                     end
                 end
             end)
             self:playcommand("UpdateSearchFocus")
         end,
+
+        UpdateFieldsCommand = function(self)
+            -- im just gonna.. update all the fields... for your information....
+            -- this is ... the ... worst possible way .... but also the best....
+            if focusedField == 1 then
+                self:GetDescendant("RowFrame_2", "RowInput"):settext(searchentry.Title)
+                self:GetDescendant("RowFrame_3", "RowInput"):settext(searchentry.Subtitle)
+                self:GetDescendant("RowFrame_4", "RowInput"):settext(searchentry.Artist)
+                self:GetDescendant("RowFrame_5", "RowInput"):settext(searchentry.Author)
+                self:GetDescendant("RowFrame_6", "RowInput"):settext(searchentry.Group)
+            else
+                -- backwards engineering the any search field
+                -- for the kids who have big brains and want bigger brains
+                local finalstr = ""
+                if searchentry.Title ~= "" or searchentry.Subtitle ~= "" or searchentry.Artist ~= "" or searchentry.Author ~= "" or searchentry.Group ~= "" then
+                    if searchentry.Title ~= "" then
+                        finalstr = finalstr .. "title="..searchentry.Title..";"
+                    end
+                    if searchentry.Subtitle ~= "" then
+                        finalstr = finalstr .. "subtitle="..searchentry.Subtitle..";"
+                    end
+                    if searchentry.Artist ~= "" then
+                        finalstr = finalstr .. "artist="..searchentry.Artist..";"
+                    end
+                    if searchentry.Author ~= "" then
+                        finalstr = finalstr .. "author="..searchentry.Author..";"
+                    end
+                    if searchentry.Group ~= "" then
+                        finalstr = finalstr .. "group="..searchentry.Group..";"
+                    end 
+                end
+                self:GetDescendant("RowFrame_1", "RowInput"):settext(finalstr)
+            end
+        end,
+
         PlayerInfoFrameTabSetMessageCommand = function(self, params)
             if params.tab and params.tab == "Search" then
                 if focusedField ~= 1 then
@@ -512,6 +514,19 @@ local function upperSection()
                     self:playcommand("UpdateSearchFocus")
                 end
             end
+        end,
+
+        SetSearchFilterMessageCommand = function(self, params)
+            searchentry.Title = params.Title or ""
+            searchentry.Subtitle = params.Subtitle or ""
+            searchentry.Artist = params.Artist or ""
+            searchentry.Author = params.Author or ""
+            searchentry.Group = params.Group or ""
+            --update all the fields
+            focusedField = 2
+            self:playcommand("UpdateFields")
+            focusedField = 1
+            self:playcommand("UpdateFields")
         end
     }
 
