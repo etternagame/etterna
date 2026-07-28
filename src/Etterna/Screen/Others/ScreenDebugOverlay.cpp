@@ -216,48 +216,51 @@ ScreenDebugOverlay::Init()
 	{
 		g_Mappings.Clear();
 
-		g_Mappings.holdForDebug1 = DeviceInput(DEVICE_KEYBOARD, KEY_F3);
+		DeviceInput input = {};
+
+		input.FromString(
+		  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForDebug1"));
+		g_Mappings.holdForDebug1 = input;
 		g_Mappings.holdForDebug2.MakeInvalid();
-		g_Mappings.holdForSlow = DeviceInput(DEVICE_KEYBOARD, KEY_ACCENT);
-		g_Mappings.holdForFast = DeviceInput(DEVICE_KEYBOARD, KEY_TAB);
-		g_Mappings.toggleMute = DeviceInput(DEVICE_KEYBOARD, KEY_PAUSE);
+
+		input.FromString(
+		  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForSlow"));
+		g_Mappings.holdForSlow = input;
+
+		input.FromString(
+		  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForFast"));
+		g_Mappings.holdForFast = input;
+
+		input.FromString(
+		  ThemeMetric<std::string>("ScreenDebugOverlay", "ToggleMute"));
+		g_Mappings.toggleMute = input;
 
 		/* TODO: Find a better way of indicating which option is which here.
 		 * Maybe we should take a page from ScreenEdit's menus and make
 		 * RowDefs()? */
 
-		int i = 0;
-		g_Mappings.gameplayButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_F8);
-		g_Mappings.gameplayButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_F7);
-		g_Mappings.gameplayButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_F6);
-		i = 0;
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C1);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C2);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C3);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C4);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C5);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C6);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C7);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C8);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C9);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C0);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cq);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cw);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ce);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cr);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ct);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cy);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cu);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ci);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Co);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cp);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ca);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cs);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cd);
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F5)] = 0;
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F6)] = 1;
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F7)] = 2;
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F8)] = 3;
+		for (int i = 0; i < 3; i++) {
+			auto key = ThemeMetric<std::string>(
+			  "ScreenDebugOverlay", "GameplayButton" + std::to_string(i));
+			auto dInput = DeviceInput();
+			dInput.FromString(key);
+			g_Mappings.gameplayButton[i] = dInput;
+		}
+		for (int i = 0; i < 23; i++) {
+			auto key = ThemeMetric<std::string>(
+			  "ScreenDebugOverlay", "DebugButton" + std::to_string(i));
+			auto dInput = DeviceInput();
+			dInput.FromString(key);
+			g_Mappings.debugButton[i] = dInput;
+		}
+		for (int i = 0; i < 4; i++) {
+			auto key = ThemeMetric<std::string>(
+			  "ScreenDebugOverlay", "PageButton" + std::to_string(i));
+			auto dInput = DeviceInput();
+			dInput.FromString(key);
+			g_Mappings.pageButton[dInput] = i;
+		}
+
 	}
 
 	std::map<std::string, int> iNextDebugButton;
