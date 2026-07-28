@@ -880,9 +880,6 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	UpdateStringMessageCommand = function(self)
 		--if the searchstring is updated at all then we are no longer solely searching for the chart author,
 		--so we should reset
-		--actually theres an annoying case where this is run when the user enters the search tab but
-		--doesnt type anything, so the search is unchanged but clicked is still set to false
-		--lets just say its the users fault for entering the search tab for no reason
 		self.clicked = false
 	end
 }
