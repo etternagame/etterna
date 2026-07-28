@@ -116,7 +116,23 @@ class IDebugLine
 		sMessageOut = s1 + s2;
 	};
 
-	DeviceInput m_Button;
+	void SetButton(std::vector<DeviceInput>& buttons, int buttonIndex)
+	{
+		this->buttonIndex = buttonIndex;
+		this->buttons = &buttons;
+	}
+
+	auto GetButton() const
+	{
+		if (buttons == nullptr || buttonIndex >= buttons->size() || buttonIndex < 0)
+			return DeviceInput();
+
+		return buttons->at(buttonIndex);
+	}
+
+  private:
+	std::vector<DeviceInput>* buttons;
+	int buttonIndex;
 };
 
 static bool
@@ -142,7 +158,6 @@ ScreenDebugOverlay::~ScreenDebugOverlay()
 	m_vptextFunction.clear();
 }
 
-const int MAX_DEBUG_LINES = 30;
 
 struct MapDebugToDI
 {
@@ -151,8 +166,8 @@ struct MapDebugToDI
 	DeviceInput holdForSlow;
 	DeviceInput holdForFast;
 	DeviceInput toggleMute;
-	DeviceInput debugButton[MAX_DEBUG_LINES];
-	DeviceInput gameplayButton[MAX_DEBUG_LINES];
+	std::vector<DeviceInput> debugButton;
+	std::vector<DeviceInput> gameplayButton;
 	std::map<DeviceInput, int> pageButton;
 
 	void Clear()
@@ -162,10 +177,9 @@ struct MapDebugToDI
 		holdForSlow.MakeInvalid();
 		holdForFast.MakeInvalid();
 		toggleMute.MakeInvalid();
-		for (int i = 0; i < MAX_DEBUG_LINES; i++) {
-			debugButton[i].MakeInvalid();
-			gameplayButton[i].MakeInvalid();
-		}
+		debugButton.clear();
+		gameplayButton.clear();
+		pageButton.clear();
 	}
 };
 
@@ -177,7 +191,7 @@ static LocalizedString OR("ScreenDebugOverlay", "or");
 static std::string
 GetDebugButtonName(const IDebugLine* pLine)
 {
-	std::string s = INPUTMAN->GetDeviceSpecificInputString(pLine->m_Button);
+	std::string s = INPUTMAN->GetDeviceSpecificInputString(pLine->GetButton());
 	IDebugLine::Type type = pLine->GetType();
 	switch (type) {
 		case IDebugLine::all_screens:
@@ -211,57 +225,8 @@ ScreenDebugOverlay::Init()
 {
 	Screen::Init();
 
-	// Init debug mappings
-	// TODO: Arch-specific?
-	{
-		g_Mappings.Clear();
-
-		DeviceInput input = {};
-
-		input.FromString(
-		  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForDebug1"));
-		g_Mappings.holdForDebug1 = input;
-		g_Mappings.holdForDebug2.MakeInvalid();
-
-		input.FromString(
-		  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForSlow"));
-		g_Mappings.holdForSlow = input;
-
-		input.FromString(
-		  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForFast"));
-		g_Mappings.holdForFast = input;
-
-		input.FromString(
-		  ThemeMetric<std::string>("ScreenDebugOverlay", "ToggleMute"));
-		g_Mappings.toggleMute = input;
-
-		/* TODO: Find a better way of indicating which option is which here.
-		 * Maybe we should take a page from ScreenEdit's menus and make
-		 * RowDefs()? */
-
-		for (int i = 0; i < 3; i++) {
-			auto key = ThemeMetric<std::string>(
-			  "ScreenDebugOverlay", "GameplayButton" + std::to_string(i));
-			auto dInput = DeviceInput();
-			dInput.FromString(key);
-			g_Mappings.gameplayButton[i] = dInput;
-		}
-		for (int i = 0; i < 23; i++) {
-			auto key = ThemeMetric<std::string>(
-			  "ScreenDebugOverlay", "DebugButton" + std::to_string(i));
-			auto dInput = DeviceInput();
-			dInput.FromString(key);
-			g_Mappings.debugButton[i] = dInput;
-		}
-		for (int i = 0; i < 4; i++) {
-			auto key = ThemeMetric<std::string>(
-			  "ScreenDebugOverlay", "PageButton" + std::to_string(i));
-			auto dInput = DeviceInput();
-			dInput.FromString(key);
-			g_Mappings.pageButton[dInput] = i;
-		}
-
-	}
+	this->SubscribeToMessage("ReloadedMetrics");
+	UpdateMappings();
 
 	std::map<std::string, int> iNextDebugButton;
 	int iNextGameplayButton = 0;
@@ -269,16 +234,16 @@ ScreenDebugOverlay::Init()
 	{
 		std::string sPageName = (*p)->GetPageName();
 
-		DeviceInput di;
 		switch ((*p)->GetType()) {
 			case IDebugLine::all_screens:
-				di = g_Mappings.debugButton[iNextDebugButton[sPageName]++];
+				(*p)->SetButton(g_Mappings.debugButton,
+								iNextDebugButton[sPageName]++);
 				break;
 			case IDebugLine::gameplay_only:
-				di = g_Mappings.gameplayButton[iNextGameplayButton++];
+				(*p)->SetButton(g_Mappings.gameplayButton,
+								iNextGameplayButton++);
 				break;
 		}
-		(*p)->m_Button = di;
 
 		if (find(m_asPages.begin(), m_asPages.end(), sPageName) ==
 			m_asPages.end())
@@ -393,6 +358,17 @@ ScreenDebugOverlay::Update(float fDeltaTime)
 }
 
 void
+ScreenDebugOverlay::HandleMessage(const Message& msg)
+{
+	if (msg == Message_ReloadedMetrics) {
+		UpdateMappings();
+		UpdateText();
+	}
+
+	Screen::HandleMessage(msg);
+}
+
+void
 ScreenDebugOverlay::UpdateText()
 {
 	FOREACH_CONST(std::string, m_asPages, s)
@@ -400,6 +376,12 @@ ScreenDebugOverlay::UpdateText()
 		int iPage = s - m_asPages.begin();
 		m_vptextPages[iPage]->PlayCommand(
 		  (iPage == m_iCurrentPage) ? "GainFocus" : "LoseFocus");
+
+		DeviceInput di;
+		ASSERT(GetKeyFromMap(g_Mappings.pageButton, iPage, di));
+
+		std::string sButton = INPUTMAN->GetDeviceSpecificInputString(di);
+		m_vptextPages[iPage]->SetText(*s + " (" + sButton + ")");
 	}
 
 	// todo: allow changing of various spacing/location things -aj
@@ -455,6 +437,56 @@ ScreenDebugOverlay::UpdateText()
 			Locator::getLogger()->warn("Game halted");
 		}
 	}
+}
+void
+ScreenDebugOverlay::UpdateMappings()
+{
+	// TODO: Arch-specific?
+
+	g_Mappings.Clear();
+
+	DeviceInput temp = {};
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForDebug1"));
+	g_Mappings.holdForDebug1 = temp;
+	g_Mappings.holdForDebug2.MakeInvalid();
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForSlow"));
+	g_Mappings.holdForSlow = temp;
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForFast"));
+	g_Mappings.holdForFast = temp;
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "ToggleMute"));
+	g_Mappings.toggleMute = temp;
+
+	for (int i = 0; i < 3; i++) {
+		auto key = ThemeMetric<std::string>(
+		  "ScreenDebugOverlay", "GameplayButton" + std::to_string(i));
+		auto dInput = DeviceInput();
+		dInput.FromString(key);
+		g_Mappings.gameplayButton.push_back(dInput);
+	}
+	for (int i = 0; i < 23; i++) {
+		auto key = ThemeMetric<std::string>("ScreenDebugOverlay",
+											"DebugButton" + std::to_string(i));
+		auto dInput = DeviceInput();
+		dInput.FromString(key);
+
+		g_Mappings.debugButton.push_back(dInput);
+	}
+	for (int i = 0; i < 4; i++) {
+		auto key = ThemeMetric<std::string>("ScreenDebugOverlay",
+											"PageButton" + std::to_string(i));
+		auto dInput = DeviceInput();
+		dInput.FromString(key);
+		g_Mappings.pageButton[dInput] = i;
+	}
+
 }
 
 template<typename U, typename V>
@@ -543,7 +575,7 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 				FAIL_M(ssprintf("Invalid debug line type: %i", type));
 		}
 
-		if (input.DeviceI == (*p)->m_Button) {
+		if (input.DeviceI == (*p)->GetButton()) {
 			if (input.type == IET_FIRST_PRESS ||
 				(input.type == IET_REPEAT && (*p)->AllowRepeatEvents())) {
 				// allowed so do nothing and fall through
