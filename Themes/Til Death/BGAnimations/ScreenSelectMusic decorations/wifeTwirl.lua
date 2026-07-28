@@ -780,6 +780,7 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	InitCommand = function(self)
 		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255))
 		self:halign(0.5):valign(1)
+		self.clicked = false
 	end,
 	CurrentStyleChangedMessageCommand = function(self)
 		self:playcommand("MortyFarts")
@@ -857,6 +858,21 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 		if params.event == "DeviceButton_right mouse button" then
 			SCREENMAN:GetTopScreen():PauseSampleMusic()
 			MESSAGEMAN:Broadcast("MusicPauseToggled")
+
+		elseif params.event == "DeviceButton_left mouse button" then
+			local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+			local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
+
+			if self.clicked then
+				whee:ReloadSongList()
+				MESSAGEMAN:Broadcast("SetSearchString", {searchstring = ""})
+				self.clicked = false
+			elseif whee ~= nil and author ~= nil then
+				local searchstring = "author=" .. author
+				whee:SongSearch(searchstring)
+				MESSAGEMAN:Broadcast("SetSearchString", {searchstring = searchstring})
+				self.clicked = true
+			end
 		end
 	end,
 }

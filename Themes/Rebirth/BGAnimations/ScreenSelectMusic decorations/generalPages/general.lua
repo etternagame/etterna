@@ -745,7 +745,6 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
             local theGroupThatTheAforementionedSongWasInBeforeTheWheelWasReset = self.group
             w:playcommand("ApplyFilter")
             w:playcommand("FindSong", {song = theSongThatWasSelectedBeforeTheWheelWasReset, group = theGroupThatTheAforementionedSongWasInBeforeTheWheelWasReset})
-
         end
     end
 }
