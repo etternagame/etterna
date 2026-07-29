@@ -152,7 +152,7 @@ function WHEELDATA.SetSearch(self, t)
     if t.ChartKey ~= nil then
         self.ActiveFilter.metadata.ChartKey = t.ChartKey:lower()
     else
-        self.ActiveFilter.metadata.ChartKEy = ""
+        self.ActiveFilter.metadata.ChartKey = ""
     end
     -- end
 end

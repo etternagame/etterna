@@ -669,6 +669,7 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     SetCommand = function(self, params)
         self:finishtweening()
         self.song = params.song
+        self.group = params.group
         if params.song then
             self:diffusealpha(1)
 
@@ -728,6 +729,24 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
         if self:IsInvisible() then return end
         TOOLTIP:Hide()
     end,
+    MouseDownCommand = function(self)
+        local scr = SCREENMAN:GetTopScreen()
+        local w = scr:GetChild("WheelFile")
+        local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
+        local currentSearch = WHEELDATA:GetSearch()
+        if currentSearch.Author == author then --clicking on the cdtitle again resets the filter
+            WHEELDATA:ResetActiveFilterMetadata()
+            MESSAGEMAN:Broadcast("SetSearchFilter", getEmptyActiveFilterMetadata())
+            w:sleep(0.01):queuecommand("ApplyFilter")
+        elseif w ~= nil and author ~= nil then
+            WHEELDATA:SetSearch({Author = author})
+            MESSAGEMAN:Broadcast("SetSearchFilter", {Author = author})
+            local theSongThatWasSelectedBeforeTheWheelWasReset = self.song
+            local theGroupThatTheAforementionedSongWasInBeforeTheWheelWasReset = self.group
+            w:playcommand("ApplyFilter")
+            w:playcommand("FindSong", {song = theSongThatWasSelectedBeforeTheWheelWasReset, group = theGroupThatTheAforementionedSongWasInBeforeTheWheelWasReset})
+        end
+    end
 }
 
 t[#t+1] = createStatLines()
