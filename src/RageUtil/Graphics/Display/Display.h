@@ -128,6 +128,7 @@ class Display : public RageDisplay
 	CommandBatcher m_Batcher;
 	RenderState m_RenderState;
 	intptr_t m_CurrentRenderTarget = 0;
+	size_t CurrentBufferScale = 1;
 
 	LowLevelWindowVK* m_Window = nullptr;
 };

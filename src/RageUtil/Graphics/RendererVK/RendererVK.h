@@ -60,6 +60,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	void TryVideoMode(const VideoModeParams& params) override;
 	int GetMaxTextureSize() override;
 	~RendererVK() override;
+	void RescaleBatchBuffers(size_t sizeScale) override;
 
   private:
 	vk::raii::Context m_Context;
@@ -136,7 +137,9 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::array<PersistentBuffer, FramesInFlight> m_ShaderScratchBuffer;
 	std::array<PersistentBuffer, FramesInFlight> m_StagingBuffer;
 
-	void InitBatchBuffers();
+	void InitBatchDescriptors();
+	void InitBatchBuffers(size_t sizeScale);
+	void InitTextureInfo();
 	void UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher);
 
 	std::map<intptr_t, Texture> m_Textures;

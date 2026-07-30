@@ -4,6 +4,7 @@
 #include <cassert>
 #include <source_location>
 #include <RageUtil/Misc/RageMath.h>
+#include <bit>
 
 DisplayAdapter::Display::Display(std::unique_ptr<Renderer> renderer)
   : m_Renderer(std::move(renderer))
@@ -65,25 +66,35 @@ DisplayAdapter::Display::EndFrame()
 {
 	m_Batcher.FixRenderNodeOrder();
 
-	if (m_Batcher.m_VertexBuffer.size() > MaxVertexCount) {
-		Locator::getLogger()->fatal("Display: exceeded maximum vertex count of {}",
-									MaxVertexCount);
-		throw std::runtime_error("Display: exceeded maximum vertex count");
-	}
-	if (m_Batcher.m_IndexBuffer.size() > 4 * MaxVertexCount) {
-		Locator::getLogger()->fatal("Display: exceeded maximum vertex index count of {}",
-									4 * MaxVertexCount);
-		throw std::runtime_error("Display: exceeded maximum vertex index count");
-	}
-	if (m_Batcher.m_MatrixStateBuffer.size() > MaxVertexCount) {
-		Locator::getLogger()->fatal("Display: exceeded maximum matrix count of {}",
-									MaxVertexCount);
-		throw std::runtime_error("Display: exceeded maximum matrix count");
-	}
-	if (m_Batcher.m_ShaderScratchBuffer.size() > 1'000'000) {
-		Locator::getLogger()->fatal("Display: exceeded maximum shader scratch buffer size of {}",
-									1'000'000);
-		throw std::runtime_error("Display: exceeded maximum shader scratch buffer size");
+	bool resizeVertexBuffer =
+	  m_Batcher.m_VertexBuffer.size() > MaxVertexCount * CurrentBufferScale;
+	bool resizeIndexBuffer =
+	  m_Batcher.m_IndexBuffer.size() > 4 * MaxVertexCount * CurrentBufferScale;
+	bool resizeMatrixBuffer = m_Batcher.m_MatrixStateBuffer.size() >
+							  MaxVertexCount * CurrentBufferScale;
+	bool resizeScratchBuffer =
+	  m_Batcher.m_ShaderScratchBuffer.size() >
+	  sizeof(uint32_t) * MaxVertexCount * CurrentBufferScale;
+
+	if (resizeVertexBuffer || resizeIndexBuffer || resizeMatrixBuffer ||
+		resizeScratchBuffer) {
+
+		double maxScale = std::max(
+		  { m_Batcher.m_VertexBuffer.size() / (double)MaxVertexCount,
+			m_Batcher.m_IndexBuffer.size() / ((double)4 * MaxVertexCount),
+			m_Batcher.m_MatrixStateBuffer.size() / (double)MaxVertexCount,
+			m_Batcher.m_ShaderScratchBuffer.size() /
+			  ((double)sizeof(uint32_t) * MaxVertexCount) });
+
+		size_t newScale =
+		  std::bit_ceil<size_t>(static_cast<size_t>(std::ceil(maxScale)));
+
+		Locator::getLogger()->warn(
+		  "Display: exceeded maximum buffer size, resizing to scale {}...",
+		  newScale);
+
+		m_Renderer->RescaleBatchBuffers(newScale);
+		CurrentBufferScale = newScale;
 	}
 
 	m_Renderer->OnRender(GetActualVideoModeParams(), m_Batcher);
