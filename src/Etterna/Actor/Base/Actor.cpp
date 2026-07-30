@@ -533,7 +533,8 @@ Actor::Draw()
 
 			if (hasCustomShaders) {
 				DISPLAY->SetGraphicsPipeline(
-				  DisplayAdapter::PipelineHandle{ 0 },
+				  DisplayAdapter::PipelineHandle{ m_ShaderPersistence ? (intptr_t)-1
+																	  : (intptr_t)0 },
 				  {},
 				  {},
 				  m_ShaderPersistence);

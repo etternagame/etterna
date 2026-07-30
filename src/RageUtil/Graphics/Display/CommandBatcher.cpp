@@ -37,10 +37,18 @@ DisplayAdapter::CommandBatcher::InsertPipelineChangeCommand(
 
 	PipelineSettings settings = {};
 
-	if (persist && pipeline) {
-		m_PipelineStack.push(
-		  PipelineSettings{ pipeline, vertexShaderInfo, fragShaderInfo });
-		settings = m_PipelineStack.top();
+	if (persist) {
+		if (pipeline != -1) {
+			m_PipelineStack.push(
+			  PipelineSettings{ pipeline, vertexShaderInfo, fragShaderInfo });
+		} else if (m_PipelineStack.size()) {
+			m_PipelineStack.pop();
+		}
+
+		settings =
+		  m_PipelineStack.size()
+			? m_PipelineStack.top()
+			: PipelineSettings{ (intptr_t)0, vertexShaderInfo, fragShaderInfo };
 	} else {
 		settings = { pipeline, vertexShaderInfo, fragShaderInfo };
 	}
@@ -336,7 +344,8 @@ DisplayAdapter::CommandBatcher::HandleDrawCommand(
 										   (size_t)0,
 										   renderState.blendingMode,
 										   renderState.depthTestMode,
-										   renderState.depthWriteEnabled, renderState.cullMode });
+										   renderState.depthWriteEnabled,
+										   renderState.cullMode });
 	}
 
 	node.DrawCalls[node.DrawCalls.size() - 1].IndexCount += indexCount;
