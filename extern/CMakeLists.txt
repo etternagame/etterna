@@ -74,7 +74,7 @@ if(WITH_CRASHPAD)
     add_subdirectory(crashpad)
 endif()
 
-if(MSVC) # Only required on Windows
+if(MSVC OR (UNIX AND NOT APPLE))
     add_subdirectory(ffmpeg)
 endif()
 

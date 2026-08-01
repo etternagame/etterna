@@ -147,6 +147,7 @@ elseif(APPLE)
     include(CMake/Helpers/SetupFFMPEG.cmake)
     include(CMake/Helpers/CMakeMacOS.cmake)
 elseif(UNIX)
+    target_link_libraries(Etterna PRIVATE ffmpeg)
     include(CMake/Helpers/CMakeLinux.cmake)
 endif()
 
