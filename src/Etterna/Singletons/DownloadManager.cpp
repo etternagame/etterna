@@ -1527,9 +1527,6 @@ void
 DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	std::function<void()> callback)
 {
-	constexpr auto& CALL_ENDPOINT = API_FAVORITES_BULK;
-	constexpr auto& CALL_PATH = API_FAVORITES_BULK;
-
 	Locator::getLogger()->info("Creating BulkAddGoals request for {} favorites",
 		favorites.size());
 
@@ -1542,17 +1539,17 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	}
 
 	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH.data());
+	CURLAPIURL(curlHandle, API_FAVORITES_BULK.data());
 
 	auto body = FavoriteVectorToJSON(favorites);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
-	auto done = [callback, favorites, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [callback, favorites, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT.data(),
+			  API_FAVORITES_BULK.data(),
 			  req,
 			  [callback]() {
 				  if (callback)
@@ -1649,7 +1646,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT.data(), *req)) {
+	if (!QueueRequestIfRatelimited(API_FAVORITES_BULK.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
