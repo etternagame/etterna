@@ -100,19 +100,19 @@ static const std::string TYPESENSE_API_KEY = "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
 
 static const std::string API_LOGIN = "/login";
 static const std::string API_RANKED_CHARTKEYS = "/charts/ranked";
-static const std::string API_CHART_LEADERBOARD = "/charts/{}/scores";
+static constexpr std::string_view API_CHART_LEADERBOARD = "/charts/{}/scores";
 static const std::string API_UPLOAD_SCORE = "/scores";
-static const std::string API_GET_SCORE = "/scores/{}";
+static constexpr std::string_view API_GET_SCORE = "/scores/{}";
 static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
 static const std::string API_FAVORITES = "/favorites";
 static const std::string API_FAVORITES_BULK = "/favorites/bulk";
 static const std::string API_GOALS = "/goals";
 static const std::string API_GOALS_BULK = "/goals/bulk";
 static const std::string API_PLAYLISTS = "/playlists";
-static const std::string API_PLAYLIST = "/playlists/{}";
+static constexpr std::string_view API_PLAYLIST = "/playlists/{}";
 static const std::string API_TAGS = "/tags";
-static const std::string API_USER = "/users/{}";
-static const std::string API_USER_SCORES = "/users/{}/scores";
+static constexpr std::string_view API_USER = "/users/{}";
+static constexpr std::string_view API_USER_SCORES = "/users/{}/scores";
 static const std::string API_GAME_VERSION = "/settings/version";
 
 static const std::string API_SEARCH = "/multi_search";
@@ -3066,14 +3066,14 @@ void
 DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int id)
 {
 	constexpr auto& CALL_ENDPOINT = API_PLAYLIST;
-	const auto CALL_PATH = fmt::format(fmt::runtime(API_PLAYLIST), id);
+	const auto CALL_PATH = fmt::format(API_PLAYLIST, id);
 
 	Locator::getLogger()->info(
 	  "Generating GetPlaylistRequest for playlist id {}", id);
 
 	auto done = [onSuccess, id, &CALL_ENDPOINT, this](auto& req){
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  std::string(CALL_ENDPOINT),
 			  req,
 			  []() {},
 			  [onSuccess, id, this]() {
@@ -3137,7 +3137,7 @@ DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, {}, done, true);
+	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), {}, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetPlaylistRequest request for playlist id {}", id);
 }
@@ -4714,7 +4714,7 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 								   LuaReference& callback)
 {
 	constexpr auto& CALL_ENDPOINT = API_GET_SCORE;
-	const auto CALL_PATH = fmt::format(fmt::runtime(API_GET_SCORE), scoreid);
+	const auto CALL_PATH = fmt::format(API_GET_SCORE, scoreid);
 
 	Locator::getLogger()->info(
 	  "Generating GetReplayData request for scoreid {} - {}", scoreid, chartkey);
@@ -4756,7 +4756,7 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 		auto& lbd = chartLeaderboards[chartkey];
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  std::string(CALL_ENDPOINT),
 			  req,
 			  [runLuaFunc, &replayData, &lbd]() {
 				  runLuaFunc(replayData, lbd.end(), lbd.end());
@@ -5057,7 +5057,7 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 		runLuaFunc(replayData, lbd.end(), lbd.end());
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, {}, done, true);
+	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), {}, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetReplayData request for scoreid {} - {}",
 	  scoreid,
@@ -5069,7 +5069,7 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 										 LuaReference& ref)
 {
 	constexpr auto& CALL_ENDPOINT = API_CHART_LEADERBOARD;
-	const auto CALL_PATH = fmt::format(fmt::runtime(API_CHART_LEADERBOARD), chartkey);
+	const auto CALL_PATH = fmt::format(API_CHART_LEADERBOARD, chartkey);
 
 	Locator::getLogger()->info("Generating GetChartLeaderboard request for {}",
 							   chartkey);
@@ -5126,7 +5126,7 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 				  auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  std::string(CALL_ENDPOINT),
 			  req,
 			  [runLuaFunc, &req, &vec]() {
 				runLuaFunc(req, vec);
@@ -5194,7 +5194,7 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetChartLeaderboard request for {}", chartkey);
 }
@@ -5248,7 +5248,7 @@ DownloadManager::RefreshLastVersion()
 	std::vector<std::pair<std::string, std::string>> params = {};
 
 	auto done = [this](auto& req) {
-		if (HandleRatelimitResponse(API_USER, req)) {
+		if (HandleRatelimitResponse(std::string(API_USER), req)) {
 			RefreshUserData();
 			return;
 		}
@@ -5293,7 +5293,7 @@ void
 DownloadManager::RequestTop25(Skillset ss)
 {
 	constexpr auto& CALL_ENDPOINT = API_USER_SCORES;
-	const auto CALL_PATH = fmt::format(fmt::runtime(API_USER_SCORES), sessionUser);
+	const auto CALL_PATH = fmt::format(API_USER_SCORES, sessionUser);
 	
 	std::string ssstr = "";
 	switch (ss) {
@@ -5335,7 +5335,7 @@ DownloadManager::RequestTop25(Skillset ss)
 	auto done = [ss, ssstr, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  std::string(CALL_ENDPOINT),
 			  req,
 			  []() {},
 			  [ss, this]() { RequestTop25(ss); })) {
@@ -5417,7 +5417,7 @@ DownloadManager::RequestTop25(Skillset ss)
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating RequestTop25 request for skillset {}",
 	  SkillsetToString(ss));
@@ -5430,7 +5430,7 @@ DownloadManager::RefreshUserData()
 		return;
 
 	constexpr auto& CALL_ENDPOINT = API_USER;
-	const auto CALL_PATH = fmt::format(fmt::runtime(API_USER), sessionUser);
+	const auto CALL_PATH = fmt::format(API_USER, sessionUser);
 
 	Locator::getLogger()->info("Refreshing UserData for {}", sessionUser);
 
@@ -5439,7 +5439,7 @@ DownloadManager::RefreshUserData()
 	auto done = [&CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
-			CALL_ENDPOINT,
+			std::string(CALL_ENDPOINT),
 			req,
 			[]() {},
 			[this]() { RefreshUserData(); })) {
@@ -5531,7 +5531,7 @@ DownloadManager::RefreshUserData()
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), params, done, true);
 }
 
 int

@@ -213,7 +213,8 @@ AdjustVideoModeParams(VideoModeParams& p)
 	dm.dmSize = sizeof(dm);
 	if (!EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &dm)) {
 		p.rate = 60;
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "EnumDisplaySettings failed"));
+		Locator::getLogger()->warn(
+		  "{}", werr_ssprintf(GetLastError(), "EnumDisplaySettings failed"));
 		return;
 	}
 
@@ -399,7 +400,8 @@ GraphicsWindow::CreateGraphicsWindow(const VideoModeParams& p,
 					  iWidth,
 					  iHeight,
 					  SWP_FRAMECHANGED | SWP_SHOWWINDOW))
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(), "SetWindowPos"));
+		Locator::getLogger()->warn(
+		  "{}", werr_ssprintf(GetLastError(), "SetWindowPos"));
 
 	SetForegroundWindow(g_hWndMain);
 

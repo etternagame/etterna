@@ -46,7 +46,7 @@ MakeDialogDriver()
 
 		std::string sError = pRet->Init();
 		if (!sError.empty()) {
-			Locator::getLogger()->info("Couldn't load driver {}: {}}", asDriversToTry[i], sError);
+			Locator::getLogger()->info("Couldn't load driver {}: {}", asDriversToTry[i], sError);
 			SAFE_DELETE(pRet);
 		}
 	}

@@ -27,7 +27,7 @@ ThrowIfFail(VkResult result, const std::source_location location)
 				  location.file_name(),
 				  location.line(),
 				  location.function_name());
-	Locator::getLogger()->error(message);
+	Locator::getLogger()->error("{}", message);
 	throw std::runtime_error(message.c_str());
 }
 
@@ -45,7 +45,7 @@ Fail(const std::source_location location)
 				  location.file_name(),
 				  location.line(),
 				  location.function_name());
-	Locator::getLogger()->error(message);
+	Locator::getLogger()->error("{}", message);
 	throw std::runtime_error(message.c_str());
 }
 
@@ -63,7 +63,7 @@ CompileShader(const std::string& sourceName,
 	if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
 		auto message = fmt::format("Vulkan GLSL shader compilation failed: {}",
 								   result.GetErrorMessage());
-		Locator::getLogger()->error(message);
+		Locator::getLogger()->error("{}", message);
 		sm_crash(message.c_str());
 	}
 

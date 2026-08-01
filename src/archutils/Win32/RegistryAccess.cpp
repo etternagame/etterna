@@ -62,7 +62,10 @@ OpenRegKey(const std::string& sKey, RegKeyMode mode, bool bWarnOnError = true)
 							   &hRetKey);
 	if (retval != ERROR_SUCCESS) {
 		if (bWarnOnError)
-			Locator::getLogger()->warn(werr_ssprintf(retval, "RegOpenKeyEx(%x,%s) error", hType, sSubkey.c_str()));
+			Locator::getLogger()->warn(
+			  "{}",
+			  werr_ssprintf(
+				retval, "RegOpenKeyEx(%x,%s) error", hType, sSubkey.c_str()));
 		return nullptr;
 	}
 
@@ -161,7 +164,9 @@ RegistryAccess::GetRegSubKeys(const std::string& sKey,
 			break;
 
 		if (iRet != ERROR_SUCCESS) {
-			Locator::getLogger()->warn(werr_ssprintf(iRet, "GetRegSubKeys(%p,%i) error", hKey, index));
+			Locator::getLogger()->warn(
+			  "{}",
+			  werr_ssprintf(iRet, "GetRegSubKeys(%p,%i) error", hKey, index));
 			bError = true;
 			break;
 		}

@@ -10,10 +10,11 @@
 #define VMA_DEBUG_LOG_FORMAT(format, ...)                                      \
 	do {                                                                       \
 		if (DISPLAY->DisplayDebugModeEnabled()) {                              \
-			char buffer[256];                                                  \
+			char buffer[256] = {};                                                  \
 			snprintf(buffer, sizeof(buffer), format, __VA_ARGS__);             \
 			std::string str(buffer);                                           \
-			Locator::getLogger()->debug("VulkanMemoryAllocator: " + str);      \
+			Locator::getLogger()->debug("{}",                                  \
+										"VulkanMemoryAllocator: " + str);      \
 		}                                                                      \
 	} while (false)
 

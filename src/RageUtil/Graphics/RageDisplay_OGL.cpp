@@ -542,7 +542,7 @@ RageDisplay_Legacy::Init(VideoModeParams&& p,
 					if (iNextToPrint == iLastToPrint ||
 						sList.size() + asExtensions[iNextToPrint + 1].size() >
 						  120) {
-						Locator::getLogger()->info(sList.c_str());
+						Locator::getLogger()->info("{}", sList);
 						sList = "    ";
 					}
 					++iNextToPrint;

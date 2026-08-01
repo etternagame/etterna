@@ -1162,7 +1162,7 @@ sm_main(int argc, char* argv[])
 	StartDisplay();
 
 	StoreActualGraphicOptions();
-	Locator::getLogger()->info(GetActualGraphicOptionsString().c_str());
+	Locator::getLogger()->info("{}", GetActualGraphicOptionsString());
 
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */

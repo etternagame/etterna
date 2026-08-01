@@ -415,7 +415,7 @@ RageTextureManager::DiagnosticOutput() const
 		Locator::getLogger()->info(" {:<40s} {}", sStr.c_str(), Basename(ID.filename).c_str());
 		iTotal += pTex->GetTextureHeight() * pTex->GetTextureWidth();
 	}
-	Locator::getLogger()->info("total {:3i} texels", iTotal);
+	Locator::getLogger()->info("total {:3d} texels", iTotal);
 }
 
 // lua start

@@ -1195,7 +1195,7 @@ Replay::FillInBlanksForInputData() -> bool
 	auto notedata = GetNoteData(chart);
 	if (notedata.IsEmpty()) {
 		Locator::getLogger()->warn("Failed to correct InputData fields for "
-								   "score {} because chartkey [} is empty",
+								   "score {} because chartkey {} is empty",
 								   scoreKey,
 								   chartKey);
 		return false;
