@@ -94,28 +94,31 @@ static Preference<unsigned int> UPLOAD_FAVORITE_BULK_CHUNK_SIZE(
 // endpoint construction constants
 // all paths should begin with / and end without /
 /// API root path
-static const std::string API_ROOT = "/api/client";
-static const std::string API_KEY = "CvsrvreCj5YnhxYcpFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhSuLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
-static const std::string TYPESENSE_API_KEY = "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
+static constexpr std::string_view API_ROOT = "/api/client";
+static constexpr std::string_view API_KEY =
+  "CvsrvreCj5YnhxYcpFboFKZvCBf6wbNV2tAX4XAojD7mBFLVojCpEnhicLnRFy7wCqY2LRoocAhS"
+  "uLcQxMWZvRDewJAzCgA82UFPKvWMQbXp6GjikqqRVNfqopwWk6nFy";
+static constexpr std::string_view TYPESENSE_API_KEY =
+  "uNVBQbmgvnet2LTpT6sE3XYe7JeD8xej";
 
-static const std::string API_LOGIN = "/login";
-static const std::string API_RANKED_CHARTKEYS = "/charts/ranked";
+static constexpr std::string_view API_LOGIN = "/login";
+static constexpr std::string_view API_RANKED_CHARTKEYS = "/charts/ranked";
 static constexpr std::string_view API_CHART_LEADERBOARD = "/charts/{}/scores";
-static const std::string API_UPLOAD_SCORE = "/scores";
+static constexpr std::string_view API_UPLOAD_SCORE = "/scores";
 static constexpr std::string_view API_GET_SCORE = "/scores/{}";
-static const std::string API_UPLOAD_SCORE_BULK = "/scores/bulk";
-static const std::string API_FAVORITES = "/favorites";
-static const std::string API_FAVORITES_BULK = "/favorites/bulk";
-static const std::string API_GOALS = "/goals";
-static const std::string API_GOALS_BULK = "/goals/bulk";
-static const std::string API_PLAYLISTS = "/playlists";
+static constexpr std::string_view API_UPLOAD_SCORE_BULK = "/scores/bulk";
+static constexpr std::string_view API_FAVORITES = "/favorites";
+static constexpr std::string_view API_FAVORITES_BULK = "/favorites/bulk";
+static constexpr std::string_view API_GOALS = "/goals";
+static constexpr std::string_view API_GOALS_BULK = "/goals/bulk";
+static constexpr std::string_view API_PLAYLISTS = "/playlists";
 static constexpr std::string_view API_PLAYLIST = "/playlists/{}";
-static const std::string API_TAGS = "/tags";
+static constexpr std::string_view API_TAGS = "/tags";
 static constexpr std::string_view API_USER = "/users/{}";
 static constexpr std::string_view API_USER_SCORES = "/users/{}/scores";
-static const std::string API_GAME_VERSION = "/settings/version";
+static constexpr std::string_view API_GAME_VERSION = "/settings/version";
 
-static const std::string API_SEARCH = "/multi_search";
+static constexpr std::string_view API_SEARCH = "/multi_search";
 
 static constexpr bool DO_COMPRESS = true;
 static constexpr bool DONT_COMPRESS = false;
@@ -125,7 +128,7 @@ std::mutex G_MTX_SCORE_UPLOAD;
 inline std::string
 APIROOT()
 {
-	return serverURL.Get() + API_ROOT;
+	return serverURL.Get() + API_ROOT.data();
 }
 
 inline std::string
@@ -229,7 +232,7 @@ initCURLHandle(bool withBearer, bool acceptJson, bool compressed)
 		list = curl_slist_append(list, "Accept: application/json");
 		list = curl_slist_append(list, "Content-Type: application/json");
 		list = curl_slist_append(list, "charset: utf-8");
-		list = curl_slist_append(list, ("X-TYPESENSE-API-KEY: " + TYPESENSE_API_KEY).c_str());
+		list = curl_slist_append(list, ("X-TYPESENSE-API-KEY: " + std::string(TYPESENSE_API_KEY)).c_str());
 	}
 	if (compressed) {
 		// use compress_string on body
@@ -1225,7 +1228,7 @@ DownloadManager::LoginRequest(const std::string& user,
 	loggingIn = true;
 	LogoutIfLoggedIn();
 	CURL* curlHandle = initCURLHandle(false, false, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, API_LOGIN);
+	CURLAPIURL(curlHandle, API_LOGIN.data());
 
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(
@@ -1235,7 +1238,7 @@ DownloadManager::LoginRequest(const std::string& user,
 	curl_httppost* lastPtr = nullptr;
 	CURLFormPostField(form, lastPtr, "email", user.c_str());
 	CURLFormPostField(form, lastPtr, "password", pass.c_str());
-	CURLFormPostField(form, lastPtr, "key", API_KEY.c_str());
+	CURLFormPostField(form, lastPtr, "key", API_KEY.data());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_HTTPPOST, form);
 
 	auto done = [user, pass, callback, this](auto& req) {
@@ -1247,7 +1250,7 @@ DownloadManager::LoginRequest(const std::string& user,
 			loggingIn = false;
 		};
 
-		if (HandleRatelimitResponse(API_LOGIN, req)) {
+		if (HandleRatelimitResponse(API_LOGIN.data(), req)) {
 			LoginRequest(user, pass, callback);
 			return;
 		}
@@ -1354,7 +1357,7 @@ DownloadManager::LoginRequest(const std::string& user,
 	};
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(API_LOGIN, *req)) {
+	if (!QueueRequestIfRatelimited(API_LOGIN.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -1460,15 +1463,12 @@ FavoriteVectorToJSON(std::vector<std::string>& v)
 void
 DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 {
-	constexpr auto& CALL_ENDPOINT = API_FAVORITES;
-	constexpr auto& CALL_PATH = API_FAVORITES;
-
 	Locator::getLogger()->info("Generating AddFavoriteRequest for {}",
 							   chartkey);
 
-	auto done = [chartkey, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [chartkey, this](auto& req) {
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_FAVORITES.data(),
 			  req,
 			  []() {},
 			  [chartkey, this]() { AddFavoriteRequest(chartkey); })) {
@@ -1513,8 +1513,8 @@ DownloadManager::AddFavoriteRequest(const std::string& chartkey)
 		}
 	};
 
-	SendRequest(CALL_PATH,
-				CALL_ENDPOINT,
+	SendRequest(API_FAVORITES.data(),
+				API_FAVORITES.data(),
 				{ make_pair("key", UrlEncode(chartkey)) },
 				done,
 				true,
@@ -1542,7 +1542,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	}
 
 	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, CALL_PATH.data());
 
 	auto body = FavoriteVectorToJSON(favorites);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
@@ -1552,7 +1552,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	auto done = [callback, favorites, &CALL_ENDPOINT, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  CALL_ENDPOINT.data(),
 			  req,
 			  [callback]() {
 				  if (callback)
@@ -1649,7 +1649,7 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(CALL_ENDPOINT.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -1660,16 +1660,15 @@ DownloadManager::BulkAddFavorites(std::vector<std::string> favorites,
 void
 DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 {
-	constexpr auto& CALL_ENDPOINT = API_FAVORITES;
-	const auto CALL_PATH = API_FAVORITES + "/" + URLEncode(chartkey);
+	const auto CALL_PATH = std::string(API_FAVORITES) + "/" + URLEncode(chartkey);
 
 	Locator::getLogger()->info("Generating RemoveFavoriteRequest for {}",
 							   chartkey);
 
-	auto done = [chartkey, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [chartkey, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_FAVORITES.data(),
 			  req,
 			  []() {},
 			  [chartkey, this]() {
@@ -1711,8 +1710,8 @@ DownloadManager::RemoveFavoriteRequest(const std::string& chartkey)
 		}
 	};
 
-	SendRequest(CALL_PATH,
-				CALL_ENDPOINT,
+	SendRequest(
+	  CALL_PATH, API_FAVORITES.data(),
 				{},
 				done,
 				true,
@@ -1726,9 +1725,6 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 									const DateTime start,
 									const DateTime end)
 {
-	constexpr auto& CALL_ENDPOINT = API_FAVORITES;
-	constexpr auto& CALL_PATH = API_FAVORITES;
-
 	std::string startstr = fmt::format(
 	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
 	std::string endstr =
@@ -1741,11 +1737,11 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+	auto done = [onSuccess, start, end, this, startstr, endstr](
 				  auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_FAVORITES.data(),
 			  req,
 			  []() {},
 			  [onSuccess, start, end, this]() {
@@ -1795,7 +1791,7 @@ DownloadManager::GetFavoritesRequest(std::function<void(std::set<std::string>)> 
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(API_FAVORITES.data(), API_FAVORITES.data(), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetFavorites request for {} - {}", startstr, endstr);
 }
@@ -1982,9 +1978,6 @@ GoalVectorToJSON(std::vector<ScoreGoal*>& v) {
 void
 DownloadManager::AddGoalRequest(ScoreGoal* goal)
 {
-	constexpr auto& CALL_ENDPOINT = API_GOALS;
-	constexpr auto& CALL_PATH = API_GOALS;
-
 	if (goal == nullptr) {
 		Locator::getLogger()->warn(
 		  "Null goal passed to AddGoalRequest. Skipped");
@@ -1994,10 +1987,10 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 	Locator::getLogger()->info("Generating AddGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [goal, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_GOALS.data(),
 			  req,
 			  []() {},
 			  [goal, this]() { AddGoalRequest(goal);
@@ -2049,8 +2042,12 @@ DownloadManager::AddGoalRequest(ScoreGoal* goal)
 		std::make_pair("set_date", goal->timeassigned.GetString())
 	};
 
-	SendRequest(
-	  CALL_PATH, CALL_ENDPOINT, postParams, done, true, RequestMethod::POST);
+	SendRequest(API_GOALS.data(),
+				API_GOALS.data(),
+				postParams,
+				done,
+				true,
+				RequestMethod::POST);
 	Locator::getLogger()->info("Finished creating AddGoal request for {}",
 							   goal->DebugString());
 }
@@ -2059,9 +2056,6 @@ void
 DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 							  std::function<void()> callback)
 {
-	constexpr auto& CALL_ENDPOINT = API_GOALS_BULK;
-	constexpr auto& CALL_PATH = API_GOALS_BULK;
-
 	Locator::getLogger()->info("Creating BulkAddGoals request for {} goals",
 							   goals.size());
 
@@ -2074,17 +2068,17 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 	}
 
 	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, API_GOALS_BULK.data());
 
 	auto body = GoalVectorToJSON(goals);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, body.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 
-	auto done = [callback, goals, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [callback, goals, this](auto& req) {
 
 		if (Handle401And429Response(
-			CALL_ENDPOINT,
+			API_GOALS_BULK.data(),
 			req,
 			[callback]() {
 				if (callback)
@@ -2187,7 +2181,7 @@ DownloadManager::BulkAddGoals(std::vector<ScoreGoal*> goals,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_GOALS_BULK.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -2203,9 +2197,8 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal, bool oldGoal)
 		return;
 	}
 
-	constexpr auto& CALL_ENDPOINT = API_GOALS;
 	const auto CALL_PATH =
-	  API_GOALS + "/" + UrlEncode(goal->chartkey) + "/" +
+	  std::string(API_GOALS) + "/" + UrlEncode(goal->chartkey) + "/" +
 	  (oldGoal ? std::to_string(goal->oldrate) : std::to_string(goal->rate)) +
 	  "/" +
 	  (oldGoal ? std::to_string(goal->oldpercent)
@@ -2214,10 +2207,10 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal, bool oldGoal)
 	Locator::getLogger()->info("Generating RemoveGoalRequest for {}",
 							   goal->DebugString());
 
-	auto done = [goal, oldGoal, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [goal, oldGoal, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_GOALS.data(),
 			  req,
 			  []() {},
 			  [goal, oldGoal, this]() { RemoveGoalRequest(goal, oldGoal);
@@ -2264,7 +2257,11 @@ DownloadManager::RemoveGoalRequest(ScoreGoal* goal, bool oldGoal)
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, {}, done, true, RequestMethod::DEL);
+	SendRequest(CALL_PATH.data(), API_GOALS.data(),
+				{},
+				done,
+				true,
+				RequestMethod::DEL);
 	Locator::getLogger()->info("Finished creating RemoveGoal request for {}",
 							   goal->DebugString());
 }
@@ -2277,9 +2274,6 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 		return;
 	}
 
-	constexpr auto& CALL_ENDPOINT = API_GOALS;
-	constexpr auto& CALL_PATH = API_GOALS;
-
 	if (!LoggedIn()) {
 		Locator::getLogger()->info("Attempted to update goal while not logged in. Aborting");
 		return;
@@ -2289,7 +2283,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 							   goal->DebugString());
 
 	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, API_GOALS.data());
 
 	// this seems very illegal
 	Document d;
@@ -2307,10 +2301,10 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
 
-	auto done = [goal, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [goal, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_GOALS.data(),
 			  req,
 			  []() {},
 			  [goal, this]() { UpdateGoalRequest(goal);
@@ -2361,7 +2355,7 @@ DownloadManager::UpdateGoalRequest(ScoreGoal* goal)
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_GOALS.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -2374,9 +2368,6 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 								 const DateTime start,
 								 const DateTime end)
 {
-	constexpr auto& CALL_ENDPOINT = API_GOALS;
-	constexpr auto& CALL_PATH = API_GOALS;
-
 	std::string startstr = fmt::format(
 	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
 	std::string endstr =
@@ -2389,11 +2380,11 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+	auto done = [onSuccess, start, end, this, startstr, endstr](
 				  auto& req) {
 		
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_GOALS.data(),
 			  req,
 			  []() {},
 			  [onSuccess, start, end, this]() {
@@ -2460,7 +2451,7 @@ DownloadManager::GetGoalsRequest(std::function<void(std::vector<ScoreGoal>)> onS
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(API_GOALS.data(), API_GOALS.data(), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetGoals request for {} - {}", startstr, endstr);
 }
@@ -2721,9 +2712,6 @@ PlaylistToJSON(const Playlist& playlist) {
 void
 DownloadManager::AddPlaylistRequest(const std::string& name)
 {
-	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
-	constexpr auto& CALL_PATH = API_PLAYLISTS;
-
 	const auto& playlists = SONGMAN->GetPlaylists();
 	if (!playlists.contains(name)) {
 		Locator::getLogger()->warn(
@@ -2743,10 +2731,10 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 		std::make_pair("charts", ChartlistToJSON(playlist))
 	};
 
-	auto done = [name, playlist, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [name, playlist, this](auto& req) {
 
 		if (Handle401And429Response(
-			CALL_ENDPOINT,
+			API_PLAYLISTS.data(),
 			req,
 			[]() {},
 			[name, this]() { AddPlaylistRequest(name); })) {
@@ -2788,8 +2776,12 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 
 	};
 
-	SendRequest(
-	  CALL_PATH, CALL_ENDPOINT, postParams, done, true, RequestMethod::POST);
+	SendRequest(API_PLAYLISTS.data(),
+				API_PLAYLISTS.data(),
+				postParams,
+				done,
+				true,
+				RequestMethod::POST);
 
 	Locator::getLogger()->info(
 	  "Finished creating AddPlaylist request for playlist {}", playlist.name);
@@ -2798,9 +2790,6 @@ DownloadManager::AddPlaylistRequest(const std::string& name)
 void
 DownloadManager::UpdatePlaylistRequest(const std::string& name)
 {
-	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
-	constexpr auto& CALL_PATH = API_PLAYLISTS;
-
 	if (!LoggedIn()) {
 		Locator::getLogger()->info("Attempted to update playlist while not logged in. Aborting");
 		return;
@@ -2821,7 +2810,7 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	  playlist.chartlist.size());
 
 	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, API_PLAYLISTS.data());
 	
 	auto body = PlaylistToJSON(playlist);
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
@@ -2829,9 +2818,9 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, body.c_str());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "PATCH");
 
-	auto done = [name, playlist, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [name, playlist, this](auto& req) {
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_PLAYLISTS.data(),
 			  req,
 			  []() {},
 			  [name, this]() { UpdatePlaylistRequest(name); })) {
@@ -2874,7 +2863,7 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 	  new HTTPRequest(curlHandle, done, nullptr, [](auto& req) {});
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_PLAYLISTS.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -2885,9 +2874,6 @@ DownloadManager::UpdatePlaylistRequest(const std::string& name)
 void
 DownloadManager::RemovePlaylistRequest(const std::string& name)
 {
-	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
-	constexpr auto& CALL_PATH = API_PLAYLISTS;
-
 	if (!LoggedIn()) {
 		Locator::getLogger()->info("Attempted to remove playlist while not logged in. Aborting");
 		return;
@@ -2904,7 +2890,7 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	  "Generating RemovePlaylistRequest for Playlist {}", name);
 
 	CURL* curlHandle = initCURLHandle(true, true, DONT_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, API_PLAYLISTS.data());
 
 	Document d;
 	Document::AllocatorType& allocator = d.GetAllocator();
@@ -2921,10 +2907,10 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
 
 
-	auto done = [name, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [name, this](auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_PLAYLISTS.data(),
 			  req,
 			  []() {},
 			  [name, this]() { RemovePlaylistRequest(name); })) {
@@ -2962,7 +2948,7 @@ DownloadManager::RemovePlaylistRequest(const std::string& name)
 	  new HTTPRequest(curlHandle, done, nullptr, [](auto& req) {});
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_PLAYLISTS.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -2976,9 +2962,6 @@ DownloadManager::GetPlaylistsRequest(
   const DateTime start,
   const DateTime end)
 {
-	constexpr auto& CALL_ENDPOINT = API_PLAYLISTS;
-	constexpr auto& CALL_PATH = API_PLAYLISTS;
-
 	std::string startstr = fmt::format(
 	  "{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
 	std::string endstr =
@@ -2991,10 +2974,10 @@ DownloadManager::GetPlaylistsRequest(
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [onSuccess, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+	auto done = [onSuccess, start, end, this, startstr, endstr](
 				  auto& req) {
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_PLAYLISTS.data(),
 			  req,
 			  []() {},
 			  [onSuccess, start, end, this]() {
@@ -3055,7 +3038,7 @@ DownloadManager::GetPlaylistsRequest(
 		}
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(API_PLAYLISTS.data(), API_PLAYLISTS.data(), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetPlaylistsRequest request for {} - {}",
 	  startstr,
@@ -3065,15 +3048,14 @@ DownloadManager::GetPlaylistsRequest(
 void
 DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int id)
 {
-	constexpr auto& CALL_ENDPOINT = API_PLAYLIST;
 	const auto CALL_PATH = fmt::format(API_PLAYLIST, id);
 
 	Locator::getLogger()->info(
 	  "Generating GetPlaylistRequest for playlist id {}", id);
 
-	auto done = [onSuccess, id, &CALL_ENDPOINT, this](auto& req){
+	auto done = [onSuccess, id, this](auto& req){
 		if (Handle401And429Response(
-			  std::string(CALL_ENDPOINT),
+			  std::string(API_PLAYLIST),
 			  req,
 			  []() {},
 			  [onSuccess, id, this]() {
@@ -3137,7 +3119,7 @@ DownloadManager::GetPlaylistRequest(std::function<void(Playlist)> onSuccess, int
 		}
 	};
 
-	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), {}, done, true);
+	SendRequest(CALL_PATH, std::string(API_PLAYLIST), {}, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetPlaylistRequest request for playlist id {}", id);
 }
@@ -3290,9 +3272,6 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 										   const DateTime start,
 										   const DateTime end)
 {
-	constexpr auto& CALL_ENDPOINT = API_RANKED_CHARTKEYS;
-	constexpr auto& CALL_PATH = API_RANKED_CHARTKEYS;
-
 	std::string startstr =
 	  fmt::format("{}-{}-{}", start.tm_year + 1900, start.tm_mon + 1, start.tm_mday);
 	std::string endstr =
@@ -3305,11 +3284,11 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 		std::make_pair("end", endstr),
 	};
 
-	auto done = [callback, start, end, &CALL_ENDPOINT, this, startstr, endstr](
+	auto done = [callback, start, end, this, startstr, endstr](
 				  auto& req) {
 
 		if (Handle401And429Response(
-			CALL_ENDPOINT,
+			API_RANKED_CHARTKEYS.data(),
 			req,
 			[callback]() {
 				if (callback)
@@ -3374,7 +3353,11 @@ DownloadManager::GetRankedChartkeysRequest(std::function<void(void)> callback,
 			callback();
 	};
 
-	SendRequest(CALL_PATH, CALL_ENDPOINT, params, done, true);
+	SendRequest(API_RANKED_CHARTKEYS.data(),
+				API_RANKED_CHARTKEYS.data(),
+				params,
+				done,
+				true);
 	Locator::getLogger()->info(
 	  "Finished creating GetRankedChartkeys request for {} - {}",
 	  startstr,
@@ -4012,9 +3995,6 @@ void
 DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 								  std::function<void()> callback)
 {
-	constexpr auto& CALL_ENDPOINT = API_UPLOAD_SCORE_BULK;
-	constexpr auto& CALL_PATH = API_UPLOAD_SCORE_BULK;
-
 	Locator::getLogger()->info("Creating BulkUploadScore request for {} scores",
 							   hsList.size());
 	if (!LoggedIn()) {
@@ -4026,7 +4006,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	}
 
 	CURL* curlHandle = initCURLHandle(true, true, DO_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, API_UPLOAD_SCORE_BULK.data());
 
 	auto body = base64_encode(compress_string(ScoreVectorToJSON(hsList, true)));
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POST, 1L);
@@ -4036,10 +4016,10 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	// body json
 	// Locator::getLogger()->warn("{}", body);
 
-	auto done = [callback, hsList, &CALL_ENDPOINT, this](auto& req) {
+	auto done = [callback, hsList, this](auto& req) {
 
 		if (Handle401And429Response(
-			CALL_ENDPOINT,
+			API_UPLOAD_SCORE_BULK.data(),
 			req,
 			[callback]() {
 				if (callback)
@@ -4219,7 +4199,7 @@ DownloadManager::UploadBulkScores(std::vector<HighScore*> hsList,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_UPLOAD_SCORE_BULK.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -4237,9 +4217,6 @@ DownloadManager::UploadScore(HighScore* hs,
 		return;
 	}
 
-	constexpr auto& CALL_ENDPOINT = API_UPLOAD_SCORE;
-	constexpr auto& CALL_PATH = API_UPLOAD_SCORE;
-
 	Locator::getLogger()->info("Creating UploadScore request for score {}",
 							   hs->GetScoreKey());
 	if (!LoggedIn()) {
@@ -4255,7 +4232,7 @@ DownloadManager::UploadScore(HighScore* hs,
 		hs->LoadReplayData();
 
 	CURL* curlHandle = initCURLHandle(true, true, DO_COMPRESS);
-	CURLAPIURL(curlHandle, CALL_PATH);
+	CURLAPIURL(curlHandle, API_UPLOAD_SCORE.data());
 
 	Document jsonDoc;
 	auto scoreDoc = ScoreToJSON(hs, true, jsonDoc.GetAllocator());
@@ -4264,11 +4241,11 @@ DownloadManager::UploadScore(HighScore* hs,
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_POSTFIELDSIZE, json.length());
 	curl_easy_setopt_log_err(curlHandle, CURLOPT_COPYPOSTFIELDS, json.c_str());
 
-	auto done = [hs, callback, load_from_disk, &CALL_ENDPOINT, this](
+	auto done = [hs, callback, load_from_disk, this](
 				  auto& req) {
 
 		if (Handle401And429Response(
-			CALL_ENDPOINT,
+			API_UPLOAD_SCORE.data(),
 			req,
 			[callback]() {
 				if (callback)
@@ -4398,7 +4375,7 @@ DownloadManager::UploadScore(HighScore* hs,
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_UPLOAD_SCORE.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -4713,7 +4690,6 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 								   const std::string& chartkey,
 								   LuaReference& callback)
 {
-	constexpr auto& CALL_ENDPOINT = API_GET_SCORE;
 	const auto CALL_PATH = fmt::format(API_GET_SCORE, scoreid);
 
 	Locator::getLogger()->info(
@@ -4750,13 +4726,12 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 				 username,
 				 chartkey,
 				 &callback,
-				 &CALL_ENDPOINT,
 				 this](auto& req) {
 		std::vector<std::pair<float, float>> replayData{};
 		auto& lbd = chartLeaderboards[chartkey];
 
 		if (Handle401And429Response(
-			  std::string(CALL_ENDPOINT),
+			  std::string(API_GET_SCORE),
 			  req,
 			  [runLuaFunc, &replayData, &lbd]() {
 				  runLuaFunc(replayData, lbd.end(), lbd.end());
@@ -5057,7 +5032,7 @@ DownloadManager::GetReplayDataRequest(const std::string& scoreid,
 		runLuaFunc(replayData, lbd.end(), lbd.end());
 	};
 
-	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), {}, done, true);
+	SendRequest(CALL_PATH, std::string(API_GET_SCORE), {}, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetReplayData request for scoreid {} - {}",
 	  scoreid,
@@ -5068,7 +5043,6 @@ void
 DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 										 LuaReference& ref)
 {
-	constexpr auto& CALL_ENDPOINT = API_CHART_LEADERBOARD;
 	const auto CALL_PATH = fmt::format(API_CHART_LEADERBOARD, chartkey);
 
 	Locator::getLogger()->info("Generating GetChartLeaderboard request for {}",
@@ -5122,11 +5096,11 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 		}
 	};
 
-	auto done = [&ref, chartkey, runLuaFunc, &vec, &CALL_ENDPOINT, this](
+	auto done = [&ref, chartkey, runLuaFunc, &vec, this](
 				  auto& req) {
 
 		if (Handle401And429Response(
-			  std::string(CALL_ENDPOINT),
+			  std::string(API_CHART_LEADERBOARD),
 			  req,
 			  [runLuaFunc, &req, &vec]() {
 				runLuaFunc(req, vec);
@@ -5194,7 +5168,8 @@ DownloadManager::GetChartLeaderboardRequest(const std::string& chartkey,
 		}
 	};
 
-	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), params, done, true);
+	SendRequest(
+	  CALL_PATH, std::string(API_CHART_LEADERBOARD), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating GetChartLeaderboard request for {}", chartkey);
 }
@@ -5279,7 +5254,7 @@ DownloadManager::RefreshLastVersion()
 		}
 	};
 
-	SendRequest(API_GAME_VERSION,
+	SendRequest(API_GAME_VERSION.data(),
 				params,
 				done,
 				false,
@@ -5292,7 +5267,6 @@ DownloadManager::RefreshLastVersion()
 void
 DownloadManager::RequestTop25(Skillset ss)
 {
-	constexpr auto& CALL_ENDPOINT = API_USER_SCORES;
 	const auto CALL_PATH = fmt::format(API_USER_SCORES, sessionUser);
 	
 	std::string ssstr = "";
@@ -5332,10 +5306,9 @@ DownloadManager::RequestTop25(Skillset ss)
 		std::make_pair("sort", fmt::format("-{}", ssstr)),
 	};
 
-	auto done = [ss, ssstr, &CALL_ENDPOINT, this](auto& req) {
-
+	auto done = [ss, ssstr, this](auto& req) {
 		if (Handle401And429Response(
-			  std::string(CALL_ENDPOINT),
+			  std::string(API_USER_SCORES),
 			  req,
 			  []() {},
 			  [ss, this]() { RequestTop25(ss); })) {
@@ -5417,7 +5390,7 @@ DownloadManager::RequestTop25(Skillset ss)
 		MESSAGEMAN->Broadcast("OnlineUpdate");
 	};
 
-	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), params, done, true);
+	SendRequest(CALL_PATH, std::string(API_USER_SCORES), params, done, true);
 	Locator::getLogger()->info(
 	  "Finished creating RequestTop25 request for skillset {}",
 	  SkillsetToString(ss));
@@ -5429,17 +5402,16 @@ DownloadManager::RefreshUserData()
 	if (!LoggedIn())
 		return;
 
-	constexpr auto& CALL_ENDPOINT = API_USER;
 	const auto CALL_PATH = fmt::format(API_USER, sessionUser);
 
 	Locator::getLogger()->info("Refreshing UserData for {}", sessionUser);
 
 	std::vector<std::pair<std::string, std::string>> params = {};
 
-	auto done = [&CALL_ENDPOINT, this](auto& req) {
+	auto done = [this](auto& req) {
 
 		if (Handle401And429Response(
-			std::string(CALL_ENDPOINT),
+			std::string(API_USER),
 			req,
 			[]() {},
 			[this]() { RefreshUserData(); })) {
@@ -5531,7 +5503,7 @@ DownloadManager::RefreshUserData()
 		}
 	};
 
-	SendRequest(CALL_PATH, std::string(CALL_ENDPOINT), params, done, true);
+	SendRequest(CALL_PATH, std::string(API_USER), params, done, true);
 }
 
 int
@@ -5808,9 +5780,6 @@ DownloadManager::MultiSearchRequest(
   ApiSearchCriteria searchCriteria,
   std::function<void(Document&)> whenDoneParser)
 {
-	constexpr auto& CALL_ENDPOINT = API_SEARCH;
-	constexpr auto& CALL_PATH = API_SEARCH;
-
 	Locator::getLogger()->info("Generating MultiSearchRequest for {}", searchCriteria.DebugString());
 
 	std::vector<std::pair<std::string, std::string>> params = {
@@ -5818,7 +5787,7 @@ DownloadManager::MultiSearchRequest(
 		std::make_pair("per_page", std::to_string(searchCriteria.per_page)),
 	};
 
-	auto url = CALL_PATH + "?";
+	auto url = std::string(API_SEARCH) + "?";
 	for (auto& param : params)
 		url += param.first + "=" + param.second + "&";
 	url = url.substr(0, url.length() - 1);
@@ -5834,11 +5803,11 @@ DownloadManager::MultiSearchRequest(
 	// Locator::getLogger()->info("url: {}", url);
 	// Locator::getLogger()->info("body: {}", body);
 
-	auto done = [searchCriteria, whenDoneParser, &CALL_ENDPOINT, this](
+	auto done = [searchCriteria, whenDoneParser, this](
 				  auto& req) {
 
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_SEARCH.data(),
 			  req,
 			  []() {},
 			  [searchCriteria, whenDoneParser, this]() {
@@ -5866,7 +5835,7 @@ DownloadManager::MultiSearchRequest(
 	  });
 	SetCURLResultsString(curlHandle, &(req->result));
 	SetCURLHeadersString(curlHandle, &(req->headers));
-	if (!QueueRequestIfRatelimited(CALL_ENDPOINT, *req)) {
+	if (!QueueRequestIfRatelimited(API_SEARCH.data(), *req)) {
 		AddHttpRequestHandle(req->handle);
 		HTTPRequests.push_back(req);
 	}
@@ -5888,14 +5857,11 @@ DownloadManager::RefreshPackTags() {
 
 void
 DownloadManager::GetPackTagsRequest() {
-	constexpr auto& CALL_ENDPOINT = API_TAGS;
-	constexpr auto& CALL_PATH = API_TAGS;
-
 	Locator::getLogger()->info("Generating GetPackTagsRequest");
 
-	auto done = [&CALL_ENDPOINT, this](auto& req) {
+	auto done = [this](auto& req) {
 		if (Handle401And429Response(
-			  CALL_ENDPOINT,
+			  API_TAGS.data(),
 			  req,
 			  []() {},
 			  [this]() { GetPackTagsRequest(); })) {
@@ -5958,8 +5924,8 @@ DownloadManager::GetPackTagsRequest() {
 			  jsonObjectToString(d));
 		}
 	};
-	SendRequest(CALL_PATH,
-				CALL_ENDPOINT,
+	SendRequest(API_TAGS.data(),
+				API_TAGS.data(),
 				{},
 				done,
 				false,
