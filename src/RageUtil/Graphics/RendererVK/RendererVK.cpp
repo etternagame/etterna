@@ -785,7 +785,8 @@ RendererVK::InitSwapchain(const VideoModeParams& p)
 	depthImageInfo.samples = vk::SampleCountFlagBits::e1;
 	depthImageInfo.tiling = vk::ImageTiling::eOptimal;
 	depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-	depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
+	depthImageInfo.initialLayout =
+	  vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
 	VmaAllocationCreateInfo depthAllocInfo = {};
 	depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
@@ -1838,7 +1839,8 @@ RendererVK::CreateRenderTargetTexture(int width,
 		depthImageInfo.samples = vk::SampleCountFlagBits::e1;
 		depthImageInfo.tiling = vk::ImageTiling::eOptimal;
 		depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-		depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
+		depthImageInfo.initialLayout =
+		  vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
 		VmaAllocationCreateInfo depthAllocInfo = {};
 		depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
