@@ -30,7 +30,11 @@ else()
 	set(ARCH 32bit)
 endif()
 
+file(GLOB FFMPEG_DLLS
+        "${FFmpeg_ROOT}/bin/*.dll")
+
 list(APPEND WIN_DLLS
+	${FFMPEG_DLLS}
 	"${PROJECT_SOURCE_DIR}/extern/discord/bin/release/discord_partner_sdk.dll")
 
 foreach(dll ${WIN_DLLS})

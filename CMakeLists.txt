@@ -140,6 +140,17 @@ if(WITH_CRASHPAD AND TARGET crashpad)
     target_link_libraries(Etterna PRIVATE crashpad)
 endif()
 
+include(CMake/Modules/FindFFmpeg.cmake)
+find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
+target_link_libraries(Etterna PRIVATE
+    FFmpeg::AVCODEC
+    FFmpeg::AVFORMAT
+    FFmpeg::AVUTIL
+    FFmpeg::SWSCALE
+    FFmpeg::SWRESAMPLE
+)
+target_include_directories(Etterna PRIVATE ${FFMPEG_INCLUDE_DIRS})
+
 # OS Specific Initialization
 if(WIN32)
     include(CMake/Helpers/CMakeWindows.cmake)
