@@ -468,6 +468,13 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+
+      - name: Install winget
+        shell: pwsh
+        run: |
+          Add-AppxPackage -Path https://aka.ms/getwinget
+
+          winget --version
       
       - name: Install FFmpeg
         shell: pwsh
