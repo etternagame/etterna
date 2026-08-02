@@ -88,6 +88,18 @@ cmake_policy(VERSION 3.16)
 
 include(FindPackageHandleStandardArgs)
 
+if(WIN32 AND NOT FFmpeg_ROOT)
+    file(GLOB _winget_roots
+        "$ENV{LOCALAPPDATA}/Microsoft/WinGet/Packages/Gyan.FFmpeg.Shared*/*")
+
+    foreach(dir ${_winget_roots})
+        if(EXISTS "${dir}/include/libavcodec/avcodec.h")
+            set(FFmpeg_ROOT "${dir}")
+            break()
+        endif()
+    endforeach()
+endif()
+
 if(NOT FFmpeg_FIND_COMPONENTS)
   # The default components were taken from a survey over other FindFFMPEG.cmake files
   set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL)

@@ -141,7 +141,7 @@ if(WITH_CRASHPAD AND TARGET crashpad)
 endif()
 
 include(CMake/Modules/FindFFmpeg.cmake)
-find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
+find_package(FFmpeg REQUIRED COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE SWRESAMPLE)
 target_link_libraries(Etterna PRIVATE
     FFmpeg::AVCODEC
     FFmpeg::AVFORMAT
