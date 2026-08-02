@@ -74,10 +74,6 @@ if(WITH_CRASHPAD)
     add_subdirectory(crashpad)
 endif()
 
-if(MSVC) # Only required on Windows
-    add_subdirectory(ffmpeg)
-endif()
-
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3

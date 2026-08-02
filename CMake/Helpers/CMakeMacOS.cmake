@@ -46,9 +46,6 @@ target_link_libraries(Etterna PRIVATE ${MAC_FRAME_METAL})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_FOUNDATION})
 target_link_libraries(Etterna PRIVATE ${MAC_FRAME_APPKIT})
 
-# Extern Libraries
-target_link_libraries(Etterna PRIVATE ffmpeg)
-
 # System Libraries
 find_package(OpenGL REQUIRED)
 find_package(BZip2 REQUIRED)

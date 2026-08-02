@@ -18,9 +18,6 @@ set_source_files_properties(src/Etterna/Singletons/NetworkSyncManager.cpp PROPER
 # Ignore the safer function variants provided by VC++. They are not portable.
 target_compile_definitions(Etterna PRIVATE _CRT_SECURE_NO_WARNINGS)
 
-# Linking - Windows Only
-target_link_libraries(Etterna PUBLIC ffmpeg)
-
 find_package(DirectX REQUIRED)
 get_filename_component(DIRECTX_LIBRARY_DIR "${DIRECTX_LIBRARIES}" DIRECTORY)
 target_link_directories(Etterna PUBLIC ${DIRECTX_LIBRARY_DIR})
@@ -34,10 +31,6 @@ else()
 endif()
 
 list(APPEND WIN_DLLS
-	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avcodec-55.dll"
-	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avformat-55.dll"
-	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/avutil-52.dll"
-	"${PROJECT_SOURCE_DIR}/extern/ffmpeg/windows/${ARCH}/swscale-2.dll"
 	"${PROJECT_SOURCE_DIR}/extern/discord/bin/release/discord_partner_sdk.dll")
 
 foreach(dll ${WIN_DLLS})
