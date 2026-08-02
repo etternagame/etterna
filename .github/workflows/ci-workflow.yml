@@ -431,7 +431,7 @@ jobs:
         - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v3
@@ -468,13 +468,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-
-      - name: Install winget
-        shell: pwsh
-        run: |
-          Add-AppxPackage -Path https://aka.ms/getwinget
-
-          winget --version
       
       - name: Install FFmpeg
         shell: pwsh
