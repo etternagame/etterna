@@ -814,6 +814,10 @@ GameSoundManager::DimMusic(float fVolume, float fDurationSeconds)
 		g_fOriginalVolume = g_Playing->m_Music->GetParams().m_Volume;
 	// otherwise, g_fOriginalVolume is already set and m_Volume will be the
 	// current state, not the original state
+	Locator::getLogger()->info("Dimming music from {} to {} over {} seconds",
+							   g_fOriginalVolume,
+							   fVolume,
+							   fDurationSeconds);
 
 	g_fDimDurationRemaining = fDurationSeconds;
 	g_fDimVolume = fVolume;
@@ -830,6 +834,7 @@ GameSoundManager::HandleSongTimer(bool on)
 void
 GameSoundManager::PlayOnce(const std::string& sPath)
 {
+	Locator::getLogger()->info("Tried to queue PlayOnce: '{}'", sPath);
 	/* Add the sound to the g_SoundsToPlayOnce queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnce.push_back(sPath);
@@ -840,6 +845,7 @@ GameSoundManager::PlayOnce(const std::string& sPath)
 void
 GameSoundManager::PlayOnceFromDir(const std::string& sPath)
 {
+	Locator::getLogger()->info("Tried to queue PlayOnceFromDir: '{}'", sPath);
 	/* Add the path to the g_SoundsToPlayOnceFromDir queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnceFromDir.push_back(sPath);
@@ -850,6 +856,7 @@ GameSoundManager::PlayOnceFromDir(const std::string& sPath)
 void
 GameSoundManager::PlayOnceFromAnnouncer(const std::string& sPath)
 {
+	Locator::getLogger()->info("Tried to queue PlayOnceFromAnnouncer: '{}'", sPath);
 	/* Add the path to the g_SoundsToPlayOnceFromAnnouncer queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnceFromAnnouncer.push_back(sPath);
