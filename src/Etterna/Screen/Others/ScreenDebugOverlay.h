@@ -23,7 +23,10 @@ class ScreenDebugOverlay : public Screen
 
 	void Update(float fDeltaTime) override;
 
+	void HandleMessage(const Message& msg) override;
+
   private:
+	void UpdateMappings();
 	void UpdateText();
 
 	std::string GetCurrentPageName() const { return m_asPages[m_iCurrentPage]; }
