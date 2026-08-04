@@ -1248,7 +1248,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 			Locator::getLogger()->warn("song selection made while selectionstate_finalized");
 			return false;
 		}
-		case SelectionState_SelectingSong:
+		case SelectionState_SelectingSong: {
 			// If false, we don't have a selection just yet.
 			if (!m_MusicWheel.Select())
 				return false;
@@ -1265,9 +1265,41 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 				// We haven't made a selection yet.
 				return false;
 			}
+
+			// these are the various new criteria for the ssm comments
+			// before they were based on some things that are more arcadey
+			auto zzz = [](HighScore* hs) {
+				// this is wrong because it checks steps and not song
+				// but it is the easiest thing to do
+				return hs != nullptr && GAMESTATE->m_pCurSteps != nullptr &&
+					   hs->GetChartKey() ==
+						 GAMESTATE->m_pCurSteps->GetChartKey();
+			};
+			auto isRepeatSelection =
+			  std::find_if(SCOREMAN->GetScoresThisSession().begin(),
+						   SCOREMAN->GetScoresThisSession().end(),
+						   zzz) != SCOREMAN->GetScoresThisSession().end();
+			auto isNewSelection =
+			  GAMESTATE->m_pCurSteps != nullptr &&
+			  SCOREMAN->GetScoresForChart(
+				GAMESTATE->m_pCurSteps->GetChartKey()) == nullptr;
+			auto isHardSelection =
+			  GAMESTATE->m_pCurSteps != nullptr &&
+			  GAMESTATE->m_pCurSteps->GetMSD(1.F, Skill_Overall) > 30.F;
+			if (isRepeatSelection) {
+				SOUND->PlayOnceFromAnnouncer("select music comment repeat");
+			} else if (isNewSelection) {
+				SOUND->PlayOnceFromAnnouncer("select music comment new");
+			} else if (isHardSelection) {
+				SOUND->PlayOnceFromAnnouncer("select music comment hard");
+			} else {
+				SOUND->PlayOnceFromAnnouncer("select music comment general");
+			}
+
 			// I believe this is for those who like pump pro. -aj
 			MESSAGEMAN->Broadcast("SongChosen");
 			break;
+		}
 		case SelectionState_SelectingSteps:
 		default:
 			break;
