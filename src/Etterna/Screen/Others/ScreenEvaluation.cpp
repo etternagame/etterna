@@ -112,6 +112,42 @@ ScreenEvaluation::Init()
 		  bOneHasFullW1Combo ? "W1" : (bOneHasFullW2Combo ? "W2" : "W3");
 		SOUND->PlayOnceFromDir(
 		  ANNOUNCER->GetPathTo("evaluation full combo " + sComboType));
+	} else {
+
+		if (GAMESTATE->m_pCurSteps != nullptr) {
+			auto* score = SCOREMAN->GetMostRecentScore();
+			if (score == nullptr) {
+				score = SCOREMAN->tempscoreforonlinereplayviewing;
+			}
+
+			if (score != nullptr) {
+
+				auto grade = score->GetWifeGrade();
+
+				if (grade == Grade_Tier01) {
+					SOUND->PlayOnceFromDir(
+					  ANNOUNCER->GetPathTo("evaluation aaaaa"));
+				} else {
+					SOUND->PlayOnceFromDir(ANNOUNCER->GetPathTo(
+					  "evaluation " + GradeToOldString(grade)));
+				}
+			}
+		}
+	}
+
+	if (GAMESTATE->m_pCurSteps != nullptr) {
+		auto* score = SCOREMAN->GetMostRecentScore();
+		if (score == nullptr) {
+			score = SCOREMAN->tempscoreforonlinereplayviewing;
+		}
+
+		if (score != nullptr) {
+			auto grade = score->GetWifeGrade();
+
+			// AAs and better
+			if (grade <= Grade_Tier10)
+				PostScreenMessage(SM_PlayCheer, CHEER_DELAY_SECONDS);
+		}
 	}
 }
 
