@@ -38,6 +38,7 @@ ScreenNetRoom::ScreenNetRoom()
 {
 	m_Rooms = nullptr;
 	m_iRoomPlace = 0;
+	ScreenTextEntry::s_sLastAnswer.clear();
 }
 
 void
