@@ -191,13 +191,13 @@ local function upperSection()
             local foundsubtitle = ""
             local foundgroup = ""
             local foundck = ""
-            
+           
             if artistpos ~= nil or authorpos ~= nil or
                 titlepos ~= nil or subtitlepos ~= nil or
                 mapperpos ~= nil or charterpos ~= nil or
                 stepperpos ~= nil or grouppos ~= nil or
                 packpos ~= nil or ckpos ~= nil then
-                
+               
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
@@ -260,7 +260,7 @@ local function upperSection()
             end
 
             -- you know what im just going to update all the other entry fields based on this one
-            
+           
         end,
         -- "Title Search"
         function(input)
@@ -501,7 +501,7 @@ local function upperSection()
                     end
                     if searchentry.Group ~= "" then
                         finalstr = finalstr .. "group="..searchentry.Group..";"
-                    end 
+                    end
                 end
                 self:GetDescendant("RowFrame_1", "RowInput"):settext(finalstr)
             end
@@ -580,17 +580,48 @@ local function lowerSection()
         { 85, 100 }, -- Percent
     }
 
+    --defines the current filter values given by the draggy things
+    --this is used to set FILTERMAN when the Apply button is pressed
+    local filterCategoryValues = {
+        { 0, 0 },  -- Overall
+        { 0, 0 },  -- Stream
+        { 0, 0 },  -- Jumpstream
+        { 0, 0 },  -- Handstream
+        { 0, 0 },  -- Stamina
+        { 0, 0 },  -- JackSpeed
+        { 0, 0 },  -- Chordjacks
+        { 0, 0 },  -- Technical
+        { 0, 0 },  -- Length (in seconds)
+        { 0, 0 }, -- Percent
+    }
+
     -- convenience to set the upper and lower bound for a skillset
-    -- for interacting with the c++ side
     local function setSSFilter(ss, lb, ub)
-        FILTERMAN:SetSSFilter(lb, ss, 0)
-        FILTERMAN:SetSSFilter(ub, ss, 1)
+        filterCategoryValues[ss][1] = lb
+        filterCategoryValues[ss][2] = ub
     end
 
     -- convenience to get the upper and lower bounds for a skillset
-    -- for interacting with the c++ side
     local function getSSFilter(ss)
-        return FILTERMAN:GetSSFilter(ss, 0), FILTERMAN:GetSSFilter(ss, 1)
+        return filterCategoryValues[ss][1], filterCategoryValues[ss][2]
+    end
+
+    --applies all filters to the wheel
+    local function applyAllFilters()
+        for i=1, #filterCategoryValues do
+            FILTERMAN:SetSSFilter(filterCategoryValues[i][1], i, 0)
+            FILTERMAN:SetSSFilter(filterCategoryValues[i][2], i, 1)
+        end
+    end
+
+    --resets all filters to their respective upper and lower bounds
+    --the best way to do this is just setting all upper and lower bounds to 0
+    --hope this doesnt break anything
+    local function resetAllFilters()
+        for i=1, #filterCategoryLimits do
+            filterCategoryValues[i][1] = 0
+            filterCategoryValues[i][2] = 0
+        end
     end
 
     -- functions for each filter, what they control
@@ -1090,7 +1121,7 @@ local function lowerSection()
             else
                 return
             end
-            
+           
             minrate = clamp(clamp(minrate + increment, 0.7, FILTERMAN:GetMaxFilterRate()), 0.7, 3)
             FILTERMAN:SetMinFilterRate(minrate)
             self:playcommand("UpdateText")
@@ -1168,6 +1199,7 @@ local function lowerSection()
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self)
+            resetAllFilters()
             FILTERMAN:ResetAllFilters()
             self:GetParent():playcommand("UpdateText")
             self:GetParent():playcommand("UpdateDots")
@@ -1187,6 +1219,7 @@ local function lowerSection()
             local scr = SCREENMAN:GetTopScreen()
             local w = scr:GetChild("WheelFile")
             if w ~= nil then
+                applyAllFilters()
                 WHEELDATA:SetSearch(searchentry)
                 w:sleep(0.01):queuecommand("ApplyFilter")
             end
