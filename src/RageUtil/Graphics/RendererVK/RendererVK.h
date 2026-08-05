@@ -10,7 +10,7 @@
 #define VMA_DEBUG_LOG_FORMAT(format, ...)                                      \
 	do {                                                                       \
 		if (DISPLAY->DisplayDebugModeEnabled()) {                              \
-			char buffer[256] = {};                                                  \
+			char buffer[256] = {};                                             \
 			snprintf(buffer, sizeof(buffer), format, __VA_ARGS__);             \
 			std::string str(buffer);                                           \
 			Locator::getLogger()->debug("{}",                                  \
@@ -82,9 +82,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	vk::Extent2D m_SwapchainExtent;
 	std::vector<vk::Image> m_SwapchainImages;
 	vk::Format m_ImageFormat = {};
-	VkImage m_DepthImage = nullptr;
-	VmaAllocation m_DepthAllocation = nullptr;
-	vk::raii::ImageView m_DepthView = nullptr;
+	Texture m_DepthTexture = {};
 
 	bool m_SwapchainIsInvalid = false;
 	void InitSwapchain(const VideoModeParams& p);
@@ -118,6 +116,7 @@ class RendererVK : public DisplayAdapter::Renderer
 							   vk::AccessFlags2 dstAccessMask,
 							   vk::PipelineStageFlags2 srcStageMask,
 							   vk::PipelineStageFlags2 dstStageMask,
+							   vk::ImageAspectFlags aspectMask,
 							   vk::raii::CommandBuffer& commandBuffer);
 
 	std::vector<vk::raii::Semaphore> m_PresentCompleteSemaphore;
@@ -147,7 +146,8 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::map<intptr_t, Texture> m_DepthTextures;
 	std::set<intptr_t> m_EmptyTextureSlots;
 
-	std::vector<Texture*> m_DirtyTextures;
+	std::vector<intptr_t> m_DirtyTextures;
+	std::vector<intptr_t> m_DirtyDepthTextures;
 	std::vector<intptr_t> m_DirtyTextureDescriptors;
 	std::vector<vk::ImageMemoryBarrier2> m_DirtyPreBarriers;
 	std::vector<vk::ImageMemoryBarrier2> m_DirtyPostBarriers;

@@ -213,7 +213,7 @@ RendererVK::UpdateTexture(intptr_t textureHandle,
 
 	if (!texture.dirty) {
 		texture.dirty = true;
-		m_DirtyTextures.push_back(&texture);
+		m_DirtyTextures.push_back(textureHandle);
 	}
 }
 
@@ -535,12 +535,7 @@ RendererVK::~RendererVK()
 		DestroyTexture(texture);
 	}
 
-	if (m_DepthImage != nullptr) {
-		m_DepthView = nullptr;
-		vmaDestroyImage(m_Allocator, m_DepthImage, m_DepthAllocation);
-		m_DepthImage = nullptr;
-		m_DepthAllocation = nullptr;
-	}
+	DestroyTexture(m_DepthTexture);
 
 	for (int i = 0; i < FramesInFlight; i++) {
 		m_VertexBuffer[i].Destroy();
@@ -775,6 +770,8 @@ RendererVK::InitSwapchain(const VideoModeParams& p)
 	m_SwapchainExtent =
 	  vk::Extent2D(vkbSwapchain.extent.width, vkbSwapchain.extent.height);
 
+	m_DepthTexture.width = vkbSwapchain.extent.width;
+	m_DepthTexture.height = vkbSwapchain.extent.height;
 	vk::ImageCreateInfo depthImageInfo = {};
 	depthImageInfo.imageType = vk::ImageType::e2D;
 	depthImageInfo.format = m_DepthFormat;
@@ -785,29 +782,33 @@ RendererVK::InitSwapchain(const VideoModeParams& p)
 	depthImageInfo.samples = vk::SampleCountFlagBits::e1;
 	depthImageInfo.tiling = vk::ImageTiling::eOptimal;
 	depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-	depthImageInfo.initialLayout =
-	  vk::ImageLayout::eDepthStencilAttachmentOptimal;
+	depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
 
 	VmaAllocationCreateInfo depthAllocInfo = {};
 	depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
 	depthAllocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+
+	VkImage depthImagePtr = VK_NULL_HANDLE;
 	ThrowIfFail(vmaCreateImage(m_Allocator,
 							   &*depthImageInfo,
 							   &depthAllocInfo,
-							   &m_DepthImage,
-							   &m_DepthAllocation,
+							   &depthImagePtr,
+							   &m_DepthTexture.allocation,
 							   nullptr));
+	m_DepthTexture.image = depthImagePtr;
 
 	vk::ImageViewCreateInfo depthViewInfo = {};
-	depthViewInfo.image = m_DepthImage;
+	depthViewInfo.image = m_DepthTexture.image;
 	depthViewInfo.viewType = vk::ImageViewType::e2D;
 	depthViewInfo.format = m_DepthFormat;
 	vk::ImageSubresourceRange subRange = {};
-	subRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+	subRange.aspectMask =
+	  vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
 	subRange.levelCount = 1;
 	subRange.layerCount = 1;
 	depthViewInfo.subresourceRange = subRange;
-	m_DepthView = vk::raii::ImageView(m_Device, depthViewInfo);
+	m_DepthTexture.view = (*m_Device).createImageView(depthViewInfo);
+	m_DirtyDepthTextures.push_back(0);
 }
 
 void
@@ -827,12 +828,7 @@ RendererVK::CleanupSwapchain()
 	m_SwapchainImageViews.clear();
 	m_Swapchain = nullptr;
 
-	if (m_DepthImage != nullptr) {
-		m_DepthView = nullptr;
-		vmaDestroyImage(m_Allocator, m_DepthImage, m_DepthAllocation);
-		m_DepthImage = nullptr;
-		m_DepthAllocation = nullptr;
-	}
+	DestroyTexture(m_DepthTexture);
 }
 
 void
@@ -924,6 +920,7 @@ RendererVK::TransitionImageLayout(vk::Image& image,
 								  vk::AccessFlags2 dstAccessMask,
 								  vk::PipelineStageFlags2 srcStageMask,
 								  vk::PipelineStageFlags2 dstStageMask,
+								  vk::ImageAspectFlags aspectMask,
 								  vk::raii::CommandBuffer& commandBuffer)
 {
 	vk::ImageMemoryBarrier2 barrier{};
@@ -938,7 +935,7 @@ RendererVK::TransitionImageLayout(vk::Image& image,
 	barrier.image = image;
 
 	vk::ImageSubresourceRange range{};
-	range.aspectMask = vk::ImageAspectFlagBits::eColor;
+	range.aspectMask = aspectMask;
 	range.baseMipLevel = 0;
 	range.levelCount = 1;
 	range.baseArrayLayer = 0;
@@ -984,23 +981,25 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	m_DirtyPreBarriers.reserve(m_DirtyTextures.size());
 	m_DirtyPostBarriers.reserve(m_DirtyTextures.size());
 
-	for (auto& texture : m_DirtyTextures) {
+	for (auto& textureHandle : m_DirtyTextures) {
+		auto& texture = m_Textures[textureHandle];
 		vk::ImageMemoryBarrier2 barrier{};
 		barrier.srcStageMask =
-		  (texture->currentLayout == vk::ImageLayout::eUndefined)
+		  (texture.currentLayout == vk::ImageLayout::eUndefined)
 			? vk::PipelineStageFlagBits2::eNone
-			: vk::PipelineStageFlagBits2::eAllGraphics;
+			: vk::PipelineStageFlagBits2::eFragmentShader |
+				vk::PipelineStageFlagBits2::eVertexShader;
 		barrier.srcAccessMask =
-		  (texture->currentLayout == vk::ImageLayout::eUndefined)
+		  (texture.currentLayout == vk::ImageLayout::eUndefined)
 			? vk::AccessFlags2()
 			: vk::AccessFlagBits2::eShaderRead;
 		barrier.dstStageMask = vk::PipelineStageFlagBits2::eTransfer;
 		barrier.dstAccessMask = vk::AccessFlagBits2::eTransferWrite;
-		barrier.oldLayout = texture->currentLayout;
+		barrier.oldLayout = texture.currentLayout;
 		barrier.newLayout = vk::ImageLayout::eTransferDstOptimal;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = texture->image;
+		barrier.image = texture.image;
 		barrier.subresourceRange = vk::ImageSubresourceRange(
 		  vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 		m_DirtyPreBarriers.push_back(barrier);
@@ -1014,33 +1013,36 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		buffer.pipelineBarrier2(depInfo);
 	}
 
-	for (auto& texture : m_DirtyTextures) {
+	for (auto& textureHandle : m_DirtyTextures) {
+		auto& texture = m_Textures[textureHandle];
 		vk::BufferImageCopy2 copyRegion{};
 		copyRegion.imageExtent =
-		  vk::Extent3D{ texture->width, texture->height, 1 };
+		  vk::Extent3D{ texture.width, texture.height, 1 };
 		copyRegion.imageSubresource.aspectMask =
 		  vk::ImageAspectFlagBits::eColor;
 		copyRegion.imageSubresource.layerCount = 1;
 
 		vk::CopyBufferToImageInfo2 copyInfo{};
-		copyInfo.srcBuffer = texture->imageBuffer.buffer;
-		copyInfo.dstImage = texture->image;
+		copyInfo.srcBuffer = texture.imageBuffer.buffer;
+		copyInfo.dstImage = texture.image;
 		copyInfo.dstImageLayout = vk::ImageLayout::eTransferDstOptimal;
 		copyInfo.setRegions({ copyRegion });
 		buffer.copyBufferToImage2(copyInfo);
 	}
 
-	for (auto& texture : m_DirtyTextures) {
+	for (auto& textureHandle : m_DirtyTextures) {
+		auto& texture = m_Textures[textureHandle];
 		vk::ImageMemoryBarrier2 barrier{};
 		barrier.srcStageMask = vk::PipelineStageFlagBits2::eTransfer;
 		barrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
-		barrier.dstStageMask = vk::PipelineStageFlagBits2::eAllGraphics;
+		barrier.dstStageMask = vk::PipelineStageFlagBits2::eFragmentShader |
+							   vk::PipelineStageFlagBits2::eVertexShader;
 		barrier.dstAccessMask = vk::AccessFlagBits2::eShaderRead;
 		barrier.oldLayout = vk::ImageLayout::eTransferDstOptimal;
 		barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		barrier.image = texture->image;
+		barrier.image = texture.image;
 		barrier.subresourceRange = vk::ImageSubresourceRange(
 		  vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 		m_DirtyPostBarriers.push_back(barrier);
@@ -1054,14 +1056,33 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		buffer.pipelineBarrier2(depInfo);
 	}
 
-	for (auto& texture : m_DirtyTextures) {
-		texture->currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
-		texture->dirty = false;
-		texture->initialized = true;
+	for (auto& textureHandle : m_DirtyTextures) {
+		auto& texture = m_Textures[textureHandle];
+		texture.currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		texture.dirty = false;
+		texture.initialized = true;
 	}
+
+	for (auto& textureHandle : m_DirtyDepthTextures) {
+		auto& texture =
+		  textureHandle == 0 ? m_DepthTexture : m_DepthTextures[textureHandle];
+		TransitionImageLayout(texture.image,
+							  texture.currentLayout,
+							  vk::ImageLayout::eDepthStencilAttachmentOptimal,
+							  vk::AccessFlagBits2::eNone,
+							  vk::AccessFlagBits2::eDepthStencilAttachmentWrite,
+							  vk::PipelineStageFlagBits2::eNone,
+							  vk::PipelineStageFlagBits2::eAllGraphics,
+							  vk::ImageAspectFlagBits::eDepth |
+								vk::ImageAspectFlagBits::eStencil,
+							  buffer);
+		texture.currentLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+	}
+
 	m_DirtyTextures.clear();
 	m_DirtyPreBarriers.clear();
 	m_DirtyPostBarriers.clear();
+	m_DirtyDepthTextures.clear();
 
 	m_DirtyImageInfos.reserve(m_DirtyTextureDescriptors.size());
 	m_DirtyImageDescWrites.reserve(m_DirtyTextureDescriptors.size());
@@ -1197,6 +1218,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		  swapchain ? vk::PipelineStageFlagBits2::eColorAttachmentOutput
 					: vk::PipelineStageFlagBits2::eAllGraphics,
 		  vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+		  vk::ImageAspectFlagBits::eColor,
 		  buffer);
 
 		if (!swapchain) {
@@ -1219,7 +1241,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		depthInfo.imageView =
 		  (!swapchain && m_DepthTextures.contains(node.RenderTarget))
 			? m_DepthTextures[node.RenderTarget].view
-			: m_DepthView;
+			: m_DepthTexture.view;
 		depthInfo.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 		depthInfo.storeOp = vk::AttachmentStoreOp::eDontCare;
 		if (node.PreserveRenderTarget && !swapchain &&
@@ -1348,6 +1370,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		  vk::PipelineStageFlagBits2::eColorAttachmentOutput,
 		  swapchain ? vk::PipelineStageFlagBits2::eNone
 					: vk::PipelineStageFlagBits2::eAllGraphics,
+		  vk::ImageAspectFlagBits::eColor,
 		  buffer);
 
 		if (!swapchain) {
@@ -1808,9 +1831,6 @@ RendererVK::CreateRenderTargetTexture(int width,
 	viewInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.layerCount = 1;
-	texture.view = (*m_Device).createImageView(viewInfo);
-	texture.currentLayout = vk::ImageLayout::eUndefined;
-
 	viewInfo.components.r = vk::ComponentSwizzle::eR;
 	viewInfo.components.g = vk::ComponentSwizzle::eG;
 	viewInfo.components.b = vk::ComponentSwizzle::eB;
@@ -1820,6 +1840,9 @@ RendererVK::CreateRenderTargetTexture(int width,
 	} else {
 		viewInfo.components.a = vk::ComponentSwizzle::eOne;
 	}
+
+	texture.view = (*m_Device).createImageView(viewInfo);
+	texture.currentLayout = vk::ImageLayout::eUndefined;
 
 	m_Textures.insert({ currentHandle, texture });
 	m_DirtyTextureDescriptors.push_back(currentHandle);
@@ -1839,8 +1862,7 @@ RendererVK::CreateRenderTargetTexture(int width,
 		depthImageInfo.samples = vk::SampleCountFlagBits::e1;
 		depthImageInfo.tiling = vk::ImageTiling::eOptimal;
 		depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-		depthImageInfo.initialLayout =
-		  vk::ImageLayout::eDepthStencilAttachmentOptimal;
+		depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
 
 		VmaAllocationCreateInfo depthAllocInfo = {};
 		depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
@@ -1858,13 +1880,15 @@ RendererVK::CreateRenderTargetTexture(int width,
 		depthViewInfo.viewType = vk::ImageViewType::e2D;
 		depthViewInfo.format = m_DepthFormat;
 		vk::ImageSubresourceRange subRange = {};
-		subRange.aspectMask = vk::ImageAspectFlagBits::eDepth;
+		subRange.aspectMask =
+		  vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
 		subRange.levelCount = 1;
 		subRange.layerCount = 1;
 		depthViewInfo.subresourceRange = subRange;
 		depthTexture.view = (*m_Device).createImageView(depthViewInfo);
 
 		m_DepthTextures.insert({ currentHandle, depthTexture });
+		m_DirtyDepthTextures.push_back(currentHandle);
 	}
 
 	return currentHandle;
