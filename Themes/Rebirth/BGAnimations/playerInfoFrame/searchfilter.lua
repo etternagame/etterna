@@ -191,13 +191,13 @@ local function upperSection()
             local foundsubtitle = ""
             local foundgroup = ""
             local foundck = ""
-            
+           
             if artistpos ~= nil or authorpos ~= nil or
                 titlepos ~= nil or subtitlepos ~= nil or
                 mapperpos ~= nil or charterpos ~= nil or
                 stepperpos ~= nil or grouppos ~= nil or
                 packpos ~= nil or ckpos ~= nil then
-                
+               
                 if artistpos ~= nil then
                     local strend = input:find("[;]", artistpos+1)
                     if strend == nil then strend = #input else strend = strend-1 end
@@ -260,7 +260,7 @@ local function upperSection()
             end
 
             -- you know what im just going to update all the other entry fields based on this one
-            
+           
         end,
         -- "Title Search"
         function(input)
@@ -501,7 +501,7 @@ local function upperSection()
                     end
                     if searchentry.Group ~= "" then
                         finalstr = finalstr .. "group="..searchentry.Group..";"
-                    end 
+                    end
                 end
                 self:GetDescendant("RowFrame_1", "RowInput"):settext(finalstr)
             end
@@ -580,18 +580,71 @@ local function lowerSection()
         { 85, 100 }, -- Percent
     }
 
+    --defines the current filter values given by the draggy things
+    --this is used to set FILTERMAN when the Apply button is pressed
+    local filterCategoryValues = {
+        { 0, 0 },  -- Overall
+        { 0, 0 },  -- Stream
+        { 0, 0 },  -- Jumpstream
+        { 0, 0 },  -- Handstream
+        { 0, 0 },  -- Stamina
+        { 0, 0 },  -- JackSpeed
+        { 0, 0 },  -- Chordjacks
+        { 0, 0 },  -- Technical
+        { 0, 0 },  -- Length (in seconds)
+        { 0, 0 }, -- Percent
+    }
+
+    --defines the current state of the clickable buttons
+    --used to set FILTERMAN when the Apply button is pressed
+    local maxrate = 1 --max rate
+    local minrate = 1 --min rate
+    local filterMode = false --Mode: OR / AND
+    local highestSkillsetOnly = false --Highest Skillset Only: OFF / ON
+    local highestDifficultyOnly = false --Highest Difficulty Only: OFF / ON
+
     -- convenience to set the upper and lower bound for a skillset
-    -- for interacting with the c++ side
     local function setSSFilter(ss, lb, ub)
-        FILTERMAN:SetSSFilter(lb, ss, 0)
-        FILTERMAN:SetSSFilter(ub, ss, 1)
+        filterCategoryValues[ss][1] = lb
+        filterCategoryValues[ss][2] = ub
     end
 
     -- convenience to get the upper and lower bounds for a skillset
-    -- for interacting with the c++ side
     local function getSSFilter(ss)
-        return FILTERMAN:GetSSFilter(ss, 0), FILTERMAN:GetSSFilter(ss, 1)
+        return filterCategoryValues[ss][1], filterCategoryValues[ss][2]
     end
+
+    --applies all filters to the wheel
+    local function applyAllFilters()
+        --clicky draggy things
+        for i=1, #filterCategoryValues do
+            FILTERMAN:SetSSFilter(filterCategoryValues[i][1], i, 0)
+            FILTERMAN:SetSSFilter(filterCategoryValues[i][2], i, 1)
+        end
+        --text buttons
+        FILTERMAN:SetMaxFilterRate(maxrate)
+        FILTERMAN:SetMinFilterRate(minrate)
+        if FILTERMAN:GetFilterMode() ~= filterMode then FILTERMAN:ToggleFilterMode() end
+        if FILTERMAN:GetHighestSkillsetsOnly() ~= highestSkillsetOnly then FILTERMAN:ToggleHighestSkillsetsOnly() end
+        if FILTERMAN:GetHighestDifficultyOnly() ~= highestDifficultyOnly then FILTERMAN:ToggleHighestDifficultyOnly() end
+    end
+
+    --resets all filters
+    local function resetAllFilters()
+        --clicky draggy things
+        for i=1, #filterCategoryValues do
+            filterCategoryValues[i][1] = 0
+            filterCategoryValues[i][2] = 0
+        end
+        --text buttons
+        maxrate = 1
+        minrate = 1
+        filterMode = false
+        highestSkillsetOnly = false
+        highestDifficultyOnly = false
+    end
+
+    resetAllFilters() --make sure the filters are reset when loading
 
     -- functions for each filter, what they control
     -- each of these filters are range filters, take 2 parameters
@@ -1047,13 +1100,11 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local maxrate = FILTERMAN:GetMaxFilterRate()
             self:settextf("%s: %2.1f", translations["UpperBoundRate"], maxrate)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self, params)
-            local maxrate = FILTERMAN:GetMaxFilterRate()
             local increment = 0.1
             if params.event == "DeviceButton_left mouse button" then
                 -- it's already set haha
@@ -1064,7 +1115,6 @@ local function lowerSection()
             end
 
             maxrate = clamp(clamp(maxrate + increment, FILTERMAN:GetMinFilterRate(), 3), 0.7, 3)
-            FILTERMAN:SetMaxFilterRate(maxrate)
             self:playcommand("UpdateText")
         end,
     }
@@ -1075,13 +1125,11 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local maxrate = FILTERMAN:GetMinFilterRate()
             self:settextf("%s: %2.1f", translations["LowerBoundRate"], maxrate)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self, params)
-            local minrate = FILTERMAN:GetMinFilterRate()
             local increment = 0.1
             if params.event == "DeviceButton_left mouse button" then
                 -- it's already set haha
@@ -1090,9 +1138,8 @@ local function lowerSection()
             else
                 return
             end
-            
+           
             minrate = clamp(clamp(minrate + increment, 0.7, FILTERMAN:GetMaxFilterRate()), 0.7, 3)
-            FILTERMAN:SetMinFilterRate(minrate)
             self:playcommand("UpdateText")
         end,
     }
@@ -1103,13 +1150,13 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local txt = FILTERMAN:GetFilterMode() and translations["All"] or translations["Any"]
+            local txt = filterMode and translations["All"] or translations["Any"]
             self:settextf("%s: %s", translations["AnyAllMode"], txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self)
-            FILTERMAN:ToggleFilterMode()
+            filterMode = not filterMode
             self:playcommand("UpdateText")
         end
     }
@@ -1120,13 +1167,13 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local txt = FILTERMAN:GetHighestSkillsetsOnly() and translations["On"] or translations["Off"]
+            local txt = highestSkillsetOnly and translations["On"] or translations["Off"]
             self:settextf("%s: %s", translations["HighestSkillsetOnly"], txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self)
-            FILTERMAN:ToggleHighestSkillsetsOnly()
+            highestSkillsetOnly = not highestSkillsetOnly
             self:playcommand("UpdateText")
         end
     }
@@ -1137,13 +1184,13 @@ local function lowerSection()
             self:playcommand("UpdateText")
         end,
         UpdateTextCommand = function(self)
-            local txt = FILTERMAN:GetHighestDifficultyOnly() and translations["On"] or translations["Off"]
+            local txt = highestDifficultyOnly and translations["On"] or translations["Off"]
             self:settextf("%s: %s", translations["HardestChartOnly"], txt)
         end,
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self)
-            FILTERMAN:ToggleHighestDifficultyOnly()
+            highestDifficultyOnly = not highestDifficultyOnly
             self:playcommand("UpdateText")
         end
     }
@@ -1168,6 +1215,7 @@ local function lowerSection()
         MouseOverCommand = onHover,
         MouseOutCommand = onUnHover,
         MouseDownCommand = function(self)
+            resetAllFilters()
             FILTERMAN:ResetAllFilters()
             self:GetParent():playcommand("UpdateText")
             self:GetParent():playcommand("UpdateDots")
@@ -1187,6 +1235,7 @@ local function lowerSection()
             local scr = SCREENMAN:GetTopScreen()
             local w = scr:GetChild("WheelFile")
             if w ~= nil then
+                applyAllFilters()
                 WHEELDATA:SetSearch(searchentry)
                 w:sleep(0.01):queuecommand("ApplyFilter")
             end
