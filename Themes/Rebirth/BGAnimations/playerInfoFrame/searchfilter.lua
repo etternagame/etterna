@@ -614,9 +614,7 @@ local function lowerSection()
         end
     end
 
-    --resets all filters to their respective upper and lower bounds
-    --the best way to do this is just setting all upper and lower bounds to 0
-    --hope this doesnt break anything
+    --resets all filters
     local function resetAllFilters()
         for i=1, #filterCategoryLimits do
             filterCategoryValues[i][1] = 0
