@@ -597,7 +597,6 @@ local function lowerSection()
 
     --defines the current state of the clickable buttons
     --used to set FILTERMAN when the Apply button is pressed
-    --i couldnt be bothered to write setters and getters for these
     local maxrate = 1 --max rate
     local minrate = 1 --min rate
     local filterMode = false --Mode: OR / AND
