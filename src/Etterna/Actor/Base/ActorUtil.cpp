@@ -512,7 +512,6 @@ ActorUtil::InitFileTypeLists()
 
 	// Update RageSurfaceUtils when adding new image formats.
 	ExtensionToFileType["bmp"] = FT_Bitmap;
-	ExtensionToFileType["gif"] = FT_Bitmap;
 	ExtensionToFileType["jpeg"] = FT_Bitmap;
 	ExtensionToFileType["jpg"] = FT_Bitmap;
 	ExtensionToFileType["png"] = FT_Bitmap;
@@ -528,6 +527,7 @@ ActorUtil::InitFileTypeLists()
 	ExtensionToFileType["avi"] = FT_Movie;
 	ExtensionToFileType["f4v"] = FT_Movie;
 	ExtensionToFileType["flv"] = FT_Movie;
+	ExtensionToFileType["gif"] = FT_Movie;
 	ExtensionToFileType["mkv"] = FT_Movie;
 	ExtensionToFileType["mp4"] = FT_Movie;
 	ExtensionToFileType["mpeg"] = FT_Movie;
