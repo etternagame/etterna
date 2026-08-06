@@ -645,6 +645,8 @@ local function lowerSection()
         highestDifficultyOnly = false
     end
 
+    resetAllFilters() --make sure the filters are reset when loading
+
     -- functions for each filter, what they control
     -- each of these filters are range filters, take 2 parameters
     -- the third parameter are the limits as determined by the filterCategoryLimits table
