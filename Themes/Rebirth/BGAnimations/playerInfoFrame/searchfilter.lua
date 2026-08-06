@@ -633,7 +633,7 @@ local function lowerSection()
     --resets all filters
     local function resetAllFilters()
         --clicky draggy things
-        for i=1, #filterCategoryLimits do
+        for i=1, #filterCategoryValues do
             filterCategoryValues[i][1] = 0
             filterCategoryValues[i][2] = 0
         end
