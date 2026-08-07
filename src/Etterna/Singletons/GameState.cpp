@@ -49,6 +49,60 @@ GameState* GAMESTATE = nullptr;
 #ifdef SUPPORT_DISCORD_SDK
 discordpp::Client* DISCORD = nullptr;
 static const auto discord_appid = 378543094531883009;
+static auto discord_thread_running = false;
+std::unique_ptr<std::thread> discord_thread;
+static std::mutex discord_mut;
+
+static std::vector<discordpp::Activity> rpc_queue{};
+
+static void discordRpcQueue(discordpp::Activity activity) {
+	std::lock_guard<std::mutex> lock(discord_mut);
+	rpc_queue.push_back(activity);
+}
+
+static void discord_thread_work() {
+
+	while (discord_thread_running) {
+
+		std::vector<discordpp::Activity> copied_rpc_activity{};
+		{
+			std::lock_guard<std::mutex> lock(discord_mut);
+
+			if (rpc_queue.size() > 0) {
+				copied_rpc_activity = rpc_queue;
+				rpc_queue.clear();
+			}
+		}
+
+		if (copied_rpc_activity.size() > 0) {
+
+			// non reference copy
+			auto activity = copied_rpc_activity.back();
+
+			if (DISCORD == nullptr) {
+				Locator::getLogger()->fatal(
+				  "Discord RPC seems to be disconnected, so the thread will "
+				  "exit.");
+				return;
+			} else {
+				DISCORD->UpdateRichPresence(
+				  activity, [](discordpp::ClientResult result) {
+					  if (result.Successful()) {
+						  Locator::getLogger()->info(
+							"Discord RPC successfully updated");
+					  } else {
+						  Locator::getLogger()->warn(
+							"Discord RPC failed to set - {}", result.Error());
+					  }
+				  });
+			}
+		}
+
+		discordpp::RunCallbacks();
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+}
+
 #endif
 
 class GameStateMessageHandler : public MessageSubscriber
@@ -725,9 +779,6 @@ GameState::Update(float fDelta)
 
 	m_pPlayerState->Update(fDelta);
 
-#ifdef SUPPORT_DISCORD_SDK
-	discordpp::RunCallbacks();
-#endif
 }
 
 void
@@ -1310,6 +1361,20 @@ GameState::discordInit()
 	  [](auto msg, auto severity) { Locator::getLogger()->info("{}", msg); },
 	  discordpp::LoggingSeverity::None);
 
+	{
+		std::lock_guard<std::mutex> lock(discord_mut);
+
+		discord_thread_running = false;
+		if (discord_thread != nullptr) {
+			if (discord_thread->joinable())
+				discord_thread->join();
+		}
+
+		discord_thread_running = true;
+		discord_thread = std::make_unique<std::thread>(discord_thread_work);
+		discord_thread->detach();
+	}
+
 	updateDiscordPresenceMenu();
 #else
 	Locator::getLogger()->warn("Discord presence not available for this platform");
@@ -1363,15 +1428,7 @@ GameState::updateDiscordPresence(const std::string& details,
 	activity.SetTimestamps(ts);
 	activity.SetAssets(assets);
 
-	DISCORD->UpdateRichPresence(activity, [](discordpp::ClientResult result) {
-		if (result.Successful()) {
-			Locator::getLogger()->warn("Rich presence (Gameplay/Eval) successfully set");
-		}
-		else {
-			Locator::getLogger()->warn("Rich presence (Gameplay/Eval) failed to set - {}",
-									   result.Error());
-		}
-	});
+	discordRpcQueue(activity);
 #else
 	Locator::getLogger()->warn(
 	  "Discord presence not available for this platform");
@@ -1434,14 +1491,7 @@ GameState::updateDiscordPresenceMenu()
 	activity.SetName("Etterna");
 	activity.SetAssets(assets);
 
-	DISCORD->UpdateRichPresence(activity, [](discordpp::ClientResult result) {
-		if (result.Successful()) {
-			Locator::getLogger()->warn("Rich presence (Menu) successfully set");
-		} else {
-			Locator::getLogger()->warn("Rich presence (Menu) failed to set - {}",
-									   result.Error());
-		}
-	});
+	discordRpcQueue(activity);
 #else
 	Locator::getLogger()->warn(
 	  "Discord presence not available for this platform");
