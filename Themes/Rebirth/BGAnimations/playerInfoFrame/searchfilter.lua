@@ -643,8 +643,22 @@ local function lowerSection()
         highestSkillsetOnly = false
         highestDifficultyOnly = false
     end
+    -- does what the function is named
+    -- basically this should only run at init
+    local function resetLocalFiltersToFILTERMAN()
+        for i=1, #filterCategoryValues do
+            setSSFilter(i, FILTERMAN:GetSSFilter(i, 0), FILTERMAN:GetSSFilter(i, 1))
+        end
+        maxrate = FILTERMAN:GetMaxFilterRate()
+        minrate = FILTERMAN:GetMinFilterRate()
+        filterMode = FILTERMAN:GetFilterMode()
+        highestSkillsetOnly = FILTERMAN:GetHighestSkillsetsOnly()
+        highestDifficultyOnly = FILTERMAN:GetHighestDifficultyOnly()
+    end
 
-    resetAllFilters() --make sure the filters are reset when loading
+    -- reset the filters extra hard at init
+    resetAllFilters()
+    resetLocalFiltersToFILTERMAN()
 
     -- functions for each filter, what they control
     -- each of these filters are range filters, take 2 parameters
