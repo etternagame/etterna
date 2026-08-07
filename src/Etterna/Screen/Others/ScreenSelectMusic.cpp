@@ -1268,17 +1268,14 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 			// these are the various new criteria for the ssm comments
 			// before they were based on some things that are more arcadey
-			auto zzz = [](HighScore* hs) {
-				// this is wrong because it checks steps and not song
-				// but it is the easiest thing to do
-				return hs != nullptr && GAMESTATE->m_pCurSteps != nullptr &&
-					   hs->GetChartKey() ==
-						 GAMESTATE->m_pCurSteps->GetChartKey();
-			};
-			auto isRepeatSelection =
-			  std::find_if(SCOREMAN->GetScoresThisSession().begin(),
-						   SCOREMAN->GetScoresThisSession().end(),
-						   zzz) != SCOREMAN->GetScoresThisSession().end();
+			auto isRepeatSelection = false;
+			for (auto& hs : SCOREMAN->GetScoresThisSession()) {
+				if (GAMESTATE->m_pCurSteps != nullptr) {
+					if (hs->GetChartKey() ==
+						GAMESTATE->m_pCurSteps->GetChartKey())
+						isRepeatSelection = true;
+				}
+			}
 			auto isNewSelection =
 			  GAMESTATE->m_pCurSteps != nullptr &&
 			  SCOREMAN->GetScoresForChart(
