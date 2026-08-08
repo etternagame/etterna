@@ -75,7 +75,9 @@ if(WITH_CRASHPAD)
 endif()
 
 if(MSVC OR (UNIX AND NOT APPLE))
-    add_subdirectory(ffmpeg)
+	if(UNIX AND CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+    	add_subdirectory(ffmpeg)
+	endif()
 endif()
 
 ## IDE Folder Organization
