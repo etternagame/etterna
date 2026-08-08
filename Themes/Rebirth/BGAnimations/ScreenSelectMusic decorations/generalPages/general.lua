@@ -123,6 +123,7 @@ end
 local translations = {
     AverageNPS = THEME:GetString("ScreenSelectMusic General", "AverageNPS"),
     NegativeBPMs = THEME:GetString("ScreenSelectMusic General", "NegativeBPMs"),
+    HasLua = THEME:GetString("ScreenSelectMusic General", "HasLua"),
     Ready = THEME:GetString("GeneralInfo", "Ready"),
     Unready = THEME:GetString("GeneralInfo", "Unready"),
     ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
@@ -283,11 +284,23 @@ local function createMSDLines()
                 end,
                 SetCommand = function(self, params)
                     if i == 0 then
+                        --[[
                         if params.steps then
                             if params.steps:GetTimingData():HasWarps() then
                                 -- not sure what to do with this for now
                                 -- maybe replace with "special timing" for all TimingSegments...
                                 -- self:settext(translations["NegativeBPMs"])
+                                self:diffusealpha(1)
+                            else
+                                self:diffusealpha(0)
+                            end
+                        else
+                            self:diffusealpha(0)
+                        end
+                        ]]
+                        if params.song then
+                            if params.song:HasLua() then
+                                self:settext(translations["HasLua"])
                                 self:diffusealpha(1)
                             else
                                 self:diffusealpha(0)
@@ -310,7 +323,7 @@ local function createMSDLines()
                     if not labeltext then self:visible(false) end
                 end,
                 SetCommand = function(self, params)
-                    if i == 0 then return end -- negbpm indicator HACKS remove when validating negbpms soon
+                    if i == 0 then return end -- HasLua indicator
                     -- i == 1 is Average NPS, otherwise are skillsets
                     if i == 1 then
                         if params.steps then
@@ -355,7 +368,7 @@ local function createMSDLines()
         }
     end
     local t = Def.ActorFrame {Name = "MSDLines"}
-    for i = 0, #msdNames do -- starts at 0 for NegBPMs
+    for i = 0, #msdNames do -- starts at 0 for HasLua
         t[#t+1] = createMSDLine(i)
     end
     return t

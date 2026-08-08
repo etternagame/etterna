@@ -30,6 +30,7 @@ local translated_info = {
 	MaxCombo = THEME:GetString("ScreenSelectMusic", "MaxCombo"),
 	BPM = THEME:GetString("ScreenSelectMusic", "BPM"),
 	NegBPM = THEME:GetString("ScreenSelectMusic", "NegativeBPM"),
+	HasLua = THEME:GetString("ScreenSelectMusic", "HasLua"),
 	UnForceStart = THEME:GetString("GeneralInfo", "UnforceStart"),
 	ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
 	Unready = THEME:GetString("GeneralInfo", "Unready"),
@@ -741,16 +742,15 @@ for i = 1, 5 do
 	r[#r + 1] = radarPairs(i)
 end
 
--- putting neg bpm warning here i guess
+-- putting lua warning here
 r[#r + 1] = LoadFont("Common Large") .. {
 	InitCommand = function(self)
 		self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
 		self:diffuse(getMainColor("negative"))
 	end,
 	MintyFreshCommand = function(self)
-		if song and steps:GetTimingData():HasWarps() then
-			-- might replace this with "special timing" or something...
-			--self:settext(translated_info["NegBPM"])
+		if song and song:HasLua() then
+			self:settext(translated_info["HasLua"])
 		else
 			self:settext("")
 		end
