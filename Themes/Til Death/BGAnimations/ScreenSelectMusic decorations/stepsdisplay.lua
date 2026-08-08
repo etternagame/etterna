@@ -42,6 +42,7 @@ local sd = Def.ActorFrame {
 		if song then
 			thesteps = song:GetChartsMatchingFilter()
 			if self.nested and getTabIndex() == 2 then
+				self:playcommand("UpdateStepsRows")
 				return
 			end
 
