@@ -11,6 +11,8 @@ class ScreenSaveSync : public ScreenPrompt
 	void Init() override;
 
 	static void PromptSaveSync(const ScreenMessage& sm = SM_None);
+
+	void PushSelf(lua_State* L) override;
 };
 
 #endif

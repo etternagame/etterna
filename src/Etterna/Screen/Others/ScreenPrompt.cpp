@@ -296,3 +296,36 @@ ScreenPrompt::TweenOffScreen()
 
 	ScreenWithMenuElements::TweenOffScreen();
 }
+
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Singletons/LuaManager.h"
+class LunaScreenPrompt : public Luna<ScreenPrompt>
+{
+  public:
+	static int GetPromptType(T* p, lua_State* L) {
+
+		switch (g_PromptType) {
+
+			case PROMPT_OK:
+				lua_pushstring(L, "OK");
+				break;
+			case PROMPT_YES_NO:
+				lua_pushstring(L, "YES_NO");
+				break;
+			case PROMPT_YES_NO_CANCEL:
+				lua_pushstring(L, "YES_NO_CANCEL");
+				break;
+			default:
+				lua_pushnil(L);
+				break;
+
+		}
+		return 1;
+	}
+
+	LunaScreenPrompt() {
+		ADD_METHOD(GetPromptType);
+	}
+};
+
+LUA_REGISTER_DERIVED_CLASS(ScreenPrompt, ScreenWithMenuElements)

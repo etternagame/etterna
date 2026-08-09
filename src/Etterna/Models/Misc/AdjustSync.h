@@ -39,6 +39,9 @@ class AdjustSync
 	static void GetSyncChangeTextGlobal(std::vector<std::string>& vsAddTo);
 	static void GetSyncChangeTextSong(std::vector<std::string>& vsAddTo);
 
+	static void GetSyncChangeGlobalValues(std::vector<float>& floatvec);
+	static void GetSyncChangeSongValues(std::vector<float>& floatvec);
+
 	/** @brief The minimum number of steps to hit for syncing purposes. */
 	static const int OFFSET_SAMPLE_COUNT = 24;
 

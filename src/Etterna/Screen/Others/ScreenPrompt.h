@@ -49,7 +49,7 @@ class ScreenPrompt : public ScreenWithMenuElements
 	static bool s_bMustResetInputRedirAtClose;
 	static bool s_bResetInputRedirTo;
 	// Lua
-	// virtual void PushSelf( lua_State *L );
+	void PushSelf(lua_State* L) override;
 
   protected:
 	bool CanGoLeft() { return m_Answer > 0; }
