@@ -125,6 +125,7 @@ local translations = {
     OnlineSlashOffline = THEME:GetString("ScreenSelectMusic Profile", "OnlineSlashOffline"),
     PlayerStats = THEME:GetString("ScreenSelectMusic Profile", "PlayerStats"),
     ViewRecentScores = THEME:GetString("ScreenSelectMusic Profile", "ViewRecentScores"),
+    ViewTopPercentScores = THEME:GetString("ScreenSelectMusic Profile", "ViewTopPercentScores"),
     ShowingLocalScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingLocalScores"),
     ShowingOnlineScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingOnlineScores"),
     SetPlayerName = THEME:GetString("ScreenSelectMusic Profile", "SetPlayerName"),
@@ -301,6 +302,17 @@ local function createList()
                     sortedScore = SCOREMAN:GetRecentScoreForGame(#scores + 1)
                 end
                 return
+            elseif params ~= nil and params.index == -2 then
+                -- index -2 is the top percent index
+                isLocal = true
+                SCOREMAN:SortSSRsByPercentForGame()
+                chosenSkillset = "Stream"
+                scores = {}
+                local sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(1, chosenSkillset)
+                while sortedScore ~= nil and #scores < upperBoundOfScoreCount do
+                    scores[#scores+1] = sortedScore
+                    sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(#scores + 1, chosenSkillset)
+                end
             end
 
             if isLocal then
@@ -1190,7 +1202,7 @@ local function createList()
                 InitCommand = function(self)
                     self:halign(0):valign(1)
                     self:x(actuals.AvatarLeftGap)
-                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.35)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.4)
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
                     self:playcommand("Set")
@@ -1233,7 +1245,7 @@ local function createList()
                 InitCommand = function(self)
                     self:halign(0):valign(1)
                     self:x(actuals.AvatarLeftGap)
-                    self:y(actuals.Height - actuals.InfoUpperMargin)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.05)
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
                     self:settext(translations["ViewRecentScores"])
@@ -1252,6 +1264,35 @@ local function createList()
                     if params.event == "DeviceButton_left mouse button" then
                         self:diffusealpha(1)
                         self:GetParent():GetParent():playcommand("UpdateScores", {index = -1})
+                        self:GetParent():GetParent():playcommand("UpdateSelectedIndex")
+                        self:GetParent():GetParent():playcommand("UpdateList")
+                    end
+                end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "TopPercentScores",
+                InitCommand = function(self)
+                    self:halign(0):valign(1)
+                    self:x(actuals.AvatarLeftGap)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 0.7)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+                    self:settext(translations["ViewTopPercentScores"])
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        self:diffusealpha(1)
+                        self:GetParent():GetParent():playcommand("UpdateScores", {index = -2})
                         self:GetParent():GetParent():playcommand("UpdateSelectedIndex")
                         self:GetParent():GetParent():playcommand("UpdateList")
                     end
