@@ -44,7 +44,7 @@ jobs:
           "$HOME/depot_tools/gclient" runhooks
 
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.apt }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.apt }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev
       - name: Install OpenSSL 3.5
         run: mkdir -p tmp/openssl && cd tmp/openssl && wget https://github.com/openssl/openssl/releases/download/openssl-3.5.1/openssl-3.5.1.tar.gz && tar -xf openssl-3.5.1.tar.gz && cd openssl-3.5.1 && ./Configure --prefix="${HOME}/toolchain" && make -j `nproc` && make test -j `nproc` && sudo make install
       - name: Generate CMake
@@ -141,7 +141,7 @@ jobs:
           "$HOME/depot_tools/gclient" runhooks
 
       - name: Install homebrew packages
-        run: brew install cmake nasm yasm ninja openssl
+        run: brew install cmake nasm yasm ninja openssl ffmpeg
 
       - name: Setup Python 3
         uses: actions/setup-python@v6
@@ -249,7 +249,7 @@ jobs:
           "$HOME/depot_tools/gclient" runhooks
 
       - name: Install homebrew packages
-        run: brew install cmake nasm yasm ninja openssl
+        run: brew install cmake nasm yasm ninja openssl ffmpeg
 
       - name: Setup Python 3
         uses: actions/setup-python@v6
@@ -356,7 +356,7 @@ jobs:
           "$HOME/depot_tools/gclient" runhooks
 
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja openssl && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
+        run: brew install cmake nasm ninja openssl ffmpeg && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 
       - name: Update CPack Environment
         if: ${{matrix.cfg.dist}}
@@ -431,7 +431,7 @@ jobs:
         - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v3
@@ -468,6 +468,11 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      
+      - name: Install FFmpeg
+        shell: pwsh
+        run: |
+          winget install --id Gyan.FFmpeg.Shared --exact --silent --accept-package-agreements --accept-source-agreements
           
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}

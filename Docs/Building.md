@@ -59,10 +59,10 @@ While most dependencies for macOS and Windows are included in the repo, there ar
 
 For Pop_OS!, install the `Debian` dependencies, then refer to the [Pop_OS! Notes](#pop_os-notes) section below.
 
-- Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev`
-- Fedora: `dnf install openssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel`
-- Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack`
-- Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev`
+- Debian: `apt install build-essential libssl-dev libx11-dev libxrandr-dev libcurl4-openssl-dev libglu1-mesa-dev libpulse-dev libogg-dev libasound-dev libjack-dev libavcodec-dev libavformat-dev libavutil-dev libswscale-dev libswresample-dev`
+- Fedora: `dnf install openssl-devel libX11-devel libcurl-devel mesa-libGLU-devel libXrandr-devel libogg-devel pulseaudio-libs-devel alsa-lib-devel jack-audio-connection-kit-devel ffmpeg-free-devel`
+- Arch: `pacman -S openssl libx11 libxrandr curl mesa glu libogg pulseaudio jack ffmpeg`
+- Alpine: `apk add build-base openssl-dev libx11-dev libxrandr-dev curl-dev mesa-dev glu-dev pulseaudio-dev libogg-dev alsa-lib-dev jack-dev ffmpeg-dev`
 
 ### Pop_OS! Notes
 
@@ -94,6 +94,9 @@ sudo apt install -y clang
 - [DirectX SDK](https://web.archive.org/web/20180113160705if_/https://www.microsoft.com/en-us/download/confirmation.aspx?id=6812)
 - [Microsoft Visual C++ Redistributables](http://www.microsoft.com/en-us/download/details.aspx?id=48145) - Both 32bit and 64bit
 - [Windows 10 Development Kit](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
+- FFmpeg - can be installed either from [community builds](https://github.com/GyanD/codexffmpeg/releases/download/8.1.2/ffmpeg-8.1.2-full_build-shared.zip) or via winget:  
+  ```winget install -e --id Gyan.FFmpeg.Shared```  
+  Note: if binaries aren't found by CMake, try specifying `FFmpeg_ROOT` to the directory of your FFmpeg (shared version) download.
 
 ### macOS Dependencies
 

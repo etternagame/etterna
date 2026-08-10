@@ -82,11 +82,8 @@ elseif(MSVC)
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
   
 else() # Unix
-  if (${HAS_FFMPEG})
-    list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
-    list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
-  endif()
-  
+  list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
+  list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
 endif()
 source_group("Arch Specific\\\\Movie Texture" FILES ${SMDATA_ARCH_MOVIE_TEXTURE_SRC} ${SMDATA_ARCH_MOVIE_TEXTURE_HPP})
 
