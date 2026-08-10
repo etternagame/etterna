@@ -1031,6 +1031,48 @@ ScoreManager::SortTopSSRPtrsForGame(Skillset ss, const std::string& profileID)
 	sort(TopSSRsForGame.begin(), TopSSRsForGame.end(), ssrcomp);
 }
 
+void
+ScoreManager::SortTopSSRPtrsByPercent(const std::string& profileID)
+{
+	TopSSRs.clear();
+	for (auto& i : pscores[profileID]) {
+		if (!SONGMAN->IsChartLoaded(i.first) ||
+			!SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+			continue;
+		}
+		for (const auto& hs : i.second.GetAllPBPtrs()) {
+			TopSSRs.emplace_back(hs);
+		}
+	}
+
+	auto percentcomp = [](HighScore* a, HighScore* b) {
+		return (a->GetSSRNormPercent() > b->GetSSRNormPercent());
+	};
+
+	sort(TopSSRs.begin(), TopSSRs.end(), percentcomp);
+}
+
+void
+ScoreManager::SortTopSSRPtrsByPercentForGame(const std::string& profileID)
+{
+	TopSSRsForGame.clear();
+	for (auto& i : pscores[profileID]) {
+		if (!SONGMAN->IsChartLoaded(i.first) ||
+			!SONGMAN->GetStepsByChartkey(i.first)->IsPlayableForCurrentGame()) {
+			continue;
+		}
+		for (const auto& hs : i.second.GetAllPBPtrs()) {
+			TopSSRsForGame.emplace_back(hs);
+		}
+	}
+
+	auto percentcomp = [](HighScore* a, HighScore* b) {
+		return (a->GetSSRNormPercent() > b->GetSSRNormPercent());
+	};
+
+	sort(TopSSRsForGame.begin(), TopSSRsForGame.end(), percentcomp);
+}
+
 auto
 ScoreManager::GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*
 {
@@ -1483,6 +1525,16 @@ class LunaScoreManager : public Luna<ScoreManager>
 		p->SortTopSSRPtrsForGame(Enum::Check<Skillset>(L, 1));
 		return 1;
 	}
+	static auto SortSSRsByPercentForGame(T* p, lua_State* L) -> int
+	{
+		p->SortTopSSRPtrsByPercentForGame();
+		return 0;
+	}
+	static auto SortSSRsByPercent(T* p, lua_State* L) -> int
+	{
+		p->SortTopSSRPtrsByPercent();
+		return 0;
+	}
 
 	static auto GetTopSSRHighScore(T* p, lua_State* L) -> int
 	{
@@ -1618,6 +1670,8 @@ class LunaScoreManager : public Luna<ScoreManager>
 		ADD_METHOD(GetScoresByKey);
 		ADD_METHOD(SortSSRs);
 		ADD_METHOD(SortSSRsForGame);
+		ADD_METHOD(SortSSRsByPercentForGame);
+		ADD_METHOD(SortSSRsByPercent);
 		ADD_METHOD(GetTopSSRHighScore);
 		ADD_METHOD(GetTopSSRHighScoreForGame);
 		ADD_METHOD(SortRecentScores);
