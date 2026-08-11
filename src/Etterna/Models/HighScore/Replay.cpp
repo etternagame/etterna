@@ -2702,7 +2702,10 @@ Replay::ReprioritizeInputData() -> bool
 
 	for (auto& d : InputData) {
 		const auto adjustedSongPositionSeconds =
-		  d.songPositionSeconds + GetGlobalOffset();
+		  d.songPositionSeconds + GetGlobalOffset() -
+		  td->m_fBeat0OffsetInSeconds + GetSongOffset();
+
+		// not sure if this songposition needs to be adjusted
 		const auto foundRow = getClosestNote(d.column, d.songPositionSeconds);
 		if (foundRow != -1) {
 			auto& tn = nd.GetTapNote(d.column, foundRow);
