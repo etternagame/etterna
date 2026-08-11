@@ -186,23 +186,18 @@ function audioVisualizer:new(params)
             addToBin(math.sqrt(fft[i]), i * samplingRate / (4 * count))
         end
 
-        SCREENMAN:GetTopScreen():setTimeout(
-            function()
-                local updater = frame.updater
-                local bars = frame.bars
-                local max = math.max(100.0, unpack(values, 2))
-                for i = 1, #bars do
-                    -- turn into linear scale
-                    local x = math.min(values[i + 1] / max, 1)
-                    -- turn into log scale
-                    x = log(x + 1) / log(2)
-                    values[i + 1] = x
-                    updater(bars[i], x)
-                    values[i + 1] = 0
-                end
-            end,
-            (count / 2) / samplingRate
-        )
+        local updater = frame.updater
+        local bars = frame.bars
+        local max = math.max(100.0, unpack(values, 2))
+        for i = 1, #bars do
+            -- turn into linear scale
+            local x = math.min(values[i + 1] / max, 1)
+            -- turn into log scale
+            x = log(x + 1) / log(2)
+            values[i + 1] = x
+            updater(bars[i], x)
+            values[i + 1] = 0
+        end
     end
     frame.sampleCount = params.sampleCount or 8192
     frame.sound.InitCommand = function(self)
