@@ -366,7 +366,15 @@ RageSound::GetDataToPlay(float* pBuffer,
 				if (fftPlan != nullptr) {
 					mufft_execute_plan_1d(
 					  fftPlan, fftBuffer.data(), recentPCMSamples.data());
-					recentPCMSamples.clear();
+
+					size_t samplesToShiftOut = recentPCMSamplesBufferSize / 8;
+					size_t samplesRemaining =
+					  recentPCMSamplesBufferSize - samplesToShiftOut;
+					std::move(recentPCMSamples.begin() + samplesToShiftOut,
+							  recentPCMSamples.end(),
+							  recentPCMSamples.begin());
+					recentPCMSamples.resize(samplesRemaining);
+
 					pendingPlayBackCall = true;
 				}
 			}
