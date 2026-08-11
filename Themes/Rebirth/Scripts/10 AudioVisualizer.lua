@@ -235,7 +235,7 @@ function audioVisualizer:new(params)
             updater(bars[i], x)
         end
     end
-    frame.sampleCount = params.sampleCount or 4096
+    frame.sampleCount = params.sampleCount or 2048
     frame.sound.InitCommand = function(self)
         frame.sound.actor = self
         local rSound = self:get()
