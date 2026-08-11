@@ -41,6 +41,22 @@ local function smoothZeros(table)
     end
 end
 
+local function weightedAverage(values, weights)
+    local weightedSum = 0
+    for i,v in ipairs(values) do
+        weightedSum = weightedSum + (v * weights[i])
+    end
+    return weightedSum / table.sum(weights)
+end
+
+local function dummy_weights(count)
+    local o = {}
+    for i = 1, count do
+        o[#o+1] = 1
+    end
+    return o
+end
+
 -- simply one of the ways to do binning
 -- https://www.dlbeer.co.nz/articles/fftvis.html
 local function dlbBins(bars, fft, values, lastframevals)
@@ -77,6 +93,57 @@ local function dlbBins(bars, fft, values, lastframevals)
         values[i] = smoothened
 
         freq_start = freq_end
+    end
+end
+
+-- bins based on how the bark scale works
+-- https://en.wikipedia.org/wiki/Bark_scale
+local function barkBins(bars, fft, values, lastframevals, samplingRate)
+
+    -- each bin represents a frequency range
+    -- a particular frequency fits into a bark
+    -- unless we used 24 bins, there is bleed across bins
+
+    local fft_bins = #bars
+    local nyq = samplingRate / 2
+    local fft_val_count = #fft
+
+    local function bark_at_freq(x)
+        --return 13 * math.atan(0.00076 * x) + 3.5 * math.atan(math.pow(x / 7500, 2))
+        return ((26.81 * x) / (1960 + x)) - 0.53 
+    end
+
+    local barks = {}
+    local function emplace_bark_val(v, i)
+        if barks[i] == nil then
+            barks[i] = {}
+        end
+        barks[i][#barks[i]+1] = v
+    end
+
+    for i = 1, fft_val_count do
+
+        local freq_at_i = (i / fft_val_count) * nyq
+        local val = fft[i]
+
+        local bark = bark_at_freq(freq_at_i) / 24 * fft_bins
+        local bark_i = math.round(bark)
+        
+        emplace_bark_val(val, bark_i)
+    end
+
+    for bark_i = 1, fft_bins do
+        if barks[bark_i] == nil then
+            values[bark_i] = 0
+        else
+
+            -- preferable but not in use
+            --values[bark_i] = log(weightedAverage(barks[bark_i], dummy_weights(#barks[bark_i])))
+
+            values[bark_i] = log(table.average(barks[bark_i]))
+
+            if values[bark_i] < 0 then values[bark_i] = 0 end
+        end
     end
 end
 
@@ -230,16 +297,18 @@ function audioVisualizer:new(params)
 
         ----------- CLEAN DATA ---------
         -- cut out the upper part of the fft values
-        -- because im pretending to know what nyquist means
-        for i = #fft/1.5, #fft do
-            --fft[math.floor(i)] = nil
+        -- because it makes the output look so much better and i dont know why
+        for i = #fft/3, #fft do
+            fft[math.floor(i)] = nil
         end
 
 
         ----------- BINNING ------------
-        local count = #fft
+        -- pick one binning function to use
+        -- and it handles inserting into the values table
         
-        dlbBins(bars, fft, values, lastframevals)
+        --dlbBins(bars, fft, values, lastframevals)
+        barkBins(bars, fft, values, lastframevals, samplingRate)
 
 
         ----------- FINISH AND DISPLAY --------
