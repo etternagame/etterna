@@ -25,7 +25,7 @@ local function dump(o)
 end
 
 -- fix 0s in the table
-local function smooth(table)
+local function smoothZeros(table)
     for i = 1, #table do
         if table[i] == 0 then
             if i == 1 then
@@ -66,21 +66,7 @@ Using SOUND:
     t[#t+1] = vis
     SOUND:SetPlayBackCallback(vis.playbackFunction)
 --]]
-function audioVisualizer.multiplyIntervals(ints, n)
-    local t = {}
-    for i, v in ipairs(ints) do
-        local a = v
-        local b = ints[i + 1]
-        if b then
-            for j = 1, n do
-                t[#t + 1] = a + (b - a) * j / n
-            end
-        end
-    end
-    return t
-end
-audioVisualizer.defaultIntervals = {0, 19.0, 35, 60, 90, 140, 240, 400, 800, 1600, 2600, 3900, 5200}
-local defaultIntervals = audioVisualizer.defaultIntervals
+
 -- for i = 0, 67 do
 --   defaultIntervals[#defaultIntervals + 1] = i * i * 5
 -- end
@@ -125,16 +111,15 @@ function audioVisualizer:new(params)
             )
         end
     }
-    -- Freq intervals for each bar
-    local freqIntervals
-    do
-        local rawFreqIntervals = params.freqIntervals or defaultIntervals
-        freqIntervals = concat({0}, rawFreqIntervals)
-    end
+    params.barcount = params.barcount or 16
+
     -- Values for the visualizer
     frame.values = {}
-    for i, v in ipairs(freqIntervals) do
+    frame.lastframevals = {}
+    frame.barcount = params.barcount
+    for i=1, frame.barcount do
         frame.values[i] = 0
+        frame.lastframevals[i] = 0
     end
     -- bar actor updater
     do
@@ -142,12 +127,18 @@ function audioVisualizer:new(params)
         local maxHeight = (params.maxHeight or 120) - minHeight
         if params.onBarUpdate then
             frame.updater = params.barUpdater or function(actor, value)
-                    actor:hurrytweening(0.15):smooth(0.22):zoomtoheight(minHeight + value * maxHeight)
+                    actor
+                        :hurrytweening(0.15)
+                        :smooth(0.22)
+                        :zoomtoheight(minHeight + value * maxHeight)
                     params.onBarUpdate(actor, value)
                 end
         else
             frame.updater = params.barUpdater or function(actor, value)
-                    actor:hurrytweening(0.15):smooth(0.22):zoomtoheight(minHeight + value * maxHeight)
+                    actor
+                        :hurrytweening(0.15)
+                        :smooth(0.22)
+                        :zoomtoheight(minHeight + value * maxHeight)
                 end
         end
     end
@@ -159,8 +150,8 @@ function audioVisualizer:new(params)
     params.spacing = params.spacing or 1
     do
         local color = params.color or color("#FF00000")
-        local intCount = #freqIntervals
-        local width = (params.width - intCount * params.spacing) / (#freqIntervals - 2)
+        local intCount = params.barcount
+        local width = (params.width - intCount * params.spacing) / (params.barcount - 2)
         local pos = width + params.spacing
         for i = 3, intCount do
             frame[#frame + 1] =
@@ -173,7 +164,7 @@ function audioVisualizer:new(params)
                             self:valign(1):x(pos * (i - 2)):diffuse(color):zoomtowidth(width)
                         end,
                         ResetWidthCommand = function(self, given)
-                            local width = (given.width - intCount * params.spacing) / (#freqIntervals - 2)
+                            local width = (given.width - intCount * params.spacing) / (params.barcount - 2)
                             local pos = width + params.spacing
                             self:x(pos * (i-2))
                             self:zoomtowidth(width)
@@ -184,52 +175,67 @@ function audioVisualizer:new(params)
     end
     local soundActor
     frame.sound = Def.Sound {}
-    local addToBin
-    do
-        local values = frame.values
-        addToBin = function(magnitude, freq)
-            local cap = #freqIntervals
-            for i = 2, cap do
-                if freq > freqIntervals[i - 1] and freq <= freqIntervals[i] then
-                    values[i - 1] = values[i - 1] + magnitude
-                    return
-                end
-            end
-        end
-    end
     -- Add magnitude to the appropiate bar's value (aka falls in the freq interval)
     local screen
     local values = frame.values
+    local lastframevals = frame.values
+    local gamma_correction_val = 2
     frame.playbackFunction = function(fft, ss)
-        local samplingRate = ss:GetSampleRate()
-        local count = #fft
 
-        for i = 1, count do
-            -- samples = count*2
-            -- nyquist limit => freq=i * (samplingRate/2) / samples
-            addToBin(math.sqrt(fft[i]), i * samplingRate / (4 * count))
+        -- cut out the upper part of the fft values
+        -- because im pretending to know what nyquist means
+        for i = #fft/1.5, #fft do
+            fft[math.floor(i)] = nil
         end
 
-        SCREENMAN:GetTopScreen():setTimeout(
-            function()
-                local updater = frame.updater
-                local bars = frame.bars
-                smooth(values)
-                local max = math.max(100.0, unpack(values, 2))
-                for i = 1, #bars do
-                    -- turn into linear scale
-                    local x = math.min(values[i + 1] / max, 1)
-                    -- turn into log scale
-                    x = log(x + 1) / log(2)
-                    values[i + 1] = x
-                    updater(bars[i], x)
-                    values[i + 1] = 0
-                end
-            end,
-            (count / 2) / samplingRate
-        )
+        local samplingRate = ss:GetSampleRate()
+        local count = #fft
+        local unique_freqs = math.floor(count / 2)
+        local updater = frame.updater
+        local bars = frame.bars
+        
+        --ms.ok(fft)
+
+        -- https://www.dlbeer.co.nz/articles/fftvis.html
+        --local smoothingval = math.pow(0.00000000001, count / samplingRate)
+        local smoothingval = 0.20
+        local scaleval = 0.95
+        local freq_start = 0
+        for i = 1, #bars do
+            local freq_end = math.ceil(math.pow((i+1) / #bars, gamma_correction_val) * unique_freqs)
+            if freq_end > unique_freqs then freq_end = unique_freqs end
+
+            freq_end = clamp(freq_end, 1, #fft)
+            freq_start = clamp(freq_start, 1, #fft)
+
+            local bigval = 0
+            for j = freq_start, freq_end do
+                local fftval = fft[j]
+                if fftval > bigval then bigval = fftval end
+            end
+
+            -- horrible deception (mostly matters for higher freq)
+            local logval = log(bigval)
+            if logval > 0 then bigval = logval end
+
+            --ms.ok("for bar "..i .. " --- range ".. freq_start .. " - "..freq_end .. " placed val " .. bigval)
+
+            local smoothened = lastframevals[i] * smoothingval + (bigval * scaleval * (1 - smoothingval))
+            lastframevals[i] = values[i]
+            values[i] = smoothened
+
+            freq_start = freq_end
+        end
+
+        smoothZeros(values)
+        for i = 1, #bars do
+            -- the values are already logarithmd and probably arent much more than 10
+            -- if it goes higher then it looks cooler doesnt it? probably not
+            local x = values[i] / 10
+            updater(bars[i], x)
+        end
     end
-    frame.sampleCount = params.sampleCount or 8192
+    frame.sampleCount = params.sampleCount or 4096
     frame.sound.InitCommand = function(self)
         frame.sound.actor = self
         local rSound = self:get()

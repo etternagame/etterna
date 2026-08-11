@@ -1168,13 +1168,12 @@ t[#t+1] = LoadFont("Common Normal") .. {
 -- for fps/compat reasons (this causes random crashes for some people)
 -- but if it is on at first, allow toggling visibility
 if visEnabled then
-    local intervals = {0, 10, 26, 48, 60, 92, 120, 140, 240, 400, 800, 1600, 2600, 3500, 4000}
     t[#t+1] = audioVisualizer:new {
         x = actuals.VisualizerLeftGap,
         y = actuals.Height,
         width = actuals.VisualizerWidth,
-        maxHeight = actuals.Height / 1.8,
-        freqIntervals = audioVisualizer.multiplyIntervals(intervals, 9),
+        maxHeight = actuals.Height / 1.2,
+        barcount = 128,
         color = color("1,1,1,1"),
         onBarUpdate = function(self)
             -- hmm
