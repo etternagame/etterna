@@ -108,6 +108,9 @@ local function barkBins(bars, fft, values, lastframevals, samplingRate)
     local nyq = samplingRate / 2
     local fft_val_count = #fft
 
+    -- percentage of lastframevals to use for this frame
+    local smoothingval = 0.5
+
     local function bark_at_freq(x)
         --return 13 * math.atan(0.00076 * x) + 3.5 * math.atan(math.pow(x / 7500, 2))
         return ((26.81 * x) / (1960 + x)) - 0.53 
@@ -144,6 +147,9 @@ local function barkBins(bars, fft, values, lastframevals, samplingRate)
 
             if values[bark_i] < 0 then values[bark_i] = 0 end
         end
+        local smoothened = lastframevals[bark_i] * smoothingval + (values[bark_i] * (1 - smoothingval))
+        lastframevals[bark_i] = values[bark_i]
+        values[bark_i] = smoothened
     end
 end
 
@@ -236,16 +242,16 @@ function audioVisualizer:new(params)
         if params.onBarUpdate then
             frame.updater = params.barUpdater or function(actor, value)
                     actor
-                        :hurrytweening(0.15)
-                        :smooth(0.22)
+                        :stoptweening()
+                        :smooth(0.05)
                         :zoomtoheight(minHeight + value * maxHeight)
                     params.onBarUpdate(actor, value)
                 end
         else
             frame.updater = params.barUpdater or function(actor, value)
                     actor
-                        :hurrytweening(0.15)
-                        :smooth(0.22)
+                        :stoptweening()
+                        :smooth(0.05)
                         :zoomtoheight(minHeight + value * maxHeight)
                 end
         end
