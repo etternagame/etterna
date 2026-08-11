@@ -2652,10 +2652,10 @@ Replay::ReprioritizeInputData() -> bool
 	auto getClosestNote = [&nd, &td, &judgedNotes, this](const int column,
 												   const float songPosition) {
 		const auto maxSec = REPLAYS->CustomMissWindowFunction() * fMusicRate;
-		const auto iStartRow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition - maxSec));
-		const auto iEndRow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition + maxSec));
+		const auto iStartRow = BeatToNoteRow(
+		  td->GetBeatFromElapsedTimeNoOffset(songPosition - maxSec));
+		const auto iEndRow = BeatToNoteRow(
+		  td->GetBeatFromElapsedTimeNoOffset(songPosition + maxSec));
 
 		NoteData::const_iterator begin;
 		NoteData::const_iterator end;
@@ -2701,6 +2701,8 @@ Replay::ReprioritizeInputData() -> bool
 	}
 
 	for (auto& d : InputData) {
+		const auto adjustedSongPositionSeconds =
+		  d.songPositionSeconds + GetGlobalOffset();
 		const auto foundRow = getClosestNote(d.column, d.songPositionSeconds);
 		if (foundRow != -1) {
 			auto& tn = nd.GetTapNote(d.column, foundRow);
@@ -2727,9 +2729,9 @@ Replay::ReprioritizeInputData() -> bool
 			} else {
 				judgedNotes.at(foundRow).insert(d.column);
 
-				const auto offset =
-				  (d.songPositionSeconds - td->GetTimeFromRowFast(foundRow)) /
-				  fMusicRate;
+				const auto offset = (adjustedSongPositionSeconds -
+									 td->GetTimeFromRowFastNoOffset(foundRow)) /
+									fMusicRate;
 
 				d.reprioritizedNearestNoterow = foundRow;
 				d.reprioritizedOffsetFromNearest = offset;
