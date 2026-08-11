@@ -1986,6 +1986,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// get the highscore from lua and make the AI load it
 		auto* hs = Luna<HighScore>::check(L, 1);
 
+		Steps* steps = GAMESTATE->m_pCurSteps;
+		if (steps == nullptr || hs == nullptr ||
+			hs->GetChartKey() != steps->GetChartKey()) {
+			SCREENMAN->SystemMessage("No chart or no HighScore is selected.");
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
 		// Sometimes the site doesn't send a replay when we ask for one.
 		// This is not our fault.
 		// All scores should have keys.
@@ -2057,6 +2065,16 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	{
 		// get the highscore from lua and fake it to the most recent score
 		auto* hs = Luna<HighScore>::check(L, 1);
+		Steps* steps = GAMESTATE->m_pCurSteps;
+
+		if (steps == nullptr || hs == nullptr ||
+			hs->GetChartKey() != steps->GetChartKey()) {
+			SCREENMAN->SystemMessage(
+			  "No chart or no HighScore is selected.");
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
 		SCOREMAN->PutScoreAtTheTop(hs->GetScoreKey());
 
 		// set to replay mode to disable score saving
@@ -2067,7 +2085,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		StageStats ss;
 		RadarValues rv;
 		NoteData nd;
-		Steps* steps = GAMESTATE->m_pCurSteps;
 		steps->GetNoteData(nd);
 		ss.Init();
 		SCOREMAN->camefromreplay =
