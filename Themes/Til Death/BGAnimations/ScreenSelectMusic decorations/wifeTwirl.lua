@@ -858,8 +858,10 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 		if params.event == "DeviceButton_right mouse button" then
 			SCREENMAN:GetTopScreen():PauseSampleMusic()
 			MESSAGEMAN:Broadcast("MusicPauseToggled")
-
-		elseif params.event == "DeviceButton_left mouse button" then
+		end
+	end,
+	MouseDoubleClickCommand = function(self, params)
+		if params.event == "DeviceButton_left mouse button" then
 			local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 			local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
 
