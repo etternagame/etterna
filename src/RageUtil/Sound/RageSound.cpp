@@ -398,12 +398,7 @@ RageSound::ExecutePlayBackCallback(Lua* L)
 		for (size_t i = 0; i < fftBuffer.size(); ++i) {
 			auto r = fftBuffer[i].real;
 			auto im = fftBuffer[i].imag;
-			lua_pushnumber(
-			  L,
-			  (r * r + im * im) /
-				(0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
-				(0.01f + RageSoundReader_PostBuffering::GetMasterVolume()) /
-				15.f);
+			lua_pushnumber(L, (r * r + im * im));
 			lua_rawseti(L, -2, i + 1);
 		}
 		pendingPlayBackCall = false;
