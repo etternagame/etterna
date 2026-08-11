@@ -40,6 +40,47 @@ local function smoothZeros(table)
         end
     end
 end
+
+-- simply one of the ways to do binning
+-- https://www.dlbeer.co.nz/articles/fftvis.html
+local function dlbBins(bars, fft, values, lastframevals)
+    --local smoothingval = math.pow(0.00000000001, count / samplingRate)
+    local smoothingval = 0.20
+    local scaleval = 0.95
+    local freq_start = 0
+    local gamma_correction_val = 2
+
+    local freq_count = #fft
+    local unique_freqs = math.floor(freq_count / 2)
+
+    for i = 1, #bars do
+        local freq_end = math.ceil(math.pow((i+1) / #bars, gamma_correction_val) * unique_freqs)
+        if freq_end > unique_freqs then freq_end = unique_freqs end
+
+        freq_end = clamp(freq_end, 1, freq_count)
+        freq_start = clamp(freq_start, 1, freq_count)
+
+        local bigval = 0
+        for j = freq_start, freq_end do
+            local fftval = fft[j]
+            if fftval > bigval then bigval = fftval end
+        end
+
+        -- horrible deception (mostly matters for higher freq)
+        local logval = log(bigval)
+        if logval > 0 then bigval = logval end
+
+        --ms.ok("for bar "..i .. " --- range ".. freq_start .. " - "..freq_end .. " placed val " .. bigval)
+
+        local smoothened = lastframevals[i] * smoothingval + (bigval * scaleval * (1 - smoothingval))
+        lastframevals[i] = values[i]
+        values[i] = smoothened
+
+        freq_start = freq_end
+    end
+end
+
+
 audioVisualizer = {}
 --[[
 Note: This is relatively barebones, and not very customizable.
@@ -179,54 +220,29 @@ function audioVisualizer:new(params)
     local screen
     local values = frame.values
     local lastframevals = frame.values
-    local gamma_correction_val = 2
     frame.playbackFunction = function(fft, ss)
 
+        ----------- INIT --------------
+        local samplingRate = ss:GetSampleRate()
+        local updater = frame.updater
+        local bars = frame.bars
+
+
+        ----------- CLEAN DATA ---------
         -- cut out the upper part of the fft values
         -- because im pretending to know what nyquist means
         for i = #fft/1.5, #fft do
-            fft[math.floor(i)] = nil
+            --fft[math.floor(i)] = nil
         end
 
-        local samplingRate = ss:GetSampleRate()
+
+        ----------- BINNING ------------
         local count = #fft
-        local unique_freqs = math.floor(count / 2)
-        local updater = frame.updater
-        local bars = frame.bars
         
-        --ms.ok(fft)
+        dlbBins(bars, fft, values, lastframevals)
 
-        -- https://www.dlbeer.co.nz/articles/fftvis.html
-        --local smoothingval = math.pow(0.00000000001, count / samplingRate)
-        local smoothingval = 0.20
-        local scaleval = 0.95
-        local freq_start = 0
-        for i = 1, #bars do
-            local freq_end = math.ceil(math.pow((i+1) / #bars, gamma_correction_val) * unique_freqs)
-            if freq_end > unique_freqs then freq_end = unique_freqs end
 
-            freq_end = clamp(freq_end, 1, #fft)
-            freq_start = clamp(freq_start, 1, #fft)
-
-            local bigval = 0
-            for j = freq_start, freq_end do
-                local fftval = fft[j]
-                if fftval > bigval then bigval = fftval end
-            end
-
-            -- horrible deception (mostly matters for higher freq)
-            local logval = log(bigval)
-            if logval > 0 then bigval = logval end
-
-            --ms.ok("for bar "..i .. " --- range ".. freq_start .. " - "..freq_end .. " placed val " .. bigval)
-
-            local smoothened = lastframevals[i] * smoothingval + (bigval * scaleval * (1 - smoothingval))
-            lastframevals[i] = values[i]
-            values[i] = smoothened
-
-            freq_start = freq_end
-        end
-
+        ----------- FINISH AND DISPLAY --------
         smoothZeros(values)
         for i = 1, #bars do
             -- the values are already logarithmd and probably arent much more than 10
@@ -235,7 +251,7 @@ function audioVisualizer:new(params)
             updater(bars[i], x)
         end
     end
-    frame.sampleCount = params.sampleCount or 2048
+    frame.sampleCount = params.sampleCount or 8192
     frame.sound.InitCommand = function(self)
         frame.sound.actor = self
         local rSound = self:get()
