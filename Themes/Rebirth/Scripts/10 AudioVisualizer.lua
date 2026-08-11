@@ -304,6 +304,7 @@ function audioVisualizer:new(params)
         ----------- CLEAN DATA ---------
         -- cut out the upper part of the fft values
         -- because it makes the output look so much better and i dont know why
+        -- (sometimes really cool stuff is cut off here but like 95% of the time its empty data)
         for i = #fft/3, #fft do
             fft[math.floor(i)] = nil
         end
