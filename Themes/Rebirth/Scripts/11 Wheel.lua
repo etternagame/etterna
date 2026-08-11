@@ -194,8 +194,12 @@ Wheel.mt = {
         if whee.moving ~= 0 then
             whee:changemusic(whee.moving)
         else
-            if SOUND_MOVE ~= nil then
-                SOUND_MOVE:play()
+            local now = GetTimeSinceStart()
+            if now > (last_wheel_move_timestamp + (1 / spinSpeed())) then
+                last_wheel_move_timestamp = now
+                if SOUND_MOVE ~= nil then
+                    SOUND_MOVE:play()
+                end
             end
         end
 
