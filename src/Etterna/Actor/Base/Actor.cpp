@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
@@ -920,6 +921,14 @@ Actor::Update(float fDeltaTime)
 {
 	//	LOG->Trace( "Actor::Update( %f )", fDeltaTime );
 	ASSERT_M(fDeltaTime >= 0, ssprintf("DeltaTime: %f", fDeltaTime));
+
+	// possible in rare cases for notefields
+	if (this == nullptr) {
+		Locator::getLogger()->warn(
+		  "Actor was somehow considered null at an update. Update skipped");
+		return;
+	}
+
 	if (!m_WrapperStates.empty())
 		for (auto* w : m_WrapperStates)
 			w->Update(fDeltaTime);
