@@ -1173,7 +1173,7 @@ if visEnabled then
         y = actuals.Height,
         width = actuals.VisualizerWidth,
         maxHeight = actuals.Height / 1.2,
-        barcount = 128,
+        barcount = 144,
         color = color("1,1,1,1"),
         onBarUpdate = function(self)
             -- hmm

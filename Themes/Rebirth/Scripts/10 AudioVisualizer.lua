@@ -153,6 +153,129 @@ local function barkBins(bars, fft, values, lastframevals, samplingRate)
     end
 end
 
+local function aweight(frequency)
+    local f2 = frequency * frequency
+    local f4 = f2 * f2
+    local a2 = 20.6 * 20.6
+    local b2 = 107.7 * 107.7
+    local c2 = 737.9 * 737.9
+    local d2 = 12194 * 12194
+    local RA = (d2 * f4) / ((f2 + a2) * math.sqrt((f2 + b2) * (f2 + c2)) * (f2 + d2))
+    -- conversion to dB is done outside this function
+    -- raw aweighting is too strong, so sqrt + blend towards 1 to tone it down
+    return 0.303 + 0.707*math.sqrt(RA)
+end
+
+local function perceptualBins(bars, fft, values, lastframevals, samplingRate, nfftbins)
+
+    -- tries to look perceptually Right using various doodads
+
+    local B = #bars
+    local N = nfftbins
+    local nyq = samplingRate / 2
+    local T = N / nyq
+
+    local function remap(x, a, b, A, B)
+        local t = (x - a) / (b - a)
+        return (1 - t)*A + t*B
+    end
+
+    local function fft_bin_to_freq(b)
+        return nyq * (b / N)
+    end
+
+    local function freq_to_fft_bin(x)
+        return (x / nyq) * N
+    end
+
+    -- assign semitoneesque spacing to bars
+    local first_bin_freq = 20
+    local first_mids_bin_freq = 120
+    local last_bin_freq = math.min(7360, fft_bin_to_freq(#fft))
+    local log_first_bin_freq = math.log(first_bin_freq, 2)
+    local log_first_mids_bin_freq = math.log(first_mids_bin_freq, 2)
+    local log_last_bin_freq = math.log(last_bin_freq, 2)
+
+    local mids_bar = clamp(B / 8, 2, B)
+    local function bar_to_freq(b)
+        -- bass takes up too many bars for the resolution we have
+        -- this stitches together two domain warps with a kink at the boundary
+        -- you can see it if you look for it
+        local logx = 0
+        if b < mids_bar then
+            logx = remap(b, 1, mids_bar, log_first_bin_freq, log_first_mids_bin_freq)
+        else
+            logx = remap(b, mids_bar, B, log_first_mids_bin_freq, log_last_bin_freq)
+        end
+
+        return math.pow(2, logx)
+    end
+
+    local function sample(xs, n)
+        local clamped = clamp(n, 1, #xs - 1)
+        local i = math.floor(clamped)
+        local t = clamped - i
+        return xs[i] * (1 - t) + xs[i+1]*t
+    end
+
+    local bass_nrg = 1e-8
+    local mids_nrg = 1e-8
+    local mids_bin = math.ceil(freq_to_fft_bin(first_mids_bin_freq))
+    local upper_bin = math.min(#fft, math.ceil(freq_to_fft_bin(last_bin_freq / 2)))
+    for i = 1, mids_bin do
+        bass_nrg = bass_nrg + fft[i]
+    end
+    for i = mids_bin, upper_bin do
+        mids_nrg = mids_nrg + fft[i]
+    end
+    bass_nrg = bass_nrg / mids_bin
+    mids_nrg = mids_nrg / (upper_bin - mids_bin)
+    -- boosts the entire frequency range when something is going on in the bass
+    -- but looks super suspicious when a sound is mostly bass or has no bass at all, so add in a mids correction
+    -- pow by 0.25 dampens the effect
+    -- this only really works well because aweight is going to kill off bass frequencies almost entirely,
+    -- so the fact that the entire spectrum is being lifted by the bass is not obvious
+    local nrg = math.pow(bass_nrg + bass_nrg/mids_nrg, 0.25)
+
+    for i = 1, B do
+        local fft_bin_lo = clamp(freq_to_fft_bin(bar_to_freq(i - 0.5)), 1, #fft - 1)
+        local fft_bin_hi = clamp(freq_to_fft_bin(bar_to_freq(i + 0.5)), 2, #fft)
+        local freq = bar_to_freq(i)
+        local fft_bin_here = clamp(freq_to_fft_bin(freq), 1, #fft)
+
+        -- ms.ok("bar " .. i .. " " .. bar_to_freq(i) .. " "  .. fft_bin_here .. " " .. fft_bin_lo .. " " .. fft_bin_hi)
+
+        local val = 0
+        local weight_sum = 0
+        local n_window = clamp(math.ceil(fft_bin_hi) - math.floor(fft_bin_lo), 2, 12)
+        for j = 0, n_window do
+            local fft_bin = remap(j, 0, n_window, fft_bin_lo, fft_bin_hi)
+            local bin_delta = (fft_bin_here - fft_bin) / n_window
+            local weight = math.exp(bin_delta*bin_delta)
+            val = val + sample(fft, fft_bin) * weight
+            weight_sum = weight_sum + weight
+        end
+
+        -- vaguely dBish plus dumb hacks to get a decent scale
+        val = aweight(freq) * 2 * math.log(1.0 + nrg * 10 * val / (nfftbins * weight_sum), 10)
+
+        -- percentage of val to use for this frame
+        -- sample rate and fft size independent
+        -- faster decay for high freqs
+        -- faster decay when louder than last frame
+        -- slower decay when much quieter than last frame, makes salient musical events linger a bit
+        local last_val = values[i]
+        local base_rate = 8
+        local freq_strength = 2
+        local vol_strength = 1
+        local freq_rate = (1 + freq_strength * freq / last_bin_freq)
+        local vol_rate = math.exp(vol_strength * math.tanh(val - last_val))
+        local rate = base_rate * freq_rate * vol_rate
+        local alpha = math.pow(2, -rate*T)
+
+        values[i] = (last_val * alpha) + (val * (1 - alpha))
+    end
+end
 
 audioVisualizer = {}
 --[[
@@ -243,7 +366,6 @@ function audioVisualizer:new(params)
             frame.updater = params.barUpdater or function(actor, value)
                     actor
                         :stoptweening()
-                        :smooth(0.05)
                         :zoomtoheight(minHeight + value * maxHeight)
                     params.onBarUpdate(actor, value)
                 end
@@ -251,7 +373,6 @@ function audioVisualizer:new(params)
             frame.updater = params.barUpdater or function(actor, value)
                     actor
                         :stoptweening()
-                        :smooth(0.05)
                         :zoomtoheight(minHeight + value * maxHeight)
                 end
         end
@@ -293,12 +414,14 @@ function audioVisualizer:new(params)
     local screen
     local values = frame.values
     local lastframevals = frame.values
+
     frame.playbackFunction = function(fft, ss)
 
         ----------- INIT --------------
         local samplingRate = ss:GetSampleRate()
         local updater = frame.updater
         local bars = frame.bars
+        local nbins = #fft
 
 
         ----------- CLEAN DATA ---------
@@ -313,10 +436,10 @@ function audioVisualizer:new(params)
         ----------- BINNING ------------
         -- pick one binning function to use
         -- and it handles inserting into the values table
-        
-        --dlbBins(bars, fft, values, lastframevals)
-        barkBins(bars, fft, values, lastframevals, samplingRate)
 
+        --dlbBins(bars, fft, values, lastframevals)
+        --barkBins(bars, fft, values, lastframevals, samplingRate)
+        perceptualBins(bars, fft, values, lastframevals, samplingRate, nbins)
 
         ----------- FINISH AND DISPLAY --------
         smoothZeros(values)
