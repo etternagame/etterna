@@ -361,7 +361,16 @@ RageSound::GetDataToPlay(float* pBuffer,
 			  std::min(iFramesStored * m_pSource->GetNumChannels(),
 					   recentPCMSamplesBufferSize - currentSamples);
 			auto until = pBuffer + samplesToCopy;
-			copy(pBuffer, until, back_inserter(recentPCMSamples));
+			const auto vol =
+			  0.001F + RageSoundReader_PostBuffering::GetMasterVolume() *
+						 RageSoundReader_PostBuffering::GetMasterVolume();
+			std::transform(pBuffer,
+						   until,
+						   back_inserter(recentPCMSamples),
+						   [&vol](const float& f) {
+							   // scale by volume
+							   return f / vol;
+						   });
 			if (recentPCMSamples.size() >= recentPCMSamplesBufferSize) {
 				if (fftPlan != nullptr) {
 					mufft_execute_plan_1d(
