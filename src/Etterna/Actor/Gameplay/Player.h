@@ -216,8 +216,6 @@ class Player : public ActorFrame
 	void ChangeLife(HoldNoteScore hns, TapNoteScore tns) const;
 	void ChangeLifeRecord() const;
 
-	void ChangeWifeRecord() const;
-
 	auto GetClosestNoteDirectional(int col,
 								   int iStartRow,
 								   int iEndRow,

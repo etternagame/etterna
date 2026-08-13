@@ -1559,19 +1559,6 @@ Player::ChangeLifeRecord() const
 	}
 }
 
-void
-Player::ChangeWifeRecord() const
-{
-	// Sets the life ... to the wife....
-	// That's not right.
-	if (m_pPlayerStageStats != nullptr) {
-		m_pPlayerStageStats->SetLifeRecordAt(
-		  curwifescore / maxwifescore,
-		  GAMESTATE->m_Position.m_fMusicSeconds /
-			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	}
-}
-
 auto
 Player::GetClosestNoteDirectional(int col,
 								  int iStartRow,
