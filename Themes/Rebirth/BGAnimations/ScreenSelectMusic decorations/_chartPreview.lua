@@ -237,15 +237,9 @@ t[#t+1] = UIElements.TextButton(2, 2, "Common Normal") .. {
         end
     end,
     SetPositionCommand = function(self)
-        if getWheelPosition() then
-            self.bg:halign(0)
-            self.txt:halign(0)
-            self:x(-actuals.Width + actuals.EdgePadding)
-        else
-            self.bg:halign(1)
-            self.txt:halign(1)
-            self:x(-actuals.EdgePadding)
-        end
+        self.bg:halign(0)
+        self.txt:halign(0)
+        self:x(-actuals.Width + actuals.EdgePadding)
     end,
     RolloverUpdateCommand = function(self, params)
         self:alphaDeterminingFunction()
