@@ -256,8 +256,8 @@ local function perceptualBins(bars, fft, values, lastframevals, samplingRate, nf
             weight_sum = weight_sum + weight
         end
 
-        -- vaguely dBish plus dumb hacks to get a decent scale
-        val = aweight(freq) * 2 * math.log(1.0 + nrg * 10 * val / (nfftbins * weight_sum), 10)
+        -- vaguely dBish
+        val = aweight(freq) * 2 * math.log(1.0 + nrg * val / (nfftbins * weight_sum), 10)
 
         -- percentage of val to use for this frame
         -- sample rate and fft size independent
