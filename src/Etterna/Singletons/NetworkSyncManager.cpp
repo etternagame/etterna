@@ -105,7 +105,7 @@ static LocalizedString LOGIN_TIMEOUT("NetworkSyncManager", "LoginTimeout");
 // need it to be reasonably large
 // but if too big it can blow the stack
 // or some other dumb consequence
-static const long INCOMING_BUFFER_SIZE = 128000;
+static constexpr long INCOMING_BUFFER_SIZE = 128000;
 
 // Utility function (Since json needs to be valid utf8)
 static std::string
@@ -648,8 +648,7 @@ ETTProtocol::LaunchPollingThread()
 
 	auto loop = [&]() {
 		std::string message;
-		std::vector<char> buffer = {};
-		buffer.reserve(INCOMING_BUFFER_SIZE);
+		std::vector<char> buffer(INCOMING_BUFFER_SIZE, '\0');
 
 		while (!stopRequest) {
 			if (NSMAN == nullptr)
@@ -660,7 +659,7 @@ ETTProtocol::LaunchPollingThread()
 				const struct curl_ws_frame* meta = nullptr;
 				do {
 					CURLcode result = curl_ws_recv(
-					  curl, &buffer[0], INCOMING_BUFFER_SIZE, &rlen, &meta);
+					  curl, buffer.data(), INCOMING_BUFFER_SIZE, &rlen, &meta);
 					if (result == CURLE_AGAIN) {
 						// almost always means nothing to us
 						// just move on so that the lock can be released
@@ -694,7 +693,7 @@ ETTProtocol::LaunchPollingThread()
 				this->newMessages.push_back(std::move(d));
 				message.clear();
 			}
-			buffer.clear();
+			std::fill(buffer.begin(), buffer.end(), '\0');
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		}
