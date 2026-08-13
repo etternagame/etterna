@@ -423,6 +423,9 @@ function audioVisualizer:new(params)
         local bars = frame.bars
         local nbins = #fft
 
+        -- makes the bars shorter with a bigger number
+        local downscalinator = 9
+
 
         ----------- CLEAN DATA ---------
         -- cut out the upper part of the fft values
@@ -441,12 +444,13 @@ function audioVisualizer:new(params)
         --barkBins(bars, fft, values, lastframevals, samplingRate)
         perceptualBins(bars, fft, values, lastframevals, samplingRate, nbins)
 
+
         ----------- FINISH AND DISPLAY --------
         smoothZeros(values)
         for i = 1, #bars do
             -- the values are already logarithmd and probably arent much more than 10
             -- if it goes higher then it looks cooler doesnt it? probably not
-            local x = values[i] / 10
+            local x = values[i] / downscalinator
             updater(bars[i], x)
         end
     end
