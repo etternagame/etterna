@@ -97,6 +97,7 @@ static Preference<float> m_fTimingWindowScale("TimingWindowScale", 1.0F);
 static Preference1D<float> m_fTimingWindowSeconds(TimingWindowSecondsInit,
 												  NUM_TimingWindow);
 static Preference<bool> g_bEnableMineSoundPlayback("EnableMineHitSound", true);
+static Preference<bool> g_bEnableNoteskinHitsounds("EnableNoteskinHitSounds", true);
 
 // moved out of being members of player.h
 static ThemeMetric<float> GRAY_ARROWS_Y_STANDARD;
@@ -280,6 +281,9 @@ Player::~Player()
 	REPLAYS->ReleaseReplay(pbReplay);
 
 	SAFE_DELETE(m_pNoteField);
+	for (auto& [judge, hitsound] : m_mHitsounds) {
+		SAFE_DELETE(hitsound);
+	}
 	for (unsigned i = 0; i < m_vpHoldJudgment.size(); ++i) {
 		SAFE_DELETE(m_vpHoldJudgment[i]);
 	}
@@ -457,6 +461,32 @@ Player::Init(const std::string& sType,
 		ActorUtil::LoadAllCommands(*m_pNoteField, sType);
 		this->AddChild(m_pNoteField);
 	}
+
+	// Load noteskin hitsounds -Creosm
+	{
+		if (g_bEnableNoteskinHitsounds) {
+			auto NoteskinLock = LockNoteSkin( m_pPlayerState->m_PlayerOptions.GetStage().m_sNoteSkin );
+			int TNSIndex = TNS_W1;
+
+			for (std::string JudgementName : {"Marvelous", "Perfect", "Great", "Good", "Bad", "Miss"}) {
+
+				auto MetricJudgementHitsoundPath = NOTESKIN->GetMetric("Hitsound", JudgementName);
+				auto JudgeHitsoundPath			 = NOTESKIN->GetPath("", MetricJudgementHitsoundPath);
+
+				if (JudgeHitsoundPath != "") {
+					Locator::getLogger()->info("Found noteskin hitsound metric for judgement: {} using path: {}", JudgementName, JudgeHitsoundPath);
+
+					auto JudgeHitsound = new RageSound();
+					JudgeHitsound->Load(JudgeHitsoundPath, true);
+					m_mHitsounds[static_cast<TapNoteScore>(TNSIndex)] = JudgeHitsound;
+				};
+
+				TNSIndex--;
+
+			}
+		}
+	}
+
 }
 /**
  * @brief Determine if a TapNote needs a tap note style judgment.
@@ -572,7 +602,7 @@ Player::Load()
 	const HighScore* pb = SCOREMAN->GetChartPBAt(
 	  GAMESTATE->m_pCurSteps->GetChartKey(),
 	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	
+
 	// the latter condition checks for Grade_Failed, NUM_Grade, Grade_Invalid
 	if (pb == nullptr || pb->GetGrade() >= Grade_Failed) {
 		wifescorepersonalbest = m_pPlayerState->playertargetgoal;
@@ -1812,6 +1842,15 @@ Player::ScoreAllActiveHoldsLetGo()
 }
 
 void
+Player::PlayHitsound(TapNoteScore tns)
+{
+	if (g_bEnableNoteskinHitsounds && m_mHitsounds.contains(tns))
+	{
+		m_mHitsounds[tns]->Play(false);
+	}
+}
+
+void
 Player::PlayKeysound(const TapNote& tn, TapNoteScore score)
 {
 	// tap note must have keysound
@@ -2163,6 +2202,10 @@ Player::Step(int col,
 								score = TNS_W5;
 							}
 						}
+
+						PlayHitsound(score); // Misses are done in
+											 // Player::UpdateTapNotesMissedOlderThan
+											 // -Creosm
 						break;
 				}
 				break;
@@ -2626,6 +2669,7 @@ Player::UpdateTapNotesMissedOlderThan(float fMissIfOlderThanSeconds)
 			}
 		} else {
 			tn.result.tns = TNS_Miss;
+			PlayHitsound(TNS_Miss);
 
 			// avoid scoring notes that get passed when seeking in pm
 			// not sure how many rows grace time is needed (if any?)
