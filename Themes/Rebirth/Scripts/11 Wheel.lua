@@ -28,7 +28,10 @@ local enteringSong = false
 
 -- sounds (actors)
 local SOUND_MOVE = nil
-local SOUND_SELECT = nil
+local SOUND_SELECT = nil -- C++ plays this for us
+local SOUND_SORTMODE = nil
+local SOUND_FOLDER_OPEN = nil
+local SOUND_FOLDER_CLOSE = nil
 
 -- timer stuff
 local last_wheel_move_timestamp = GetTimeSinceStart()
@@ -393,6 +396,11 @@ Wheel.mt = {
         if enteringSong then return end
 
         if whee.group == nil then return end
+
+        if SOUND_FOLDER_CLOSE ~= nil then
+            SOUND_FOLDER_CLOSE:play()
+        end
+
         crossedGroupBorder = false
         forceGroupCheck = true
         whee:findGroup(whee.group, false)
@@ -442,6 +450,10 @@ Wheel.mt = {
         w.stepsBeforeSortmode = GAMESTATE:GetCurrentSteps()
         w.songBeforeSortmode = GAMESTATE:GetCurrentSong()
         w.groupBeforeSortmode = w.group
+
+        if SOUND_SORTMODE ~= nil then
+            SOUND_SORTMODE:play()
+        end
 
         GAMESTATE:SetCurrentSong(nil)
         GAMESTATE:SetCurrentSteps(PLAYER_1, nil)
@@ -600,11 +612,32 @@ function Wheel:new(params)
         },
         Def.Sound {
             Name = "SelectSound",
-            File = THEME:GetPathS("Common", "value"),
+            File = THEME:GetPathS("LuaWheel", "select"),
             Precache = true,
             IsAction = true,
             InitCommand = function(self) SOUND_SELECT = self end,
-        }
+        },
+        Def.Sound {
+            Name = "SortSound",
+            File = THEME:GetPathS("LuaWheel", "sort"),
+            Precache = true,
+            IsAction = true,
+            InitCommand = function(self) SOUND_SORTMODE = self end,
+        },
+        Def.Sound {
+            Name = "FolderOpenSound",
+            File = THEME:GetPathS("LuaWheel", "folder open"),
+            Precache = true,
+            IsAction = true,
+            InitCommand = function(self) SOUND_FOLDER_OPEN = self end,
+        },
+        Def.Sound {
+            Name = "FolderCloseSound",
+            File = THEME:GetPathS("LuaWheel", "folder close"),
+            Precache = true,
+            IsAction = true,
+            InitCommand = function(self) SOUND_FOLDER_CLOSE = self end,
+        },
     }
     setmetatable(whee, {__index = Wheel.mt})
     crossedGroupBorder = false -- reset default
@@ -1107,6 +1140,10 @@ function MusicWheel:new(params)
                     crossedGroupBorder = true
                     forceGroupCheck = true
 
+                    if SOUND_SORTMODE ~= nil then
+                        SOUND_SORTMODE:play()
+                    end
+
                     w:rebuildFrames()
                     MESSAGEMAN:Broadcast("ModifiedGroups", {
                         group = w.group,
@@ -1138,6 +1175,10 @@ function MusicWheel:new(params)
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
 
+                    if SOUND_FOLDER_CLOSE ~= nil then
+                        SOUND_FOLDER_CLOSE:play()
+                    end
+
                     MESSAGEMAN:Broadcast("ClosedGroup", {
                         group = group,
                     })
@@ -1151,6 +1192,10 @@ function MusicWheel:new(params)
 
                     w.index = findKeyOf(newItems, group)
                     w.itemsGetter = function() return WHEELDATA:GetWheelItems() end
+
+                    if SOUND_FOLDER_OPEN ~= nil then
+                        SOUND_FOLDER_OPEN:play()
+                    end
 
                     crossedGroupBorder = true
                     MESSAGEMAN:Broadcast("OpenedGroup", {
