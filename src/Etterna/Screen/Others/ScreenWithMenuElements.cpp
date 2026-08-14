@@ -275,6 +275,7 @@ ScreenWithMenuElements::Cancel(ScreenMessage smSendWhenDone)
 	if (CANCEL_TRANSITIONS_OUT) {
 		StartTransitioningScreen(smSendWhenDone);
 		COMMAND(m_Out, "Cancel");
+		SCREENMAN->PlayCancelSound();
 		return;
 	}
 
@@ -290,6 +291,7 @@ ScreenWithMenuElements::Cancel(ScreenMessage smSendWhenDone)
 		m_MenuTimer->Stop();
 	m_Cancel.StartTransitioning(smSendWhenDone);
 	COMMAND(m_Cancel, "Cancel");
+	SCREENMAN->PlayCancelSound();
 }
 
 bool
