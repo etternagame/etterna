@@ -14,6 +14,8 @@ local defaultConfig = {
 		FadeNoteFieldInSyncMachine = true,
 		ShowPlayerOptionsHint = true,
 		ShowBanners = true, -- false to turn off banners everywhere
+		PlayTitleMusic = true,
+        PlaySongSelectBGM = true,
 	},
 	NPSDisplay = {
 		MaxWindow = 2,
@@ -35,4 +37,10 @@ function CenteredComboEnabled()
 end
 function BannersEnabled()
 	return themeConfig:get_data().global.ShowBanners
+end
+function playTitleMusic()
+    return themeConfig:get_data().global.PlayTitleMusic
+end
+function playSongSelectBGM()
+    return themeConfig:get_data().global.PlaySongSelectBGM
 end

@@ -786,6 +786,72 @@ function ShowBanners()
     return t
 end
 
+function PlayTitleMusicOption()
+    local t = {
+        Name = "PlayTitleMusicOption",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = true,
+        ExportOnChange = false,
+        ExportOnCancel = true,
+        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+        LoadSelections = function(self, list, pn)
+            local pref = themeConfig:get_data().global.PlayTitleMusic
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
+        end,
+        SaveSelections = function(self, list, pn)
+            local value
+            if list[1] then
+                value = false
+            else
+                value = true
+            end
+            themeConfig:get_data().global.PlayTitleMusic = value
+            themeConfig:set_dirty()
+            themeConfig:save()
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function PlaySongSelectBGMOption()
+    local t = {
+        Name = "PlaySongSelectBGMOption",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = true,
+        ExportOnChange = false,
+        ExportOnCancel = true,
+        Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+        LoadSelections = function(self, list, pn)
+            local pref = themeConfig:get_data().global.PlaySongSelectBGM
+            if pref then
+                list[2] = true
+            else
+                list[1] = true
+            end
+        end,
+        SaveSelections = function(self, list, pn)
+            local value
+            if list[1] then
+                value = false
+            else
+                value = true
+            end
+            themeConfig:get_data().global.PlaySongSelectBGM = value
+            themeConfig:set_dirty()
+            themeConfig:save()
+        end
+    }
+    setmetatable(t, t)
+    return t
+end
+
 function Particles()
 	local t = {
 		Name = "Particles",
