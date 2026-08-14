@@ -153,6 +153,9 @@ namespace {
 
         SCREENMAN = new ScreenManager();
 
+		if (SOUND)
+			SOUND->StopMusic();
+
         StepMania::ResetGame();
         SCREENMAN->ThemeChanged();
         // The previous system for changing the theme fetched the "NextScreen"
