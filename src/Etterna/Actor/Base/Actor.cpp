@@ -1,5 +1,7 @@
 #include "Etterna/Globals/global.h"
 #include "Actor.h"
+#include "RageUtil/Graphics/Display/PipelineHandle.h"
+#include "RageUtil/Graphics/RageDisplay.h"
 #include "ActorFrame.h"
 #include "ActorUtil.h"
 #include "Core/Services/Locator.hpp"
@@ -7,7 +9,7 @@
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Models/Misc/Preference.h"
-#include "RageUtil/Graphics/RageDisplay.h"
+#include "RageUtil/Graphics/RageTexture.h"
 #include "RageUtil/Misc/RageMath.h"
 #include "RageUtil/Misc/RageTimer.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -180,7 +182,8 @@ Actor::Actor(const Actor& cpy)
 
 	*this = cpy;
 }
-Actor& Actor::operator=(const Actor& x)
+Actor&
+Actor::operator=(const Actor& x)
 {
 #define CPY(membername) this->membername = x.membername
 	CPY(m_pTempState);
@@ -518,7 +521,26 @@ Actor::Draw()
 		ASSERT(m_pTempState != nullptr);
 		if (PartiallyOpaque()) {
 			this->BeginDraw();
+
+			const bool hasCustomShaders = m_CustomShaders.id != 0;
+
+			if (hasCustomShaders) {
+				DISPLAY->SetGraphicsPipeline(m_CustomShaders,
+											 m_VertexShaderArgs,
+											 m_FragmentShaderArgs,
+											 m_ShaderPersistence);
+			}
 			this->DrawPrimitives();
+
+			if (hasCustomShaders) {
+				DISPLAY->SetGraphicsPipeline(
+				  DisplayAdapter::PipelineHandle{ m_ShaderPersistence ? (intptr_t)-1
+																	  : (intptr_t)0 },
+				  {},
+				  {},
+				  m_ShaderPersistence);
+			}
+
 			this->EndDraw();
 		}
 		this->PostDraw();
@@ -1658,6 +1680,14 @@ Actor::HandleMessage(const Message& msg)
 }
 
 void
+Actor::SetShaders(const std::string& vertexShaderPath,
+				  const std::string& fragmentShaderPath)
+{
+	m_CustomShaders =
+	  DISPLAY->CreateGraphicsPipeline(vertexShaderPath, fragmentShaderPath);
+}
+
+void
 Actor::PlayCommandNoRecurse(const Message& msg)
 {
 	const auto* pCmd = GetCommand(msg.GetName());
@@ -2737,6 +2767,177 @@ class LunaActor : public Luna<Actor>
 			return 0;
 		return 1;
 	}
+	static int SetShaders(T* p, lua_State* L)
+	{
+		p->SetShaders(SArg(1), SArg(2));
+		COMMON_RETURN_SELF;
+	}
+	static int ResetShaders(T* p, lua_State* L)
+	{
+		p->ResetShaders();
+		COMMON_RETURN_SELF;
+	}
+	static int SetShaderPersistence(T* p, lua_State* L)
+	{
+		p->SetShaderPersistence(BArg(1));
+		COMMON_RETURN_SELF;
+	}
+	static int GetShaderPersistence(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, p->GetShaderPersistence());
+		return 1;
+	}
+	static int SetShaderParameters(T* p, lua_State* L)
+	{
+		int argCount = lua_gettop(L);
+		if (argCount != 2) {
+			luaL_error(
+			  L,
+			  "Expected shader type and shader parameter table as arguments");
+		}
+
+		auto shaderType = Enum::Check<ShaderType>(L, 1);
+		if (shaderType == ShaderType_Invalid) {
+			luaL_error(L, "Invalid shader type passed");
+		}
+
+		if (!lua_istable(L, 2)) {
+			luaL_error(L, "expected shader parameter table to be... a table");
+		}
+
+		std::vector<uint8_t>& scratchBuffer = shaderType == ShaderType_Vertex
+												? p->m_VertexShaderArgs
+												: p->m_FragmentShaderArgs;
+		scratchBuffer.clear();
+		size_t scratchOffset = 0;
+
+		// turn the table into key-value pairs and gather up all the keys
+		// (because iterating through the table with lua_objlen is yucky
+		// sometimes)
+		std::vector<int> keys;
+		lua_pushnil(L);
+		while (lua_next(L, 2) != 0) {
+			if (lua_type(L, -2) == LUA_TNUMBER) {
+				int key = (int)lua_tonumber(L, -2);
+				keys.push_back(key);
+			}
+			lua_pop(L, 1);
+		}
+		std::sort(keys.begin(), keys.end());
+
+		for (const auto& key : keys) {
+			lua_rawgeti(L, 2, key);
+			if (!lua_istable(L, -1)) {
+				luaL_error(
+				  L,
+				  "Shader parameter at key %d is not a table (type: %s)",
+				  key,
+				  lua_typename(L, lua_type(L, -1)));
+			}
+
+			lua_rawgeti(L, -1, 1);
+			auto paramType = Enum::Check<ShaderParamType>(L, -1);
+			lua_pop(L, 1);
+
+			lua_rawgeti(L, -1, 2);
+
+			switch (paramType) {
+				case ShaderParamType_Int: {
+					int arg = IArg(-1);
+					scratchBuffer.resize(scratchOffset + sizeof(int));
+					std::memcpy(
+					  &scratchBuffer[scratchOffset], &arg, sizeof(int));
+					scratchOffset += sizeof(int);
+
+					lua_pop(L, 1);
+					break;
+				}
+				case ShaderParamType_IntArray: {
+					int arrayLength = IArg(-1);
+					if (arrayLength < 1) {
+						luaL_error(
+						  L,
+						  "Invalid array length for shader parameter at key %d",
+						  key);
+					}
+					lua_pop(L, 1);
+
+					std::vector<int> array(arrayLength);
+					for (int j = 0; j < arrayLength; j++) {
+						lua_rawgeti(L, -1, 3 + j);
+						array[j] = IArg(-1);
+						lua_pop(L, 1);
+					}
+
+					scratchBuffer.resize(scratchOffset +
+										 sizeof(int) * arrayLength);
+					std::memcpy(&scratchBuffer[scratchOffset],
+								array.data(),
+								sizeof(int) * arrayLength);
+					scratchOffset += sizeof(int) * arrayLength;
+					break;
+				}
+				case ShaderParamType_Float: {
+					float arg = FArg(-1);
+					scratchBuffer.resize(scratchOffset + sizeof(float));
+					std::memcpy(
+					  &scratchBuffer[scratchOffset], &arg, sizeof(float));
+					scratchOffset += sizeof(float);
+
+					lua_pop(L, 1);
+					break;
+				}
+				case ShaderParamType_FloatArray: {
+					int arrayLength = IArg(-1);
+					if (arrayLength < 1) {
+						luaL_error(
+						  L,
+						  "Invalid array length for shader parameter at key %d",
+						  key);
+					}
+					lua_pop(L, 1);
+
+					std::vector<float> array(arrayLength);
+					for (int j = 0; j < arrayLength; j++) {
+						lua_rawgeti(L, -1, 3 + j);
+						array[j] = FArg(-1);
+						lua_pop(L, 1);
+					}
+
+					scratchBuffer.resize(scratchOffset +
+										 sizeof(float) * arrayLength);
+					std::memcpy(&scratchBuffer[scratchOffset],
+								array.data(),
+								sizeof(float) * arrayLength);
+					scratchOffset += sizeof(float) * arrayLength;
+					break;
+				}
+				case ShaderParamType_Texture: {
+					auto* texture = Luna<RageTexture>::check(L, -1);
+					int arg = texture->GetTexHandle();
+					scratchBuffer.resize(scratchOffset + sizeof(int));
+					std::memcpy(
+					  &scratchBuffer[scratchOffset], &arg, sizeof(int));
+					scratchOffset += sizeof(int);
+					lua_pop(L, 1);
+					break;
+				}
+				default:
+					luaL_error(
+					  L, "Invalid shader parameter type at key %d", key);
+			}
+
+			lua_pop(L, 1);
+		}
+
+		COMMON_RETURN_SELF;
+	}
+	static int ResetShaderParameters(T* p, lua_State* L)
+	{
+		p->m_VertexShaderArgs.clear();
+		p->m_FragmentShaderArgs.clear();
+		COMMON_RETURN_SELF;
+	}
 	DEFINE_METHOD(GetTrueX, GetTrueX());
 	DEFINE_METHOD(GetTrueY, GetTrueY());
 	DEFINE_METHOD(GetTrueZ, GetTrueZ());
@@ -2936,6 +3137,12 @@ class LunaActor : public Luna<Actor>
 		ADD_METHOD(GetTrueRotationZ);
 		ADD_METHOD(IsVisible);
 		ADD_METHOD(IsOver);
+		ADD_METHOD(SetShaders);
+		ADD_METHOD(ResetShaders);
+		ADD_METHOD(SetShaderPersistence);
+		ADD_METHOD(GetShaderPersistence);
+		ADD_METHOD(SetShaderParameters);
+		ADD_METHOD(ResetShaderParameters);
 	}
 };
 

@@ -1598,7 +1598,7 @@ ETTProtocol::Send(const std::string& str)
 			}
 			default: {
 				Locator::getLogger()->warn("NSMAN got unexpected CURLE: {}",
-										   result);
+										   static_cast<size_t>(result));
 				return;
 			}
 		}

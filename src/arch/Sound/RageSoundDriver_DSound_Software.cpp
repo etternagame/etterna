@@ -147,7 +147,9 @@ void
 RageSoundDriver_DSound_Software::SetupDecodingThread()
 {
 	if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL))
-		Locator::getLogger()->warn(werr_ssprintf(GetLastError(),
+		Locator::getLogger()->warn(
+		  "{}",
+		  werr_ssprintf(GetLastError(),
 								"Failed to set decoding thread priority"));
 }
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fmt/format.h>
+#include <utility>
 
 namespace Core {
 /**
@@ -28,23 +29,40 @@ public:
     enum class Severity {TRACE, DEBUG, INFO, WARN, ERR, FATAL};
 
     // Logging Specific
-    template <typename... Args> void trace(const std::string_view log, const Args& ... args) {
-		this->log(Severity::TRACE, safe_format(log, args...));
+	template<typename... Args>
+	void trace(fmt::format_string<Args...> log, Args&&... args)
+	{
+		this->log(Severity::TRACE,
+				  safe_format(log, std::forward<Args>(args)...));
     }
-    template <typename... Args> void debug(const std::string_view log, const Args& ... args) {
-        this->log(Severity::DEBUG, safe_format(log, args...));
+	template<typename... Args>
+	void debug(fmt::format_string<Args...> log, Args&&... args)
+	{
+		this->log(Severity::DEBUG,
+				  safe_format(log, std::forward<Args>(args)...));
     }
-    template <typename... Args> void info(const std::string_view log, const Args& ... args) {
-        this->log(Severity::INFO, safe_format(log, args...));
+	template<typename... Args>
+	void info(fmt::format_string<Args...> log, Args&&... args)
+	{
+		this->log(Severity::INFO,
+				  safe_format(log, std::forward<Args>(args)...));
     }
-    template <typename... Args> void warn(const std::string_view log, const Args& ... args) {
-        this->log(Severity::WARN, safe_format(log, args...));
+	template<typename... Args>
+	void warn(fmt::format_string<Args...> log, Args&&... args)
+	{
+		this->log(Severity::WARN,
+				  safe_format(log, std::forward<Args>(args)...));
     }
-    template <typename... Args> void error(const std::string_view log, const Args& ... args) {
-        this->log(Severity::ERR, safe_format(log, args...));
+	template<typename... Args>
+	void error(fmt::format_string<Args...> log, Args&&... args)
+	{
+		this->log(Severity::ERR, safe_format(log, std::forward<Args>(args)...));
     }
-    template <typename... Args> void fatal(const std::string_view log, const Args& ... args) {
-        this->log(Severity::FATAL, safe_format(log, args...));
+	template<typename... Args>
+	void fatal(fmt::format_string<Args...> log, Args&&... args)
+	{
+		this->log(Severity::FATAL,
+				  safe_format(log, std::forward<Args>(args)...));
     }
 
     virtual void setLogLevel(ILogger::Severity logLevel) = 0;
@@ -62,15 +80,17 @@ protected:
     virtual void log(ILogger::Severity logLevel, const std::string_view message) = 0;
 
 private:
-	template <typename... Args> inline std::string safe_format(const std::string_view log, const Args& ... args) {
+	template<typename... Args>
+	inline std::string safe_format(fmt::format_string<Args...> log, Args&&... args)
+	{
 		try {
-			return fmt::format(log, args...);
-		} catch (fmt::v7::format_error& e) {
+			return fmt::format(log, std::forward<Args>(args)...);
+		} catch (fmt::format_error& e) {
 			std::string msg("There was an error formatting the next log "
 							"message - Report to developers: ");
 			msg.append(e.what());
 			this->log(Severity::ERR, msg);
-			return std::string(log);
+			return std::string(log.get().data());
 		}
 	}
 };

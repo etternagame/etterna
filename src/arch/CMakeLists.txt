@@ -92,9 +92,13 @@ source_group("Arch Specific\\\\Movie Texture" FILES ${SMDATA_ARCH_MOVIE_TEXTURE_
 
 list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow.cpp")
 list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow.h")
+list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindowVK/LowLevelWindowVK.cpp")
+list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindowVK/LowLevelWindowVK.h")
 if(WIN32)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_Win32.cpp")
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_Win32.h")
+  list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindowVK/LowLevelWindowVK_Win32.cpp")
+  list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindowVK/LowLevelWindowVK_Win32.h")
   
 elseif(APPLE)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_MacOSX.mm")
@@ -103,6 +107,8 @@ elseif(APPLE)
 else() # Unix
     list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_X11.cpp")
     list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_X11.h")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindowVK/LowLevelWindowVK_X11.cpp")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindowVK/LowLevelWindowVK_X11.h")
   
 endif(WIN32)
 source_group("Arch Specific\\\\Low Level Window" FILES ${SMDATA_ARCH_LOWLEVEL_SRC} ${SMDATA_ARCH_LOWLEVEL_HPP})

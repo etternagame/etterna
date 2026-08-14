@@ -233,7 +233,7 @@ InputHandler_MacOSX_HID::AddDevices(int usagePage, int usage, InputDevice& id)
 
 	// Iterate over the devices and add them
 	while ((device = IOIteratorNext(iter))) {
-		Locator::getLogger()->trace("\tFound device {}", id);
+		Locator::getLogger()->trace("\tFound device {}", static_cast<int>(id));
 		HIDDevice* dev = MakeDevice(id);
 		int num;
 

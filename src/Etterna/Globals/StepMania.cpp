@@ -29,6 +29,11 @@
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Globals/GameLoop.h"
+#include "RageUtil/Graphics/Display/Display.h"
+
+#if defined(WITH_VULKAN)
+#include "RageUtil/Graphics/RendererVK/RendererVK.h"
+#endif
 
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
@@ -639,7 +644,7 @@ struct VideoCardDefaults
 	  // Default graphics settings used for all cards that don't match above.
 	  // This must be the very last entry!
 	  "",
-	  "opengl,d3d",
+	  "opengl,d3d,vulkan",
 	  640,
 	  480,
 	  32,
@@ -808,7 +813,16 @@ CreateDisplay()
 #if defined(SUPPORT_D3D)
 				pRet = new RageDisplay_D3D;
 #endif
-			} else if (CompareNoCase(sRenderer, "null") == 0) {
+			}
+#if defined(WITH_VULKAN)
+#if !defined(__APPLE__)
+			else if (CompareNoCase(sRenderer, "vulkan") == 0) {
+				pRet =
+				  new DisplayAdapter::Display(std::make_unique<RendererVK>());
+			}
+#endif
+#endif
+			else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;
 			} else {
 				RageException::Throw(
@@ -1148,7 +1162,7 @@ sm_main(int argc, char* argv[])
 	StartDisplay();
 
 	StoreActualGraphicOptions();
-	Locator::getLogger()->info(GetActualGraphicOptionsString().c_str());
+	Locator::getLogger()->info("{}", GetActualGraphicOptionsString());
 
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */
@@ -1288,6 +1302,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			// Shift+F2: refresh metrics,noteskin cache and CodeDetector cache
 			// only
 			THEME->ReloadMetrics();
+			DISPLAY->ReloadPipelines();
 			NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 			CodeDetector::RefreshCacheItems();
 			SCREENMAN->SystemMessage(RELOADED_METRICS);
@@ -1295,12 +1310,14 @@ HandleGlobalInputs(const InputEventPlus& input)
 		} else if (bIsCtrlHeld && !bIsShiftHeld) {
 			// Ctrl+F2: reload scripts only
 			THEME->UpdateLuaGlobals();
+			DISPLAY->ReloadPipelines();
 			SCREENMAN->SystemMessage(RELOADED_SCRIPTS);
 			MESSAGEMAN->Broadcast(Message_ReloadedScripts);
 		} else if (bIsCtrlHeld && bIsShiftHeld) {
 			// Shift+Ctrl+F2: reload overlay screens (and metrics, since themers
 			// are likely going to do this after changing metrics.)
 			THEME->ReloadMetrics();
+			DISPLAY->ReloadPipelines();
 			SCREENMAN->ReloadOverlayScreens();
 			SCREENMAN->SystemMessage(RELOADED_OVERLAY_SCREENS);
 			MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
@@ -1309,6 +1326,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			// F2 alone: refresh metrics, textures, noteskins, codedetector
 			// cache
 			THEME->ReloadMetrics();
+			DISPLAY->ReloadPipelines();
 			TEXTUREMAN->ReloadAll();
 			NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 			CodeDetector::RefreshCacheItems();

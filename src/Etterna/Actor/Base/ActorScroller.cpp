@@ -260,6 +260,9 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 		return;
 
 	auto fNumItemsToDraw = m_fNumItemsToDraw;
+	Quad topMask = m_quadMask;
+	Quad bottomMask = {};
+
 	if (m_quadMask.GetVisible()) {
 		// write to z buffer so that top and bottom are clipped
 		// Draw an extra item; this is the one that will be masked.
@@ -268,14 +271,11 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 		const auto fPositionFullyOffScreenBottom = (fNumItemsToDraw) / 2.f;
 
 		m_exprTransformFunction.TransformItemCached(
-		  m_quadMask, fPositionFullyOffScreenTop, -1, m_iNumItems);
-		if (bDrawPrimitives)
-			m_quadMask.Draw();
+		  topMask, fPositionFullyOffScreenTop, -1, m_iNumItems);
 
+		bottomMask = topMask;
 		m_exprTransformFunction.TransformItemCached(
-		  m_quadMask, fPositionFullyOffScreenBottom, m_iNumItems, m_iNumItems);
-		if (bDrawPrimitives)
-			m_quadMask.Draw();
+		  bottomMask, fPositionFullyOffScreenBottom, m_iNumItems, m_iNumItems);
 	}
 
 	const auto fFirstItemToDraw = m_fCurrentItem - fNumItemsToDraw / 2.f;
@@ -290,7 +290,6 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 	std::vector<Actor*> subs;
 
 	{
-		// Shift m_SubActors so iFirstItemToDraw is at the beginning.
 		const auto iNewFirstIndex = iFirstItemToDraw;
 		const auto iDist = iNewFirstIndex - m_iFirstSubActorIndex;
 		m_iFirstSubActorIndex = iNewFirstIndex;
@@ -298,6 +297,36 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 	}
 
 	const auto iNumToDraw = iLastItemToDraw - iFirstItemToDraw;
+	float minZ = INT_MAX;
+	for (auto i = 0; i < iNumToDraw; ++i) {
+		auto iItem = i + iFirstItemToDraw;
+		auto fPosition = iItem - m_fCurrentItem;
+		auto iIndex = i;
+		if (m_bLoop || m_bWrap)
+			wrap(iIndex, m_SubActors.size());
+		else if (iIndex < 0 || iIndex >= static_cast<int>(m_SubActors.size()))
+			continue;
+
+		if (!m_bFunctionDependsOnPositionOffset)
+			fPosition = 0;
+		if (!m_bFunctionDependsOnItemIndex)
+			iItem = 0;
+
+		m_exprTransformFunction.TransformItemCached(
+		  *m_SubActors[iIndex], fPosition, iItem, m_iNumItems);
+		minZ = std::min(minZ, m_SubActors[iIndex]->GetZ());
+	}
+
+	// ensure the quad masks are in front of sub-actors to... mask properly
+	minZ = std::min({ minZ, topMask.GetZ(), bottomMask.GetZ() });
+	topMask.SetZ(minZ);
+	bottomMask.SetZ(minZ);
+
+	if (m_quadMask.GetVisible() && bDrawPrimitives) {
+		topMask.Draw();
+		bottomMask.Draw();
+	}
+
 	for (auto i = 0; i < iNumToDraw; ++i) {
 		auto iItem = i + iFirstItemToDraw;
 		auto fPosition = iItem - m_fCurrentItem;
@@ -316,8 +345,6 @@ ActorScroller::PositionItemsAndDrawPrimitives(bool bDrawPrimitives)
 		if (!m_bFunctionDependsOnItemIndex)
 			iItem = 0;
 
-		m_exprTransformFunction.TransformItemCached(
-		  *m_SubActors[iIndex], fPosition, iItem, m_iNumItems);
 		if (bDrawPrimitives) {
 			if (m_bDrawByZPosition)
 				subs.push_back(m_SubActors[iIndex]);

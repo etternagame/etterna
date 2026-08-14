@@ -5,6 +5,7 @@
 #include "ReplayManager.h"
 
 #include <memory>
+#include <algorithm>
 
 std::shared_ptr<ReplayManager> REPLAYS = nullptr;
 Replay* dummyReplay = new Replay;

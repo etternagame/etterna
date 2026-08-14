@@ -3105,7 +3105,7 @@ Player::SetJudgment(int iRow,
 				Locator::getLogger()->fatal(
 				  "Invalid TNS {} sent to SetJudgment. Ignored 'Val' param in "
 				  "JudgmentMessage",
-				  tns);
+				  static_cast<int>(tns));
 			} else {
 				msg.SetParam("Val",
 							 m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);

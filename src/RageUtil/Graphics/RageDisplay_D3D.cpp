@@ -354,7 +354,7 @@ RageDisplay_D3D::Init(VideoModeParams&& p,
 
 	for (UINT u = 0; u < modeCount; u++) {
 		if (SUCCEEDED(g_pd3d->EnumAdapterModes(D3DADAPTER_DEFAULT, g_DefaultAdapterFormat, u, &mode))) {
-			Locator::getLogger()->info("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, mode.Format);
+			Locator::getLogger()->info("  {}x{} {}Hz, format {}", mode.Width, mode.Height, mode.RefreshRate, static_cast<int>(mode.Format));
 		}
 	}
 
@@ -471,8 +471,8 @@ FindBackBufferType(bool bWindowed, int iBPP) -> D3DFORMAT
 		}
 
 		Locator::getLogger()->debug("Testing format: display {}, back buffer {}, windowed {}...",
-				   fmtDisplay,
-				   fmtBackBuffer,
+				   static_cast<int>(fmtDisplay),
+				   static_cast<int>(fmtBackBuffer),
 				   static_cast<int>(bWindowed));
 
 		hr = g_pd3d->CheckDeviceType(D3DADAPTER_DEFAULT,
@@ -556,7 +556,7 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 	auto iBestScore = 0;
 	Locator::getLogger()->debug("cur: {}x{} {}Hz, format {}",
 			   current.Width, current.Height,
-			   current.RefreshRate, current.Format);
+			   current.RefreshRate, static_cast<int>(current.Format));
 	for (auto i = 0; i < iCnt; ++i) {
 		D3DDISPLAYMODE mode;
 		g_pd3d->EnumAdapterModes(
@@ -611,7 +611,7 @@ D3DReduceParams(D3DPRESENT_PARAMETERS* pp) -> bool
 
 		Locator::getLogger()->trace("try: {}x{} {}Hz, format {}: score {}",
 				   mode.Width, mode.Height,
-				   mode.RefreshRate, mode.Format, iScore);
+				   mode.RefreshRate, static_cast<int>(mode.Format), iScore);
 	}
 
 	if (iBest == -1) {
@@ -671,14 +671,14 @@ SetPresentParametersFromVideoModeParams(const VideoModeParams& p,
 	  "Present Parameters: {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
 	  pD3Dpp->BackBufferWidth,
 	  pD3Dpp->BackBufferHeight,
-	  pD3Dpp->BackBufferFormat,
+	  static_cast<int>(pD3Dpp->BackBufferFormat),
 	  pD3Dpp->BackBufferCount,
-	  pD3Dpp->MultiSampleType,
-	  pD3Dpp->SwapEffect,
+	  static_cast<int>(pD3Dpp->MultiSampleType),
+	  static_cast<int>(pD3Dpp->SwapEffect),
 	  (void*)pD3Dpp->hDeviceWindow,
 	  pD3Dpp->Windowed,
 	  pD3Dpp->EnableAutoDepthStencil,
-	  pD3Dpp->AutoDepthStencilFormat,
+	  static_cast<int>(pD3Dpp->AutoDepthStencilFormat),
 	  pD3Dpp->Flags,
 	  pD3Dpp->FullScreen_RefreshRateInHz,
 	  pD3Dpp->PresentationInterval);

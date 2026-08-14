@@ -217,11 +217,10 @@ ScreenSelectMusic::BeginScreen()
 		const auto* pStyle = GAMEMAN->GetFirstCompatibleStyle(
 		  GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
 		if (pStyle == nullptr) {
-			Locator::getLogger()->warn(ssprintf("No compatible styles for %s with %d player%s.",
+			Locator::getLogger()->warn("No compatible styles for {} with {} player{}.",
 							   GAMESTATE->m_pCurGame->m_szName,
 							   GAMESTATE->GetNumSidesJoined(),
-							   GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s")
-						.c_str());
+							   GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s");
 			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
@@ -926,7 +925,7 @@ ScreenSelectMusic::UpdateSelectButton(PlayerNumber pn, bool bSelectIsDown)
 void
 ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 {
-	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
+	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", static_cast<int>(pn), dir);
 
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 

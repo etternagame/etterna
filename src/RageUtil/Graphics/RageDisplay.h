@@ -5,6 +5,7 @@
 
 #include "Etterna/Actor/Base/ModelTypes.h"
 #include "RageUtil/Misc/RageTypes.h"
+#include "RageUtil/Graphics/Display/PipelineHandle.h"
 
 #include <chrono>
 #include <set>
@@ -268,6 +269,9 @@ struct RageTextureLock
 class RageDisplay
 {
 	friend class RageTexture;
+#ifdef WITH_VULKAN
+	friend class RendererVK;
+#endif
 
   public:
 	struct RagePixelFormatDesc
@@ -416,6 +420,18 @@ class RageDisplay
 	virtual void SetSphereEnvironmentMapping(TextureUnit tu, bool b) = 0;
 	virtual void SetCelShaded(int stage) = 0;
 
+	virtual DisplayAdapter::PipelineHandle CreateGraphicsPipeline(
+	  const std::string& vertexShaderPath,
+	  const std::string& fragmentShaderPath) {
+		return DisplayAdapter::PipelineHandle{ 0 };
+	}
+	virtual void ReloadPipelines() {}
+	virtual void SetGraphicsPipeline(
+	  DisplayAdapter::PipelineHandle pipeline,
+	  const std::vector<uint8_t>& vertexShaderArgs,
+	  const std::vector<uint8_t>& fragShaderArgs,
+	  bool persist) {}
+
 	virtual auto CreateCompiledGeometry() -> RageCompiledGeometry* = 0;
 	virtual void DeleteCompiledGeometry(RageCompiledGeometry* p) = 0;
 
@@ -464,7 +480,9 @@ class RageDisplay
 		return nullptr;
 	} // allocates a surface.  Caller must delete it.
 
-  protected:
+	bool DisplayDebugModeEnabled(); 
+
+protected:
 	virtual void DrawQuadsInternal(const RageSpriteVertex v[],
 								   int iNumVerts) = 0;
 	virtual void DrawQuadStripInternal(const RageSpriteVertex v[],

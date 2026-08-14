@@ -257,3 +257,15 @@ LuaFunc_lerp_color(lua_State* L)
 	return 1;
 }
 LUAFUNC_REGISTER_COMMON(lerp_color);
+
+static const char* ShaderTypeNames[] = { "Vertex", "Fragment" };
+XToString(ShaderType);
+LuaXType(ShaderType);
+
+static const char* ShaderParamTypeNames[] = { "Int",
+											  "IntArray",
+											  "Float",
+											  "FloatArray",
+											  "Texture" };
+XToString(ShaderParamType);
+LuaXType(ShaderParamType);
