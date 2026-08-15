@@ -172,7 +172,7 @@ jobs:
           echo "ETT_MAC_SYS_NAME=M1" >> $GITHUB_ENV
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_CRASHPAD=OFF -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_CRASHPAD=OFF -DWITH_VULKAN=OFF -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -G Ninja ..
 
       - name: Build Project
         run: cd main/build && ninja
@@ -391,7 +391,7 @@ jobs:
           echo "ETT_MAC_SYS_NAME=High-Sierra" >> $GITHUB_ENV
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DWITH_CRASHPAD=OFF -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DWITH_CRASHPAD=OFF -DWITH_VULKAN=OFF -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
       - name: Build Project
         run: cd main/build && ninja

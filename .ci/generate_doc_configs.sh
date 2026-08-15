@@ -10,4 +10,4 @@ eval "$(luarocks path --bin)"
 
 # Generate Etterna CMake
 mkdir build && cd build
-cmake -G "Unix Makefiles" -DWITH_CRASHPAD=OFF -DOPENSSL_ROOT_DIR=~/toolchain/ -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE ..
+cmake -G "Unix Makefiles" -DWITH_CRASHPAD=OFF -DWITH_VULKAN=OFF -DOPENSSL_ROOT_DIR=~/toolchain/ -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE ..
