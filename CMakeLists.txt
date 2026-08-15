@@ -140,6 +140,18 @@ if(WITH_VULKAN)
     target_link_libraries(Etterna PRIVATE
         Vulkan::Vulkan
         Vulkan::shaderc_combined)
+
+    if(UNIX AND NOT APPLE)
+        target_link_libraries(Etterna PRIVATE
+            glslang
+            MachineIndependent
+            OSDependent
+            GenericCodeGen
+            SPIRV
+            glslang-default-resource-limits
+            SPIRV-Tools
+            SPIRV-Tools-opt)
+    endif()
 endif()
 
 string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
