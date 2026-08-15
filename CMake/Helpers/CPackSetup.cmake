@@ -11,7 +11,7 @@ set(ASSET_DIR "${INSTALL_DIR}" CACHE STRING "Output directory for game assets")
 
 if(UNIX)
     set_target_properties(Etterna PROPERTIES
-        INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib"
+        INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/ffmpeg"
         INSTALL_RPATH_USE_LINK_PATH TRUE
         SKIP_INSTALL_RPATH OFF
     )
@@ -29,6 +29,10 @@ if(UNIX)
                             GROUP_READ GROUP_EXECUTE
                             WORLD_READ WORLD_EXECUTE)
     endif()
+
+	install(DIRECTORY "${PROJECT_SOURCE_DIR}/extern/ffmpeg/linux-lib/"
+		COMPONENT Etterna
+		DESTINATION ${INSTALL_DIR}/ffmpeg)
 
     install(FILES "${PROJECT_SOURCE_DIR}/extern/discord/lib/release/libdiscord_partner_sdk.so"
         COMPONENT Etterna
