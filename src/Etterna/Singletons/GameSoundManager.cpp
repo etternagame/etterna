@@ -98,7 +98,8 @@ struct MusicToPlay
 	bool bForceLoop = false;
 	float fStartSecond = 0, fLengthSeconds = 0, fFadeInLengthSeconds = 0,
 		  fFadeOutLengthSeconds = 0;
-	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false;
+	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false,
+		 bIsBGM = false;
 	MusicToPlay() { HasTiming = false; }
 };
 std::vector<MusicToPlay> g_MusicsToPlay;
@@ -291,6 +292,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		p.m_fFadeOutSeconds = ToPlay.fFadeOutLengthSeconds;
 		p.m_StartTime = when;
 		p.m_bAccurateSync = ToPlay.bAccurateSync;
+		p.m_bIsBGM = ToPlay.bIsBGM;
 		if (ToPlay.bApplyMusicRate)
 			p.m_fSpeed = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		if (ToPlay.bForceLoop)
@@ -797,6 +799,7 @@ GameSoundManager::PlayMusic(PlayMusicParams params,
 	ToPlay.bAlignBeat = params.bAlignBeat;
 	ToPlay.bApplyMusicRate = params.bApplyMusicRate;
 	ToPlay.bAccurateSync = params.bAccurateSync;
+	ToPlay.bIsBGM = params.bIsBGM;
 
 	/* Add the MusicToPlay to the g_MusicsToPlay queue. */
 	g_Mutex->Lock();
@@ -903,7 +906,27 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	static int SetVolume(T* p, lua_State* L)
 	{
 		Preference<float>* pRet =
-		  Preference<float>::GetPreferenceByName("SoundVolume");
+		  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
+		float fVol = FArg(1);
+		CLAMP(fVol, 0.0f, 1.0f);
+		pRet->Set(fVol);
+		SOUNDMAN->SetMixVolume();
+		return 0;
+	}
+	static int SetBGMVolume(T* p, lua_State* L)
+	{
+		Preference<float>* pRet =
+		  Preference<float>::GetPreferenceByName("SoundVolumeBGM");
+		float fVol = FArg(1);
+		CLAMP(fVol, 0.0f, 1.0f);
+		pRet->Set(fVol);
+		SOUNDMAN->SetMixVolume();
+		return 0;
+	}
+	static int SetActionsVolume(T* p, lua_State* L)
+	{
+		Preference<float>* pRet =
+		  Preference<float>::GetPreferenceByName("SoundVolumeActions");
 		float fVol = FArg(1);
 		CLAMP(fVol, 0.0f, 1.0f);
 		pRet->Set(fVol);
@@ -1024,6 +1047,8 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
 		ADD_METHOD(SetVolume);
+		ADD_METHOD(SetActionsVolume);
+		ADD_METHOD(SetBGMVolume);
 		ADD_METHOD(ResyncMusicPlaying);
 		ADD_METHOD(GetMusicPath);
 	}

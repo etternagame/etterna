@@ -426,8 +426,12 @@ local translations = {
     AssetSettings = THEME:GetString("Settings", "AssetSettings"),
     AssetSettingsExplanation = THEME:GetString("Settings", "AssetSettingsExplanation"),
     AssetSettingsButton = THEME:GetString("Settings", "AssetSettingsButton"),
-    Volume = THEME:GetString("Settings", "Volume"),
-    VolumeExplanation = THEME:GetString("Settings", "VolumeExplanation"),
+    VolumeMaster = THEME:GetString("Settings", "VolumeMaster"),
+    VolumeMasterExplanation = THEME:GetString("Settings", "VolumeMasterExplanation"),
+    VolumeActions = THEME:GetString("Settings", "VolumeActions"),
+    VolumeActionsExplanation = THEME:GetString("Settings", "VolumeActionsExplanation"),
+    VolumeBGM = THEME:GetString("Settings", "VolumeBGM"),
+    VolumeBGMExplanation = THEME:GetString("Settings", "VolumeBGMExplanation"),
     MenuSounds = THEME:GetString("Settings", "MenuSounds"),
     MenuSoundsExplanation = THEME:GetString("Settings", "MenuSoundsExplanation"),
     MineSounds = THEME:GetString("Settings", "MineSounds"),
@@ -6367,26 +6371,72 @@ local function rightFrame()
         -- SOUND OPTIONS
         ["Sound Options"] = {
             {
-                Name = "Volume",
-                DisplayName = translations["Volume"],
+                Name = "VolumeMaster",
+                DisplayName = translations["VolumeMaster"],
                 Type = "SingleChoice",
-                Explanation = translations["VolumeExplanation"],
+                Explanation = translations["VolumeMasterExplanation"],
                 Directions = {
                     Left = function()
-                        local x = PREFSMAN:GetPreference("SoundVolume")
+                        local x = PREFSMAN:GetPreference("SoundVolumeMaster")
                         x = notShit.round(x - 0.01, 3)
                         if x < 0 then x = 1 end
                         SOUND:SetVolume(notShit.round(x, 3))
                     end,
                     Right = function()
-                        local x = PREFSMAN:GetPreference("SoundVolume")
+                        local x = PREFSMAN:GetPreference("SoundVolumeMaster")
                         x = notShit.round(x + 0.01, 3)
                         if x > 1 then x = 0 end
                         SOUND:SetVolume(notShit.round(x, 3))
                     end,
                 },
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0) .. "%"
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolumeMaster") * 100, 0) .. "%"
+                end,
+            },
+            {
+                Name = "VolumeActions",
+                DisplayName = translations["VolumeActions"],
+                Type = "SingleChoice",
+                Explanation = translations["VolumeActionsExplanation"],
+                Directions = {
+                    Left = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeActions")
+                        x = notShit.round(x - 0.01, 3)
+                        if x < 0 then x = 1 end
+                        SOUND:SetActionsVolume(notShit.round(x, 3))
+                    end,
+                    Right = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeActions")
+                        x = notShit.round(x + 0.01, 3)
+                        if x > 1 then x = 0 end
+                        SOUND:SetActionsVolume(notShit.round(x, 3))
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolumeActions") * 100, 0) .. "%"
+                end,
+            },
+            {
+                Name = "VolumeBGM",
+                DisplayName = translations["VolumeBGM"],
+                Type = "SingleChoice",
+                Explanation = translations["VolumeBGMExplanation"],
+                Directions = {
+                    Left = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeBGM")
+                        x = notShit.round(x - 0.01, 3)
+                        if x < 0 then x = 1 end
+                        SOUND:SetBGMVolume(notShit.round(x, 3))
+                    end,
+                    Right = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeBGM")
+                        x = notShit.round(x + 0.01, 3)
+                        if x > 1 then x = 0 end
+                        SOUND:SetBGMVolume(notShit.round(x, 3))
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolumeBGM") * 100, 0) .. "%"
                 end,
             },
             {

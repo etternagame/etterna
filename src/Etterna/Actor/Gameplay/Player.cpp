@@ -1312,7 +1312,7 @@ Player::UpdateHoldNotes(int iSongRow,
 		// holds. At least, that hapened on my Mac. -wolfman2000
 
 		static auto* pVolume =
-		  Preference<float>::GetPreferenceByName("SoundVolume");
+		  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 		if (pVolume != nullptr) {
 			static auto fVol = pVolume->Get();
 
@@ -1822,7 +1822,7 @@ Player::PlayKeysound(const TapNote& tn, TapNoteScore score)
 		}
 		m_vKeysounds[tn.iKeysoundIndex].Play(false);
 		static auto* pVolume =
-		  Preference<float>::GetPreferenceByName("SoundVolume");
+		  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 		static auto fVol = pVolume->Get();
 		m_vKeysounds[tn.iKeysoundIndex].SetProperty("Volume", fVol);
 	}

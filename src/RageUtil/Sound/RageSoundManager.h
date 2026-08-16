@@ -36,6 +36,10 @@ class RageSoundManager
 	}
 	void SetVolumeOfNonCriticalSounds(float fVolumeOfNonCriticalSounds);
 
+	float GetActionVolume() const;
+	float GetBGMVolume() const;
+	float GetMasterVolume() const;
+
 	void Update();
 	void StartMixing(RageSoundBase* snd);		  /* used by RageSound */
 	void StopMixing(RageSoundBase* snd);		  /* used by RageSound */
@@ -57,6 +61,7 @@ class RageSoundManager
 
 	/* Prefs: */
 	float m_fVolumeOfNonCriticalSounds{ 1.0f };
+
 	// Swallow up warnings. If they must be used, define them.
 	RageSoundManager& operator=(const RageSoundManager& rhs);
 	RageSoundManager(const RageSoundManager& rhs);

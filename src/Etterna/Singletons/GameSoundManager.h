@@ -36,6 +36,7 @@ class GameSoundManager : MessageSubscriber
 			bAlignBeat = true;
 			bApplyMusicRate = false;
 			bAccurateSync = false;
+			bIsBGM = false;
 		}
 
 		std::string sFile;
@@ -48,6 +49,7 @@ class GameSoundManager : MessageSubscriber
 		bool bAlignBeat;
 		bool bApplyMusicRate;
 		bool bAccurateSync;
+		bool bIsBGM;
 	};
 	void PlayMusic(PlayMusicParams params,
 				   PlayMusicParams FallbackMusicParams = PlayMusicParams());

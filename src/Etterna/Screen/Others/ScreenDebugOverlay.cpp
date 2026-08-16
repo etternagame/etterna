@@ -620,7 +620,7 @@ void
 ChangeVolume(float fDelta)
 {
 	Preference<float>* pRet =
-	  Preference<float>::GetPreferenceByName("SoundVolume");
+	  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 	float fVol = pRet->Get();
 	fVol += fDelta;
 	CLAMP(fVol, 0.0f, 1.0f);
@@ -1399,7 +1399,7 @@ class DebugLineVolumeUp : public IDebugLine
 
 	Preference<float>* GetPref()
 	{
-		return Preference<float>::GetPreferenceByName("SoundVolume");
+		return Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 	}
 };
 
@@ -1419,7 +1419,7 @@ class DebugLineVolumeDown : public IDebugLine
 
 	Preference<float>* GetPref()
 	{
-		return Preference<float>::GetPreferenceByName("SoundVolume");
+		return Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 	}
 };
 

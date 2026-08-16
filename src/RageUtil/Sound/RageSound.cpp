@@ -570,6 +570,7 @@ RageSound::Play(bool is_action, const RageSoundParams* pParams)
 
 	if (pParams != nullptr)
 		SetParams(*pParams);
+	SetIsAction(is_action);
 
 	StartPlaying();
 }
@@ -582,9 +583,11 @@ RageSound::PlayCopy(bool is_action, const RageSoundParams* pParams) const
 	}
 	auto* pSound = new RageSound(*this);
 
-	if (pParams != nullptr)
+	if (pParams != nullptr) {
 		pSound->SetParams(*pParams);
+	}
 
+	pSound->SetIsAction(is_action);
 	pSound->StartPlaying();
 	pSound->DeleteSelfWhenFinishedPlaying();
 }
@@ -824,6 +827,12 @@ RageSound::SetParams(const RageSoundParams& p)
 }
 
 void
+RageSound::SetIsAction(bool b)
+{
+	m_Param.m_bIsAction = b;
+}
+
+void
 RageSound::ApplyParams()
 {
 	if (m_pSource == nullptr)
@@ -838,8 +847,15 @@ RageSound::ApplyParams()
 	m_pSource->SetProperty("AccurateSync", m_Param.m_bAccurateSync);
 
 	auto fVolume = m_Param.m_Volume;
-	if (!m_Param.m_bIsCriticalSound)
+	if (!m_Param.m_bIsCriticalSound) {
 		fVolume *= m_Param.m_fAttractVolume;
+	}
+	if (m_Param.m_bIsAction) {
+		m_pSource->SetProperty("Action", 1.F);
+	}
+	if (m_Param.m_bIsBGM) {
+		m_pSource->SetProperty("BGM", 1.F);
+	}
 	m_pSource->SetProperty("Volume", fVolume);
 
 	switch (GetStopMode()) {
