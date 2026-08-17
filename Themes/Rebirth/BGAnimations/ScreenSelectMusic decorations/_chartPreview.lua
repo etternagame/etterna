@@ -156,12 +156,42 @@ local t = Def.ActorFrame {
                 top:PlayCurrentSongSampleMusic(true, true)
             end
         end
+        if params.steps ~= nil then
+            self.stepspreview = params.steps:GetPreviewMusicPath()
+        else
+            self.stepspreview = nil
+        end
         self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end,
     ChangedStepsMessageCommand = function(self, params)
         -- should trigger only if switching steps, not when switching songs
         self:playcommand("LoadNoteData", {song = GAMESTATE:GetCurrentSong(), steps = params.steps})
+
+        if lastusedsong == GAMESTATE:GetCurrentSong() then
+            -- only changed steps, so see if the preview music must restart
+            -- because ssc music can differ across difficulties
+            if params.steps ~= nil then
+                if params.steps:GetPreviewMusicPath() ~= self.stepspreview then
+                    if lastusedsong ~= nil and SCUFF.preview.active then
+                        local top = SCREENMAN:GetTopScreen()
+                        if top.PlayCurrentSongSampleMusic then
+                            -- reset music, force start, force full length
+                            SCUFF.preview.resetmusic = true
+                            SOUND:StopMusic()
+                            top:PlayCurrentSongSampleMusic(true, true)
+                        end
+                    end
+                end
+            end
+        end
         lastusedsong = GAMESTATE:GetCurrentSong()
+
+        if params.steps ~= nil then
+            self.stepspreview = params.steps:GetPreviewMusicPath()
+        else
+            self.stepspreview = nil
+        end
+
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastusedsong, steps = params.steps})
     end,
     CurrentRateChangedMessageCommand = function(self)
