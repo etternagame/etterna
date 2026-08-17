@@ -58,6 +58,10 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_logout, "logout" },
 	{ ettpc_hello, "hello" },
 	{ ettpc_gameplay_judgment, "gameplay_judgment" },
+	{ ettpc_replay_input, "replay_input" },
+	{ ettpc_replay_holddrop, "replay_holddrop" },
+	{ ettpc_replay_miss, "replay_miss" },
+	{ ettpc_replay_minehit, "replay_minehit" },
 };
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "hello", ettps_hello },
@@ -1736,7 +1740,44 @@ ETTProtocol::ReportReplayInput(NetworkSyncManager* n,
 							   int tapNoteType,
 							   int tapNoteSubType)
 {
-	
+	StringBuffer s;
+	Writer<StringBuffer> writer(s);
+
+	// main obj
+	writer.StartObject();
+
+	// headers
+	writer.Key("id");
+	writer.Uint(msgId++);
+	writer.Key("type");
+	writer.String(ettClientMessageMap[ettpc_replay_input].c_str());
+
+	// data
+	writer.Key("payload");
+	writer.StartObject();
+
+	writer.Key("is_press");
+	writer.Bool(isPress);
+	writer.Key("col");
+	writer.Int(col);
+	writer.Key("row");
+	writer.Int(row);
+	writer.Key("music_seconds");
+	writer.Double(fMusicSeconds);
+	writer.Key("offset");
+	writer.Double(fNoteOffset);
+	writer.Key("tapnote_type");
+	writer.Int(tapNoteType);
+	writer.Key("tapnote_subtype");
+	writer.Int(tapNoteSubType);
+
+	//
+	writer.EndObject();
+
+	//
+	writer.EndObject();
+
+	Send(s.GetString());
 }
 
 void
@@ -1746,7 +1787,38 @@ ETTProtocol::ReportReplayMiss(NetworkSyncManager* n,
 							  int tapNoteType,
 							  int tapNoteSubType)
 {
+	StringBuffer s;
+	Writer<StringBuffer> writer(s);
 
+	// main obj
+	writer.StartObject();
+
+	// headers
+	writer.Key("id");
+	writer.Uint(msgId++);
+	writer.Key("type");
+	writer.String(ettClientMessageMap[ettpc_replay_miss].c_str());
+
+	// data
+	writer.Key("payload");
+	writer.StartObject();
+
+	writer.Key("col");
+	writer.Int(col);
+	writer.Key("row");
+	writer.Int(row);
+	writer.Key("tapnote_type");
+	writer.Int(tapNoteType);
+	writer.Key("tapnote_subtype");
+	writer.Int(NUM_TapNoteSubType);
+
+	//
+	writer.EndObject();
+
+	//
+	writer.EndObject();
+
+	Send(s.GetString());
 }
 
 void
@@ -1755,13 +1827,69 @@ ETTProtocol::ReportReplayHold(NetworkSyncManager* n,
 							  int row,
 							  int subType)
 {
+	StringBuffer s;
+	Writer<StringBuffer> writer(s);
 
+	// main obj
+	writer.StartObject();
+
+	// headers
+	writer.Key("id");
+	writer.Uint(msgId++);
+	writer.Key("type");
+	writer.String(ettClientMessageMap[ettpc_replay_holddrop].c_str());
+
+	// data
+	writer.Key("payload");
+	writer.StartObject();
+
+	writer.Key("col");
+	writer.Int(col);
+	writer.Key("row");
+	writer.Int(row);
+	writer.Key("subtype");
+	writer.Int(subType);
+
+	//
+	writer.EndObject();
+
+	//
+	writer.EndObject();
+
+	Send(s.GetString());
 }
 
 void
 ETTProtocol::ReportReplayMine(NetworkSyncManager* n, int row, int col)
 {
+	StringBuffer s;
+	Writer<StringBuffer> writer(s);
 
+	// main obj
+	writer.StartObject();
+
+	// headers
+	writer.Key("id");
+	writer.Uint(msgId++);
+	writer.Key("type");
+	writer.String(ettClientMessageMap[ettpc_replay_minehit].c_str());
+
+	// data
+	writer.Key("payload");
+	writer.StartObject();
+
+	writer.Key("col");
+	writer.Int(col);
+	writer.Key("row");
+	writer.Int(row);
+
+	//
+	writer.EndObject();
+
+	//
+	writer.EndObject();
+
+	Send(s.GetString());
 }
 
 void

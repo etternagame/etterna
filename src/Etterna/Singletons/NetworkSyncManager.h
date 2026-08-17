@@ -128,6 +128,10 @@ enum ETTClientMessageTypes
 	ettpc_logout,
 	ettpc_hello,
 	ettpc_gameplay_judgment,
+	ettpc_replay_input,
+	ettpc_replay_miss,
+	ettpc_replay_holddrop,
+	ettpc_replay_minehit,
 	ettpc_end
 };
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
