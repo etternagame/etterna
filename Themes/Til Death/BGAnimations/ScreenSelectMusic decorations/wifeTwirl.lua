@@ -213,6 +213,8 @@ local t = Def.ActorFrame {
 		local s = GAMESTATE:GetCurrentSong()
 		local unexpectedlyChangedSong = s ~= song
 
+		local st = GAMESTATE:GetCurrentSteps()
+
 		shouldPlayMusic = false
 		-- should play the music because the notefield is visible
 		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
@@ -223,6 +225,23 @@ local t = Def.ActorFrame {
 		shouldPlayMusic = shouldPlayMusic or hackysack
 		-- should play the music if we already should and we either jumped song or we didnt change the song
 		shouldPlayMusic = shouldPlayMusic and (not onlyChangedSteps or unexpectedlyChangedSong) and not tryingToStart
+
+		if onlyChangedSteps and not shouldPlayMusic then
+			-- the sample music for a single song might change
+			-- if it is ssc and defines different songs for the music
+			if st ~= nil then
+				if st:GetPreviewMusicPath() ~= self.stepspreview then
+					shouldPlayMusic = true
+					self:queuecommand("PlayingSampleMusic")
+				end
+			end
+		end
+
+		if st ~= nil then
+			self.stepspreview = st:GetPreviewMusicPath()
+		else
+			self.stepspreview = nil
+		end
 
 		-- at this point the music will or will not play ....
 
