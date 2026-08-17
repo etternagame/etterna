@@ -279,8 +279,14 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 	double dN = W.iSize+1;
 	for (int64_t i = 0; i < W.iSize; ++i) {
 		double t = (i + 1) / dN;
-		if (dRate >= FFTNonsenseBelowRate)
+		// Window variations
+		// /\_ on uprates. Puts more energy on transients
+		// _/\ on downrates. Put less energy on transients and makes transient doubling less obnoxious
+		// / \ on fft down rates. STFT needs symmetric windows
+		if (dRate >= 1.0)
 			t = sqrt(t);
+		else if (dRate >= FFTNonsenseBelowRate)
+			t = 1.0 - sqrt(1.0 - t);
         t = 2.0 * t - 1.0;
 		W.Buffer[i] = (float)pow(0.5 + 0.5*cos(PI*t), dShape);
 	}
@@ -322,7 +328,6 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 	double dRate = double(m_fRate);
 
 	bool bUseFFT = (dRate < FFTNonsenseBelowRate);
-	bool bAttemptToAlignWndowsToBeats = (dRate > 0.5);
 
 	int64_t iMixedFramesMinimum = 2*iFrames;
 	while (m_Mixed.Frames() < iMixedFramesMinimum && !m_bDraining) {
@@ -336,7 +341,7 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 		m_ReadAhead.Extend(iSourceFramesToRead);
 
 		double dAdjustScale = 1.0;
-		if (bAttemptToAlignWndowsToBeats) {
+		{
 			// For high rates (> 2 or so) we want the peak of each window to lie over beats because
 			// theres enough window overlap that not aligning to beats causes arhythmic attenuation
 			// of drum hits which sounds terrible. But it doesn't need to be accurate for this to work,
@@ -358,7 +363,13 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 			double dNearestTickSecond = dCurrentSecond + (dNearestTick - dCurrentFractionalTick) / dCurrentTPS;
 			int64_t iNearestTickFrame = int64_t(RoundPositive(dNearestTickSecond * dSampleRate));
 			int64_t iMaxTimingAdjustFrames = RoundPositive((MaxTimingAdjustStep * dSampleRate) / 1000.0);
-			int64_t iNextWindowPeak = iNextSourceFrame - iReadAheadPosition + iSourceStepFrames + iWindowFrames / 4;
+			int64_t iNextWindowPeak = iNextSourceFrame - iReadAheadPosition + iSourceStepFrames;
+			if (dRate > 1.0)
+				iNextWindowPeak += iWindowFrames / 4;
+			else if (dRate >= FFTNonsenseBelowRate)
+				iNextWindowPeak += 3 * iWindowFrames / 4;
+			else
+				iNextWindowPeak += iWindowFrames / 2;
 
 			int64_t iTimingAdjustment = Clamp(iNextWindowPeak - iNearestTickFrame, -iMaxTimingAdjustFrames, iMaxTimingAdjustFrames);
 			int64_t iAdjustedStep = iSourceStepFrames - iTimingAdjustment;
