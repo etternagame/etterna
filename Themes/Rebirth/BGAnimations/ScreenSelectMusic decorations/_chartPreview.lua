@@ -146,8 +146,8 @@ local t = Def.ActorFrame {
         self:playcommand("LoadNoteData", {song = params.song, steps = params.steps})
         lastusedsong = params.song
 
-       SCUFF.preview.resetmusic = false
-       if lastusedsong ~= nil and SCUFF.preview.active then
+        SCUFF.preview.resetmusic = false
+        if lastusedsong ~= nil and SCUFF.preview.active then
             local top = SCREENMAN:GetTopScreen()
             if top.PlayCurrentSongSampleMusic then
                 -- reset music, force start, force full length
@@ -155,8 +155,8 @@ local t = Def.ActorFrame {
                 SOUND:StopMusic()
                 top:PlayCurrentSongSampleMusic(true, true)
             end
-       end
-       self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
+        end
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end,
     ChangedStepsMessageCommand = function(self, params)
         -- should trigger only if switching steps, not when switching songs
