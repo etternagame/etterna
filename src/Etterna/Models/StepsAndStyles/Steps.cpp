@@ -703,6 +703,15 @@ Steps::GetMusicFile() const -> const std::string&
 	return m_MusicFile;
 }
 
+auto
+Steps::GetPreviewMusicPath() const -> const std::string
+{
+	if (m_MusicFile.empty()) {
+		return m_pSong->GetPreviewMusicPath();
+	}
+	return GetMusicPath();
+}
+
 void
 Steps::SetMusicFile(const std::string& file)
 {
@@ -1353,6 +1362,12 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(ee, L);
 		return 1;
 	}
+	static auto GetPreviewMusicPath(T* p, lua_State* L) -> int
+	{
+		auto x = p->GetPreviewMusicPath();
+		lua_pushstring(L, x.c_str());
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1373,6 +1388,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetMSD);
 		ADD_METHOD(GetSSRs);
 		ADD_METHOD(GetDisplayBpms);
+		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);
 		ADD_METHOD(IsDisplayBpmRandom);

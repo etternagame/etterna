@@ -238,6 +238,7 @@ class Steps
 	auto GetMusicFile() const
 	  -> const std::string&; // Returns the filename for the simfile.
 	void SetMusicFile(const std::string& file);
+	auto GetPreviewMusicPath() const -> const std::string;
 
 	// Lua
 	void PushSelf(lua_State* L);
