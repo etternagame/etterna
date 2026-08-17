@@ -337,10 +337,16 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		g_bSampleMusicWaiting = false;
 
 		Song* pSong = GAMESTATE->m_pCurSong;
+		Steps* pSteps = GAMESTATE->m_pCurSteps;
 		// Lua is what usually calls this with force on
 		// Since that bypasses a lot, update values if being forced.
 		if (bForcePlay && pSong != nullptr) {
-			m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+			if (pSteps != nullptr) {
+				m_sSampleMusicToPlay = pSteps->GetPreviewMusicPath();
+			} else {
+				m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+			}
+			
 			if (!m_sSampleMusicToPlay.empty() &&
 				ActorUtil::GetFileType(m_sSampleMusicToPlay) != FT_Sound) {
 				LuaHelpers::ReportScriptErrorFmt(
