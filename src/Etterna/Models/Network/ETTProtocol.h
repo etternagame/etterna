@@ -2,7 +2,7 @@
 
 #include "NetProtocol.h"
 
-#include "rapidjson/fwd.h"
+#include "rapidjson/document.h"
 #include <curl/curl.h>
 
 #include <string>

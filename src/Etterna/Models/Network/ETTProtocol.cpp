@@ -15,7 +15,6 @@
 
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
-#include "rapidjson/document.h"
 #include <curl/curl.h>
 
 #include <cerrno>

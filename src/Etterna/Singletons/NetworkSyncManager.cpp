@@ -2,27 +2,15 @@
 #include "NetworkSyncManager.h"
 #include "Etterna/Singletons/LuaManager.h"
 #include "Etterna/Singletons/SongManager.h"
-#include "Etterna/Singletons/CryptManager.h"
 #include "Etterna/Singletons/GameState.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Singletons/ProfileManager.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Singletons/StatsManager.h"
+#include "Etterna/Models/Misc/RoomWheel.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
-#include "Etterna/Models/Songs/Song.h"
-#include "Etterna/Models/Misc/PlayerState.h"
-#include "Etterna/Models/StepsAndStyles/Steps.h"
-#include "Etterna/Models/HighScore/HighScore.h"
-#include "Etterna/Screen/Network/ScreenNetSelectMusic.h"
-#include "Etterna/Screen/Network/ScreenNetRoom.h"
-#include "Etterna/Screen/Others/ScreenMessage.h"
 #include "Core/Services/Locator.hpp"
 #include "arch/LoadingWindow/LoadingWindow.h"
-
-#include "rapidjson/writer.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/document.h"
-using namespace rapidjson;
 
 NetworkSyncManager* NSMAN;
 
@@ -34,8 +22,11 @@ NetworkSyncManager* NSMAN;
 #include <arpa/inet.h>
 #endif
 
+
 extern Preference<std::string> g_sLastServer;
 Preference<unsigned int> autoConnectMultiplayer("AutoConnectMultiplayer", 1);
+
+
 static LocalizedString CONNECTION_SUCCESSFUL("NetworkSyncManager",
 											 "Connection to '%s' successful.");
 static LocalizedString CONNECTION_FAILED("NetworkSyncManager",

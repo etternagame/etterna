@@ -8,19 +8,8 @@
 #include "Etterna/Models/Network/NetProtocol.h"
 #include "Etterna/Models/Network/ETTProtocol.h"
 
-#include "rapidjson/fwd.h"
-#include <curl/curl.h>
-
-#include <queue>
-#include <thread>
-#include <mutex>
-#include <functional>
-
 class LoadingWindow;
 class RoomData;
-class ScreenNetSelectMusic;
-class ScreenNetRoom;
-class ScreenSMOnlineLogin;
 class Song;
 class PlayerStageStats;
 
