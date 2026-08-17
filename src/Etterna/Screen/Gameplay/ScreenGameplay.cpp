@@ -1177,22 +1177,6 @@ ScreenGameplay::Update(float fDeltaTime)
 	PlayTicks();
 	SendCrossedMessages();
 
-	/*
-	// Multiplayer Life & C++ Scoreboard Update Stuff. Useless for now.
-	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
-		if (m_vPlayerInfo.m_pLifeMeter)
-			NSMAN->m_playerLife =
-			  int(m_vPlayerInfo.m_pLifeMeter->GetLife() * 10000);
-
-		if (m_bShowScoreboard)
-			FOREACH_NSScoreBoardColumn(
-			  cn) if (m_bShowScoreboard && NSMAN->ChangedScoreboard(cn) &&
-					  GAMESTATE->GetFirstDisabledPlayer() != PLAYER_INVALID)
-			  m_Scoreboard[cn]
-				.SetText(NSMAN->m_Scoreboard[cn]);
-	}
-	*/
-
 	// ArrowEffects::Update call moved because having it happen once per
 	// NoteField (which means twice in two player) seemed wasteful. -Kyz
 	ArrowEffects::Update();
