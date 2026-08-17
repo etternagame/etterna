@@ -38,7 +38,6 @@ Branch.OptionsEdit = function()
 end
 Branch.AfterSelectStyle = function()
 	if IsNetConnected() then
-		ReportStyle()
 		GAMESTATE:ApplyGameCommand("playmode,regular")
 	end
 	return "ScreenProfileLoad"

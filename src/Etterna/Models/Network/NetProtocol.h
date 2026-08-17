@@ -29,42 +29,26 @@ class NetProtocol
 	virtual void SelectUserSong(NetworkSyncManager* n, Song* song) {}
 	virtual void EnterRoom(std::string name, std::string password) {}
 	virtual void LeaveRoom(NetworkSyncManager* n) {}
-	virtual void RequestRoomInfo(std::string name) {}
-	virtual void SendChat(const std::string& message, std::string tab, int type)
-	{
-	}
-	virtual void ReportNSSOnOff(int i) {}
-	virtual void ReportScore(NetworkSyncManager* n,
-							 int playerID,
-							 int step,
-							 int score,
-							 int combo,
-							 float offset,
-							 int numNotes)
-	{
-	}
-	virtual void ReportScore(NetworkSyncManager* n,
-							 int playerID,
-							 int step,
-							 int score,
-							 int combo,
-							 float offset)
-	{
-	}
+
+	virtual void SendChat(const std::string& message, std::string tab, int type) {}
+
 	virtual void ReportHighScore(HighScore* hs, PlayerStageStats& pss) {}
 	virtual void ReportSongOver(NetworkSyncManager* n) {}
-	virtual void ReportStyle(NetworkSyncManager* n) {}
+
 	virtual void StartRequest(NetworkSyncManager* n, short position) {}
+
 	virtual void Login(std::string user, std::string pass) {}
 	virtual void Logout() {}
+
 	virtual void OnMusicSelect() {};
 	virtual void OffMusicSelect() {};
-	virtual void OnRoomSelect() {};
-	virtual void OffRoomSelect() {};
+
 	virtual void OnOptions() {};
 	virtual void OffOptions() {};
+
 	virtual void OnEval() {};
 	virtual void OffEval() {};
+
 	virtual void SendMPLeaderboardUpdate(float wife, std::string& jdgstr) {};
 
 	// triggered by button presses in gameplay

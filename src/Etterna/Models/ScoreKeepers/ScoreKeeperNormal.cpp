@@ -399,11 +399,6 @@ ScoreKeeperNormal::HandleTapScore(const TapNote& tn)
 		if (tns == TNS_AvoidMine && m_AvoidMineIncrementsCombo)
 			HandleComboInternal(1, 0, 0);
 
-		NSMAN->ReportScore(m_pPlayerState->m_PlayerNumber,
-						   tns,
-						   m_pPlayerStageStats->m_iScore,
-						   m_pPlayerStageStats->m_iCurCombo,
-						   tn.result.fTapNoteOffset);
 		Message msg("ScoreChanged");
 		msg.SetParam("PlayerNumber", m_pPlayerState->m_PlayerNumber);
 		msg.SetParam("MultiPlayer", m_pPlayerState->m_mp);
@@ -627,16 +622,6 @@ ScoreKeeperNormal::HandleTapRowScore(const NoteData& nd, int iRow)
 		MESSAGEMAN->Broadcast(msg);
 	}
 
-	// TODO: Remove indexing with PlayerNumber
-	auto pn = m_pPlayerState->m_PlayerNumber;
-	auto offset = NoteDataWithScoring::LastTapNoteWithResult(nd, iRow)
-					.result.fTapNoteOffset;
-	NSMAN->ReportScore(pn,
-					   scoreOfLastTap,
-					   m_pPlayerStageStats->m_iScore,
-					   m_pPlayerStageStats->m_iCurCombo,
-					   offset,
-					   m_iNumNotesHitThisRow);
 	Message msg("ScoreChanged");
 	msg.SetParam("PlayerNumber", m_pPlayerState->m_PlayerNumber);
 	msg.SetParam("MultiPlayer", m_pPlayerState->m_mp);
@@ -660,13 +645,6 @@ ScoreKeeperNormal::HandleHoldScore(const TapNote& tn)
 
 	AddHoldScore(holdScore);
 
-	// TODO: Remove indexing with PlayerNumber
-	auto pn = m_pPlayerState->m_PlayerNumber;
-	NSMAN->ReportScore(pn,
-					   holdScore + TapNoteScore_Invalid,
-					   m_pPlayerStageStats->m_iScore,
-					   m_pPlayerStageStats->m_iCurCombo,
-					   tn.result.fTapNoteOffset);
 	Message msg("ScoreChanged");
 	msg.SetParam("PlayerNumber", m_pPlayerState->m_PlayerNumber);
 	msg.SetParam("MultiPlayer", m_pPlayerState->m_mp);

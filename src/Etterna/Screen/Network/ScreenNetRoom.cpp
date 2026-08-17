@@ -65,7 +65,6 @@ ScreenNetRoom::Init()
 
 	this->SortByDrawOrder();
 	UpdateRoomsList();
-	NSMAN->OnRoomSelect();
 }
 
 bool
@@ -136,7 +135,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 void
 ScreenNetRoom::TweenOffScreen()
 {
-	NSMAN->OffRoomSelect();
+	
 }
 
 bool

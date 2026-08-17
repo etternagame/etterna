@@ -92,22 +92,9 @@ class NetworkSyncManager
 	~NetworkSyncManager();
 	ETTProtocol ETTP;
 	NetProtocol* curProtocol{ nullptr };
-	// If "useSMserver" then send score to server
-	void ReportScore(int playerID,
-					 int step,
-					 int score,
-					 int combo,
-					 float offset);
-	void ReportScore(int playerID,
-					 int step,
-					 int score,
-					 int combo,
-					 float offset,
-					 int numNotes);
+
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss);
 	void ReportSongOver();
-	void ReportStyle();			// Report style, players, and names
-	void ReportNSSOnOff(int i); // Report song selection screen on/off
 
 	// triggered by button presses in gameplay
 	void ReportReplayInput(bool isPress,
@@ -132,14 +119,16 @@ class NetworkSyncManager
 
 	void OnMusicSelect();
 	void OffMusicSelect();
-	void OnRoomSelect();
-	void OffRoomSelect();
+
 	void OnOptions();
 	void OffOptions();
+
 	void OnEval();
 	void OffEval();
 
-	void StartRequest(short position); // Request a start; Block until granted.
+	// Request a start; Block until granted.
+	void StartRequest(short position);
+
 	auto GetServerName() -> std::string;
 
 	void CreateNewRoom(std::string name,
@@ -147,7 +136,6 @@ class NetworkSyncManager
 					   std::string password = "");
 	void EnterRoom(std::string name, std::string password = "");
 	void LeaveRoom();
-	void RequestRoomInfo(std::string name);
 
 	void PostStartUp(const std::string& ServerIP);
 
@@ -155,10 +143,9 @@ class NetworkSyncManager
 
 	void CloseConnection();
 
-	void DisplayStartupStatus(); // Notify user if connect attempt was
-								 // successful or not.
-
-	int m_playerLife; // Life (used for sending to server)
+	// Notify user if connect attempt was
+	// successful or not.
+	void DisplayStartupStatus();
 
 	void Update(float fDeltaTime);
 
@@ -176,10 +163,6 @@ class NetworkSyncManager
 	std::vector<std::string> m_PlayerNames;
 	std::vector<bool> m_PlayerReady;
 	std::vector<std::string> commonpacks;
-
-	// friendlist
-	std::vector<std::string> fl_PlayerNames;
-	std::vector<int> fl_PlayerStates;
 
 	// Used for ScreenNetEvaluation
 	std::vector<EndOfGame_PlayerData> m_EvalPlayerData;
@@ -213,21 +196,18 @@ class NetworkSyncManager
 	int m_iSelectMode;
 	void SelectUserSong();
 
-	auto GetServerVersion() -> int;
-
 	std::string m_sChatText;
-
-	static auto GetCurrentSMBuild(LoadingWindow* ld) -> unsigned long;
 
 	int m_startupStatus; // Used to see if attempt was successful or not.
 
 	void Login(std::string user, std::string pass);
 	void Logout();
+	auto GetServerVersion() -> int;
+
 	std::vector<RoomData> m_Rooms;
 	std::vector<ChartRequest*> requests;
 	std::vector<ChartRequest*> staleRequests;
 
-	auto TranslateStepType(int score) -> SMOStepType;
 	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
 
 	// Lua

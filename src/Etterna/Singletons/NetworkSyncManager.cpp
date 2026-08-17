@@ -55,7 +55,6 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 	}
 	StartUp();
 
-	m_playerLife = 0;
 	m_iSelectMode = 0;
 
 	// Register with Lua.
@@ -83,18 +82,7 @@ NetworkSyncManager::OffMusicSelect()
 	if (curProtocol != nullptr)
 		curProtocol->OffMusicSelect();
 }
-void
-NetworkSyncManager::OnRoomSelect()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OnRoomSelect();
-}
-void
-NetworkSyncManager::OffRoomSelect()
-{
-	if (curProtocol != nullptr)
-		curProtocol->OffRoomSelect();
-}
+
 void
 NetworkSyncManager::OnOptions()
 {
@@ -107,6 +95,7 @@ NetworkSyncManager::OffOptions()
 	if (curProtocol != nullptr)
 		curProtocol->OffOptions();
 }
+
 void
 NetworkSyncManager::OnEval()
 {
@@ -217,13 +206,6 @@ NetworkSyncManager::StartUp()
 		PostStartUp(std::string(g_sLastServer));
 }
 
-void
-NetworkSyncManager::ReportNSSOnOff(int i)
-{
-	if (curProtocol != nullptr)
-		curProtocol->ReportNSSOnOff(i);
-}
-
 std::string
 NetworkSyncManager::GetServerName()
 {
@@ -244,18 +226,6 @@ NetworkSyncManager::Login(std::string user, std::string pass)
 		curProtocol->Login(user, pass);
 }
 
-void
-NetworkSyncManager::ReportScore(int playerID,
-								int step,
-								int score,
-								int combo,
-								float offset,
-								int numNotes)
-{
-	if (curProtocol != nullptr)
-		curProtocol->ReportScore(
-		  this, playerID, step, score, combo, offset, numNotes);
-}
 void
 NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
@@ -309,27 +279,10 @@ NetworkSyncManager::ReportReplayMine(int row, int col)
 }
 
 void
-NetworkSyncManager::ReportScore(int playerID,
-								int step,
-								int score,
-								int combo,
-								float offset)
-{
-	if (curProtocol != nullptr)
-		curProtocol->ReportScore(this, playerID, step, score, combo, offset);
-}
-void
 NetworkSyncManager::ReportSongOver()
 {
 	if (curProtocol != nullptr)
 		curProtocol->ReportSongOver(this);
-}
-
-void
-NetworkSyncManager::ReportStyle()
-{
-	if (curProtocol != nullptr)
-		curProtocol->ReportStyle(this);
 }
 
 void
@@ -425,50 +378,6 @@ NetworkSyncManager::CreateNewRoom(std::string name,
 }
 
 void
-NetworkSyncManager::RequestRoomInfo(std::string name)
-{
-	if (curProtocol != nullptr)
-		curProtocol->RequestRoomInfo(name);
-}
-
-SMOStepType
-NetworkSyncManager::TranslateStepType(int score)
-{
-	/* Translate from Stepmania's constantly changing TapNoteScore
-	 * to SMO's note scores */
-	switch (score) {
-		case TNS_HitMine:
-			return SMOST_HITMINE;
-		case TNS_AvoidMine:
-			return SMOST_AVOIDMINE;
-		case TNS_Miss:
-			return SMOST_MISS;
-		case TNS_W5:
-			return SMOST_W5;
-		case TNS_W4:
-			return SMOST_W4;
-		case TNS_W3:
-			return SMOST_W3;
-		case TNS_W2:
-			return SMOST_W2;
-		case TNS_W1:
-			return SMOST_W1;
-		case HNS_LetGo + TapNoteScore_Invalid:
-			return SMOST_LETGO;
-		case HNS_Held + TapNoteScore_Invalid:
-			return SMOST_HELD;
-		default:
-			return SMOST_UNUSED;
-	}
-}
-
-unsigned long
-NetworkSyncManager::GetCurrentSMBuild(LoadingWindow* ld)
-{
-	return 0;
-}
-
-void
 NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 {
 	lua_newtable(L);
@@ -498,11 +407,6 @@ LuaFunction(ConnectToServer,
 							  ? std::string(g_sLastServer)
 							  : std::string(SArg(1))))
 
-  static bool ReportStyle()
-{
-	NSMAN->ReportStyle();
-	return true;
-}
 static bool
 CloseNetworkConnection()
 {
@@ -511,16 +415,15 @@ CloseNetworkConnection()
 }
 
 LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
-  LuaFunction(IsNetConnected, NSMAN->useSMserver)
-	LuaFunction(IsNetSMOnline, NSMAN->isSMOnline)
-	  LuaFunction(ReportStyle, ReportStyle())
-		LuaFunction(GetServerName, NSMAN->GetServerName())
-		  LuaFunction(CloseConnection, CloseNetworkConnection())
+LuaFunction(IsNetConnected, NSMAN->useSMserver)
+LuaFunction(IsNetSMOnline, NSMAN->isSMOnline)
+LuaFunction(GetServerName, NSMAN->GetServerName())
+LuaFunction(CloseConnection, CloseNetworkConnection())
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
-			class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
+class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 {
   public:
 	static int IsETTP(T* p, lua_State* L)

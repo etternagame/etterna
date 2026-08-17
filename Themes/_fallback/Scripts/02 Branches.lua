@@ -76,9 +76,6 @@ Branch = {
 		return "ScreenOptionsEdit"
 	end,
 	AfterSelectStyle = function()
-		if IsNetConnected() then
-			ReportStyle()
-		end
 		return "ScreenProfileLoad"
 	end,
 	AfterSelectProfile = function()

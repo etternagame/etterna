@@ -46,26 +46,38 @@ class ETTProtocol : public NetProtocol
 				 unsigned short port,
 				 std::string address) -> bool override; // Connect and say hello
 	void close() override;
+
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
+
 	void Login(std::string user, std::string pass) override;
 	void Logout() override;
+
 	void SendChat(const std::string& message,
 				  std::string tab,
 				  int type) override;
+
 	void CreateNewRoom(std::string name,
 					   std::string desc,
 					   std::string password) override;
 	void EnterRoom(std::string name, std::string password) override;
 	void LeaveRoom(NetworkSyncManager* n) override;
+
 	void ReportSongOver(NetworkSyncManager* n) override;
+
 	void SelectUserSong(NetworkSyncManager* n, Song* song) override;
+
 	void OnMusicSelect() override;
+
 	void OnOptions() override;
 	void OffOptions() override;
+
 	void OnEval() override;
 	void OffEval() override;
+
 	void SendMPLeaderboardUpdate(float wife, std::string& jdgstr) override;
+
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss) override;
+
 	// triggered by button presses in gameplay
 	void ReportReplayInput(NetworkSyncManager* n,
 						   bool isPress,
