@@ -64,6 +64,7 @@ class RageSoundReader_SpeedChange_Good : public RageSoundReader_Filter
 	AudioBuffer m_ReadAhead;
 	AudioBuffer m_Mixed;
 	std::vector<float> m_Scale;
+	std::vector<double> m_Source;
 	std::vector<float> m_Copy;
 
 	struct Window
