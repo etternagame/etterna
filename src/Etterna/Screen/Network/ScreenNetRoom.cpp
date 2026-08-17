@@ -167,7 +167,7 @@ ScreenNetRoom::SelectRoom(std::string name)
 void
 ScreenNetRoom::SelectCurrent()
 {
-	if (NSMAN->IsETTP() && ((ETTProtocol*)NSMAN->curProtocol)->creatingRoom) {
+	if (NSMAN->CreatingRoom()) {
 		SCREENMAN->SystemMessage("Error: Already trying to create a room");
 		return;
 	}

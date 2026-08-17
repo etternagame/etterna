@@ -12,6 +12,8 @@
 #include "Core/Services/Locator.hpp"
 #include "arch/LoadingWindow/LoadingWindow.h"
 
+#include "Etterna/Models/Network/ETTProtocol.h"
+
 NetworkSyncManager* NSMAN;
 
 #include <cerrno>
@@ -156,8 +158,10 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	curProtocol = nullptr;
 	CloseConnection();
 
-	if (ETTP.Connect(this, iPort, sAddress))
-		curProtocol = &ETTP;
+	auto ETTP = new ETTProtocol;
+
+	if (ETTP->Connect(this, iPort, sAddress))
+		curProtocol = ETTP;
 	if (curProtocol == nullptr)
 		return;
 	g_sLastServer.Set(ServerIP);
@@ -183,7 +187,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 bool
 NetworkSyncManager::IsETTP()
 {
-	return curProtocol == &ETTP;
+	return true;
 }
 
 void
@@ -386,6 +390,35 @@ NetworkSyncManager::PushMPLeaderboard(lua_State* L)
 	}
 }
 
+std::string
+NetworkSyncManager::GetRoomName()
+{
+	if (curProtocol == nullptr) {
+		return "";
+	}
+	if (!IsETTP()) {
+		return "";
+	}
+	auto ettp = dynamic_cast<ETTProtocol*>(curProtocol);
+	if (!ettp->inRoom) {
+		return "";
+	}
+	return ettp->roomName;
+}
+
+bool
+NetworkSyncManager::CreatingRoom()
+{
+	if (curProtocol == nullptr) {
+		return false;
+	}
+	if (!IsETTP()) {
+		return false;
+	}
+	auto ettp = dynamic_cast<ETTProtocol*>(curProtocol);
+	return ettp->creatingRoom;
+}
+
 static bool
 ConnectToServer(const std::string& t)
 {
@@ -462,12 +495,11 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 	}
 	static int GetCurrentRoomName(T* p, lua_State* L)
 	{
-		if (!p->IsETTP())
+		auto roomname = p->GetRoomName();
+		if (roomname == "") {
 			lua_pushnil(L);
-		else if (!p->ETTP.inRoom)
-			lua_pushnil(L);
-		else
-			lua_pushstring(L, p->ETTP.roomName.c_str());
+		}
+		lua_pushstring(L, roomname.c_str());
 		return 1;
 	}
 	static int SendChatMsg(T* p, lua_State* L)

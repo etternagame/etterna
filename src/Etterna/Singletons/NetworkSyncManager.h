@@ -5,13 +5,12 @@
 #include "Etterna/Models/HighScore/HighScore.h"
 
 #include "Etterna/Models/Network/NetworkConstants.h"
-#include "Etterna/Models/Network/NetProtocol.h"
-#include "Etterna/Models/Network/ETTProtocol.h"
 
 class LoadingWindow;
 class RoomData;
 class Song;
 class PlayerStageStats;
+class NetProtocol;
 
 const int NETPROTOCOLVERSION = 4;
 const int ETTPCVERSION = 3;
@@ -79,7 +78,6 @@ class NetworkSyncManager
   public:
 	NetworkSyncManager(LoadingWindow* ld = nullptr);
 	~NetworkSyncManager();
-	ETTProtocol ETTP;
 	NetProtocol* curProtocol{ nullptr };
 
 	void ReportHighScore(HighScore* hs, PlayerStageStats& pss);
@@ -123,8 +121,10 @@ class NetworkSyncManager
 	void CreateNewRoom(std::string name,
 					   std::string desc = "",
 					   std::string password = "");
+	bool CreatingRoom();
 	void EnterRoom(std::string name, std::string password = "");
 	void LeaveRoom();
+	std::string GetRoomName();
 
 	void PostStartUp(const std::string& ServerIP);
 
