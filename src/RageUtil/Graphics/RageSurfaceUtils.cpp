@@ -218,12 +218,8 @@ RageSurfaceUtils::GetAverageRGB(const RageSurface* img, unsigned pixelIncrement)
 
 	for (auto y = 0; y < img->h; y++) {
 		auto row = static_cast<uint8_t*>(img->pixels) + img->pitch * y;
-
-		// to allow pixelIncrement to offset the X position
-		if (x >= img->w)
-			x -= img->w;
 		
-		for (; x < img->w; x += pixelIncrement) {
+		for (auto x = 0; x < img->w; x += pixelIncrement) {
 			const auto val = decodepixel(row, img->fmt.BytesPerPixel);
 			if (img->fmt.BitsPerPixel == 8) {
 				if (img->fmt.palette->colors[val].a) {
