@@ -1034,9 +1034,6 @@ ETTProtocol::completeAndSend(rapidjson::Document& doc)
 void
 ETTProtocol::Logout()
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_logout);
 	completeAndSend(doc);
 }
