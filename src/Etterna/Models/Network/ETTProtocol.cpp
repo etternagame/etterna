@@ -1044,9 +1044,6 @@ ETTProtocol::Logout()
 void
 ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_sendchat);
 	auto& allocator = doc.GetAllocator();
 
@@ -1070,9 +1067,6 @@ ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
 void
 ETTProtocol::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_mpleaderboardupdate);
 	auto& allocator = doc.GetAllocator();
 
@@ -1100,8 +1094,9 @@ ETTProtocol::CreateNewRoom(std::string name,
 						   std::string desc,
 						   std::string password)
 {
-	if (curl == nullptr || creatingRoom)
+	if (creatingRoom)
 		return;
+
 	creatingRoom = true;
 	timeoutStart = clock();
 	waitingForTimeout = true;
@@ -1128,8 +1123,6 @@ ETTProtocol::CreateNewRoom(std::string name,
 void
 ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
-	if (curl == nullptr)
-		return;
 	n->song = nullptr;
 	n->steps = nullptr;
 	n->rate = 0;
@@ -1152,14 +1145,14 @@ ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 void
 ETTProtocol::EnterRoom(std::string name, std::string password)
 {
-	if (curl == nullptr)
-		return;
-
 	auto it = find_if(NSMAN->m_Rooms.begin(),
 					  NSMAN->m_Rooms.end(),
 					  [&name](const RoomData& r) { return r.Name() == name; });
 	if (it == NSMAN->m_Rooms.end()) {
 		// Unknown room
+		Locator::getLogger()->warn(
+		  "Tried to enter an unknown room named '{}' so nothing happened",
+		  name);
 		return;
 	}
 
@@ -1183,9 +1176,6 @@ ETTProtocol::EnterRoom(std::string name, std::string password)
 void
 ETTProtocol::Login(std::string user, std::string pass)
 {
-	if (curl == nullptr)
-		return;
-
 	NSMAN->loggedInUsername = user.c_str();
 
 	auto doc = newMsg(ettpc_login);
@@ -1216,8 +1206,11 @@ void
 ETTProtocol::Send(const std::string& str)
 {
 	if (curl == nullptr) {
+		Locator::getLogger()->warn(
+		  "ETTProtocol curl handle is null, so message is not sent");
 		return;
 	}
+
 	std::scoped_lock<std::mutex> lock(curlMutex);
 
 	CURLcode result = CURLE_OK;
@@ -1241,20 +1234,21 @@ ETTProtocol::Send(const std::string& str)
 					return;
 				else
 					Locator::getLogger()->info(
-					  "NSMAN is sending a large WS message");
+					  "ETTProtocol is sending a large WS message");
 				break;
 			}
 			case CURLE_AGAIN: {
 				// wait and maybe it works later
 				Locator::getLogger()->warn(
-				  "NSMAN returned CURLE_AGAIN. Waiting 200ms");
+				  "ETTProtocol returned CURLE_AGAIN. Waiting 200ms");
 				std::this_thread::sleep_for(std::chrono::milliseconds(200));
 				result = CURLE_OK;
 				break;
 			}
 			default: {
-				Locator::getLogger()->warn("NSMAN got unexpected CURLE: {}",
-										   static_cast<size_t>(result));
+				Locator::getLogger()->warn(
+				  "ETTProtocol got unexpected CURLE: {}",
+				  static_cast<size_t>(result));
 				return;
 			}
 		}
@@ -1263,9 +1257,6 @@ ETTProtocol::Send(const std::string& str)
 void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_sendscore);
 	auto& allocator = doc.GetAllocator();
 
@@ -1489,9 +1480,6 @@ ETTProtocol::ReportReplayMine(NetworkSyncManager* n, int row, int col)
 void
 ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_gameover);
 	completeAndSend(doc);
 }
@@ -1499,9 +1487,6 @@ ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 void
 ETTProtocol::OffEval()
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_closeeval);
 	completeAndSend(doc);
 
@@ -1511,9 +1496,6 @@ ETTProtocol::OffEval()
 void
 ETTProtocol::OnEval()
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_openeval);
 	completeAndSend(doc);
 
@@ -1523,9 +1505,6 @@ ETTProtocol::OnEval()
 void
 ETTProtocol::OnOptions()
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_openoptions);
 	completeAndSend(doc);
 
@@ -1535,9 +1514,6 @@ ETTProtocol::OnOptions()
 void
 ETTProtocol::OffOptions()
 {
-	if (curl == nullptr)
-		return;
-
 	auto doc = newMsg(ettpc_closeoptions);
 	completeAndSend(doc);
 
@@ -1568,7 +1544,7 @@ void
 ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 {
 	auto curSteps = GAMESTATE->m_pCurSteps;
-	if (curl == nullptr || song == nullptr || curSteps == nullptr ||
+	if (song == nullptr || curSteps == nullptr ||
 		GAMESTATE->m_pPlayerState == nullptr)
 		return;
 
