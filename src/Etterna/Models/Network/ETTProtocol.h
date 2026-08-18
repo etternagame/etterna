@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NetProtocol.h"
+#include "NetworkConstants.h"
 
 #include "rapidjson/document.h"
 #include <curl/curl.h>
@@ -104,5 +105,9 @@ class ETTProtocol : public NetProtocol
 	// triggered by hitting a mine in gameplay
 	void ReportReplayMine(NetworkSyncManager* n, int row, int col) override;
 	void Send(const std::string& str);
+
+private:
+	rapidjson::Document newMsg(const ETTClientMessageTypes& msgType);
+	void completeAndSend(rapidjson::Document& doc);
 
 };

@@ -1,6 +1,5 @@
 #include "Etterna/Globals/global.h"
 #include "ETTProtocol.h"
-#include "NetworkConstants.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Singletons/ScreenManager.h"
@@ -163,6 +162,29 @@ correct_non_utf_8(const std::string& str)
 	std::string stdStr = str.c_str();
 	auto utf8ValidStr = correct_non_utf_8(&stdStr);
 	return utf8ValidStr;
+}
+
+static inline rapidjson::Value
+stringToVal(const std::string& str,
+			rapidjson::Document::AllocatorType& allocator,
+			std::string defaultVal = "")
+{
+	rapidjson::Value v;
+	if (str.empty()) {
+		v.SetString(defaultVal.c_str(), allocator);
+	} else {
+		v.SetString(str.c_str(), allocator);
+	}
+	return v;
+}
+
+static inline void
+addStringMember(rapidjson::Value& doc,
+				rapidjson::GenericStringRef<char> name,
+				const std::string& str,
+				rapidjson::Document::AllocatorType& allocator)
+{
+	doc.AddMember(name, stringToVal(str, allocator), allocator);
 }
 
 ETTProtocol::~ETTProtocol()
@@ -986,20 +1008,37 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	newMessages.clear();
 }
 
+rapidjson::Document
+ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
+{
+	rapidjson::Document d;
+	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+
+	d.SetObject();
+	d.AddMember("id", msgId++, allocator);
+	addStringMember(
+	  d, "type", NetworkConstants::ettClientMessageMap[msgType], allocator);
+
+	return d;
+}
+void
+ETTProtocol::completeAndSend(rapidjson::Document& doc)
+{
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
+	doc.Accept(w);
+
+	Send(buffer.GetString());
+}
+
 void
 ETTProtocol::Logout()
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(NetworkConstants::ettClientMessageMap[ettpc_logout].c_str());
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_logout);
+	completeAndSend(doc);
 }
 
 void
@@ -1007,55 +1046,55 @@ ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_sendchat].c_str());
-	writer.Key("payload");
-	writer.StartObject();
-	writer.Key("msg");
-	if (message.length() > 500)
-		writer.String(message.substr(0, 500).c_str());
-	else
-		writer.String(message.c_str());
-	writer.Key("tab");
-	writer.String(tab.c_str());
-	writer.Key("msgtype");
-	writer.Int(type);
-	writer.EndObject();
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_sendchat);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		if (message.length() > 500) {
+			addStringMember(payload, "msg", message.substr(0, 500), allocator);
+		} else {
+			addStringMember(payload, "msg", message, allocator);
+		}
+		addStringMember(payload, "tab", tab, allocator);
+		payload.AddMember("msgtype", type, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
 }
+
 void
 ETTProtocol::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_mpleaderboardupdate].c_str());
-	writer.Key("payload");
-	writer.StartObject();
-	writer.Key("wife");
-	if (std::isfinite(wife))
-		writer.Double(wife);
-	else
-		writer.Null();
-	writer.Key("jdgstr");
-	writer.String(jdgstr.c_str());
-	writer.EndObject();
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_mpleaderboardupdate);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		if (std::isfinite(wife)) {
+			payload.AddMember("wife", wife, allocator);
+		}
+		else {
+			rapidjson::Value nullVal;
+			nullVal.SetNull();
+			payload.AddMember("wife", nullVal, allocator);
+		}
+		addStringMember(payload, "jdgstr", jdgstr, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
 }
+
 void
 ETTProtocol::CreateNewRoom(std::string name,
 						   std::string desc,
@@ -1071,27 +1110,21 @@ ETTProtocol::CreateNewRoom(std::string name,
 	roomName = name.c_str();
 	roomDesc = desc.c_str();
 
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_createroom].c_str());
-	writer.Key("payload");
-	writer.StartObject();
-	writer.Key("name");
-	writer.String(name.c_str());
-	writer.Key("pass");
-	writer.String(password.c_str());
-	writer.Key("desc");
-	writer.String(desc.c_str());
-	writer.EndObject();
-	writer.EndObject();
+	auto doc = newMsg(ettpc_createroom);
+	auto& allocator = doc.GetAllocator();
 
-	Send(s.GetString());
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "name", name, allocator);
+		addStringMember(payload, "pass", password, allocator);
+		addStringMember(payload, "desc", desc, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
 }
+
 void
 ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 {
@@ -1108,53 +1141,45 @@ ETTProtocol::LeaveRoom(NetworkSyncManager* n)
 	n->difficulty = Difficulty_Invalid;
 	n->meter = -1;
 
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_leaveroom].c_str());
-	writer.EndObject();
-	Send(s.GetString());
+	auto doc = newMsg(ettpc_leaveroom);
+	completeAndSend(doc);
 
 	roomName = "";
 	roomDesc = "";
 	inRoom = false;
 }
+
 void
 ETTProtocol::EnterRoom(std::string name, std::string password)
 {
 	if (curl == nullptr)
 		return;
+
 	auto it = find_if(NSMAN->m_Rooms.begin(),
 					  NSMAN->m_Rooms.end(),
 					  [&name](const RoomData& r) { return r.Name() == name; });
-	if (it == NSMAN->m_Rooms.end())
-		return; // Unknown room
+	if (it == NSMAN->m_Rooms.end()) {
+		// Unknown room
+		return;
+	}
+
 	roomName = name.c_str();
 	roomDesc = it->Description().c_str();
 
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_enterroom].c_str());
-	writer.Key("payload");
-	writer.StartObject();
-	writer.Key("name");
-	writer.String(name.c_str());
-	writer.Key("pass");
-	writer.String(password.c_str());
-	writer.EndObject();
-	writer.EndObject();
+	auto doc = newMsg(ettpc_enterroom);
+	auto& allocator = doc.GetAllocator();
 
-	Send(s.GetString());
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "name", name, allocator);
+		addStringMember(payload, "pass", password, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
 }
+
 void
 ETTProtocol::Login(std::string user, std::string pass)
 {
@@ -1162,23 +1187,20 @@ ETTProtocol::Login(std::string user, std::string pass)
 		return;
 
 	NSMAN->loggedInUsername = user.c_str();
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(NetworkConstants::ettClientMessageMap[ettpc_login].c_str());
-	writer.Key("payload");
-	writer.StartObject();
-	writer.Key("user");
-	writer.String(user.c_str());
-	writer.Key("pass");
-	writer.String(pass.c_str());
-	writer.EndObject();
-	writer.EndObject();
 
-	Send(s.GetString());
+	auto doc = newMsg(ettpc_login);
+	auto& allocator = doc.GetAllocator();
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "user", user, allocator);
+		addStringMember(payload, "pass", pass, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+
 
 	timeoutStart = clock();
 	waitingForTimeout = true;
@@ -1243,122 +1265,131 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_sendscore].c_str());
-	writer.Key("payload");
-	writer.StartObject();
 
-	writer.Key("scorekey");
-	writer.String(hs->GetScoreKey().c_str());
-	writer.Key("ssr_norm");
-	writer.Double(hs->GetSSRNormPercent());
-	writer.Key("max_combo");
-	writer.Int(hs->GetMaxCombo());
-	writer.Key("valid");
-	writer.Int(hs->GetEtternaValid());
-	writer.Key("mods");
-	writer.String(hs->GetModifiers().c_str());
-	writer.Key("miss");
-	writer.Int(hs->GetTapNoteScore(TNS_Miss));
-	writer.Key("bad");
-	writer.Int(hs->GetTapNoteScore(TNS_W5));
-	writer.Key("good");
-	writer.Int(hs->GetTapNoteScore(TNS_W4));
-	writer.Key("great");
-	writer.Int(hs->GetTapNoteScore(TNS_W3));
-	writer.Key("perfect");
-	writer.Int(hs->GetTapNoteScore(TNS_W2));
-	writer.Key("marv");
-	writer.Int(hs->GetTapNoteScore(TNS_W1));
-	writer.Key("score");
-	writer.Double(hs->GetSSRNormPercent());
-	writer.Key("wifever");
-	writer.Int(hs->GetWifeVersion());
-	auto& r = hs->GetRadarValues();
-	FOREACH_ENUM(RadarCategory, rc)
+	auto doc = newMsg(ettpc_sendscore);
+	auto& allocator = doc.GetAllocator();
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
 	{
-		writer.Key(RadarCategoryToString(rc).c_str());
-		writer.Int(r[rc]);
-	}
-	FOREACH_ENUM(Skillset, ss)
-	{
-		writer.Key(SkillsetToString(ss).c_str());
-		writer.Double(hs->GetSkillsetSSR(ss));
-	}
-	writer.Key("datetime");
-	writer.String(hs->GetDateTime().GetString().c_str());
-	writer.Key("hitmine");
-	writer.Int(hs->GetTapNoteScore(TNS_HitMine));
-	writer.Key("held");
-	writer.Int(hs->GetHoldNoteScore(HNS_Held));
-	writer.Key("letgo");
-	writer.Int(hs->GetHoldNoteScore(HNS_LetGo));
-	writer.Key("ng");
-	writer.Int(hs->GetHoldNoteScore(HNS_Missed));
-	writer.Key("chartkey");
-	writer.String(hs->GetChartKey().c_str());
-	writer.Key("rate");
-	writer.Double(hs->GetMusicRate());
-	if (GAMESTATE->m_pPlayerState != nullptr) {
-		writer.Key("options");
-		writer.String(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-						.GetString()
-						.c_str());
-	}
-	auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
-	writer.Key("negsolo");
-	writer.Int(chart->GetTimingData()->HasWarps() ||
-			   chart->m_StepsType != StepsType_dance_single);
-	writer.Key("nocc");
-	writer.Int(!hs->GetChordCohesion());
-	writer.Key("calc_version");
-	writer.Int(hs->GetSSRCalcVersion());
-	writer.Key("topscore");
-	writer.Int(hs->GetTopScore());
-	writer.Key("uuid");
-	writer.String(hs->GetMachineGuid().c_str());
-	writer.Key("hash");
-	writer.String(hs->GetValidationKey(ValidationKey_Brittle).c_str());
-	const auto& offsets = pss.GetOffsetVector();
-	const auto& noterows = pss.GetNoteRowVector();
-	const auto& tracks = pss.GetTrackVector();
-	const auto& types = pss.GetTapNoteTypeVector();
-	if (offsets.size() > 0) {
-		writer.Key("replay");
-		writer.StartObject();
-		writer.Key("noterows");
-		writer.StartArray();
-		for (size_t i = 0; i < noterows.size(); i++)
-			writer.Int(noterows[i]);
-		writer.EndArray();
-		writer.Key("offsets");
-		writer.StartArray();
-		for (size_t i = 0; i < offsets.size(); i++)
-			writer.Double(offsets[i]);
-		writer.EndArray();
-		writer.Key("tracks");
-		writer.StartArray();
-		for (size_t i = 0; i < tracks.size(); i++)
-			writer.Int(tracks[i]);
-		writer.EndArray();
-		writer.Key("notetypes");
-		writer.StartArray();
-		for (size_t i = 0; i < types.size(); i++)
-			writer.Int(types[i]);
-		writer.EndArray();
-		writer.EndObject();
-	}
+		addStringMember(payload, "scorekey", hs->GetScoreKey(), allocator);
+		payload.AddMember("ssr_norm", hs->GetSSRNormPercent(), allocator);
+		payload.AddMember("max_combo", hs->GetMaxCombo(), allocator);
+		payload.AddMember(
+		  "valid", static_cast<int>(hs->GetEtternaValid()), allocator);
+		addStringMember(payload, "mods", hs->GetModifiers(), allocator);
 
-	writer.EndObject();
-	writer.EndObject();
+		payload.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
+		payload.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
+		payload.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
+		payload.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
+		payload.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
+		payload.AddMember("marv", hs->GetTapNoteScore(TNS_W1), allocator);
 
-	Send(s.GetString());
+		payload.AddMember("score", hs->GetSSRNormPercent(), allocator);
+		payload.AddMember("wifever", hs->GetWifeVersion(), allocator);
+
+		auto& r = hs->GetRadarValues();
+		{
+			payload.AddMember("Notes", r[RadarCategory_Notes], allocator);
+			payload.AddMember(
+			  "TapsAndHolds", r[RadarCategory_TapsAndHolds], allocator);
+			payload.AddMember("Jumps", r[RadarCategory_Jumps], allocator);
+			payload.AddMember("Holds", r[RadarCategory_Holds], allocator);
+			payload.AddMember("Mines", r[RadarCategory_Mines], allocator);
+			payload.AddMember("Hands", r[RadarCategory_Hands], allocator);
+			payload.AddMember("Rolls", r[RadarCategory_Rolls], allocator);
+			payload.AddMember("Lifts", r[RadarCategory_Lifts], allocator);
+			payload.AddMember("Fakes", r[RadarCategory_Fakes], allocator);
+		}
+		{
+			payload.AddMember(
+			  "Overall", hs->GetSkillsetSSR(Skill_Overall), allocator);
+			payload.AddMember(
+			  "Stream", hs->GetSkillsetSSR(Skill_Stream), allocator);
+			payload.AddMember(
+			  "Jumpstream", hs->GetSkillsetSSR(Skill_Jumpstream), allocator);
+			payload.AddMember(
+			  "Handstream", hs->GetSkillsetSSR(Skill_Handstream), allocator);
+			payload.AddMember(
+			  "Stamina", hs->GetSkillsetSSR(Skill_Stamina), allocator);
+			payload.AddMember(
+			  "JackSpeed", hs->GetSkillsetSSR(Skill_JackSpeed), allocator);
+			payload.AddMember(
+			  "Chordjack", hs->GetSkillsetSSR(Skill_Chordjack), allocator);
+			payload.AddMember(
+			  "Technical", hs->GetSkillsetSSR(Skill_Technical), allocator);
+		}
+		addStringMember(
+		  payload, "datetime", hs->GetDateTime().GetString(), allocator);
+		payload.AddMember("hitmine", hs->GetTapNoteScore(TNS_HitMine), allocator);
+		payload.AddMember("held", hs->GetHoldNoteScore(HNS_Held), allocator);
+		payload.AddMember("letgo", hs->GetHoldNoteScore(HNS_LetGo), allocator);
+		payload.AddMember("ng", hs->GetHoldNoteScore(HNS_Missed), allocator);
+		addStringMember(payload, "chartkey", hs->GetChartKey(), allocator);
+		payload.AddMember("rate", hs->GetMusicRate(), allocator);
+		if (GAMESTATE->m_pPlayerState != nullptr) {
+			addStringMember(
+			  payload,
+			  "options",
+			  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+				.GetString(),
+			  allocator);
+		}
+		auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		payload.AddMember(
+		  "negsolo",
+		  static_cast<int>(chart->GetTimingData()->HasWarps() ||
+						   chart->m_StepsType != StepsType_dance_single),
+		  allocator);
+		payload.AddMember(
+		  "nocc", static_cast<int>(!hs->GetChordCohesion()), allocator);
+		payload.AddMember("calc_version", hs->GetSSRCalcVersion(), allocator);
+		payload.AddMember("topscore", hs->GetTopScore(), allocator);
+		addStringMember(payload, "uuid", hs->GetMachineGuid(), allocator);
+		addStringMember(payload,
+						"hash",
+						hs->GetValidationKey(ValidationKey_Brittle),
+						allocator);
+
+		{
+			const auto& offsets = pss.GetOffsetVector();
+			const auto& noterows = pss.GetNoteRowVector();
+			const auto& tracks = pss.GetTrackVector();
+			const auto& types = pss.GetTapNoteTypeVector();
+			if (offsets.size() > 0) {
+
+				rapidjson::Value replay(rapidjson::Type::kObjectType);
+
+				rapidjson::Value nrArr(rapidjson::Type::kArrayType);
+				rapidjson::Value offsetArr(rapidjson::Type::kArrayType);
+				rapidjson::Value trackArr(rapidjson::Type::kArrayType);
+				rapidjson::Value typeArr(rapidjson::Type::kArrayType);
+
+				for (size_t i = 0; i < noterows.size(); i++) {
+					nrArr.PushBack(noterows[i], allocator);
+				}
+				for (size_t i = 0; i < offsets.size(); i++) {
+					offsetArr.PushBack(offsets[i], allocator);
+				}
+				for (size_t i = 0; i < tracks.size(); i++) {
+					trackArr.PushBack(tracks[i], allocator);
+				}
+				for (size_t i = 0; i < types.size(); i++) {
+					typeArr.PushBack(types[i], allocator);
+				}
+
+				replay.AddMember("noterows", nrArr, allocator);
+				replay.AddMember("offsets", offsetArr, allocator);
+				replay.AddMember("tracks", trackArr, allocator);
+				replay.AddMember("notetypes", typeArr, allocator);
+
+				payload.AddMember("replay", replay, allocator);
+			}
+		}
+	}
+	doc.AddMember("payload", payload, allocator);
+
+	completeAndSend(doc);
 }
 
 void
@@ -1371,45 +1402,24 @@ ETTProtocol::ReportReplayInput(NetworkSyncManager* n,
 							   int tapNoteType,
 							   int tapNoteSubType)
 {
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	auto doc = newMsg(ettpc_replay_input);
+	auto& allocator = doc.GetAllocator();
 
-	// main obj
-	writer.StartObject();
 
-	// headers
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_replay_input].c_str());
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("is_press", isPress, allocator);
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("music_seconds", fMusicSeconds, allocator);
+		payload.AddMember("offset", fNoteOffset, allocator);
+		payload.AddMember("tapnote_type", tapNoteType, allocator);
+		payload.AddMember("tapnote_subtype", tapNoteSubType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
 
-	// data
-	writer.Key("payload");
-	writer.StartObject();
 
-	writer.Key("is_press");
-	writer.Bool(isPress);
-	writer.Key("col");
-	writer.Int(col);
-	writer.Key("row");
-	writer.Int(row);
-	writer.Key("music_seconds");
-	writer.Double(fMusicSeconds);
-	writer.Key("offset");
-	writer.Double(fNoteOffset);
-	writer.Key("tapnote_type");
-	writer.Int(tapNoteType);
-	writer.Key("tapnote_subtype");
-	writer.Int(tapNoteSubType);
-
-	//
-	writer.EndObject();
-
-	//
-	writer.EndObject();
-
-	Send(s.GetString());
+	completeAndSend(doc);
 }
 
 void
@@ -1419,39 +1429,21 @@ ETTProtocol::ReportReplayMiss(NetworkSyncManager* n,
 							  int tapNoteType,
 							  int tapNoteSubType)
 {
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	auto doc = newMsg(ettpc_replay_miss);
+	auto& allocator = doc.GetAllocator();
 
-	// main obj
-	writer.StartObject();
 
-	// headers
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_replay_miss].c_str());
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("tapnote_type", tapNoteType, allocator);
+		payload.AddMember("tapnote_subtype", tapNoteSubType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
 
-	// data
-	writer.Key("payload");
-	writer.StartObject();
 
-	writer.Key("col");
-	writer.Int(col);
-	writer.Key("row");
-	writer.Int(row);
-	writer.Key("tapnote_type");
-	writer.Int(tapNoteType);
-	writer.Key("tapnote_subtype");
-	writer.Int(NUM_TapNoteSubType);
-
-	//
-	writer.EndObject();
-
-	//
-	writer.EndObject();
-
-	Send(s.GetString());
+	completeAndSend(doc);
 }
 
 void
@@ -1460,71 +1452,38 @@ ETTProtocol::ReportReplayHold(NetworkSyncManager* n,
 							  int row,
 							  int subType)
 {
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	auto doc = newMsg(ettpc_replay_holddrop);
+	auto& allocator = doc.GetAllocator();
 
-	// main obj
-	writer.StartObject();
 
-	// headers
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_replay_holddrop].c_str());
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("subtype", subType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
 
-	// data
-	writer.Key("payload");
-	writer.StartObject();
 
-	writer.Key("col");
-	writer.Int(col);
-	writer.Key("row");
-	writer.Int(row);
-	writer.Key("subtype");
-	writer.Int(subType);
-
-	//
-	writer.EndObject();
-
-	//
-	writer.EndObject();
-
-	Send(s.GetString());
+	completeAndSend(doc);
 }
 
 void
 ETTProtocol::ReportReplayMine(NetworkSyncManager* n, int row, int col)
 {
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
+	auto doc = newMsg(ettpc_replay_minehit);
+	auto& allocator = doc.GetAllocator();
 
-	// main obj
-	writer.StartObject();
 
-	// headers
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_replay_minehit].c_str());
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
 
-	// data
-	writer.Key("payload");
-	writer.StartObject();
 
-	writer.Key("col");
-	writer.Int(col);
-	writer.Key("row");
-	writer.Int(row);
-
-	//
-	writer.EndObject();
-
-	//
-	writer.EndObject();
-
-	Send(s.GetString());
+	completeAndSend(doc);
 }
 
 void
@@ -1533,17 +1492,8 @@ ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 	if (curl == nullptr)
 		return;
 
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_gameover].c_str());
-	writer.EndObject();
-
-	Send(s.GetString());
+	auto doc = newMsg(ettpc_gameover);
+	completeAndSend(doc);
 }
 
 void
@@ -1551,70 +1501,45 @@ ETTProtocol::OffEval()
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_closeeval].c_str());
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_closeeval);
+	completeAndSend(doc);
 
 	state = 0;
 }
+
 void
 ETTProtocol::OnEval()
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_openeval].c_str());
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_openeval);
+	completeAndSend(doc);
 
 	state = 2;
 }
+
 void
 ETTProtocol::OnOptions()
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_openoptions].c_str());
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_openoptions);
+	completeAndSend(doc);
 
 	state = 3;
 }
+
 void
 ETTProtocol::OffOptions()
 {
 	if (curl == nullptr)
 		return;
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	writer.String(
-	  NetworkConstants::ettClientMessageMap[ettpc_closeoptions].c_str());
-	writer.EndObject();
-	Send(s.GetString());
+
+	auto doc = newMsg(ettpc_closeoptions);
+	completeAndSend(doc);
 
 	state = 0;
 }
@@ -1647,48 +1572,43 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		GAMESTATE->m_pPlayerState == nullptr)
 		return;
 
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-	writer.StartObject();
-	writer.Key("id");
-	writer.Uint(msgId++);
-	writer.Key("type");
-	if (song == n->song) {
-		writer.String(
-		  NetworkConstants::ettClientMessageMap[ettpc_startchart].c_str());
-	} else {
-		writer.String(
-		  NetworkConstants::ettClientMessageMap[ettpc_selectchart].c_str());
-	}
-	writer.Key("payload");
-	writer.StartObject();
-	writer.Key("title");
-	writer.String(correct_non_utf_8(song->m_sMainTitle).c_str());
-	writer.Key("subtitle");
-	writer.String(correct_non_utf_8(song->m_sSubTitle).c_str());
-	writer.Key("artist");
-	writer.String(correct_non_utf_8(song->m_sArtist).c_str());
-	writer.Key("filehash");
-	writer.String(song->GetFileHash().c_str());
-	writer.Key("pack");
-	writer.String(correct_non_utf_8(song->m_sGroupName).c_str());
-	writer.Key("chartkey");
-	writer.String(curSteps->GetChartKey().c_str());
-	writer.Key("difficulty");
-	writer.String(DifficultyToString(curSteps->GetDifficulty()).c_str());
-	writer.Key("meter");
-	writer.Int(curSteps->GetMeter());
-	writer.Key("options");
-	writer.String(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
-					.GetString()
-					.c_str());
-	writer.Key("rate");
-	writer.Int(static_cast<int>(
-	  GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate * 1000));
-	writer.EndObject();
-	writer.EndObject();
+	const auto type = song == n->song ? ettpc_startchart : ettpc_selectchart;
+	auto doc = newMsg(type);
+	auto& allocator = doc.GetAllocator();
 
-	Send(s.GetString());
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload,
+		  "title", correct_non_utf_8(song->m_sMainTitle), allocator);
+		addStringMember(payload,
+		  "subtitle", correct_non_utf_8(song->m_sSubTitle), allocator);
+		addStringMember(payload,
+		  "artist", correct_non_utf_8(song->m_sArtist), allocator);
+		addStringMember(payload, "filehash", song->GetFileHash(), allocator);
+		addStringMember(
+		  payload, "pack", correct_non_utf_8(song->m_sGroupName), allocator);
+		addStringMember(
+		  payload, "chartkey", curSteps->GetChartKey(), allocator);
+		addStringMember(payload,
+						"difficulty",
+						DifficultyToString(curSteps->GetDifficulty()),
+						allocator);
+		payload.AddMember("meter", curSteps->GetMeter(), allocator);
+		addStringMember(
+		  payload,
+		  "options",
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().GetString(), allocator);
+		payload.AddMember(
+		  "rate",
+		  static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
+						   1000),
+		  allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
 }
 
 void
