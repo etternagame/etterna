@@ -92,16 +92,7 @@ RageSoundReader_PitchChange::Read(float* pBuf, int iFrames)
 		if (bMepstania) {
 			m_pSpeedChange->SetSpeedRatio(fRequestedSpeedRatio);
 		} else {
-			// SpeedChange_Good is bad at downrates, but bad in a different way than SpeedChange.
-			// And both sound okay for small down rates. So doing half the down rate in one and then the other
-			// sounds better than either one alone.......
-			if ((fRequestedSpeedRatio >= 0.5f) && (fRequestedSpeedRatio < 1.0f)) {
-				m_pSpeedChange->SetSpeedRatio(sqrtf(fRequestedSpeedRatio * 1.05f));
-				m_pSpeedChangeGood->SetSpeedRatio(sqrtf(fRequestedSpeedRatio / 1.05f));
-			} else {
-				m_pSpeedChange->SetSpeedRatio(1.0f);
-				m_pSpeedChangeGood->SetSpeedRatio(fRequestedSpeedRatio);
-			}
+			m_pSpeedChangeGood->SetSpeedRatio(fRequestedSpeedRatio);
 		}
 
 		m_fLastSetSpeedRatio = m_fSpeedRatio;
