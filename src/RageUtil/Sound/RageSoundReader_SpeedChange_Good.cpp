@@ -23,7 +23,7 @@ static Preference<bool> g_StepmaniaUnpitchRates("StepmaniaUnpitchRates", false);
 
 static const double BaseWindowsizeInMilliseconds = 266.0;
 static const double MaxTimingAdjustStep = 20.0;
-static const double FFTNonsenseBelowRate = 0.6;
+static const double FFTNonsenseBelowRate = 0.65;
 
 static float
 rsqrt(float x)
@@ -128,7 +128,7 @@ Lerp(float t, float a, float b)
 }
 
 static void
-ComputeRandomPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float *pBuffer, int64_t iSamples, int64_t iNumChannels)
+ComputeRandomPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float *pBuffer, int64_t iSamples, int64_t iNumChannels, float fAmount)
 {
 	ASSERT(uint64_t(iSamples) < Junk->iSize);
 
@@ -163,13 +163,15 @@ ComputeRandomPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float *pBuffer, int64_
 		complex fr = pFreq[i+1];
 		float nc = fl.real*fr.real + fl.imag*fr.imag;
 		if (nc > 0) {
+			auto z1 = RandomPhasor1;
 			RandomPhasor1 *= complex{ x, y };
 			RandomPhasor1 *= rsqrt(norm(RandomPhasor1));
-			pFreq[i] = RandomPhasor1;
+			pFreq[i] = fAmount * (z1 + RandomPhasor1);
 		} else {
+			auto z1 = RandomPhasor2;
 			RandomPhasor2 += complex{ x, y };
 			RandomPhasor2 *= rsqrt(norm(RandomPhasor2));
-			pFreq[i] = RandomPhasor2;
+			pFreq[i] = fAmount * (z1 + RandomPhasor2);
 		}
 	}
 	pFreq[0] = { 1.0f, 0.0f };
@@ -243,7 +245,7 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 	// These are exponents in a pow of the window. Rates < 0.5 need dShape < 1 as the window will be applied twice,
 	// once before the FFT and then again after
 	double dShape = (dRate >= 1.0)                  ? 3.0 :
-					(dRate >= FFTNonsenseBelowRate) ? 2.0 :
+					(dRate >= FFTNonsenseBelowRate) ? 3.0 / dRate :
 												 sqrt(0.5);
 	double dWindowScale = 1.0;
 	if (dRate >= 2.0) dWindowScale = 0.8;
@@ -256,7 +258,7 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 		if (dRate >= 0.85) {
 			iSourceStep = RoundPositive(dWindowSize * 0.5);
 		} else {
-			iSourceStep = RoundPositive(dWindowSize * (1.0 / 3.0));
+			iSourceStep = RoundPositive(dWindowSize * (dRate / 2.0));
 		}
 	} else {
 		double dUncorrectedDestStep = 0.0;
@@ -288,7 +290,7 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 		else if (dRate >= FFTNonsenseBelowRate)
 			t = 1.0 - sqrt(1.0 - t);
         t = 2.0 * t - 1.0;
-		W.Buffer[i] = (float)pow(0.5 + 0.5*cos(PI*t), dShape);
+		W.Buffer[i] = (float)pow(0.5 + 0.5*cos(PI*t), dShape) + 1.0e-8f;
 	}
 
 	if (dRate < FFTNonsenseBelowRate) {
@@ -415,10 +417,11 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 				}
 			}
 
-			uint32_t iSeed = uint32_t(iNextSourceFrame);
-			ComputeRandomPhases(m_Window.Junk.get(), iSeed, m_ReadAhead.Samples.data(), iFramesToMix, iNumChannels);
-
 			float fMix = Clamp(SCALE(m_fRate, 0.15f, float(FFTNonsenseBelowRate), 1.0f, 0.0f), 0.0f, 1.0f);
+
+			uint32_t iSeed = uint32_t(iNextSourceFrame);
+			ComputeRandomPhases(m_Window.Junk.get(), iSeed, m_ReadAhead.Samples.data(), iFramesToMix, iNumChannels, fMix);
+
 			for (int64_t iChannel = 0; iChannel < iNumChannels; ++iChannel) {
 				ApplyPhases(m_Window.Junk.get(), iSeed, fMix, m_ReadAhead.Samples.data() + iChannel, iFramesToMix, iNumChannels, dSampleRate);
 			}
