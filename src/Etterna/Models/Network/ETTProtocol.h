@@ -110,4 +110,24 @@ private:
 	rapidjson::Document newMsg(const ETTClientMessageTypes& msgType);
 	void completeAndSend(rapidjson::Document& doc);
 
+	void handleLogin(rapidjson::Value& payload);
+	void handleHello(rapidjson::Value& payload);
+	void handleReceiveScore(rapidjson::Value& payload);
+	void handlePing();
+	void handleSelectChart(rapidjson::Value& payload);
+	void handleStartChart(rapidjson::Value& payload);
+	void handleReceiveChat(rapidjson::Value& payload);
+	void handleMPLeaderboardUpdate(rapidjson::Value& payload);
+	void handleCreateRoomResponse(rapidjson::Value& payload);
+	void handleChartRequest(rapidjson::Value& payload);
+	void handleEnterRoomResponse(rapidjson::Value& payload);
+	void handleNewRoom(rapidjson::Value& payload);
+	void handleDeleteRoom(rapidjson::Value& payload);
+	void handleUpdateRoom(rapidjson::Value& payload);
+	void handleLobbyUserlist(rapidjson::Value& payload);
+	void handleLobbyUserlistUpdate(rapidjson::Value& payload);
+	void handleRoomlist(rapidjson::Value& payload);
+	void handleRoomPacklist(rapidjson::Value& payload);
+	void handleRoomUserlist(rapidjson::Value& payload);
+
 };

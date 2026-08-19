@@ -404,6 +404,29 @@ ETTProtocol::LaunchPollingThread()
 	thread = std::make_unique<std::thread>(loop);
 }
 
+rapidjson::Document
+ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
+{
+	rapidjson::Document d;
+	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+
+	d.SetObject();
+	d.AddMember("id", msgId++, allocator);
+	addStringMember(
+	  d, "type", NetworkConstants::ettClientMessageMap[msgType], allocator);
+
+	return d;
+}
+void
+ETTProtocol::completeAndSend(rapidjson::Document& doc)
+{
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
+	doc.Accept(w);
+
+	Send(buffer.GetString());
+}
+
 void
 ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 {
@@ -451,546 +474,97 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 			switch (type->second) {
 				case ettps_loginresponse: {
 					auto& payload = d["payload"];
-					waitingForTimeout = false;
-					if (!(n->loggedIn = payload.HasMember("logged") &&
-										payload["logged"].IsBool() &&
-										payload["logged"].GetBool())) {
-						if (payload.HasMember("msg") &&
-							payload["msg"].IsString())
-							n->loginResponse = payload["msg"].GetString();
-						else
-							n->loginResponse = "";
-						n->loggedInUsername.clear();
-					} else {
-						n->loginResponse = "";
-					}
-					SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
+					handleLogin(payload);
+
 				} break;
 				case ettps_hello: {
 					auto& payload = d["payload"];
-					if (payload.HasMember("name") && payload["name"].IsString())
-						serverName = payload["name"].GetString();
-					else
-						serverName = "";
-					if (payload.HasMember("version") &&
-						payload["version"].IsInt())
-						serverVersion = payload["version"].GetInt();
-					else
-						serverVersion = 1;
-					Locator::getLogger()->info(
-					  "Ettp server identified: {} (Version: {})",
-					  serverName.c_str(),
-					  serverVersion);
-					n->DisplayStartupStatus();
-					if (curl != nullptr) {
-						rapidjson::StringBuffer s;
-						rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-						writer.StartObject();
-						writer.Key("id");
-						writer.Uint(msgId++);
-						writer.Key("type");
-						writer.String(
-						  NetworkConstants::ettClientMessageMap[ettpc_hello]
-							.c_str());
-						writer.Key("payload");
-						writer.StartObject();
-						writer.Key("version");
-						writer.Int(ETTPCVERSION);
-						writer.Key("client");
-						writer.String(GAMESTATE->GetEtternaVersion().c_str());
-						writer.Key("packs");
-						writer.StartArray();
-						auto& packs = SONGMAN->GetSongGroupNames();
-						for (auto& pack : packs) {
-							writer.String(correct_non_utf_8(pack).c_str());
-						}
-						writer.EndArray();
-						writer.EndObject();
-						writer.EndObject();
-						Send(s.GetString());
-					}
+					handleHello(payload);
+
 				} break;
 				case ettps_recievescore: {
 					auto& payload = d["payload"];
-					auto& score = payload["score"];
-					HighScore hs;
-					EndOfGame_PlayerData result;
-
-					hs.SetScoreKey(score.HasMember("scorekey") &&
-									   score["scorekey"].IsString()
-									 ? score["scorekey"].GetString()
-									 : "");
-					hs.SetSSRNormPercent(score.HasMember("ssr_norm") &&
-											 score["ssr_norm"].IsNumber()
-										   ? score["ssr_norm"].GetFloat()
-										   : 0);
-					hs.SetEtternaValid(score.HasMember("valid") &&
-										   score["valid"].IsInt()
-										 ? score["valid"].GetInt() != 0
-										 : true);
-					hs.SetModifiers(score.HasMember("mods") &&
-										score["mods"].IsString()
-									  ? score["mods"].GetString()
-									  : "");
-					if (score.HasMember("wifever") && score["wifever"].IsInt())
-						hs.SetWifeVersion(score["wifever"].GetInt());
-					RadarValues rv;
-					FOREACH_ENUM(RadarCategory, rc)
-					{
-						auto rcs = RadarCategoryToString(rc).c_str();
-						if (score.HasMember(rcs) && score[rcs].IsInt()) {
-							rv[rc] = score[rcs].GetInt();
-						}
-					}
-					hs.SetRadarValues(rv);
-
-					FOREACH_ENUM(Skillset, ss)
-					{
-						auto str = SkillsetToString(ss);
-						hs.SetSkillsetSSR(ss,
-										  score.HasMember(str.c_str()) &&
-											  score[str.c_str()].IsNumber()
-											? score[str.c_str()].GetFloat()
-											: 0);
-					}
-					auto wife_score =
-					  score.HasMember("score") && score["score"].IsNumber()
-						? score["score"].GetFloat()
-						: 0.0f;
-					hs.SetSSRNormPercent(wife_score);
-					hs.SetWifeScore(wife_score);
-					auto marv = score.HasMember("marv") && score["marv"].IsInt()
-								  ? score["marv"].GetInt()
-								  : 0;
-					result.tapScores[0] = marv;
-					hs.SetTapNoteScore(TNS_W1, marv);
-					auto perfect =
-					  score.HasMember("perfect") && score["perfect"].IsInt()
-						? score["perfect"].GetInt()
-						: 0;
-					result.tapScores[1] = perfect;
-					hs.SetTapNoteScore(TNS_W2, perfect);
-					auto great =
-					  score.HasMember("great") && score["great"].IsInt()
-						? score["great"].GetInt()
-						: 0;
-					result.tapScores[2] = great;
-					hs.SetTapNoteScore(TNS_W3, great);
-					auto good = score.HasMember("good") && score["good"].IsInt()
-								  ? score["good"].GetInt()
-								  : 0;
-					result.tapScores[3] = good;
-					hs.SetTapNoteScore(TNS_W4, good);
-					auto bad = score.HasMember("bad") && score["bad"].IsInt()
-								 ? score["bad"].GetInt()
-								 : 0;
-					result.tapScores[4] = bad;
-					hs.SetTapNoteScore(TNS_W5, bad);
-					auto miss = score.HasMember("miss") && score["miss"].IsInt()
-								  ? score["miss"].GetInt()
-								  : 0;
-					result.tapScores[5] = miss;
-					hs.SetTapNoteScore(TNS_Miss, miss);
-					result.tapScores[6] = 0;
-					auto max_combo =
-					  score.HasMember("max_combo") && score["max_combo"].IsInt()
-						? score["max_combo"].GetInt()
-						: 0;
-					result.tapScores[7] = max_combo;
-					hs.SetMaxCombo(max_combo);
-					hs.SetGrade(
-					  PlayerStageStats::GetGrade(hs.GetSSRNormPercent()));
-					hs.SetDateTime(DateTime());
-					hs.SetTapNoteScore(TNS_HitMine,
-									   score.HasMember("hitmine") &&
-										   score["hitmine"].IsInt()
-										 ? score["hitmine"].GetInt()
-										 : 0);
-					hs.SetHoldNoteScore(HNS_Held,
-										score.HasMember("held") &&
-											score["held"].IsInt()
-										  ? score["held"].GetInt()
-										  : 0);
-					hs.SetChartKey(score.HasMember("chartkey") &&
-									   score["chartkey"].IsString()
-									 ? score["chartkey"].GetString()
-									 : "");
-					hs.SetHoldNoteScore(HNS_LetGo,
-										score.HasMember("letgo") &&
-											score["letgo"].IsInt()
-										  ? score["letgo"].GetInt()
-										  : 0);
-					hs.SetHoldNoteScore(HNS_Missed,
-										score.HasMember("ng") &&
-											score["ng"].IsInt()
-										  ? score["ng"].GetInt()
-										  : 0);
-					hs.SetChordCohesion(!(score.HasMember("nocc") &&
-										  score["nocc"].IsBool() &&
-										  score["nocc"].GetBool()));
-					hs.SetMusicRate(score.HasMember("rate") &&
-										score["rate"].IsNumber()
-									  ? score["rate"].GetFloat()
-									  : 0.1f);
-					if (score.HasMember("replay") &&
-						score["replay"].IsObject() &&
-						score["replay"].HasMember("offsets") &&
-						score["replay"]["offsets"].IsArray() &&
-						score["replay"].HasMember("noterows") &&
-						score["replay"]["noterows"].IsArray() &&
-						score["replay"].HasMember("tracks") &&
-						score["replay"]["tracks"].IsArray()) {
-						auto& replay = score["replay"];
-						auto& offsets = replay["offsets"];
-						auto& noterows = replay["noterows"];
-						auto& tracks = replay["tracks"];
-						std::vector<float> v_offsets;
-						std::vector<int> v_noterows;
-						std::vector<int> v_tracks;
-						for (auto& offset : offsets.GetArray())
-							if (offset.IsNumber())
-								v_offsets.push_back(offset.GetFloat());
-						for (auto& noterow : noterows.GetArray())
-							if (noterow.IsInt())
-								v_noterows.push_back(noterow.GetInt());
-						for (auto& track : tracks.GetArray())
-							if (track.IsInt())
-								v_tracks.push_back(track.GetInt());
-						hs.SetOffsetVector(v_offsets);
-						hs.SetNoteRowVector(v_noterows);
-						hs.SetTrackVector(v_tracks);
-
-						// add some backwards compatibility with pre 0.71
-						// multi users
-						if (replay.HasMember("notetypes") &&
-							replay["notetypes"].IsArray()) {
-							auto& notetypes = replay["notetypes"];
-							std::vector<TapNoteType> v_types;
-							for (auto& type : notetypes.GetArray())
-								if (type.IsInt())
-									v_types.push_back(
-									  static_cast<TapNoteType>(type.GetInt()));
-							hs.SetTapNoteTypeVector(v_types);
-						}
-					}
-					result.nameStr = payload["name"].GetString();
-					result.hs = hs;
-					result.playerOptions = payload.HasMember("options") &&
-											   payload["options"].IsString()
-											 ? payload["options"].GetString()
-											 : "";
-					n->m_EvalPlayerData.push_back(result);
-					n->m_ActivePlayers = n->m_EvalPlayerData.size();
-					MESSAGEMAN->Broadcast("NewMultiScore");
+					handleReceiveScore(payload);
+					
 				} break;
 				case ettps_ping: {
-					if (curl != nullptr) {
-						rapidjson::StringBuffer s;
-						rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-						writer.StartObject();
-						writer.Key("id");
-						writer.Uint(msgId++);
-						writer.Key("type");
-						writer.String(
-						  NetworkConstants::ettClientMessageMap[ettpc_ping]
-							.c_str());
-						writer.EndObject();
-						Send(s.GetString());
-					}
+					handlePing();
+
 				} break;
 				case ettps_selectchart: {
 					auto& payload = d["payload"];
-					n->mpleaderboard.clear();
-					if (!payload.HasMember("chart") ||
-						!payload["chart"].IsObject())
-						continue;
-					auto& ch = payload["chart"];
-					FindJsonChart(n, ch);
-					rapidjson::StringBuffer s;
-					rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-					writer.StartObject();
-					writer.Key("id");
-					writer.Uint(msgId++);
-					writer.Key("type");
-					if (n->song != nullptr) {
-						SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
-						writer.String(
-						  NetworkConstants::ettClientMessageMap[ettpc_haschart]
-							.c_str());
-					} else {
-						writer.String(NetworkConstants::ettClientMessageMap
-										[ettpc_missingchart]
-										  .c_str());
-					}
-					writer.EndObject();
-					Send(s.GetString());
+					handleSelectChart(payload);
+
 				} break;
 				case ettps_startchart: {
 					auto& payload = d["payload"];
-					n->mpleaderboard.clear();
-					n->m_EvalPlayerData.clear();
-					if (!payload.HasMember("chart") ||
-						!payload["chart"].IsObject())
-						continue;
-					auto& ch = payload["chart"];
-					FindJsonChart(n, ch);
+					handleStartChart(payload);
 
-					rapidjson::StringBuffer s;
-					rapidjson::Writer<rapidjson::StringBuffer> writer(s);
-					writer.StartObject();
-					writer.Key("id");
-					writer.Uint(msgId++);
-					writer.Key("type");
-					if (n->song != nullptr && state == 0) {
-						SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
-						writer.String(NetworkConstants::ettClientMessageMap
-										[ettpc_startingchart]
-										  .c_str());
-					} else {
-						writer.String(NetworkConstants::ettClientMessageMap
-										[ettpc_notstartingchart]
-										  .c_str());
-					}
-					writer.EndObject();
-					Send(s.GetString());
 				} break;
 				case ettps_recievechat: {
 					auto& payload = d["payload"];
-					if (!payload.HasMember("msgtype") ||
-						!payload["msgtype"].IsInt() ||
-						!payload.HasMember("tab") ||
-						!payload["tab"].IsString() ||
-						!payload.HasMember("msg") || !payload["msg"].IsString())
-						continue;
-					// chat[tabname, tabtype] = msg
-					int type = payload["msgtype"].GetInt();
-					const char* tab = payload["tab"].GetString();
-					n->chat[{ tab, type }].push_back(
-					  payload["msg"].GetString());
-					SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
-					Message msg("Chat");
-					msg.SetParam("tab", std::string(tab));
-					msg.SetParam("msg",
-								 std::string(payload["msg"].GetString()));
-					msg.SetParam("type", type);
-					MESSAGEMAN->Broadcast(msg);
+					handleReceiveChat(payload);
+
 				} break;
 				case ettps_mpleaderboardupdate: {
-					if (PREFSMAN->m_bEnableScoreboard) {
-						auto& payload = d["payload"];
-						auto& scores = payload["scores"];
-						for (auto& score : scores.GetArray()) {
-							if (!score.HasMember("wife") ||
-								!score["wife"].IsNumber() ||
-								!score.HasMember("jdgstr") ||
-								!score["jdgstr"].IsString() ||
-								!score.HasMember("user") ||
-								!score["user"].IsString())
-								continue;
-							float wife = score["wife"].GetFloat();
-							std::string jdgstr = score["jdgstr"].GetString();
-							std::string user = score["user"].GetString();
-							n->mpleaderboard[user].wife = wife;
-							n->mpleaderboard[user].jdgstr = jdgstr;
-						}
-						Message msg("MPLeaderboardUpdate");
-						MESSAGEMAN->Broadcast(msg);
-					}
+					auto& payload = d["payload"];
+					handleMPLeaderboardUpdate(payload);
+
 				} break;
 				case ettps_createroomresponse: {
 					auto& payload = d["payload"];
-					bool created = payload.HasMember("created") &&
-								   payload["created"].IsBool() &&
-								   payload["created"].GetBool();
-					inRoom = created;
-					if (created) {
-						Message msg(
-						  MessageIDToString(Message_UpdateScreenHeader));
-						msg.SetParam("Header", roomName);
-						msg.SetParam("Subheader", roomDesc);
-						MESSAGEMAN->Broadcast(msg);
-						std::string SMOnlineSelectScreen = THEME->GetMetric(
-						  "ScreenNetRoom", "MusicSelectScreen");
-						SCREENMAN->SendMessageToTopScreen(SM_GoToNextScreen);
-					}
+					handleCreateRoomResponse(payload);
+
 				} break;
 				case ettps_chartrequest: {
 					auto& payload = d["payload"];
-					if (!payload.HasMember("rate") ||
-						!payload["rate"].IsInt() ||
-						!payload.HasMember("chartkey") ||
-						!payload["chartkey"].IsString() ||
-						!payload.HasMember("requester") ||
-						!payload["requester"].IsString())
-						continue;
-					n->requests.push_back(
-					  new ChartRequest(payload["chartkey"].GetString(),
-									   payload["requester"].GetString(),
-									   payload["rate"].GetInt()));
-					Message msg("ChartRequest");
-					MESSAGEMAN->Broadcast(msg);
+					handleChartRequest(payload);
+
 				} break;
 				case ettps_enterroomresponse: {
 					auto& payload = d["payload"];
-					bool entered = payload["entered"].GetBool();
-					inRoom = false;
-					if (entered) {
-						try {
-							Message msg(
-							  MessageIDToString(Message_UpdateScreenHeader));
-							msg.SetParam("Header", roomName);
-							msg.SetParam("Subheader", roomDesc);
-							MESSAGEMAN->Broadcast(msg);
-							inRoom = true;
-							std::string SMOnlineSelectScreen = THEME->GetMetric(
-							  "ScreenNetRoom", "MusicSelectScreen");
-							SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
-						} catch (std::exception& e) {
-							Locator::getLogger()->error(
-							  "Error while parsing ettp json enter "
-							  "room response: {}",
-							  e.what());
-						}
-					} else {
-						roomDesc = "";
-						roomName = "";
-					}
+					handleEnterRoomResponse(payload);
+
 				} break;
 				case ettps_newroom: {
 					auto& payload = d["payload"];
-					if (!payload.HasMember("room") ||
-						!payload["room"].IsObject())
-						continue;
-					auto tmp = jsonToRoom(payload["room"]);
-					n->m_Rooms.push_back(tmp);
-					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+					handleNewRoom(payload);
+
 				} break;
 				case ettps_deleteroom: {
 					auto& payload = d["payload"];
-					if (!payload.HasMember("room") ||
-						!payload["room"].IsObject() ||
-						!payload["room"].HasMember("name") ||
-						!payload["room"]["name"].IsString()) {
-						Locator::getLogger()->warn(
-						  "Invalid ETTP deleteroom room message");
-						continue;
-					}
-					std::string name = payload["room"]["name"].GetString();
-					n->m_Rooms.erase(std::remove_if(n->m_Rooms.begin(),
-													n->m_Rooms.end(),
-													[&](RoomData const& room) {
-														return room.Name() ==
-															   name;
-													}),
-									 n->m_Rooms.end());
-					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+					handleDeleteRoom(payload);
+
 				} break;
 				case ettps_updateroom: {
 					auto& payload = d["payload"];
-					if (!payload.HasMember("room") ||
-						!payload["room"].IsObject())
-						continue;
-					auto updated = jsonToRoom(payload["room"]);
+					handleUpdateRoom(payload);
 
-					auto roomIt =
-					  find_if(n->m_Rooms.begin(),
-							  n->m_Rooms.end(),
-							  [&](RoomData const& room) {
-								  return room.Name() == updated.Name();
-							  });
-					if (roomIt != n->m_Rooms.end()) {
-						roomIt->SetDescription(updated.Description());
-						roomIt->SetState(updated.State());
-						roomIt->players = updated.players;
-						SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
-					}
 				} break;
 				case ettps_lobbyuserlist: {
 					auto& payload = d["payload"];
-					NSMAN->lobbyuserlist.clear();
-					if (!payload.HasMember("users") ||
-						!payload["users"].IsArray())
-						continue;
-					auto& users = payload["users"];
-					for (auto& user : users.GetArray()) {
-						if (!user.IsString())
-							continue;
-						NSMAN->lobbyuserlist.insert(user.GetString());
-					}
+					handleLobbyUserlist(payload);
+
 				} break;
 				case ettps_lobbyuserlistupdate: {
 					auto& payload = d["payload"];
-					if (payload.HasMember("on") && payload["on"].IsArray()) {
-						auto& newUsers = payload["on"];
-						for (auto& user : newUsers.GetArray()) {
-							if (!user.IsString())
-								continue;
-							NSMAN->lobbyuserlist.insert(user.GetString());
-						}
-					}
-					if (payload.HasMember("off") && payload["off"].IsArray()) {
-						auto& removedUsers = payload["off"];
-						for (auto& user : removedUsers.GetArray()) {
-							if (!user.IsString())
-								continue;
-							NSMAN->lobbyuserlist.erase(user.GetString());
-						}
-					}
-					MESSAGEMAN->Broadcast("UsersUpdate");
+					handleLobbyUserlistUpdate(payload);
+
 				} break;
 				case ettps_roomlist: {
 					auto& payload = d["payload"];
-					RoomData tmp;
-					n->m_Rooms.clear();
-					if (!payload.HasMember("rooms") ||
-						!payload["rooms"].IsArray())
-						continue;
-					auto& rooms = payload["rooms"];
-					for (auto& room : rooms.GetArray()) {
-						if (room.IsObject())
-							n->m_Rooms.push_back(jsonToRoom(room));
-					}
-					SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+					handleRoomlist(payload);
+
 				} break;
 				case ettps_roompacklist: {
 					auto& payload = d["payload"];
-					if (!payload.HasMember("commonpacks"))
-						continue;
-					auto& packlist = payload["commonpacks"];
-					n->commonpacks.clear();
-					if (packlist.IsArray()) {
-						for (auto& pack : packlist.GetArray()) {
-							if (!pack.IsString())
-								continue;
-							n->commonpacks.push_back(pack.GetString());
-						}
-					}
+					handleRoomPacklist(payload);
+
 				} break;
 				case ettps_roomuserlist: {
 					auto& payload = d["payload"];
-					n->m_ActivePlayer.clear();
-					n->m_PlayerNames.clear();
-					n->m_PlayerStatus.clear();
-					n->m_PlayerReady.clear();
-					if (!payload.HasMember("players") ||
-						!payload["players"].IsArray())
-						continue;
-					auto& players = payload["players"];
-					int i = 0;
-					for (auto& player : players.GetArray()) {
-						if (!player.HasMember("name") ||
-							!player["name"].IsString() ||
-							!player.HasMember("status") ||
-							!player["status"].IsInt() ||
-							!player.HasMember("ready") ||
-							!player["ready"].IsBool())
-							continue;
-						n->m_PlayerNames.push_back(player["name"].GetString());
-						n->m_PlayerStatus.push_back(player["status"].GetInt());
-						n->m_PlayerReady.push_back(player["ready"].GetBool());
-						n->m_ActivePlayer.push_back(i++);
-					}
-					MESSAGEMAN->Broadcast("UsersUpdate");
+					handleRoomUserlist(payload);
+
 				} break;
 				case ettps_gameplay_replay_update: {
 					auto& payload = d["payload"];
@@ -1008,27 +582,547 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 	newMessages.clear();
 }
 
-rapidjson::Document
-ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
-{
-	rapidjson::Document d;
-	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
-
-	d.SetObject();
-	d.AddMember("id", msgId++, allocator);
-	addStringMember(
-	  d, "type", NetworkConstants::ettClientMessageMap[msgType], allocator);
-
-	return d;
-}
 void
-ETTProtocol::completeAndSend(rapidjson::Document& doc)
-{
-	rapidjson::StringBuffer buffer;
-	rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
-	doc.Accept(w);
+ETTProtocol::handleLogin(rapidjson::Value& payload) {
+	waitingForTimeout = false;
+	if (!(NSMAN->loggedIn = payload.HasMember("logged") &&
+						payload["logged"].IsBool() &&
+							payload["logged"].GetBool())) {
+		if (payload.HasMember("msg") && payload["msg"].IsString())
+			NSMAN->loginResponse = payload["msg"].GetString();
+		else
+			NSMAN->loginResponse = "";
+		NSMAN->loggedInUsername.clear();
+	} else {
+		NSMAN->loginResponse = "";
+	}
+	SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
+}
 
-	Send(buffer.GetString());
+void
+ETTProtocol::handleHello(rapidjson::Value& payload) {
+	if (payload.HasMember("name") && payload["name"].IsString())
+		serverName = payload["name"].GetString();
+	else
+		serverName = "";
+
+	if (payload.HasMember("version") && payload["version"].IsInt())
+		serverVersion = payload["version"].GetInt();
+	else
+		serverVersion = 1;
+
+	Locator::getLogger()->info("Ettp server identified: {} (Version: {})",
+							   serverName.c_str(),
+							   serverVersion);
+	NSMAN->DisplayStartupStatus();
+
+	if (curl != nullptr) {
+		auto doc = newMsg(ettpc_hello);
+		auto& allocator = doc.GetAllocator();
+
+		rapidjson::Value sendPayload(rapidjson::Type::kObjectType);
+		{
+			sendPayload.AddMember("version", ETTPCVERSION, allocator);
+			addStringMember(
+			  sendPayload, "client", GAMESTATE->GetEtternaVersion(), allocator);
+
+			rapidjson::Value packArr(rapidjson::Type::kArrayType);
+			auto& packs = SONGMAN->GetSongGroupNames();
+			for (auto& pack : packs) {
+				packArr.PushBack(
+				  stringToVal(correct_non_utf_8(pack), allocator), allocator);
+			}
+			sendPayload.AddMember("packs", packArr, allocator);
+		}
+		doc.AddMember("payload", sendPayload, allocator);
+
+		completeAndSend(doc);
+	}
+}
+
+void
+ETTProtocol::handleReceiveScore(rapidjson::Value& payload)
+{
+	auto& score = payload["score"];
+	HighScore hs;
+	EndOfGame_PlayerData result;
+
+	hs.SetScoreKey(score.HasMember("scorekey") && score["scorekey"].IsString()
+					 ? score["scorekey"].GetString()
+					 : "");
+	hs.SetSSRNormPercent(score.HasMember("ssr_norm") &&
+							 score["ssr_norm"].IsNumber()
+						   ? score["ssr_norm"].GetFloat()
+						   : 0);
+	hs.SetEtternaValid(score.HasMember("valid") && score["valid"].IsInt()
+						 ? score["valid"].GetInt() != 0
+						 : true);
+	hs.SetModifiers(score.HasMember("mods") && score["mods"].IsString()
+					  ? score["mods"].GetString()
+					  : "");
+	if (score.HasMember("wifever") && score["wifever"].IsInt())
+		hs.SetWifeVersion(score["wifever"].GetInt());
+	RadarValues rv;
+	FOREACH_ENUM(RadarCategory, rc)
+	{
+		auto rcs = RadarCategoryToString(rc).c_str();
+		if (score.HasMember(rcs) && score[rcs].IsInt()) {
+			rv[rc] = score[rcs].GetInt();
+		}
+	}
+	hs.SetRadarValues(rv);
+
+	FOREACH_ENUM(Skillset, ss)
+	{
+		auto str = SkillsetToString(ss);
+		hs.SetSkillsetSSR(ss,
+						  score.HasMember(str.c_str()) &&
+							  score[str.c_str()].IsNumber()
+							? score[str.c_str()].GetFloat()
+							: 0);
+	}
+	auto wife_score = score.HasMember("score") && score["score"].IsNumber()
+						? score["score"].GetFloat()
+						: 0.0f;
+	hs.SetSSRNormPercent(wife_score);
+	hs.SetWifeScore(wife_score);
+	auto marv = score.HasMember("marv") && score["marv"].IsInt()
+				  ? score["marv"].GetInt()
+				  : 0;
+	result.tapScores[0] = marv;
+	hs.SetTapNoteScore(TNS_W1, marv);
+	auto perfect = score.HasMember("perfect") && score["perfect"].IsInt()
+					 ? score["perfect"].GetInt()
+					 : 0;
+	result.tapScores[1] = perfect;
+	hs.SetTapNoteScore(TNS_W2, perfect);
+	auto great = score.HasMember("great") && score["great"].IsInt()
+				   ? score["great"].GetInt()
+				   : 0;
+	result.tapScores[2] = great;
+	hs.SetTapNoteScore(TNS_W3, great);
+	auto good = score.HasMember("good") && score["good"].IsInt()
+				  ? score["good"].GetInt()
+				  : 0;
+	result.tapScores[3] = good;
+	hs.SetTapNoteScore(TNS_W4, good);
+	auto bad = score.HasMember("bad") && score["bad"].IsInt()
+				 ? score["bad"].GetInt()
+				 : 0;
+	result.tapScores[4] = bad;
+	hs.SetTapNoteScore(TNS_W5, bad);
+	auto miss = score.HasMember("miss") && score["miss"].IsInt()
+				  ? score["miss"].GetInt()
+				  : 0;
+	result.tapScores[5] = miss;
+	hs.SetTapNoteScore(TNS_Miss, miss);
+	result.tapScores[6] = 0;
+	auto max_combo = score.HasMember("max_combo") && score["max_combo"].IsInt()
+					   ? score["max_combo"].GetInt()
+					   : 0;
+	result.tapScores[7] = max_combo;
+	hs.SetMaxCombo(max_combo);
+	hs.SetGrade(PlayerStageStats::GetGrade(hs.GetSSRNormPercent()));
+	hs.SetDateTime(DateTime());
+	hs.SetTapNoteScore(TNS_HitMine,
+					   score.HasMember("hitmine") && score["hitmine"].IsInt()
+						 ? score["hitmine"].GetInt()
+						 : 0);
+	hs.SetHoldNoteScore(HNS_Held,
+						score.HasMember("held") && score["held"].IsInt()
+						  ? score["held"].GetInt()
+						  : 0);
+	hs.SetChartKey(score.HasMember("chartkey") && score["chartkey"].IsString()
+					 ? score["chartkey"].GetString()
+					 : "");
+	hs.SetHoldNoteScore(HNS_LetGo,
+						score.HasMember("letgo") && score["letgo"].IsInt()
+						  ? score["letgo"].GetInt()
+						  : 0);
+	hs.SetHoldNoteScore(
+	  HNS_Missed,
+	  score.HasMember("ng") && score["ng"].IsInt() ? score["ng"].GetInt() : 0);
+	hs.SetChordCohesion(!(score.HasMember("nocc") && score["nocc"].IsBool() &&
+						  score["nocc"].GetBool()));
+	hs.SetMusicRate(score.HasMember("rate") && score["rate"].IsNumber()
+					  ? score["rate"].GetFloat()
+					  : 0.1f);
+	if (score.HasMember("replay") && score["replay"].IsObject() &&
+		score["replay"].HasMember("offsets") &&
+		score["replay"]["offsets"].IsArray() &&
+		score["replay"].HasMember("noterows") &&
+		score["replay"]["noterows"].IsArray() &&
+		score["replay"].HasMember("tracks") &&
+		score["replay"]["tracks"].IsArray()) {
+		auto& replay = score["replay"];
+		auto& offsets = replay["offsets"];
+		auto& noterows = replay["noterows"];
+		auto& tracks = replay["tracks"];
+		std::vector<float> v_offsets;
+		std::vector<int> v_noterows;
+		std::vector<int> v_tracks;
+		for (auto& offset : offsets.GetArray())
+			if (offset.IsNumber())
+				v_offsets.push_back(offset.GetFloat());
+		for (auto& noterow : noterows.GetArray())
+			if (noterow.IsInt())
+				v_noterows.push_back(noterow.GetInt());
+		for (auto& track : tracks.GetArray())
+			if (track.IsInt())
+				v_tracks.push_back(track.GetInt());
+		hs.SetOffsetVector(v_offsets);
+		hs.SetNoteRowVector(v_noterows);
+		hs.SetTrackVector(v_tracks);
+
+		// add some backwards compatibility with pre 0.71
+		// multi users
+		if (replay.HasMember("notetypes") && replay["notetypes"].IsArray()) {
+			auto& notetypes = replay["notetypes"];
+			std::vector<TapNoteType> v_types;
+			for (auto& type : notetypes.GetArray())
+				if (type.IsInt())
+					v_types.push_back(static_cast<TapNoteType>(type.GetInt()));
+			hs.SetTapNoteTypeVector(v_types);
+		}
+	}
+	result.nameStr = payload["name"].GetString();
+	result.hs = hs;
+	result.playerOptions =
+	  payload.HasMember("options") && payload["options"].IsString()
+		? payload["options"].GetString()
+		: "";
+
+	NSMAN->m_EvalPlayerData.push_back(result);
+	NSMAN->m_ActivePlayers = NSMAN->m_EvalPlayerData.size();
+	MESSAGEMAN->Broadcast("NewMultiScore");
+}
+
+void
+ETTProtocol::handlePing()
+{
+	auto doc = newMsg(ettpc_ping);
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::handleSelectChart(rapidjson::Value& payload)
+{
+	NSMAN->mpleaderboard.clear();
+
+	if (!payload.HasMember("chart") || !payload["chart"].IsObject())
+		return;
+
+	auto& ch = payload["chart"];
+	FindJsonChart(NSMAN, ch);
+
+	const auto type =
+	  NSMAN->song != nullptr ? ettpc_haschart : ettpc_missingchart;
+	auto doc = newMsg(type);
+
+	if (type == ettpc_haschart) {
+		SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
+	}
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::handleStartChart(rapidjson::Value& payload)
+{
+	NSMAN->mpleaderboard.clear();
+	NSMAN->m_EvalPlayerData.clear();
+
+	if (!payload.HasMember("chart") || !payload["chart"].IsObject())
+		return;
+
+	auto& ch = payload["chart"];
+	FindJsonChart(NSMAN, ch);
+
+	const auto type = NSMAN->song != nullptr && state == 0
+						? ettpc_startingchart
+						: ettpc_notstartingchart;
+	auto doc = newMsg(type);
+
+	if (type == ettpc_startingchart) {
+		SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
+	}
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::handleReceiveChat(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("msgtype") || !payload["msgtype"].IsInt() ||
+		!payload.HasMember("tab") || !payload["tab"].IsString() ||
+		!payload.HasMember("msg") || !payload["msg"].IsString())
+		return;
+
+	// chat[tabname, tabtype] = msg
+	int type = payload["msgtype"].GetInt();
+	const char* tab = payload["tab"].GetString();
+
+	NSMAN->chat[{ tab, type }].push_back(payload["msg"].GetString());
+
+	SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
+
+	Message msg("Chat");
+	msg.SetParam("tab", std::string(tab));
+	msg.SetParam("msg", std::string(payload["msg"].GetString()));
+	msg.SetParam("type", type);
+
+	MESSAGEMAN->Broadcast(msg);
+}
+
+void
+ETTProtocol::handleMPLeaderboardUpdate(rapidjson::Value& payload)
+{
+	if (!PREFSMAN->m_bEnableScoreboard) {
+		return;
+	}
+
+	auto& scores = payload["scores"];
+	for (auto& score : scores.GetArray()) {
+		if (!score.HasMember("wife") || !score["wife"].IsNumber() ||
+			!score.HasMember("jdgstr") || !score["jdgstr"].IsString() ||
+			!score.HasMember("user") || !score["user"].IsString())
+			continue;
+
+		float wife = score["wife"].GetFloat();
+		std::string jdgstr = score["jdgstr"].GetString();
+		std::string user = score["user"].GetString();
+
+		NSMAN->mpleaderboard[user].wife = wife;
+		NSMAN->mpleaderboard[user].jdgstr = jdgstr;
+	}
+
+	Message msg("MPLeaderboardUpdate");
+	MESSAGEMAN->Broadcast(msg);
+}
+
+void
+ETTProtocol::handleCreateRoomResponse(rapidjson::Value& payload)
+{
+	bool created = payload.HasMember("created") &&
+				   payload["created"].IsBool() && payload["created"].GetBool();
+	inRoom = created;
+
+	if (created) {
+		Message msg(MessageIDToString(Message_UpdateScreenHeader));
+		msg.SetParam("Header", roomName);
+		msg.SetParam("Subheader", roomDesc);
+
+		MESSAGEMAN->Broadcast(msg);
+
+		std::string SMOnlineSelectScreen =
+		  THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+		SCREENMAN->SendMessageToTopScreen(SM_GoToNextScreen);
+	}
+}
+
+void
+ETTProtocol::handleChartRequest(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("rate") || !payload["rate"].IsInt() ||
+		!payload.HasMember("chartkey") || !payload["chartkey"].IsString() ||
+		!payload.HasMember("requester") || !payload["requester"].IsString())
+		return;
+
+	NSMAN->requests.push_back(new ChartRequest(payload["chartkey"].GetString(),
+											   payload["requester"].GetString(),
+											   payload["rate"].GetInt()));
+
+	Message msg("ChartRequest");
+	MESSAGEMAN->Broadcast(msg);
+}
+
+void
+ETTProtocol::handleEnterRoomResponse(rapidjson::Value& payload)
+{
+	bool entered = payload["entered"].GetBool();
+	inRoom = false;
+
+	if (entered) {
+		try {
+			Message msg(MessageIDToString(Message_UpdateScreenHeader));
+			msg.SetParam("Header", roomName);
+			msg.SetParam("Subheader", roomDesc);
+			MESSAGEMAN->Broadcast(msg);
+
+			inRoom = true;
+
+			std::string SMOnlineSelectScreen =
+			  THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+			SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+		} catch (std::exception& e) {
+			Locator::getLogger()->error("Error while parsing ettp json enter "
+										"room response: {}",
+										e.what());
+		}
+	} else {
+		roomDesc = "";
+		roomName = "";
+	}
+}
+
+void
+ETTProtocol::handleNewRoom(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("room") || !payload["room"].IsObject())
+		return;
+
+	auto tmp = jsonToRoom(payload["room"]);
+	NSMAN->m_Rooms.push_back(tmp);
+	SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+}
+
+void
+ETTProtocol::handleDeleteRoom(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("room") || !payload["room"].IsObject() ||
+		!payload["room"].HasMember("name") ||
+		!payload["room"]["name"].IsString()) {
+		Locator::getLogger()->warn("Invalid ETTP deleteroom room message");
+		return;
+	}
+
+	std::string name = payload["room"]["name"].GetString();
+	NSMAN->m_Rooms.erase(
+	  std::remove_if(NSMAN->m_Rooms.begin(),
+					 NSMAN->m_Rooms.end(),
+					 [&](RoomData const& room) { return room.Name() == name; }),
+	  NSMAN->m_Rooms.end());
+
+	SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+}
+
+void
+ETTProtocol::handleUpdateRoom(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("room") || !payload["room"].IsObject())
+		return;
+
+	auto updated = jsonToRoom(payload["room"]);
+
+	auto roomIt = std::find_if(
+	  NSMAN->m_Rooms.begin(), NSMAN->m_Rooms.end(), [&](RoomData const& room) {
+		  return room.Name() == updated.Name();
+	  });
+
+	if (roomIt != NSMAN->m_Rooms.end()) {
+		roomIt->SetDescription(updated.Description());
+		roomIt->SetState(updated.State());
+		roomIt->players = updated.players;
+		SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+	}
+}
+
+void
+ETTProtocol::handleLobbyUserlist(rapidjson::Value& payload)
+{
+	NSMAN->lobbyuserlist.clear();
+
+	if (!payload.HasMember("users") || !payload["users"].IsArray())
+		return;
+
+	auto& users = payload["users"];
+	for (auto& user : users.GetArray()) {
+		if (!user.IsString())
+			continue;
+
+		NSMAN->lobbyuserlist.insert(user.GetString());
+	}
+}
+
+void
+ETTProtocol::handleLobbyUserlistUpdate(rapidjson::Value& payload)
+{
+	if (payload.HasMember("on") && payload["on"].IsArray()) {
+		auto& newUsers = payload["on"];
+		for (auto& user : newUsers.GetArray()) {
+			if (!user.IsString())
+				continue;
+
+			NSMAN->lobbyuserlist.insert(user.GetString());
+		}
+	}
+
+	if (payload.HasMember("off") && payload["off"].IsArray()) {
+		auto& removedUsers = payload["off"];
+		for (auto& user : removedUsers.GetArray()) {
+			if (!user.IsString())
+				continue;
+
+			NSMAN->lobbyuserlist.erase(user.GetString());
+		}
+	}
+
+	MESSAGEMAN->Broadcast("UsersUpdate");
+}
+
+void
+ETTProtocol::handleRoomlist(rapidjson::Value& payload)
+{
+	RoomData tmp;
+	NSMAN->m_Rooms.clear();
+
+	if (!payload.HasMember("rooms") || !payload["rooms"].IsArray())
+		return;
+
+	auto& rooms = payload["rooms"];
+	for (auto& room : rooms.GetArray()) {
+		if (room.IsObject())
+			NSMAN->m_Rooms.push_back(jsonToRoom(room));
+	}
+
+	SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+}
+
+void
+ETTProtocol::handleRoomPacklist(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("commonpacks"))
+		return;
+
+	auto& packlist = payload["commonpacks"];
+	NSMAN->commonpacks.clear();
+	if (packlist.IsArray()) {
+		for (auto& pack : packlist.GetArray()) {
+			if (!pack.IsString())
+				continue;
+
+			NSMAN->commonpacks.push_back(pack.GetString());
+		}
+	}
+}
+
+void
+ETTProtocol::handleRoomUserlist(rapidjson::Value& payload)
+{
+	NSMAN->m_ActivePlayer.clear();
+	NSMAN->m_PlayerNames.clear();
+	NSMAN->m_PlayerStatus.clear();
+	NSMAN->m_PlayerReady.clear();
+
+	if (!payload.HasMember("players") || !payload["players"].IsArray())
+		return;
+
+	auto& players = payload["players"];
+	int i = 0;
+
+	for (auto& player : players.GetArray()) {
+		if (!player.HasMember("name") || !player["name"].IsString() ||
+			!player.HasMember("status") || !player["status"].IsInt() ||
+			!player.HasMember("ready") || !player["ready"].IsBool())
+			continue;
+
+		NSMAN->m_PlayerNames.push_back(player["name"].GetString());
+		NSMAN->m_PlayerStatus.push_back(player["status"].GetInt());
+		NSMAN->m_PlayerReady.push_back(player["ready"].GetBool());
+		NSMAN->m_ActivePlayer.push_back(i++);
+	}
+
+	MESSAGEMAN->Broadcast("UsersUpdate");
 }
 
 void
