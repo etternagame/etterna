@@ -203,7 +203,6 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	close();
 	n->isSMOnline = false;
 	msgId = 0;
-	error = false;
 	bool finished_connecting = false;
 
 	try {
@@ -252,6 +251,7 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 	Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
 
 	LaunchPollingThread();
+	LaunchSendingThread();
 
 	return n->isSMOnline;
 }
@@ -337,22 +337,123 @@ ETTProtocol::FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch)
 		}
 	}
 }
+
+void
+ETTProtocol::Send(const std::string& str)
+{
+	if (curl == nullptr) {
+		Locator::getLogger()->warn(
+		  "ETTProtocol curl handle is null, so message is not sent");
+		return;
+	}
+
+	std::scoped_lock<std::mutex> lock(sendBufferMutex);
+	messagesToSend.push_back(str);
+}
+
+void
+ETTProtocol::LaunchSendingThread()
+{
+	if (sendingThread != nullptr) {
+		stopSending = true;
+		if (sendingThread->joinable()) {
+			sendingThread->join();
+		}
+		stopSending = false;
+	}
+
+	auto loop = [&]() {
+
+		auto send = [&](std::string str) {
+			CURLcode result = CURLE_OK;
+			size_t offset = 0;
+			auto buffer = str.c_str();
+
+			while (!result) {
+				size_t sent = 0;
+				result = curl_ws_send(curl,
+									  buffer + offset,
+									  strlen(buffer) - offset,
+									  &sent,
+									  0,
+									  CURLWS_TEXT);
+
+				offset += sent;
+				switch (result) {
+					case CURLE_OK: {
+						if (offset == strlen(buffer))
+							// success, exit
+							return;
+						else
+							Locator::getLogger()->info(
+							  "ETTProtocol is sending a large WS "
+							  "message");
+						break;
+					}
+					case CURLE_AGAIN: {
+						// wait and maybe it works later
+						Locator::getLogger()->warn(
+						  "ETTProtocol returned CURLE_AGAIN. Waiting "
+						  "200ms");
+						std::this_thread::sleep_for(
+						  std::chrono::milliseconds(200));
+						result = CURLE_OK;
+						break;
+					}
+					default: {
+						Locator::getLogger()->warn(
+						  "ETTProtocol got unexpected CURLE: {}",
+						  static_cast<size_t>(result));
+						return;
+					}
+				}
+			}
+		};
+
+		std::vector<std::string> bufferedSendMessages{};
+
+		while (!stopSending) {
+			if (NSMAN == nullptr)
+				return;
+			{
+				std::scoped_lock<std::mutex> lock(sendBufferMutex);
+
+				bufferedSendMessages = messagesToSend;
+				messagesToSend.clear();
+			}
+
+			if (curl != nullptr) {
+				std::scoped_lock<std::mutex> lock(curlMutex);
+
+				for (auto& str : bufferedSendMessages) {
+					send(str);
+				}
+			}
+			bufferedSendMessages.clear();
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+	};
+
+	stopSending = false;
+	sendingThread = std::make_unique<std::thread>(loop);
+}
+
 void
 ETTProtocol::LaunchPollingThread()
 {
-	if (thread != nullptr) {
-		stopRequest = true;
-		if (thread->joinable()) {
-			thread->join();
+	if (receivingThread != nullptr) {
+		stopPolling = true;
+		if (receivingThread->joinable()) {
+			receivingThread->join();
 		}
-		stopRequest = false;
+		stopPolling = false;
 	}
 
 	auto loop = [&]() {
 		std::string message;
 		std::vector<char> buffer(INCOMING_BUFFER_SIZE, '\0');
 
-		while (!stopRequest) {
+		while (!stopPolling) {
 			if (NSMAN == nullptr)
 				return;
 			{
@@ -400,8 +501,8 @@ ETTProtocol::LaunchPollingThread()
 		}
 	};
 
-	stopRequest = false;
-	thread = std::make_unique<std::thread>(loop);
+	stopPolling = false;
+	receivingThread = std::make_unique<std::thread>(loop);
 }
 
 rapidjson::Document
@@ -410,10 +511,14 @@ ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
 	rapidjson::Document d;
 	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 
+	const auto& typeStr = NetworkConstants::ettClientMessageMap[msgType];
+	Locator::getLogger()->info("NSMAN Sending ETTP message type '{}'",
+								typeStr);
+
 	d.SetObject();
 	d.AddMember("id", msgId++, allocator);
 	addStringMember(
-	  d, "type", NetworkConstants::ettClientMessageMap[msgType], allocator);
+	  d, "type", typeStr, allocator);
 
 	return d;
 }
@@ -465,12 +570,17 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 											d["error"].GetString());
 				continue;
 			}
+
 			auto type = NetworkConstants::ettServerMessageMap.find(d["type"].GetString());
 			if (NetworkConstants::ettServerMessageMap.end() == type) {
 				Locator::getLogger()->warn("Unknown ETTP message type {}",
 										   d["type"].GetString());
 				continue;
+			} else {
+				Locator::getLogger()->info(
+				  "NSMAN Received ETTP message type '{}'", type->first);
 			}
+
 			switch (type->second) {
 				case ettps_loginresponse: {
 					auto& payload = d["payload"];
@@ -1294,58 +1404,6 @@ ETTProtocol::Login(std::string user, std::string pass)
 }
 
 void
-ETTProtocol::Send(const std::string& str)
-{
-	if (curl == nullptr) {
-		Locator::getLogger()->warn(
-		  "ETTProtocol curl handle is null, so message is not sent");
-		return;
-	}
-
-	std::scoped_lock<std::mutex> lock(curlMutex);
-
-	CURLcode result = CURLE_OK;
-	size_t offset = 0;
-	auto buffer = str.c_str();
-
-	while (!result) {
-		size_t sent = 0;
-		result = curl_ws_send(curl,
-							  buffer + offset,
-							  strlen(buffer) - offset,
-							  &sent,
-							  0,
-							  CURLWS_TEXT);
-
-		offset += sent;
-		switch (result) {
-			case CURLE_OK: {
-				if (offset == strlen(buffer))
-					// success, exit
-					return;
-				else
-					Locator::getLogger()->info(
-					  "ETTProtocol is sending a large WS message");
-				break;
-			}
-			case CURLE_AGAIN: {
-				// wait and maybe it works later
-				Locator::getLogger()->warn(
-				  "ETTProtocol returned CURLE_AGAIN. Waiting 200ms");
-				std::this_thread::sleep_for(std::chrono::milliseconds(200));
-				result = CURLE_OK;
-				break;
-			}
-			default: {
-				Locator::getLogger()->warn(
-				  "ETTProtocol got unexpected CURLE: {}",
-				  static_cast<size_t>(result));
-				return;
-			}
-		}
-	}
-}
-void
 ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
 	auto doc = newMsg(ettpc_sendscore);
@@ -1621,14 +1679,24 @@ ETTProtocol::close()
 	roomDesc = "";
 	waitingForTimeout = false;
 	inRoom = false;
-	if (thread != nullptr) {
-		stopRequest = true;
-		if (thread->joinable()) {
-			thread->join();
+
+	stopPolling = true;
+	stopSending = true;
+
+	if (receivingThread != nullptr) {
+		if (receivingThread->joinable()) {
+			receivingThread->join();
 		}
-		stopRequest = false;
 	}
-	thread = nullptr;
+	if (sendingThread != nullptr) {
+		if (sendingThread->joinable()) {
+			sendingThread->join();
+		}
+	}
+	receivingThread = nullptr;
+	sendingThread = nullptr;
+	stopSending = false;
+	stopPolling = false;
 }
 
 void

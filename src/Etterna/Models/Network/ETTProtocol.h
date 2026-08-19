@@ -17,35 +17,12 @@ struct HighScore;
 // Websockets using websocketpp sending json
 class ETTProtocol : public NetProtocol
 {
-
-	std::unique_ptr<std::thread> thread;
-	std::mutex messageBufferMutex;
-	std::vector<std::unique_ptr<rapidjson::Document>> newMessages;
-	unsigned int msgId{ 0 };
-	bool error{ false };
-	std::string errorMsg;
-
-	CURL* curl;
-	std::mutex curlMutex;
-
-	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
-	std::atomic_bool stopRequest = false;
-	void LaunchPollingThread();
-	int state = 0; // 0 = ready, 1 = playing, 2 = evalScreen, 3 = options, 4 =
-				   // notReady(unkown reason)
   public:
 	~ETTProtocol();
-	bool waitingForTimeout{ false };
-	bool creatingRoom{ false };
-	clock_t timeoutStart = 0;
-	double timeout = 0;
-	std::function<void(void)> onTimeout;
-	std::string roomName;
-	std::string roomDesc;
-	bool inRoom{ false };
+
 	auto Connect(NetworkSyncManager* n,
 				 unsigned short port,
-				 std::string address) -> bool override; // Connect and say hello
+				 std::string address) -> bool override;
 	void close() override;
 
 	void Update(NetworkSyncManager* n, float fDeltaTime) override;
@@ -62,6 +39,9 @@ class ETTProtocol : public NetProtocol
 					   std::string password) override;
 	void EnterRoom(std::string name, std::string password) override;
 	void LeaveRoom(NetworkSyncManager* n) override;
+	bool InRoom() const { return inRoom; }
+	std::string GetRoomName() { return roomName; }
+	bool CreatingRoom() const { return creatingRoom; }
 
 	void ReportSongOver(NetworkSyncManager* n) override;
 
@@ -107,6 +87,39 @@ class ETTProtocol : public NetProtocol
 	void Send(const std::string& str);
 
 private:
+	std::mutex sendBufferMutex;
+	std::mutex messageBufferMutex;
+	std::mutex curlMutex;
+	CURL* curl;
+
+	std::unique_ptr<std::thread> receivingThread;
+	std::unique_ptr<std::thread> sendingThread;
+
+	std::atomic_bool stopPolling = false;
+	std::atomic_bool stopSending = false;
+	void LaunchPollingThread();
+	void LaunchSendingThread();
+
+	// 0 = ready, 1 = playing
+	// 2 = evalScreen, 3 = options
+	// 4 = notReady(unkown reason)
+	int state = 0;
+	std::string roomName;
+	std::string roomDesc;
+	bool creatingRoom{ false };
+	bool inRoom{ false };
+
+	// login timeout stuff
+	bool waitingForTimeout{ false };
+	clock_t timeoutStart = 0;
+	double timeout = 0;
+	std::function<void(void)> onTimeout;
+
+	// json docs parsed from curl input handled at update
+	std::vector<std::unique_ptr<rapidjson::Document>> newMessages;
+	std::vector<std::string> messagesToSend{};
+	unsigned int msgId{ 0 };
+
 	rapidjson::Document newMsg(const ETTClientMessageTypes& msgType);
 	void completeAndSend(rapidjson::Document& doc);
 
@@ -129,5 +142,8 @@ private:
 	void handleRoomlist(rapidjson::Value& payload);
 	void handleRoomPacklist(rapidjson::Value& payload);
 	void handleRoomUserlist(rapidjson::Value& payload);
+
+	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
+
 
 };

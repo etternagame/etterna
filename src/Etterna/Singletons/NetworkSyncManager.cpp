@@ -400,10 +400,10 @@ NetworkSyncManager::GetRoomName()
 		return "";
 	}
 	auto ettp = dynamic_cast<ETTProtocol*>(curProtocol);
-	if (!ettp->inRoom) {
+	if (!ettp->InRoom()) {
 		return "";
 	}
-	return ettp->roomName;
+	return ettp->GetRoomName();
 }
 
 bool
@@ -416,7 +416,7 @@ NetworkSyncManager::CreatingRoom()
 		return false;
 	}
 	auto ettp = dynamic_cast<ETTProtocol*>(curProtocol);
-	return ettp->creatingRoom;
+	return ettp->CreatingRoom();
 }
 
 static bool
