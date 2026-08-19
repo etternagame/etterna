@@ -104,7 +104,7 @@ RageTexture::GetTextureCoordRect(int iFrameNo) const
 auto
 RageTexture::GetAverageColor(unsigned increment) const -> const RageColor
 {
-	if (m_pSurface == nullptr)
+	if (m_pSurface == nullptr || IsAMovie())
 		return RageColor(0, 0, 0, 1.F);
 	return RageSurfaceUtils::GetAverageRGB(m_pSurface, increment);
 }
