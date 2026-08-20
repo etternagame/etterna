@@ -394,9 +394,9 @@ ETTProtocol::LaunchSendingThread()
 						// wait and maybe it works later
 						Locator::getLogger()->warn(
 						  "ETTProtocol returned CURLE_AGAIN. Waiting "
-						  "200ms");
+						  "10ms");
 						std::this_thread::sleep_for(
-						  std::chrono::milliseconds(200));
+						  std::chrono::milliseconds(10));
 						result = CURLE_OK;
 						break;
 					}
@@ -430,7 +430,7 @@ ETTProtocol::LaunchSendingThread()
 				}
 			}
 			bufferedSendMessages.clear();
-			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	};
 
@@ -497,7 +497,7 @@ ETTProtocol::LaunchPollingThread()
 			}
 			std::fill(buffer.begin(), buffer.end(), '\0');
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	};
 
