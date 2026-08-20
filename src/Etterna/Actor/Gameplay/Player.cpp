@@ -1854,6 +1854,7 @@ Player::AddHoldToReplayData(int col,
 	hrr.track = col;
 	hrr.subType = pTN->subType;
 	m_pPlayerStageStats->m_vHoldReplayData.emplace_back(hrr);
+	NSMAN->ReportReplayHold(col, RowOfOverlappingNoteOrRow, pTN->subType);
 }
 
 void
@@ -1863,6 +1864,7 @@ Player::AddMineToReplayData(int col, int row) const
 	mrr.row = row;
 	mrr.track = col;
 	m_pPlayerStageStats->m_vMineReplayData.emplace_back(mrr);
+	NSMAN->ReportReplayMine(row, col);
 }
 
 void
@@ -2084,6 +2086,13 @@ Player::Step(int col,
 			  -fNoteOffset,
 			  pTN->type,
 			  pTN->subType);
+			NSMAN->ReportReplayInput(!bRelease,
+									 col,
+									 iRowOfOverlappingNoteOrRow,
+									 fMusicSeconds,
+									 -fNoteOffset,
+									 pTN->type,
+									 pTN->subType);
 		}
 
 		NOTESKIN->SetLastSeenColor(
@@ -2322,6 +2331,13 @@ Player::Step(int col,
 													0.F,
 													tnt,
 													tnst);
+		NSMAN->ReportReplayInput(!bRelease,
+								 col,
+								 iRowOfOverlappingNoteOrRow,
+								 fMusicSeconds,
+								 0.F,
+								 tnt,
+								 tnst);
 	}
 
 	if (score == TNS_None) {
@@ -3087,6 +3103,7 @@ Player::SetJudgment(int iRow,
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1,
 		  tn.type,
 		  tn.subType);
+		NSMAN->ReportReplayMiss(iTrack, iRow, tn.type, tn.subType);
 	}
 
 	if (m_bSendJudgmentAndComboMessages) {
