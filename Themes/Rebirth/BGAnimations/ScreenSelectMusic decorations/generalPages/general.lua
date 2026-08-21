@@ -748,6 +748,7 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
         end
     end,
     MouseDownCommand = function(self)
+        if not self.song then return end
         local scr = SCREENMAN:GetTopScreen()
         local w = scr:GetChild("WheelFile")
         local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
