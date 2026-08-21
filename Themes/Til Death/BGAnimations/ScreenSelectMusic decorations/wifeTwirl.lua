@@ -868,9 +868,13 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	end,
 	MouseOverCommand = function(self)
 		self:playcommand("ToolTip")
+		self:diffusealpha(hoverAlpha)
 	end,
 	MouseOutCommand = function(self)
 		TOOLTIP:Hide()
+		if self.song then
+			self:diffusealpha(1)
+		end
 	end,
 	MouseDownCommand = function(self, params)
 		-- because this button covers the background
