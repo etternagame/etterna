@@ -743,12 +743,10 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     MouseOutCommand = function(self)
         if self:IsInvisible() then return end
         TOOLTIP:Hide()
-        if self.song then
-            self:diffusealpha(1)
-        end
+        self:diffusealpha(1)
     end,
     MouseDownCommand = function(self)
-        if not self.song then return end
+        if self:IsInvisible() then return end
         local scr = SCREENMAN:GetTopScreen()
         local w = scr:GetChild("WheelFile")
         local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
