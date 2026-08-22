@@ -536,8 +536,14 @@ RageSoundReader_SpeedChange_Good::GetNextSourceFrame() const
 {
 	if (m_Mixed.Frames() == 0) {
 		return RageSoundReader_Filter::GetNextSourceFrame();
-	} else {
+	} else if (m_fRate < 1.0) {
 		return int(m_Source[m_Mixed.iReadPosition] / double(m_Scale[m_Mixed.iReadPosition]) + 0.5);
+	} else {
+		double dRate = double(m_fRate);
+		int64_t iCurrent = RageSoundReader_Filter::GetNextSourceFrame();
+		iCurrent -= m_ReadAhead.Frames();
+		iCurrent -= int64_t(m_Mixed.Frames() * dRate);
+		return int(iCurrent);
 	}
 }
 
