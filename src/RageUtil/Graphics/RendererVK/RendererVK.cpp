@@ -57,6 +57,18 @@ RendererVK::InitializeRenderer(const VideoModeParams& p)
 	InitTextures();
 }
 
+bool
+RendererVK::IsReadyForRender()
+{
+	if (!m_SwapchainIsInvalid) {
+		return true;
+	}
+
+	// TODO: check if we can recreate swapchain and such
+
+	return false;
+}
+
 /// ----------------------------------------
 /// here be hazards and unsignaled fences...
 /// ----------------------------------------

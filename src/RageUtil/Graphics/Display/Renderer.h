@@ -13,6 +13,7 @@ class Renderer
 	virtual ~Renderer() {}
 	virtual std::string GetApiDescription() const = 0;
 	virtual void InitializeRenderer(const VideoModeParams& p) = 0;
+	virtual bool IsReadyForRender() = 0;
 	virtual void OnRender(const ActualVideoModeParams* p,
 						  const CommandBatcher& batcher) = 0;
 	virtual bool IsD3DInternal() = 0;

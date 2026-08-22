@@ -38,6 +38,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	RendererVK();
 	std::string GetApiDescription() const override;
 	void InitializeRenderer(const VideoModeParams& p) override;
+	bool IsReadyForRender() override;
 	void OnRender(const ActualVideoModeParams* p,
 				  const DisplayAdapter::CommandBatcher& batcher) override;
 	bool IsD3DInternal() override;
