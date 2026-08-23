@@ -40,7 +40,7 @@ NetworkSyncManager::NetworkSyncManager(LoadingWindow* ld)
 	useSMserver = false;
 	isSMOnline = false;
 	loggedIn = false;
-	m_startupStatus = 0; // By default, connection not tried.
+	m_startupStatus = NSMANStartupStatus::INIT;
 	m_ActivePlayers = 0;
 	if (ld) {
 		ld->SetIndeterminate(true);
@@ -65,40 +65,40 @@ NetworkSyncManager::~NetworkSyncManager() {}
 void
 NetworkSyncManager::OnMusicSelect()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->OnMusicSelect();
 }
 
 void
 NetworkSyncManager::OffMusicSelect()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->OffMusicSelect();
 }
 
 void
 NetworkSyncManager::OnOptions()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->OnOptions();
 }
 void
 NetworkSyncManager::OffOptions()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->OffOptions();
 }
 
 void
 NetworkSyncManager::OnEval()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->OnEval();
 }
 void
 NetworkSyncManager::OffEval()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->OffEval();
 }
 
@@ -112,7 +112,7 @@ NetworkSyncManager::CloseConnection()
 	isSMOnline = false;
 	loggedIn = false;
 	loginResponse = "";
-	m_startupStatus = 0;
+	m_startupStatus = NSMANStartupStatus::INIT;
 	song = nullptr;
 	steps = nullptr;
 	rate = 0;
@@ -134,7 +134,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 {
 	std::string sAddress;
 	unsigned short iPort;
-	m_startupStatus = 2;
+	m_startupStatus = NSMANStartupStatus::NOT_SUCCESSFUL;
 
 	size_t cLoc = ServerIP.find(':');
 	if (ServerIP.find(':') != std::string::npos) {
@@ -167,7 +167,7 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	g_sLastServer.Set(ServerIP);
 	loggedIn = false;
 	useSMserver = true;
-	m_startupStatus = 1; // Connection attempt successful
+	m_startupStatus = NSMANStartupStatus::SUCCESSFUL;
 	song = nullptr;
 	steps = nullptr;
 	rate = 0;
@@ -190,6 +190,13 @@ NetworkSyncManager::IsETTP()
 	return true;
 }
 
+bool
+NetworkSyncManager::ShouldSendMessage(bool requiresLogin) const
+{
+	return curProtocol != nullptr && isSMOnline &&
+		   (!requiresLogin || (requiresLogin && loggedIn));
+}
+
 void
 NetworkSyncManager::StartUp()
 {
@@ -202,7 +209,7 @@ NetworkSyncManager::StartUp()
 }
 
 std::string
-NetworkSyncManager::GetServerName()
+NetworkSyncManager::GetServerName() const
 {
 	return curProtocol != nullptr ? curProtocol->serverName : "";
 }
@@ -210,21 +217,21 @@ NetworkSyncManager::GetServerName()
 void
 NetworkSyncManager::Logout()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->Logout();
 }
 
 void
 NetworkSyncManager::Login(std::string user, std::string pass)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(false))
 		curProtocol->Login(user, pass);
 }
 
 void
 NetworkSyncManager::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->ReportHighScore(hs, pss);
 }
 
@@ -237,7 +244,7 @@ NetworkSyncManager::ReportReplayInput(bool isPress,
 									  int tapNoteType,
 									  int tapNoteSubType)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->ReportReplayInput(this,
 									   isPress,
 									   col,
@@ -254,7 +261,7 @@ NetworkSyncManager::ReportReplayMiss(int col,
 									 int tapNoteType,
 									 int tapNoteSubType)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->ReportReplayMiss(
 		  this, col, row, tapNoteType, tapNoteSubType);
 }
@@ -262,21 +269,21 @@ NetworkSyncManager::ReportReplayMiss(int col,
 void
 NetworkSyncManager::ReportReplayHold(int col, int row, int subType)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->ReportReplayHold(this, col, row, subType);
 }
 
 void
 NetworkSyncManager::ReportReplayMine(int row, int col)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->ReportReplayMine(this, row, col);
 }
 
 void
 NetworkSyncManager::ReportSongOver()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->ReportSongOver(this);
 }
 
@@ -286,27 +293,26 @@ NetworkSyncManager::StartRequest(short position)
 	// This needs to be reset before ScreenEvaluation could possibly be
 	// called
 	m_EvalPlayerData.clear();
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->StartRequest(this, position);
 }
 
 void
-NetworkSyncManager::DisplayStartupStatus()
+NetworkSyncManager::DisplayStartupStatus() const
 {
 	std::string sMessage("");
 
 	switch (m_startupStatus) {
-		case 0:
-			// Networking wasn't attempted
+		case NSMANStartupStatus::INIT:
 			return;
-		case 1:
+		case NSMANStartupStatus::SUCCESSFUL:
 			if (curProtocol != nullptr)
 				sMessage = ssprintf(CONNECTION_SUCCESSFUL.GetValue(),
 									curProtocol->serverName.c_str());
 			else
 				sMessage = CONNECTION_FAILED.GetValue();
 			break;
-		case 2:
+		case NSMANStartupStatus::NOT_SUCCESSFUL:
 			sMessage = CONNECTION_FAILED.GetValue();
 			break;
 	}
@@ -325,14 +331,14 @@ NetworkSyncManager::SendChat(const std::string& message,
 							 std::string tab,
 							 int type)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->SendChat(message, tab, type);
 }
 
 void
 NetworkSyncManager::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->SendMPLeaderboardUpdate(wife, jdgstr);
 }
 
@@ -345,21 +351,21 @@ void
 NetworkSyncManager::SelectUserSong()
 {
 	m_EvalPlayerData.clear();
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->SelectUserSong(this, GAMESTATE->m_pCurSong);
 }
 
 void
 NetworkSyncManager::EnterRoom(std::string name, std::string password)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->EnterRoom(name, password);
 }
 
 void
 NetworkSyncManager::LeaveRoom()
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage (true))
 		curProtocol->LeaveRoom(this);
 }
 
@@ -368,7 +374,7 @@ NetworkSyncManager::CreateNewRoom(std::string name,
 								  std::string desc,
 								  std::string password)
 {
-	if (curProtocol != nullptr)
+	if (ShouldSendMessage(true))
 		curProtocol->CreateNewRoom(name, desc, password);
 }
 
@@ -555,6 +561,11 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 		}
 		return 1;
 	}
+	static int Spectate(T* p, lua_State* L)
+	{
+		NSMAN->spectating = true;
+		NSMAN->SendChat("/spec", "spectest", 1);
+	}
 	LunaNetworkSyncManager()
 	{
 		ADD_METHOD(GetEvalScores);
@@ -568,6 +579,7 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 		ADD_METHOD(GetCurrentRoomName);
 		ADD_METHOD(GetLobbyUserList);
 		ADD_METHOD(GetLoggedInUsername);
+		ADD_METHOD(Spectate);
 	}
 };
 

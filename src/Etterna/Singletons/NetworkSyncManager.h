@@ -30,6 +30,13 @@ class EndOfGame_PlayerData
 	std::string playerOptions;
 };
 
+enum NSMANStartupStatus
+{
+	INIT,
+	SUCCESSFUL,
+	NOT_SUCCESSFUL, // also "connection attempt in progress"
+};
+
 /** @brief A special foreach loop going through each NSScoreBoardColumn. */
 #define FOREACH_NSScoreBoardColumn(sc) FOREACH_ENUM(NSScoreBoardColumn, sc)
 
@@ -116,7 +123,7 @@ class NetworkSyncManager
 	// Request a start; Block until granted.
 	void StartRequest(short position);
 
-	auto GetServerName() -> std::string;
+	auto GetServerName() const -> std::string;
 
 	void CreateNewRoom(std::string name,
 					   std::string desc = "",
@@ -134,7 +141,7 @@ class NetworkSyncManager
 
 	// Notify user if connect attempt was
 	// successful or not.
-	void DisplayStartupStatus();
+	void DisplayStartupStatus() const;
 
 	void Update(float fDeltaTime);
 
@@ -144,7 +151,8 @@ class NetworkSyncManager
 	std::string loggedInUsername;
 	std::string loginResponse; // Failure reason
 
-	Chat chat; //[{Tabname, int}] = std::vector<line>
+	// [{Tabname, int}] = std::vector<line>
+	Chat chat;
 
 	std::vector<int> m_PlayerStatus;
 	int m_ActivePlayers;
@@ -187,7 +195,8 @@ class NetworkSyncManager
 
 	std::string m_sChatText;
 
-	int m_startupStatus; // Used to see if attempt was successful or not.
+	// Used to see if attempt was successful or not.
+	NSMANStartupStatus m_startupStatus;
 
 	void Login(std::string user, std::string pass);
 	void Logout();
@@ -206,6 +215,7 @@ class NetworkSyncManager
 
   private:
 	void StartUp();
+	bool ShouldSendMessage(bool requiresLogin = false) const;
 };
 
 extern NetworkSyncManager* NSMAN;
