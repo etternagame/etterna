@@ -565,6 +565,7 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 	{
 		NSMAN->spectating = true;
 		NSMAN->SendChat("/spec", "spectest", 1);
+		return 0;
 	}
 	LunaNetworkSyncManager()
 	{
