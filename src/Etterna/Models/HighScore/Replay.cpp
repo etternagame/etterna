@@ -3056,6 +3056,43 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 }
 
 auto
+Replay::GeneratePlaybackEventForInputDataHead()
+  -> std::map<int, std::vector<PlaybackEvent>>
+{
+	std::map<int, std::vector<PlaybackEvent>> out;
+
+	if (InputData.empty()) {
+		return out;
+	}
+
+	const auto& evt = InputData.back();
+
+	const auto* td = SONGMAN->GetStepsByChartkey(chartKey)->GetTimingData();
+	const auto& evtPositionSeconds = evt.songPositionSeconds;
+	const auto& column = evt.column;
+	const auto& isPress = evt.is_press;
+
+	const auto noterow =
+	  BeatToNoteRow(td->GetBeatFromElapsedTime(evtPositionSeconds));
+	if (evt.nearestTapNoterow == -1) {
+		// for ghost taps, only remove them if they are truly too early
+		if (noterow < 0) {
+			return out;
+		}
+	}
+
+	PlaybackEvent playback(noterow, evtPositionSeconds, column, isPress);
+	playback.noterowJudged = evt.nearestTapNoterow;
+	playback.offset = evt.offsetFromNearest;
+	if (!out.count(noterow)) {
+		out.emplace(noterow, std::vector<PlaybackEvent>());
+	}
+	out.at(noterow).push_back(playback);
+
+	return out;
+}
+
+auto
 Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::set<int>>
 {
 	std::map<int, std::set<int>> mapping;
@@ -3070,6 +3107,23 @@ Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::
 		}
 		mapping.at(h.track).insert(h.row);
 	}
+
+	return mapping;
+}
+
+auto
+Replay::GenerateDroppedHoldColumnsToRowsMapFromHead() -> std::map<int, std::set<int>>
+{
+	std::map<int, std::set<int>> mapping;
+
+	if (vHoldReplayDataVector.empty()) {
+		return mapping;
+	}
+
+	const auto& h = vHoldReplayDataVector.back();
+
+	mapping.emplace(h.track, std::set<int>());
+	mapping.at(h.track).insert(h.row);
 
 	return mapping;
 }

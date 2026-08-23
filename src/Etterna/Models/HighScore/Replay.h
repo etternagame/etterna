@@ -269,6 +269,43 @@ class Replay
 		}
 	}
 
+	auto IngestInputData(bool ispress,
+						 int col,
+						 int row,
+						 float musicsecs,
+						 float offset,
+						 TapNoteType tnt,
+						 TapNoteSubType tnst) -> void
+	{
+		InputData.emplace_back(
+		  ispress, col, musicsecs, row, -offset, tnt, tnst);
+	}
+
+	auto IngestHoldDrop(int col, int row, TapNoteSubType tnst) -> void
+	{
+		HoldReplayResult hrr;
+		hrr.row = row;
+		hrr.track = col;
+		hrr.subType = tnst;
+		vHoldReplayDataVector.push_back(hrr);
+	}
+
+	auto IngestMineHit(int col, int row) -> void {
+		MineReplayResult mrr;
+		mrr.row = row;
+		mrr.track = col;
+		vMineReplayDataVector.push_back(mrr);
+	}
+
+	auto IngestMissData(int col, int row, TapNoteType tnt, TapNoteSubType tnst) -> void
+	{
+		MissReplayResult mrr;
+		mrr.row = row;
+		mrr.track = col;
+		mrr.tapNoteType = tnt;
+		mrr.tapNoteSubType = tnst;
+		vMissReplayDataVector.push_back(mrr);
+	}
 
 	ReplayType GetReplayType() const
 	{
@@ -320,6 +357,10 @@ class Replay
 	auto GeneratePlaybackEvents(int startRow = 0)
 	  -> std::map<int, std::vector<PlaybackEvent>>;
 
+	/// Generate an event for replay playback for only one InputData element
+	auto GeneratePlaybackEventForInputDataHead()
+	  -> std::map<int, std::vector<PlaybackEvent>>;
+
 	/// For Stats and ReplaySnapshots
 	auto GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
 											 float timingScale = 1.F) -> bool;
@@ -333,6 +374,10 @@ class Replay
 	/// Returns a map of rows to a set of columns which are dropped
 	/// See which rows have drops using this
 	auto GenerateDroppedHoldRowsToColumnsMap(int startRow = 0)
+	  -> std::map<int, std::set<int>>;
+
+	/// Generate the event required for spectator playback
+	auto GenerateDroppedHoldColumnsToRowsMapFromHead()
 	  -> std::map<int, std::set<int>>;
 
 	/// Offsets can be really weird - Remove all impossible offsets

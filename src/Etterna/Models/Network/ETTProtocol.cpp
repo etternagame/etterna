@@ -11,6 +11,7 @@
 #include "Etterna/Models/Misc/PlayerState.h"
 #include "Etterna/Screen/Network/ScreenNetRoom.h"
 #include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
@@ -27,6 +28,9 @@
 AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_GotEval);
 AutoScreenMessage(SM_FriendsUpdate);
+
+AutoScreenMessage(SM_Spectator_InputUpdate);
+AutoScreenMessage(SM_Spectator_HoldUpdate);
 
 AutoScreenMessage(ETTP_Disconnect);
 AutoScreenMessage(ETTP_LoginResponse);
@@ -678,6 +682,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				} break;
 				case ettps_gameplay_replay_update: {
 					auto& payload = d["payload"];
+					handleGameplayReplayUpdate(payload);
 
 				} break;
 				case ettps_end:
@@ -1233,6 +1238,58 @@ ETTProtocol::handleRoomUserlist(rapidjson::Value& payload)
 	}
 
 	MESSAGEMAN->Broadcast("UsersUpdate");
+}
+
+void
+ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
+
+	if (!payload.HasMember("subType") || !payload.HasMember("data")) {
+		return;
+	}
+
+	if (!NSMAN->spectating) {
+		return;
+	}
+
+	auto& data = payload["data"];
+	std::string subtype = payload["subType"].GetString();
+
+	if (subtype == "input") {
+		auto is_press = data["is_press"].GetBool();
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto musicsecs = data["music_seconds"].GetFloat();
+		auto offset = data["offset"].GetFloat();
+		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
+		auto tnst =
+		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
+		REPLAYS->GetActiveReplay()->IngestInputData(
+		  is_press, col, row, musicsecs, offset, tnt, tnst);
+		SCREENMAN->SendMessageToTopScreen(SM_Spectator_InputUpdate);
+	}
+	else if (subtype == "holddrop") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto subtype = static_cast<TapNoteSubType>(data["subtype"].GetInt());
+		REPLAYS->GetActiveReplay()->IngestHoldDrop(col, row, subtype);
+		SCREENMAN->SendMessageToTopScreen(SM_Spectator_HoldUpdate);
+	}
+	else if (subtype == "minehit") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		REPLAYS->GetActiveReplay()->IngestMineHit(col, row);
+		
+	}
+	else if (subtype == "miss") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
+		auto tnst =
+		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
+		REPLAYS->GetActiveReplay()->IngestMissData(col, row, tnt, tnst);
+		
+	}
+
 }
 
 void

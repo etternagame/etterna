@@ -199,6 +199,8 @@ class NetworkSyncManager
 
 	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
 
+	bool spectating = false;
+
 	// Lua
 	void PushSelf(lua_State* L);
 
