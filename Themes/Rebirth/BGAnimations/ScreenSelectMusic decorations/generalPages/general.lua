@@ -174,6 +174,7 @@ local textzoomFudge = 5
 local displayScoreBump = 8
 
 local buttonHoverAlpha = 0.6
+local buttonHoverAlpha2 = 0.8
 local buttonBGAlpha = 0.3
 
 local function createStatLines()
@@ -737,12 +738,15 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     MouseOverCommand = function(self)
         if self:IsInvisible() then return end
         self:playcommand("ToolTip")
+        self:diffusealpha(buttonHoverAlpha2)
     end,
     MouseOutCommand = function(self)
         if self:IsInvisible() then return end
         TOOLTIP:Hide()
+        self:diffusealpha(1)
     end,
     MouseDownCommand = function(self)
+        if self:IsInvisible() then return end
         local scr = SCREENMAN:GetTopScreen()
         local w = scr:GetChild("WheelFile")
         local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())

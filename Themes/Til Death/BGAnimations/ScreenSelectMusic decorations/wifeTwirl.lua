@@ -868,9 +868,11 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	end,
 	MouseOverCommand = function(self)
 		self:playcommand("ToolTip")
+		self:diffusealpha(hoverAlpha)
 	end,
 	MouseOutCommand = function(self)
 		TOOLTIP:Hide()
+		self:diffusealpha(1)
 	end,
 	MouseDownCommand = function(self, params)
 		-- because this button covers the background
@@ -881,6 +883,7 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	end,
 	MouseDoubleClickCommand = function(self, params)
 		if params.event == "DeviceButton_left mouse button" then
+			if not self:GetVisible() then return end
 			local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
 			local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
 
