@@ -15,6 +15,7 @@
 #include <RageUtil/File/RageFileManager.h>
 #include <RageUtil/Misc/RageMath.h>
 #include <vulkan/vulkan_beta.h>
+#include <thread>
 #include "RenderTargetVK.h"
 #include "PlatformUtils.h"
 
