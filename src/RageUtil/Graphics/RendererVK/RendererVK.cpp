@@ -175,7 +175,11 @@ RendererVK::CreateTexture(RageSurface* img, bool RGBA8)
 	imageInfo.imageType = VK_IMAGE_TYPE_2D;
 	imageInfo.format =
 	  RGBA8 ? VK_FORMAT_R8G8B8A8_UNORM : VK_FORMAT_B8G8R8A8_UNORM;
-	imageInfo.extent = { texture.width, texture.height, 1 };
+
+	// old ahh renderers scale the textures to powers-of-two for Reasons(TM)
+	imageInfo.extent = { (uint32_t)power_of_two(texture.width),
+						 (uint32_t)power_of_two(texture.height),
+						 1 };
 	imageInfo.mipLevels = 1;
 	imageInfo.arrayLayers = 1;
 	imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -208,7 +212,7 @@ RendererVK::CreateTexture(RageSurface* img, bool RGBA8)
 	texture.InitImageBuffer();
 	m_Textures.insert({ currentHandle, texture });
 
-	UpdateTexture(currentHandle, img, 0, 0, img->w, img->h);
+	UpdateTexture(currentHandle, img, 0, 0, texture.width, texture.height);
 	m_DirtyTextureDescriptors.push_back(currentHandle);
 
 	return currentHandle;
