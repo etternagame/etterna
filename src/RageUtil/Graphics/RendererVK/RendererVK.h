@@ -79,6 +79,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	uint32_t m_PresentQueueFamily = 0;
 	VmaAllocator m_Allocator = nullptr;
 	vk::Format m_DepthFormat = {};
+	vk::SampleCountFlagBits m_MsaaSamples = {};
 	void InitVulkanState();
 
 	vk::raii::SwapchainKHR m_Swapchain = nullptr;
@@ -86,14 +87,18 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::vector<vk::Image> m_SwapchainImages;
 	vk::Format m_ImageFormat = {};
 	std::array<Texture, FramesInFlight> m_SwapchainDepthTextures;
+	std::array<Texture, FramesInFlight> m_MsaaTextures;
+	bool m_MsaaTexturesAreDirty = false;
 	bool m_SwapchainVSync = false;
 	bool m_SwapchainBorderless = false;
 	bool m_SwapchainIsInvalid = false;
+	bool m_SmoothLines = false;
 
 	void InitSwapchain(uint32_t width,
 					   uint32_t height,
 					   bool vSync,
-					   bool borderlessWindow);
+					   bool borderlessWindow,
+					   bool smoothLines);
 	void RecreateSwapchain();
 	void CleanupSwapchain();
 

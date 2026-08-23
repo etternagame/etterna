@@ -46,7 +46,11 @@ void
 RendererVK::InitializeRenderer(const VideoModeParams& p)
 {
 	InitVulkanState();
-	InitSwapchain(p.width, p.height, p.vsync, p.bWindowIsFullscreenBorderless);
+	InitSwapchain(p.width,
+				  p.height,
+				  p.vsync,
+				  p.bWindowIsFullscreenBorderless,
+				  p.bSmoothLines);
 	InitImageViews();
 	InitBatchDescriptors();
 	InitBatchBuffers(1);
@@ -567,6 +571,10 @@ RendererVK::~RendererVK()
 		DestroyTexture(texture);
 	}
 
+	for (auto& texture : m_MsaaTextures) {
+		DestroyTexture(texture);
+	}
+
 	for (int i = 0; i < FramesInFlight; i++) {
 		m_VertexBuffer[i].Destroy();
 		m_IndexBuffer[i].Destroy();
@@ -742,16 +750,30 @@ RendererVK::InitVulkanState()
 			break;
 		}
 	}
+
+	auto limits = m_PhysicalDevice.getProperties().limits;
+	auto counts =
+	  limits.framebufferColorSampleCounts & limits.framebufferDepthSampleCounts;
+
+	if (counts & vk::SampleCountFlagBits::e4) {
+		m_MsaaSamples = vk::SampleCountFlagBits::e4;
+	} else if (counts & vk::SampleCountFlagBits::e2) {
+		m_MsaaSamples = vk::SampleCountFlagBits::e2;
+	} else {
+		m_MsaaSamples = vk::SampleCountFlagBits::e1;
+	}
 }
 
 void
 RendererVK::InitSwapchain(uint32_t width,
 						  uint32_t height,
 						  bool vSync,
-						  bool borderlessWindow)
+						  bool borderlessWindow,
+						  bool smoothLines)
 {
 	m_SwapchainVSync = vSync;
 	m_SwapchainBorderless = borderlessWindow;
+	m_SmoothLines = smoothLines;
 
 	vkb::SwapchainBuilder swapchainBuilder(
 	  *m_PhysicalDevice, *m_Device, *m_Surface);
@@ -821,7 +843,8 @@ RendererVK::InitSwapchain(uint32_t width,
 		  vkbSwapchain.extent.width, vkbSwapchain.extent.height, 1);
 		depthImageInfo.mipLevels = 1;
 		depthImageInfo.arrayLayers = 1;
-		depthImageInfo.samples = vk::SampleCountFlagBits::e1;
+		depthImageInfo.samples =
+		  smoothLines ? m_MsaaSamples : vk::SampleCountFlagBits::e1;
 		depthImageInfo.tiling = vk::ImageTiling::eOptimal;
 		depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
 		depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
@@ -851,10 +874,59 @@ RendererVK::InitSwapchain(uint32_t width,
 		depthViewInfo.subresourceRange = subRange;
 		texture.view = (*m_Device).createImageView(depthViewInfo);
 
-		m_DirtyDepthTextures.push_back(-1 * i);
+		m_DirtyDepthTextures.push_back(-1 * static_cast<intptr_t>(i));
 
 		i++;
 	}
+
+	if (!smoothLines || m_MsaaSamples & vk::SampleCountFlagBits::e1) {
+		return;
+	}
+
+	for (auto& texture : m_MsaaTextures) {
+		DestroyTexture(texture);
+
+		texture.width = vkbSwapchain.extent.width;
+		texture.height = vkbSwapchain.extent.height;
+
+		vk::ImageCreateInfo imageInfo = {};
+		imageInfo.imageType = vk::ImageType::e2D;
+		imageInfo.format = m_ImageFormat;
+		imageInfo.extent = vk::Extent3D(
+		  vkbSwapchain.extent.width, vkbSwapchain.extent.height, 1);
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.samples = m_MsaaSamples;
+		imageInfo.tiling = vk::ImageTiling::eOptimal;
+		imageInfo.usage = vk::ImageUsageFlagBits::eColorAttachment |
+						  vk::ImageUsageFlagBits::eTransientAttachment;
+		imageInfo.initialLayout = vk::ImageLayout::eUndefined;
+
+		VmaAllocationCreateInfo allocInfo = {};
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+
+		VkImage depthImagePtr = VK_NULL_HANDLE;
+		ThrowIfFail(vmaCreateImage(m_Allocator,
+								   &*imageInfo,
+								   &allocInfo,
+								   &depthImagePtr,
+								   &texture.allocation,
+								   nullptr));
+		texture.image = depthImagePtr;
+
+		vk::ImageViewCreateInfo viewInfo = {};
+		viewInfo.image = texture.image;
+		viewInfo.viewType = vk::ImageViewType::e2D;
+		viewInfo.format = m_ImageFormat;
+		vk::ImageSubresourceRange subRange = {};
+		subRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		subRange.levelCount = 1;
+		subRange.layerCount = 1;
+		viewInfo.subresourceRange = subRange;
+		texture.view = (*m_Device).createImageView(viewInfo);
+	}
+
+	m_MsaaTexturesAreDirty = true;
 }
 
 void
@@ -866,7 +938,8 @@ RendererVK::RecreateSwapchain()
 	InitSwapchain(m_SwapchainExtent.width,
 				  m_SwapchainExtent.height,
 				  m_SwapchainVSync,
-				  m_SwapchainBorderless);
+				  m_SwapchainBorderless,
+				  m_SmoothLines);
 	InitImageViews();
 	InitSyncStructures();
 }
@@ -878,6 +951,10 @@ RendererVK::CleanupSwapchain()
 	m_Swapchain = nullptr;
 
 	for (auto& texture : m_SwapchainDepthTextures) {
+		DestroyTexture(texture);
+	}
+
+	for (auto& texture : m_MsaaTextures) {
 		DestroyTexture(texture);
 	}
 }
@@ -1185,6 +1262,25 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	m_DirtyImageInfos.clear();
 	m_DirtyImageDescWrites.clear();
 
+	if (m_MsaaTexturesAreDirty) {
+		for (auto& texture : m_MsaaTextures) {
+			TransitionImageLayout(
+			  texture.image,
+			  texture.currentLayout,
+			  vk::ImageLayout::eColorAttachmentOptimal,
+			  vk::AccessFlags2(),
+			  vk::AccessFlagBits2::eColorAttachmentWrite,
+			  vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+			  vk::PipelineStageFlagBits2::eColorAttachmentOutput,
+			  vk::ImageAspectFlagBits::eColor,
+			  buffer);
+
+			texture.currentLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		}
+
+		m_MsaaTexturesAreDirty = false;
+	}
+
 	vk::BufferCopy stagingCopy{};
 	stagingCopy.srcOffset = 0;
 	stagingCopy.dstOffset = 0;
@@ -1269,6 +1365,8 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 
 	for (auto& node : batcher.m_RenderNodes) {
 		bool swapchain = node.RenderTarget == 0;
+		bool useMsaa = swapchain && m_SmoothLines &&
+					   !(m_MsaaSamples & vk::SampleCountFlagBits::e1);
 
 		auto image = swapchain ? m_SwapchainImages[imageIndex]
 							   : m_Textures[node.RenderTarget].image;
@@ -1324,6 +1422,17 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 			depthInfo.clearValue = vk::ClearDepthStencilValue(1.0f, 0);
 		}
 
+		if (useMsaa) {
+			colorInfo.imageView = m_MsaaTextures[m_CurrentFrame].view;
+			colorInfo.resolveMode = vk::ResolveModeFlagBits::eAverage;
+			colorInfo.resolveImageView = view;
+			colorInfo.resolveImageLayout =
+			  vk::ImageLayout::eColorAttachmentOptimal;
+			colorInfo.loadOp = vk::AttachmentLoadOp::eClear;
+			colorInfo.storeOp = vk::AttachmentStoreOp::eDontCare;
+			colorInfo.clearValue = vk::ClearColorValue(0.0f, 0.0f, 0.0f, 0.0f);
+		}
+
 		vk::RenderingInfo renderInfo = {};
 		renderInfo.renderArea =
 		  vk::Rect2D{ { 0, 0 }, { extent.width, extent.height } };
@@ -1344,10 +1453,16 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 										0.0f,
 										1.0f));
 
+		buffer.setRasterizationSamplesEXT(
+		  useMsaa ? m_MsaaSamples : vk::SampleCountFlagBits::e1);
+
 		buffer.beginRendering(renderInfo);
-		buffer.setRasterizationSamplesEXT(vk::SampleCountFlagBits::e1);
 
 		for (auto& call : node.DrawCalls) {
+			if (call.IndexCount == 0) {
+				continue;
+			}
+
 			buffer.setDepthTestEnable(
 			  call.DepthTestMode != ZTEST_OFF ? VK_TRUE : VK_FALSE);
 			buffer.setDepthWriteEnable(call.DepthWriteEnabled ? VK_TRUE
@@ -1996,7 +2111,8 @@ RendererVK::TryVideoMode(const VideoModeParams& params)
 	InitSwapchain(params.width,
 				  params.height,
 				  params.vsync,
-				  params.bWindowIsFullscreenBorderless);
+				  params.bWindowIsFullscreenBorderless,
+				  params.bSmoothLines);
 	InitImageViews();
 	InitSyncStructures();
 }
