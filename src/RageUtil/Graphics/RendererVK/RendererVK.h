@@ -65,6 +65,8 @@ class RendererVK : public DisplayAdapter::Renderer
 	void RescaleBatchBuffers(size_t sizeScale) override;
 
   private:
+	constexpr static size_t FramesInFlight = 3;
+
 	vk::raii::Context m_Context;
 	vk::raii::Instance m_Instance = nullptr;
 	vk::raii::DebugUtilsMessengerEXT m_DebugMessenger = nullptr;
@@ -83,7 +85,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	vk::Extent2D m_SwapchainExtent;
 	std::vector<vk::Image> m_SwapchainImages;
 	vk::Format m_ImageFormat = {};
-	Texture m_DepthTexture = {};
+	std::array<Texture, FramesInFlight> m_SwapchainDepthTextures;
 	bool m_SwapchainVSync = false;
 	bool m_SwapchainBorderless = false;
 	bool m_SwapchainIsInvalid = false;
@@ -134,8 +136,6 @@ class RendererVK : public DisplayAdapter::Renderer
 	void RecordCommands(uint32_t imageIndex,
 						const DisplayAdapter::CommandBatcher& batcher);
 	void SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer);
-
-	constexpr static size_t FramesInFlight = 3;
 
 	std::array<PersistentBuffer, FramesInFlight> m_VertexBuffer;
 	std::array<PersistentBuffer, FramesInFlight> m_IndexBuffer;

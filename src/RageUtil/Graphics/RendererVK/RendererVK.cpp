@@ -563,7 +563,9 @@ RendererVK::~RendererVK()
 		DestroyTexture(texture);
 	}
 
-	DestroyTexture(m_DepthTexture);
+	for (auto& texture : m_SwapchainDepthTextures) {
+		DestroyTexture(texture);
+	}
 
 	for (int i = 0; i < FramesInFlight; i++) {
 		m_VertexBuffer[i].Destroy();
@@ -709,7 +711,7 @@ RendererVK::InitVulkanState()
 	m_Device = vk::raii::Device(m_PhysicalDevice, deviceResult->device);
 
 	Locator::getLogger()->info("RendererVK: selected GPU: {}",
-								physicalDeviceResult->name);
+							   physicalDeviceResult->name);
 
 	m_GraphicsQueue = vk::raii::Queue(
 	  m_Device, deviceResult->get_queue(vkb::QueueType::graphics).value());
@@ -806,45 +808,53 @@ RendererVK::InitSwapchain(uint32_t width,
 	m_SwapchainExtent =
 	  vk::Extent2D(vkbSwapchain.extent.width, vkbSwapchain.extent.height);
 
-	m_DepthTexture.width = vkbSwapchain.extent.width;
-	m_DepthTexture.height = vkbSwapchain.extent.height;
-	vk::ImageCreateInfo depthImageInfo = {};
-	depthImageInfo.imageType = vk::ImageType::e2D;
-	depthImageInfo.format = m_DepthFormat;
-	depthImageInfo.extent =
-	  vk::Extent3D(vkbSwapchain.extent.width, vkbSwapchain.extent.height, 1);
-	depthImageInfo.mipLevels = 1;
-	depthImageInfo.arrayLayers = 1;
-	depthImageInfo.samples = vk::SampleCountFlagBits::e1;
-	depthImageInfo.tiling = vk::ImageTiling::eOptimal;
-	depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
-	depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
+	for (int i = 0; auto& texture : m_SwapchainDepthTextures) {
+		DestroyTexture(texture);
 
-	VmaAllocationCreateInfo depthAllocInfo = {};
-	depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
-	depthAllocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+		texture.width = vkbSwapchain.extent.width;
+		texture.height = vkbSwapchain.extent.height;
 
-	VkImage depthImagePtr = VK_NULL_HANDLE;
-	ThrowIfFail(vmaCreateImage(m_Allocator,
-							   &*depthImageInfo,
-							   &depthAllocInfo,
-							   &depthImagePtr,
-							   &m_DepthTexture.allocation,
-							   nullptr));
-	m_DepthTexture.image = depthImagePtr;
+		vk::ImageCreateInfo depthImageInfo = {};
+		depthImageInfo.imageType = vk::ImageType::e2D;
+		depthImageInfo.format = m_DepthFormat;
+		depthImageInfo.extent = vk::Extent3D(
+		  vkbSwapchain.extent.width, vkbSwapchain.extent.height, 1);
+		depthImageInfo.mipLevels = 1;
+		depthImageInfo.arrayLayers = 1;
+		depthImageInfo.samples = vk::SampleCountFlagBits::e1;
+		depthImageInfo.tiling = vk::ImageTiling::eOptimal;
+		depthImageInfo.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment;
+		depthImageInfo.initialLayout = vk::ImageLayout::eUndefined;
 
-	vk::ImageViewCreateInfo depthViewInfo = {};
-	depthViewInfo.image = m_DepthTexture.image;
-	depthViewInfo.viewType = vk::ImageViewType::e2D;
-	depthViewInfo.format = m_DepthFormat;
-	vk::ImageSubresourceRange subRange = {};
-	subRange.aspectMask =
-	  vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-	subRange.levelCount = 1;
-	subRange.layerCount = 1;
-	depthViewInfo.subresourceRange = subRange;
-	m_DepthTexture.view = (*m_Device).createImageView(depthViewInfo);
-	m_DirtyDepthTextures.push_back(0);
+		VmaAllocationCreateInfo depthAllocInfo = {};
+		depthAllocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+		depthAllocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+
+		VkImage depthImagePtr = VK_NULL_HANDLE;
+		ThrowIfFail(vmaCreateImage(m_Allocator,
+								   &*depthImageInfo,
+								   &depthAllocInfo,
+								   &depthImagePtr,
+								   &texture.allocation,
+								   nullptr));
+		texture.image = depthImagePtr;
+
+		vk::ImageViewCreateInfo depthViewInfo = {};
+		depthViewInfo.image = texture.image;
+		depthViewInfo.viewType = vk::ImageViewType::e2D;
+		depthViewInfo.format = m_DepthFormat;
+		vk::ImageSubresourceRange subRange = {};
+		subRange.aspectMask =
+		  vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+		subRange.levelCount = 1;
+		subRange.layerCount = 1;
+		depthViewInfo.subresourceRange = subRange;
+		texture.view = (*m_Device).createImageView(depthViewInfo);
+
+		m_DirtyDepthTextures.push_back(-1 * i);
+
+		i++;
+	}
 }
 
 void
@@ -867,7 +877,9 @@ RendererVK::CleanupSwapchain()
 	m_SwapchainImageViews.clear();
 	m_Swapchain = nullptr;
 
-	DestroyTexture(m_DepthTexture);
+	for (auto& texture : m_SwapchainDepthTextures) {
+		DestroyTexture(texture);
+	}
 }
 
 void
@@ -1119,12 +1131,13 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	}
 
 	for (auto& textureHandle : m_DirtyDepthTextures) {
-		if (textureHandle != 0 && !m_Textures.contains(textureHandle)) {
+		if (textureHandle > 0 && !m_Textures.contains(textureHandle)) {
 			continue;
 		}
 
-		auto& texture =
-		  textureHandle == 0 ? m_DepthTexture : m_DepthTextures.at(textureHandle);
+		auto& texture = textureHandle <= 0
+						  ? m_SwapchainDepthTextures[-1 * textureHandle]
+						  : m_DepthTextures.at(textureHandle);
 		TransitionImageLayout(texture.image,
 							  texture.currentLayout,
 							  vk::ImageLayout::eDepthStencilAttachmentOptimal,
@@ -1300,7 +1313,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		depthInfo.imageView =
 		  (!swapchain && m_DepthTextures.contains(node.RenderTarget))
 			? m_DepthTextures[node.RenderTarget].view
-			: m_DepthTexture.view;
+			: m_SwapchainDepthTextures[m_CurrentFrame].view;
 		depthInfo.imageLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 		depthInfo.storeOp = vk::AttachmentStoreOp::eDontCare;
 		if (node.PreserveRenderTarget && !swapchain &&
