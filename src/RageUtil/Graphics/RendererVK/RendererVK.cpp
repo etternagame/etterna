@@ -249,6 +249,7 @@ RendererVK::DeleteTexture(intptr_t handle)
 {
 	m_GraphicsQueue.waitIdle();
 
+	assert(m_Textures.contains(handle));
 	DestroyTexture(m_Textures[handle]);
 	if (m_DepthTextures.contains(handle)) {
 		DestroyTexture(m_DepthTextures[handle]);
@@ -692,6 +693,7 @@ RendererVK::InitVulkanState()
 	dynamicState3Features.extendedDynamicState3ColorBlendEnable = VK_TRUE;
 	dynamicState3Features.extendedDynamicState3ColorBlendEquation = VK_TRUE;
 	dynamicState3Features.extendedDynamicState3ColorWriteMask = VK_TRUE;
+	dynamicState3Features.extendedDynamicState3RasterizationSamples = VK_TRUE;
 
 	vkb::DeviceBuilder deviceBuilder(*physicalDeviceResult);
 	auto deviceResult = deviceBuilder.add_pNext(&dynamicState3Features).build();
@@ -706,7 +708,7 @@ RendererVK::InitVulkanState()
 	  m_Instance, physicalDeviceResult->physical_device);
 	m_Device = vk::raii::Device(m_PhysicalDevice, deviceResult->device);
 
-	Locator::getLogger()->debug("RendererVK: selected GPU: {}",
+	Locator::getLogger()->info("RendererVK: selected GPU: {}",
 								physicalDeviceResult->name);
 
 	m_GraphicsQueue = vk::raii::Queue(
@@ -1019,7 +1021,11 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	m_DirtyPostBarriers.reserve(m_DirtyTextures.size());
 
 	for (auto& textureHandle : m_DirtyTextures) {
-		auto& texture = m_Textures[textureHandle];
+		if (!m_Textures.contains(textureHandle)) {
+			continue;
+		}
+
+		auto& texture = m_Textures.at(textureHandle);
 		vk::ImageMemoryBarrier2 barrier{};
 		barrier.srcStageMask =
 		  (texture.currentLayout == vk::ImageLayout::eUndefined)
@@ -1051,7 +1057,11 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	}
 
 	for (auto& textureHandle : m_DirtyTextures) {
-		auto& texture = m_Textures[textureHandle];
+		if (!m_Textures.contains(textureHandle)) {
+			continue;
+		}
+
+		auto& texture = m_Textures.at(textureHandle);
 		vk::BufferImageCopy2 copyRegion{};
 		copyRegion.imageExtent =
 		  vk::Extent3D{ texture.width, texture.height, 1 };
@@ -1068,7 +1078,11 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	}
 
 	for (auto& textureHandle : m_DirtyTextures) {
-		auto& texture = m_Textures[textureHandle];
+		if (!m_Textures.contains(textureHandle)) {
+			continue;
+		}
+
+		auto& texture = m_Textures.at(textureHandle);
 		vk::ImageMemoryBarrier2 barrier{};
 		barrier.srcStageMask = vk::PipelineStageFlagBits2::eTransfer;
 		barrier.srcAccessMask = vk::AccessFlagBits2::eTransferWrite;
@@ -1094,15 +1108,23 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	}
 
 	for (auto& textureHandle : m_DirtyTextures) {
-		auto& texture = m_Textures[textureHandle];
+		if (!m_Textures.contains(textureHandle)) {
+			continue;
+		}
+
+		auto& texture = m_Textures.at(textureHandle);
 		texture.currentLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		texture.dirty = false;
 		texture.initialized = true;
 	}
 
 	for (auto& textureHandle : m_DirtyDepthTextures) {
+		if (textureHandle != 0 && !m_Textures.contains(textureHandle)) {
+			continue;
+		}
+
 		auto& texture =
-		  textureHandle == 0 ? m_DepthTexture : m_DepthTextures[textureHandle];
+		  textureHandle == 0 ? m_DepthTexture : m_DepthTextures.at(textureHandle);
 		TransitionImageLayout(texture.image,
 							  texture.currentLayout,
 							  vk::ImageLayout::eDepthStencilAttachmentOptimal,
@@ -1129,7 +1151,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 		imageInfo.imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		imageInfo.imageView = m_EmptyTextureSlots.contains(handle)
 								? m_Textures[0].view
-								: m_Textures[handle].view;
+								: m_Textures.at(handle).view;
 
 		vk::WriteDescriptorSet write{};
 		write.dstSet = m_TextureDescriptorSet;
@@ -1310,6 +1332,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 										1.0f));
 
 		buffer.beginRendering(renderInfo);
+		buffer.setRasterizationSamplesEXT(vk::SampleCountFlagBits::e1);
 
 		for (auto& call : node.DrawCalls) {
 			buffer.setDepthTestEnable(

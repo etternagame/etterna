@@ -100,7 +100,8 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 								  vk::DynamicState::eDepthCompareOp,
 								  vk::DynamicState::eColorBlendEnableEXT,
 								  vk::DynamicState::eColorBlendEquationEXT,
-								  vk::DynamicState::eColorWriteMaskEXT };
+								  vk::DynamicState::eColorWriteMaskEXT,
+								  vk::DynamicState::eRasterizationSamplesEXT };
 
 	vk::PipelineDynamicStateCreateInfo dynamicState{};
 	dynamicState.dynamicStateCount =
