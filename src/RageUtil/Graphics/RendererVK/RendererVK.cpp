@@ -45,7 +45,7 @@ void
 RendererVK::InitializeRenderer(const VideoModeParams& p)
 {
 	InitVulkanState();
-	InitSwapchain(p);
+	InitSwapchain(p.width, p.height, p.vsync, p.bWindowIsFullscreenBorderless);
 	InitImageViews();
 	InitBatchDescriptors();
 	InitBatchBuffers(1);
@@ -64,9 +64,15 @@ RendererVK::IsReadyForRender()
 		return true;
 	}
 
-	// TODO: check if we can recreate swapchain and such
+	try {
+		RecreateSwapchain();
+	} catch (std::exception e) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		return false;
+	}
 
-	return false;
+	m_SwapchainIsInvalid = false;
+	return true;
 }
 
 /// ----------------------------------------
@@ -76,6 +82,13 @@ void
 RendererVK::OnRender(const ActualVideoModeParams* p,
 					 const DisplayAdapter::CommandBatcher& batcher)
 {
+	if (m_SwapchainIsInvalid) {
+		// pause the current thread in IsReadyForRender() so we don't do a heavy
+		// spin thing
+		// we'll attempt to recreate the swapchain in IsReadyForRender() too
+		return;
+	}
+
 	ThrowIfFail(m_Device.waitForFences(
 	  *m_InFlightFence[m_CurrentFrame], vk::True, Timeout));
 
@@ -86,9 +99,8 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 	m_CurrentImage = imageIndex;
 
 	if (result == vk::Result::eErrorOutOfDateKHR ||
-		result == vk::Result::eSuboptimalKHR || m_SwapchainIsInvalid) {
-		RecreateSwapchain(*p);
-		m_SwapchainIsInvalid = false;
+		result == vk::Result::eSuboptimalKHR) {
+		m_SwapchainIsInvalid = true;
 		return;
 	}
 	ThrowIfFail(result);
@@ -118,17 +130,20 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 	presentInfoKHR.pImageIndices = &imageIndex;
 
 	try {
+		// for frame pacing/limiting there's VK_EXT_present_timing but it's
+		// kinda fresh at the time of writing so eh
+
 		const auto beforePresent = std::chrono::steady_clock::now();
 		result = m_PresentQueue.presentKHR(presentInfoKHR);
 		const auto afterPresent = std::chrono::steady_clock::now();
 		DISPLAY->SetPresentTime(afterPresent - beforePresent);
 	} catch (vk::OutOfDateKHRError error) {
-		RecreateSwapchain(*p);
+		m_SwapchainIsInvalid = true;
 		return;
 	}
 
 	if (result == vk::Result::eSuboptimalKHR) {
-		RecreateSwapchain(*p);
+		m_SwapchainIsInvalid = true;
 		return;
 	}
 
@@ -721,8 +736,14 @@ RendererVK::InitVulkanState()
 }
 
 void
-RendererVK::InitSwapchain(const VideoModeParams& p)
+RendererVK::InitSwapchain(uint32_t width,
+						  uint32_t height,
+						  bool vSync,
+						  bool borderlessWindow)
 {
+	m_SwapchainVSync = vSync;
+	m_SwapchainBorderless = borderlessWindow;
+
 	vkb::SwapchainBuilder swapchainBuilder(
 	  *m_PhysicalDevice, *m_Device, *m_Surface);
 
@@ -731,8 +752,9 @@ RendererVK::InitSwapchain(const VideoModeParams& p)
 		{ VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR })
 	  .set_desired_format(
 		{ VK_FORMAT_R8G8B8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR })
-	  .set_desired_present_mode(p.vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR)
-	  .set_desired_extent(p.width, p.height)
+	  .set_desired_present_mode(vSync ? VK_PRESENT_MODE_FIFO_KHR
+									  : VK_PRESENT_MODE_IMMEDIATE_KHR)
+	  .set_desired_extent(width, height)
 	  .set_image_usage_flags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 							 VK_IMAGE_USAGE_TRANSFER_SRC_BIT)
 	  .set_clipped(true);
@@ -756,8 +778,8 @@ RendererVK::InitSwapchain(const VideoModeParams& p)
 		VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT
 	};
 	fullScreenInfo.fullScreenExclusive =
-	  p.bWindowIsFullscreenBorderless ? VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT
-									  : VK_FULL_SCREEN_EXCLUSIVE_ALLOWED_EXT;
+	  borderlessWindow ? VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT
+					   : VK_FULL_SCREEN_EXCLUSIVE_ALLOWED_EXT;
 	swapchainBuilder.add_pNext(&fullScreenInfo);
 #endif
 
@@ -819,12 +841,15 @@ RendererVK::InitSwapchain(const VideoModeParams& p)
 }
 
 void
-RendererVK::RecreateSwapchain(const VideoModeParams& p)
+RendererVK::RecreateSwapchain()
 {
 	m_Device.waitIdle();
 
 	CleanupSwapchain();
-	InitSwapchain(p);
+	InitSwapchain(m_SwapchainExtent.width,
+				  m_SwapchainExtent.height,
+				  m_SwapchainVSync,
+				  m_SwapchainBorderless);
 	InitImageViews();
 	InitSyncStructures();
 }
@@ -1927,5 +1952,10 @@ RendererVK::TryVideoMode(const VideoModeParams& params)
 	}
 
 	m_Surface = CreateSurfaceKHR(m_Instance);
-	RecreateSwapchain(params);
+	InitSwapchain(params.width,
+				  params.height,
+				  params.vsync,
+				  params.bWindowIsFullscreenBorderless);
+	InitImageViews();
+	InitSyncStructures();
 }

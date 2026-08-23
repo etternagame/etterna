@@ -84,10 +84,15 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::vector<vk::Image> m_SwapchainImages;
 	vk::Format m_ImageFormat = {};
 	Texture m_DepthTexture = {};
-
+	bool m_SwapchainVSync = false;
+	bool m_SwapchainBorderless = false;
 	bool m_SwapchainIsInvalid = false;
-	void InitSwapchain(const VideoModeParams& p);
-	void RecreateSwapchain(const VideoModeParams& p);
+
+	void InitSwapchain(uint32_t width,
+					   uint32_t height,
+					   bool vSync,
+					   bool borderlessWindow);
+	void RecreateSwapchain();
 	void CleanupSwapchain();
 
 	std::vector<vk::raii::ImageView> m_SwapchainImageViews;
