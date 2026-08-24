@@ -421,6 +421,11 @@ class Replay
 		return scoreKey.find("Online_") != std::string::npos;
 	}
 
+	bool IsSpectateScore() const
+	{
+		return scoreKey.find("SPECTATE") != std::string::npos;
+	}
+
 	void Unload()
 	{
 		useReprioritizedNoterows = false;

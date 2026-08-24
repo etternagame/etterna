@@ -3784,6 +3784,16 @@ class LunaReplay : public Luna<Replay>
 		lua_pushboolean(L, p->GetReplayType() != ReplayType_Invalid);
 		return 1;
 	}
+	static auto IsForOnlineScore(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->IsOnlineScore());
+		return 1;
+	}
+	static auto IsForSpectateScore(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->IsSpectateScore());
+		return 1;
+	}
 
 	static auto GetOffsetVector(T* p, lua_State* L) -> int
 	{
@@ -4025,6 +4035,8 @@ class LunaReplay : public Luna<Replay>
 	LunaReplay() {
 		ADD_METHOD(LoadAllData);
 		ADD_METHOD(IsLoaded);
+		ADD_METHOD(IsForOnlineScore);
+		ADD_METHOD(IsForSpectateScore);
 
 		ADD_METHOD(HasReplayData);
 		ADD_METHOD(GetChartKey);
