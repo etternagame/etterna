@@ -10,6 +10,7 @@
 #include "Etterna/Actor/Gameplay/Player.h"
 #include "Etterna/Actor/Gameplay/PlayerPractice.h"
 #include "Etterna/Actor/Gameplay/PlayerReplay.h"
+#include "Etterna/Actor/Gameplay/PlayerSpectate.h"
 #include "Etterna/Actor/Gameplay/LifeMeter.h"
 #include "Etterna/Actor/GameplayAndMenus/StepsDisplay.h"
 #include "Etterna/Models/Lua/LuaBinding.h"
@@ -51,7 +52,7 @@ PlayerInfo::Load(PlayerNumber pn,
 
 	m_ptextPlayerOptions = nullptr;
 	if (mode == GameplayMode_Spectate) {
-		m_pPlayer = nullptr;
+		m_pPlayer = new PlayerSpectate(m_NoteData, bShowNoteField);
 	} else if (mode == GameplayMode_Replay) {
 		m_pPlayer = new PlayerReplay(m_NoteData, bShowNoteField);
 	} else if (mode == GameplayMode_Practice) {
