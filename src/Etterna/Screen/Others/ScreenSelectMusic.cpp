@@ -379,7 +379,7 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
 		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-		PlayParams.bApplyMusicRate = true;
+		PlayParams.bApplyMusicRate = !SampleMusicToPlayIsBGM();
 
 		// We will leave this FALSE for standard sample music
 		// Because accurate seeking is slow for MP3.
@@ -394,6 +394,7 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		FallbackMusic.fFadeInLengthSeconds =
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
+		FallbackMusic.bApplyMusicRate = false;
 		SOUND->PlayMusic(PlayParams);
 		GAMESTATE->SetPaused(false);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
@@ -1159,13 +1160,14 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 			PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 			PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
 			PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-			PlayParams.bApplyMusicRate = true;
+			PlayParams.bApplyMusicRate = !SampleMusicToPlayIsBGM();
 			PlayParams.bAccurateSync = false;
 			GameSoundManager::PlayMusicParams FallbackMusic;
 			FallbackMusic.sFile = m_sLoopMusicPath;
 			FallbackMusic.fFadeInLengthSeconds =
 			  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 			FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
+			FallbackMusic.bApplyMusicRate = false;
 			SOUND->PlayMusic(PlayParams);
 		}
 		GAMESTATE->SetPaused(false);
