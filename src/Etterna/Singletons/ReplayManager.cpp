@@ -37,11 +37,7 @@ ReplayManager::GetSpectateReplay(const std::string& playerID) {
 
 	auto it = spectatorReplays.find(playerID);
 	if (it == spectatorReplays.end()) {
-		Locator::getLogger()->warn(
-		  "Cant get spectator replay for player {} "
-		  "because it wasnt initialized. Provided dummyReplay instead.",
-		  playerID);
-		return dummyReplay;
+		return nullptr;
 	}
 	return it->second;
 }

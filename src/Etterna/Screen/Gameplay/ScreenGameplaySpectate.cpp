@@ -28,9 +28,6 @@
 
 REGISTER_SCREEN_CLASS(ScreenGameplaySpectate);
 
-AutoScreenMessage(SM_Spectator_InputUpdate);
-AutoScreenMessage(SM_Spectator_HoldUpdate);
-
 void
 ScreenGameplaySpectate::FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut)
 {
@@ -107,18 +104,6 @@ ScreenGameplaySpectate::~ScreenGameplaySpectate()
 void
 ScreenGameplaySpectate::HandleScreenMessage(const ScreenMessage& SM)
 {
-	if (SM == SM_Spectator_InputUpdate) {
-		Message msg("SpectatorInputUpdate");
-		GetPlayerInfo()->m_pPlayer->HandleMessage(msg);
-		return;
-	}
-	else if (SM == SM_Spectator_HoldUpdate) {
-		Message msg("SpectatorHoldUpdate");
-		GetPlayerInfo()->m_pPlayer->HandleMessage(msg);
-		return;
-	}
-
-
 	ScreenGameplay::HandleScreenMessage(SM);
 }
 
@@ -257,6 +242,11 @@ ScreenGameplaySpectate::StageFinished(bool bBackedOut)
 		GAMESTATE->CancelStage();
 		return;
 	}
+
+	// just to hide an error in eval
+	auto ss = StageStats();
+	ss.Init();
+	STATSMAN->m_vPlayedStageStats.push_back(ss);
 
 	Locator::getLogger()->info("Done Finishing Stage");
 }

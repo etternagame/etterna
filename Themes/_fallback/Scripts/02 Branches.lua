@@ -35,6 +35,8 @@ function ToNetGameplay()
 		return "ScreenGameplayPractice"
 	elseif mode == "GameplayMode_Replay" then
 		return "ScreenGameplayReplay"
+	elseif mode == "GameplayMode_Spectate" then
+		return "ScreenGameplaySpectate"
 	else
 		return "ScreenNetGameplay"
 	end

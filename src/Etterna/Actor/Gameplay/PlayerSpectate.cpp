@@ -36,7 +36,8 @@ static ThemeMetric<bool> COMBO_BREAK_ON_IMMEDIATE_HOLD_LET_GO;
 PlayerSpectate::PlayerSpectate(NoteData& nd, bool bVisibleParts)
   : Player(nd, bVisibleParts)
 {
-	// eh
+	SubscribeToMessage(Message_SpectatorHoldUpdate);
+	SubscribeToMessage(Message_SpectatorInputUpdate);
 }
 
 PlayerSpectate::~PlayerSpectate()
@@ -505,19 +506,29 @@ void
 PlayerSpectate::HandleMessage(const Message& msg)
 {
 	if (msg == Message_SpectatorInputUpdate) {
-		auto map =
-		  REPLAYS->GetActiveReplay()->GeneratePlaybackEventForInputDataHead();
-		SetPlaybackEvents(map, true);
-	} else if (msg == Message_SpectatorHoldUpdate) {
-		auto map = REPLAYS->GetActiveReplay()
-					 ->GenerateDroppedHoldColumnsToRowsMapFromHead();
+		std::string playerID;
+		msg.GetParam("playerID", playerID);
 
-		for (auto& x : map) {
-			if (droppedHolds.count(x.first) == 0) {
-				droppedHolds.emplace(x.first, x.second);
-			} else {
-				for (auto& xx : x.second) {
-					droppedHolds.at(x.first).insert(xx);
+		auto replay = REPLAYS->GetSpectateReplay(playerID);
+		if (replay != nullptr) {
+			auto map = replay->GeneratePlaybackEventForInputDataHead();
+			SetPlaybackEvents(map, true);
+		}
+	} else if (msg == Message_SpectatorHoldUpdate) {
+		std::string playerID;
+		msg.GetParam("playerID", playerID);
+
+		auto replay = REPLAYS->GetSpectateReplay(playerID);
+		if (replay != nullptr) {
+			auto map = replay->GenerateDroppedHoldColumnsToRowsMapFromHead();
+
+			for (auto& x : map) {
+				if (droppedHolds.count(x.first) == 0) {
+					droppedHolds.emplace(x.first, x.second);
+				} else {
+					for (auto& xx : x.second) {
+						droppedHolds.at(x.first).insert(xx);
+					}
 				}
 			}
 		}

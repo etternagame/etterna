@@ -29,9 +29,6 @@ AutoScreenMessage(SM_AddToChat);
 AutoScreenMessage(SM_GotEval);
 AutoScreenMessage(SM_FriendsUpdate);
 
-AutoScreenMessage(SM_Spectator_InputUpdate);
-AutoScreenMessage(SM_Spectator_HoldUpdate);
-
 AutoScreenMessage(ETTP_Disconnect);
 AutoScreenMessage(ETTP_LoginResponse);
 AutoScreenMessage(ETTP_IncomingChat);
@@ -521,8 +518,8 @@ ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
 
 	d.SetObject();
 	d.AddMember("id", msgId++, allocator);
-	addStringMember(
-	  d, "type", typeStr, allocator);
+	addStringMember(d, "type", typeStr, allocator);
+	//d.AddMember("userid", NSMAN->loggedInUsername, allocator);
 
 	return d;
 }
@@ -953,6 +950,16 @@ ETTProtocol::handleStartChart(rapidjson::Value& payload)
 	auto& ch = payload["chart"];
 	FindJsonChart(NSMAN, ch);
 
+	std::string whom = payload["userid"].GetString();
+	std::string ck = ch["chartkey"].GetString();
+	float rate = ch["rate"].GetInt() / 1000.F;
+	float songoffset = ch["songoffset"].GetInt() / 1000.F;
+	float globaloffset = ch["globaloffset"].GetInt() / 1000.F;
+	int rng = payload["rng"].GetInt();
+
+	REPLAYS->InitReplayPlaybackForSpectate(
+	  whom, ck, rate, songoffset, globaloffset, rng);
+
 	const auto type = NSMAN->song != nullptr && state == 0
 						? ettpc_startingchart
 						: ettpc_notstartingchart;
@@ -1247,12 +1254,21 @@ ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
 		return;
 	}
 
-	if (!NSMAN->spectating) {
+	auto& data = payload["data"];
+	std::string subtype = payload["subType"].GetString();
+	std::string replayUserID = payload["userid"].GetString();
+
+	if (replayUserID.empty() || replayUserID == NSMAN->loggedInUsername) {
+		// we cant safely do anything with this
 		return;
 	}
 
-	auto& data = payload["data"];
-	std::string subtype = payload["subType"].GetString();
+	auto* spectateReplay = REPLAYS->GetSpectateReplay(replayUserID);
+	if (spectateReplay == nullptr) {
+		// this replay isnt initialized
+		// it isnt safe to retroactively initialize
+		return;
+	}
 
 	if (subtype == "input") {
 		auto is_press = data["is_press"].GetBool();
@@ -1263,22 +1279,27 @@ ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
 		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
 		auto tnst =
 		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
-		REPLAYS->GetActiveReplay()->IngestInputData(
+		spectateReplay->IngestInputData(
 		  is_press, col, row, musicsecs, offset, tnt, tnst);
-		SCREENMAN->SendMessageToTopScreen(SM_Spectator_InputUpdate);
+
+		Message msg(Message_SpectatorInputUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
 	}
 	else if (subtype == "holddrop") {
 		auto col = data["col"].GetInt();
 		auto row = data["row"].GetInt();
 		auto subtype = static_cast<TapNoteSubType>(data["subtype"].GetInt());
-		REPLAYS->GetActiveReplay()->IngestHoldDrop(col, row, subtype);
-		SCREENMAN->SendMessageToTopScreen(SM_Spectator_HoldUpdate);
+		spectateReplay->IngestHoldDrop(col, row, subtype);
+
+		Message msg(Message_SpectatorHoldUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
 	}
 	else if (subtype == "minehit") {
 		auto col = data["col"].GetInt();
 		auto row = data["row"].GetInt();
-		REPLAYS->GetActiveReplay()->IngestMineHit(col, row);
-		
+		spectateReplay->IngestMineHit(col, row);
 	}
 	else if (subtype == "miss") {
 		auto col = data["col"].GetInt();
@@ -1286,10 +1307,8 @@ ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
 		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
 		auto tnst =
 		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
-		REPLAYS->GetActiveReplay()->IngestMissData(col, row, tnt, tnst);
-		
+		spectateReplay->IngestMissData(col, row, tnt, tnst);
 	}
-
 }
 
 void
@@ -1434,8 +1453,6 @@ ETTProtocol::EnterRoom(std::string name, std::string password)
 void
 ETTProtocol::Login(std::string user, std::string pass)
 {
-	NSMAN->loggedInUsername = user.c_str();
-
 	auto doc = newMsg(ettpc_login);
 	auto& allocator = doc.GetAllocator();
 
@@ -1450,6 +1467,7 @@ ETTProtocol::Login(std::string user, std::string pass)
 	completeAndSend(doc);
 
 
+	NSMAN->loggedInUsername = user.c_str();
 	timeoutStart = clock();
 	waitingForTimeout = true;
 	timeout = 5.0;
@@ -1796,6 +1814,16 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		  static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 						   1000),
 		  allocator);
+		payload.AddMember(
+		  "songoffset",
+		  static_cast<int>(curSteps->GetTimingData()->m_fBeat0OffsetInSeconds *
+						   1000),
+		  allocator);
+		payload.AddMember(
+		  "globaloffset",
+		  static_cast<int>(PREFSMAN->m_fGlobalOffsetSeconds.Get() * 1000),
+		  allocator);
+		payload.AddMember("rng", GAMESTATE->m_iStageSeed, allocator);
 	}
 	doc.AddMember("payload", payload, allocator);
 

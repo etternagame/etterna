@@ -119,8 +119,6 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		if (start) {
 			if (NSMAN->spectating) {
 				REPLAYS->ResetActiveReplaySettings();
-				REPLAYS->InitReplayPlaybackForSpectate(
-				  "0", NSMAN->steps->GetChartKey(), 1, 1, 1, 1);
 				std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 				GAMESTATE->m_gameplayMode.Set(GameplayMode_Spectate);
 			}
