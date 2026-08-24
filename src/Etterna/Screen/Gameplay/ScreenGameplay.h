@@ -51,11 +51,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	// Lua
 	void PushSelf(lua_State* L) override;
-	LifeMeter* GetLifeMeter(PlayerNumber pn);
 	PlayerInfo* GetPlayerInfo();
 
 	void FailFadeRemovePlayer(PlayerInfo* pi);
-	void FailFadeRemovePlayer(PlayerNumber pn);
 	void BeginBackingOutFromGameplay();
 
 	/// This function exists because 
@@ -128,8 +126,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 		NUM_DANCING_STATES
 	} m_DancingState;
 
-  private:
-  protected:
 	/**
 	 * @brief The songs left to play.
 	 *
@@ -182,10 +178,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 	// filled by SGameplay derivatives in FillPlayerInfo
 	std::vector<PlayerInfo> m_vPlayerInfo{};
 	virtual void FillPlayerInfo(std::vector<PlayerInfo>& vPlayerInfoOut) = 0;
-	virtual PlayerInfo& GetPlayerInfoForInput(const InputEventPlus& iep)
-	{
-		return m_vPlayerInfo[0];
-	}
 
 	RageTimer m_timerGameplaySeconds;
 
