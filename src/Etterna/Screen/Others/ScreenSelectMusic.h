@@ -156,16 +156,6 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	std::string m_sLoopMusicPath;
 	std::string m_sFallbackCDTitlePath;
 
-	bool SampleMusicToPlayIsBGM() const
-	{
-		return m_sSampleMusicToPlay == m_sSectionMusicPath ||
-			   m_sSampleMusicToPlay == m_sSortMusicPath ||
-			   m_sSampleMusicToPlay == m_sRouletteMusicPath ||
-			   m_sSampleMusicToPlay == m_sRandomMusicPath ||
-			   m_sSampleMusicToPlay == m_sCourseMusicPath ||
-			   m_sSampleMusicToPlay == m_sLoopMusicPath;
-	}
-
 	MusicWheel m_MusicWheel;
 	OptionsList m_OptionsList;
 
@@ -174,6 +164,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	bool m_bGoToOptions;
 	std::string m_sSampleMusicToPlay;
 	TimingData* m_pSampleMusicTimingData;
+	bool m_bSampleMusicIsBGM = false;
 	float m_fSampleStartSeconds, m_fSampleLengthSeconds;
 	bool m_bAllowOptionsMenu, m_bAllowOptionsMenuRepeat;
 	bool m_bSelectIsDown;

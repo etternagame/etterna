@@ -345,8 +345,10 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		if (bForcePlay && pSong != nullptr) {
 			if (pSteps != nullptr) {
 				m_sSampleMusicToPlay = pSteps->GetPreviewMusicPath();
+				m_bSampleMusicIsBGM = false;
 			} else {
 				m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+				m_bSampleMusicIsBGM = false;
 			}
 			
 			if (!m_sSampleMusicToPlay.empty() &&
@@ -379,7 +381,7 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
 		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-		PlayParams.bApplyMusicRate = !SampleMusicToPlayIsBGM();
+		PlayParams.bApplyMusicRate = !m_bSampleMusicIsBGM;
 
 		// We will leave this FALSE for standard sample music
 		// Because accurate seeking is slow for MP3.
@@ -1160,7 +1162,7 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 			PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 			PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
 			PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-			PlayParams.bApplyMusicRate = !SampleMusicToPlayIsBGM();
+			PlayParams.bApplyMusicRate = !m_bSampleMusicIsBGM;
 			PlayParams.bAccurateSync = false;
 			GameSoundManager::PlayMusicParams FallbackMusic;
 			FallbackMusic.sFile = m_sLoopMusicPath;
@@ -1513,29 +1515,40 @@ ScreenSelectMusic::AfterMusicChange()
 					// reduce scope
 					{
 						if (SAMPLE_MUSIC_PREVIEW_MODE !=
-							SampleMusicPreviewMode_LastSong)
+							SampleMusicPreviewMode_LastSong) {
 							m_sSampleMusicToPlay = m_sSectionMusicPath;
+							m_bSampleMusicIsBGM = true;
+						}
 					}
 					break;
 				case WheelItemDataType_Sort:
 					if (SAMPLE_MUSIC_PREVIEW_MODE !=
-						SampleMusicPreviewMode_LastSong)
+						SampleMusicPreviewMode_LastSong) {
 						m_sSampleMusicToPlay = m_sSortMusicPath;
+						m_bSampleMusicIsBGM = true;
+					}
+
 					break;
 				case WheelItemDataType_Roulette:
 					if (SAMPLE_MUSIC_PREVIEW_MODE !=
-						SampleMusicPreviewMode_LastSong)
+						SampleMusicPreviewMode_LastSong) {
+
 						m_sSampleMusicToPlay = m_sRouletteMusicPath;
+						m_bSampleMusicIsBGM = true;
+					}
 					break;
 				case WheelItemDataType_Random:
 					// if( SAMPLE_MUSIC_PREVIEW_MODE !=
 					// SampleMusicPreviewMode_LastSong )
 					m_sSampleMusicToPlay = m_sRandomMusicPath;
+					m_bSampleMusicIsBGM = true;
 					break;
 				case WheelItemDataType_Custom: {
 					if (SAMPLE_MUSIC_PREVIEW_MODE !=
-						SampleMusicPreviewMode_LastSong)
+						SampleMusicPreviewMode_LastSong) {
 						m_sSampleMusicToPlay = m_sSectionMusicPath;
+						m_bSampleMusicIsBGM = true;
+					}
 				} break;
 				default:
 					FAIL_M(ssprintf("Invalid WheelItemDataType: %i", wtype));
@@ -1561,6 +1574,7 @@ ScreenSelectMusic::AfterMusicChange()
 					m_sSampleMusicToPlay = m_sLoopMusicPath;
 					m_fSampleStartSeconds = 0;
 					m_fSampleLengthSeconds = -1;
+					m_bSampleMusicIsBGM = true;
 					break;
 				case SampleMusicPreviewMode_StartToPreview:
 					// we want to load the sample music, but we don't want to
@@ -1579,6 +1593,7 @@ ScreenSelectMusic::AfterMusicChange()
 							  m_sSampleMusicToPlay.c_str());
 							m_sSampleMusicToPlay = "";
 						}
+						m_bSampleMusicIsBGM = false;
 						m_pSampleMusicTimingData = &pSong->m_SongTiming;
 						m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
 						m_fSampleLengthSeconds =
