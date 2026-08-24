@@ -87,25 +87,39 @@ Replay::Replay(const HighScore* hs)
 	// load from disk or when highscore is saving
 }
 
+Replay::Replay(std::string chartKey,
+			   float musicRate,
+			   float songOffset,
+			   float globalOffset,
+			   int rngSeed)
+{
+	this->scoreKey = "SPECTATOR_REPLAY";
+	this->chartKey = chartKey;
+	this->fMusicRate = musicRate;
+	this->fSongOffset = songOffset;
+	this->fGlobalOffset = globalOffset;
+	this->rngSeed = rngSeed;
+}
+
 Replay::~Replay() {
 	Unload();
 }
 
-auto
-Replay::HasReplayData() -> bool
+bool
+Replay::HasReplayData() const
 {
 	return HasWrittenReplayData() || GetReplayType() != ReplayType_Invalid;
 }
 
-auto
-Replay::HasWrittenReplayData() -> bool
+bool
+Replay::HasWrittenReplayData() const
 {
 	return DoesFileExist(GetInputPath()) || DoesFileExist(GetFullPath()) ||
 		   DoesFileExist(GetBasicPath()) || DoesFileExist(GetOnlinePath());
 }
 
-auto
-Replay::GetHighScore() -> HighScore*
+HighScore*
+Replay::GetHighScore() const
 {
 	HighScore* o = nullptr;
 
@@ -135,14 +149,14 @@ Replay::GetHighScore() -> HighScore*
 	return o;
 }
 
-auto
-Replay::GetSteps() -> Steps*
+Steps*
+Replay::GetSteps() const
 {
 	return SONGMAN->GetStepsByChartkey(chartKey);
 }
 
-auto
-Replay::GetStyle() -> const Style*
+const Style*
+Replay::GetStyle() const
 {
 	auto* steps = GetSteps();
 	if (steps == nullptr) {
@@ -152,8 +166,8 @@ Replay::GetStyle() -> const Style*
 	return GAMEMAN->GetStyleForStepsType(st);
 }
 
-auto
-Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
+NoteData
+Replay::GetNoteData(Steps* pSteps, bool bTransform)
 {
 	if (pSteps == nullptr) {
 		pSteps = GetSteps();	
@@ -209,8 +223,8 @@ Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
 	return tmp;
 }
 
-auto
-Replay::GetTimingData() -> TimingData*
+TimingData*
+Replay::GetTimingData() const
 {
 	auto* steps = GetSteps();
 	if (steps == nullptr) {
@@ -219,8 +233,8 @@ Replay::GetTimingData() -> TimingData*
 	return steps->GetTimingData();
 }
 
-auto
-Replay::SetHighScoreMods() -> void
+void
+Replay::SetHighScoreMods()
 {
 	if (!mods.empty())
 		return;
@@ -240,8 +254,8 @@ Replay::SetHighScoreMods() -> void
 	}
 }
 
-auto
-Replay::CanSafelyTransformNoteData() -> bool
+bool
+Replay::CanSafelyTransformNoteData()
 {
 	if (mods.empty()) {
 		SetHighScoreMods();
@@ -262,8 +276,8 @@ Replay::CanSafelyTransformNoteData() -> bool
 	}
 }
 
-auto
-Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
+std::shared_ptr<ReplaySnapshot>
+Replay::GetReplaySnapshotForNoterow(int row)
 {
 	if (m_ReplaySnapshotMap.empty()) {
 		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
@@ -308,8 +322,8 @@ Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 											[](ReplaySnapshot*) {} };
 }
 
-auto
-Replay::LoadReplayData() -> bool
+bool
+Replay::LoadReplayData()
 {
 	return LoadedInputData(LoadInputData()) ||
 		   LoadedReplayV2(LoadReplayDataFull()) ||
@@ -317,8 +331,8 @@ Replay::LoadReplayData() -> bool
 		   LoadOnlineDataFromDisk();
 }
 
-auto
-Replay::LoadStoredOnlineData() -> bool
+bool
+Replay::LoadStoredOnlineData()
 {
 	if (vOnlineNoteRowVector.empty() || vOnlineOffsetVector.empty() ||
 		vOnlineTapNoteTypeVector.empty() || vOnlineTrackVector.empty()) {
@@ -331,8 +345,8 @@ Replay::LoadStoredOnlineData() -> bool
 	return true;
 }
 
-auto
-Replay::WriteReplayData() -> bool
+bool
+Replay::WriteReplayData()
 {
 	Locator::getLogger()->info("Writing out replay data to disk");
 	std::string append;
@@ -395,8 +409,8 @@ Replay::WriteReplayData() -> bool
 	return true;
 }
 
-auto
-Replay::WriteInputData() -> bool
+bool
+Replay::WriteInputData()
 {
 	Locator::getLogger()->info("Writing out input data to disk");
 	std::string append;
@@ -555,8 +569,8 @@ Replay::WriteInputData() -> bool
 	*/
 }
 
-auto
-Replay::LoadInputData(const std::string& replayDir) -> bool
+bool
+Replay::LoadInputData(const std::string& replayDir)
 {
 	if (!InputData.empty())
 		return true;
@@ -811,8 +825,8 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
+bool
+Replay::LoadReplayDataBasic(const std::string& replayDir)
 {
 	// already exists
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4) {
@@ -898,8 +912,8 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
+bool
+Replay::LoadReplayDataFull(const std::string& replayDir)
 {
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
@@ -1037,8 +1051,8 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
+bool
+Replay::LoadOnlineDataFromDisk(const std::string& replayDir)
 {
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
@@ -1139,8 +1153,8 @@ Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::FillInBlanksForInputData() -> bool
+bool
+Replay::FillInBlanksForInputData()
 {
 	if (!LoadInputData()) {
 		Locator::getLogger()->warn("Failed to correct InputData fields for "
@@ -1310,8 +1324,8 @@ Replay::FillInBlanksForInputData() -> bool
 	return true;
 }
 
-auto
-Replay::GenerateReplayV2DataPresumptively() -> bool
+bool
+Replay::GenerateReplayV2DataPresumptively()
 {
 	if (!LoadReplayDataBasic()) {
 		// shouldnt get here
@@ -1389,8 +1403,8 @@ Replay::GenerateReplayV2DataPresumptively() -> bool
 	return true;
 }
 
-auto
-Replay::GeneratePrimitiveVectors() -> bool
+bool
+Replay::GeneratePrimitiveVectors()
 {
 	// when reprioritizing noterows, temporarily overwrite the saved data
 	if (!useReprioritizedNoterows) {
@@ -1749,8 +1763,8 @@ Replay::GeneratePrimitiveVectors() -> bool
 	return true;
 }
 
-auto
-Replay::GenerateNoterowsFromTimestamps() -> bool
+bool
+Replay::GenerateNoterowsFromTimestamps()
 {
 	if (!vNoteRowVector.empty()) {
 		return true;
@@ -1857,8 +1871,9 @@ Replay::ValidateOffsets()
 	}
 }
 
-auto
-Replay::ValidateInputDataNoterows() -> bool {
+bool
+Replay::ValidateInputDataNoterows()
+{
 
 	if (!CanSafelyTransformNoteData()) {
 		Locator::getLogger()->warn("Failed to validate InputData Noterows "
@@ -2601,8 +2616,8 @@ Replay::VerifyInputDataAndReplayData()
 	Unload();
 }
 
-auto
-Replay::ReprioritizeInputData() -> bool
+bool
+Replay::ReprioritizeInputData()
 {
 	if (!LoadInputData()) {
 		Locator::getLogger()->warn(
@@ -2849,8 +2864,8 @@ Replay::ReprioritizeInputData() -> bool
 	return true;
 }
 
-auto
-Replay::GenerateInputData() -> bool
+bool
+Replay::GenerateInputData()
 {
 	if (LoadInputData()) {
 		return true;
@@ -2995,8 +3010,8 @@ Replay::GenerateInputData() -> bool
 	return true;
 }
 
-auto
-Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<PlaybackEvent>>
+std::map<int, std::vector<PlaybackEvent>>
+Replay::GeneratePlaybackEvents(int startRow)
 {
 	std::map<int, std::vector<PlaybackEvent>> out;
 
@@ -3055,9 +3070,8 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 	return out;
 }
 
-auto
+std::map<int, std::vector<PlaybackEvent>>
 Replay::GeneratePlaybackEventForInputDataHead()
-  -> std::map<int, std::vector<PlaybackEvent>>
 {
 	std::map<int, std::vector<PlaybackEvent>> out;
 
@@ -3092,8 +3106,8 @@ Replay::GeneratePlaybackEventForInputDataHead()
 	return out;
 }
 
-auto
-Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::set<int>>
+std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow)
 {
 	std::map<int, std::set<int>> mapping;
 
@@ -3111,8 +3125,8 @@ Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::
 	return mapping;
 }
 
-auto
-Replay::GenerateDroppedHoldColumnsToRowsMapFromHead() -> std::map<int, std::set<int>>
+std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldColumnsToRowsMapFromHead()
 {
 	std::map<int, std::set<int>> mapping;
 
@@ -3128,8 +3142,8 @@ Replay::GenerateDroppedHoldColumnsToRowsMapFromHead() -> std::map<int, std::set<
 	return mapping;
 }
 
-auto
-Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow) -> std::map<int, std::set<int>>
+std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow)
 {
 	std::map<int, std::set<int>> mapping;
 
@@ -3147,8 +3161,8 @@ Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow) -> std::map<int, std::
 	return mapping;
 }
 
-auto
-Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) -> bool
+bool
+Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale)
 {
 	{
 		// force regenerate...

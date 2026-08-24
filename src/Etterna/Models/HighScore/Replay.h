@@ -16,63 +16,68 @@ class Replay
   public:
 	Replay();
 	Replay(const HighScore* hs);
+	Replay(std::string chartKey,
+		   float musicRate,
+		   float songOffset,
+		   float globalOffset,
+		   int rngSeed);
 	~Replay();
 
-	inline auto GetBasicPath() const -> const std::string
+	inline const std::string GetBasicPath() const
 	{
 		return BASIC_REPLAY_DIR + scoreKey;
 	}
 
-	inline auto GetFullPath() const -> const std::string
+	inline const std::string GetFullPath() const
 	{
 		return FULL_REPLAY_DIR + scoreKey;
 	}
 
-	inline auto GetInputPath() const -> const std::string
+	inline const std::string GetInputPath() const
 	{
 		return INPUT_DATA_DIR + scoreKey;
 	}
 
-	inline auto GetOnlinePath() const -> const std::string
+	inline const std::string GetOnlinePath() const
 	{
 		return ONLINE_DATA_DIR + scoreKey;
 	}
 
-	auto GetOffsetVector() const -> const std::vector<float>&
+	const std::vector<float>& GetOffsetVector() const
 	{
 		return vOffsetVector;
 	}
-	auto GetCopyOfOffsetVector() const -> std::vector<float>
+	std::vector<float> GetCopyOfOffsetVector() const
 	{
 		return vOffsetVector;
 	}
 	void SetOffsetVector(const std::vector<float>& v) { vOffsetVector = v; }
 
-	auto GetNoteRowVector() const -> const std::vector<int>&
+	const std::vector<int>& GetNoteRowVector() const
 	{
 		return vNoteRowVector;
 	}
-	auto GetCopyOfNoteRowVector() const -> std::vector<int>
+	std::vector<int> GetCopyOfNoteRowVector() const
 	{
 		return vNoteRowVector;
 	}
 	void SetNoteRowVector(const std::vector<int>& v) { vNoteRowVector = v; }
 
-	auto GetTrackVector() const -> const std::vector<int>&
+	const std::vector<int>& GetTrackVector() const
 	{
 		return vTrackVector;
 	}
-	auto GetCopyOfTrackVector() const -> std::vector<int>
+	std::vector<int> GetCopyOfTrackVector() const
 	{
 		return vTrackVector;
 	}
 	void SetTrackVector(const std::vector<int>& v) { vTrackVector = v; }
 
-	auto GetTapNoteTypeVector() const -> const std::vector<TapNoteType>&
+	const std::vector<TapNoteType>& GetTapNoteTypeVector() const
 	{
 		return vTapNoteTypeVector;
 	}
-	auto GetCopyOfTapNoteTypeVector() const -> std::vector<TapNoteType>
+	std::vector<TapNoteType> GetCopyOfTapNoteTypeVector() const
 	{
 		return vTapNoteTypeVector;
 	}
@@ -81,11 +86,11 @@ class Replay
 		vTapNoteTypeVector = v;
 	}
 
-	auto GetHoldReplayDataVector() const -> const std::vector<HoldReplayResult>&
+	const std::vector<HoldReplayResult>& GetHoldReplayDataVector() const
 	{
 		return vHoldReplayDataVector;
 	}
-	auto GetCopyOfHoldReplayDataVector() const -> std::vector<HoldReplayResult>
+	std::vector<HoldReplayResult> GetCopyOfHoldReplayDataVector() const
 	{
 		return vHoldReplayDataVector;
 	}
@@ -94,11 +99,11 @@ class Replay
 		vHoldReplayDataVector = v;
 	}
 
-	auto GetMineReplayDataVector() const -> const std::vector<MineReplayResult>&
+	const std::vector<MineReplayResult>& GetMineReplayDataVector() const
 	{
 		return vMineReplayDataVector;
 	}
-	auto GetCopyOfMineReplayDataVector() const -> std::vector<MineReplayResult>
+	std::vector<MineReplayResult> GetCopyOfMineReplayDataVector() const
 	{
 		return vMineReplayDataVector;
 	}
@@ -107,11 +112,11 @@ class Replay
 		vMineReplayDataVector = v;
 	}
 
-	auto GetOnlineReplayTimestampVector() const -> const std::vector<float>&
+	const std::vector<float>& GetOnlineReplayTimestampVector() const
 	{
 		return vOnlineReplayTimestampVector;
 	}
-	auto GetCopyOfOnlineReplayTimestampVector() const -> std::vector<float>
+	std::vector<float> GetCopyOfOnlineReplayTimestampVector() const
 	{
 		return vOnlineReplayTimestampVector;
 	}
@@ -120,11 +125,11 @@ class Replay
 		vOnlineReplayTimestampVector = v;
 	}
 
-	auto GetInputDataVector() const -> const std::vector<InputDataEvent>&
+	const std::vector<InputDataEvent>& GetInputDataVector() const
 	{
 		return InputData;
 	}
-	auto GetCopyOfInputDataVector() const -> std::vector<InputDataEvent>
+	std::vector<InputDataEvent> GetCopyOfInputDataVector() const
 	{
 		return InputData;
 	}
@@ -133,11 +138,11 @@ class Replay
 		InputData = v;
 	}
 
-	auto GetMissReplayDataVector() const -> const std::vector<MissReplayResult>&
+	const std::vector<MissReplayResult>& GetMissReplayDataVector() const
 	{
 		return vMissReplayDataVector;
 	}
-	auto GetCopyOfMissReplayDataVector() const -> std::vector<MissReplayResult>
+	std::vector<MissReplayResult> GetCopyOfMissReplayDataVector() const
 	{
 		return vMissReplayDataVector;
 	}
@@ -146,11 +151,11 @@ class Replay
 		vMissReplayDataVector = v;
 	}
 
-	auto GetReplaySnapshotMap() const -> const std::map<int, ReplaySnapshot>&
+	const std::map<int, ReplaySnapshot>& GetReplaySnapshotMap() const
 	{
 		return m_ReplaySnapshotMap;
 	}
-	auto GetCopyOfReplaySnapshotMap() const -> std::map<int, ReplaySnapshot>
+	std::map<int, ReplaySnapshot> GetCopyOfReplaySnapshotMap() const
 	{
 		return m_ReplaySnapshotMap;
 	}
@@ -159,23 +164,23 @@ class Replay
 		m_ReplaySnapshotMap = m;
 	}
 
-	auto GetJudgeInfo() -> JudgeInfo& { return judgeInfo; }
-	auto GetCopyOfJudgeInfo() const -> JudgeInfo { return judgeInfo; }
+	JudgeInfo& GetJudgeInfo() { return judgeInfo; }
+	JudgeInfo GetCopyOfJudgeInfo() const { return judgeInfo; }
 	void SetJudgeInfo(const JudgeInfo& ji) { judgeInfo = ji; }
 
-	auto GetScoreKey() const -> std::string { return scoreKey; }
+	std::string GetScoreKey() const { return scoreKey; }
 	void SetScoreKey(std::string& key) { scoreKey = key; }
-	auto GetChartKey() const -> std::string { return chartKey; }
+	std::string GetChartKey() const { return chartKey; }
 	void SetChartKey(std::string& key) { chartKey = key; }
-	auto GetMusicRate() const -> float { return fMusicRate; }
+	float GetMusicRate() const { return fMusicRate; }
 	void SetMusicRate(float f) { fMusicRate = f; }
-	auto GetSongOffset() const -> float { return fSongOffset; }
+	float GetSongOffset() const { return fSongOffset; }
 	void SetSongOffset(float f) { fSongOffset = f; }
-	auto GetGlobalOffset() const -> float { return fGlobalOffset; }
+	float GetGlobalOffset() const { return fGlobalOffset; }
 	void SetGlobalOffset(float f) { fGlobalOffset = f; }
-	auto GetRngSeed() const -> int { return rngSeed; }
+	int GetRngSeed() const { return rngSeed; }
 	void SetRngSeed(int seed) { rngSeed = seed; }
-	auto GetModifiers() const -> std::string { return mods; }
+	std::string GetModifiers() const { return mods; }
 	void SetModifiers(std::string& modstr) { mods = modstr; }
 
 	void SetUseReprioritizedNoteRows(bool b)
@@ -203,28 +208,26 @@ class Replay
 		}
 		useReprioritizedNoterows = b;
 	}
-	auto UsingReprioritizedNoteRows() -> bool
+	bool UsingReprioritizedNoteRows()
 	{
 		return useReprioritizedNoterows;
 	}
-	auto GetReprioritizedMissData() const
-	  -> const std::vector<MissReplayResult>&
+	const std::vector<MissReplayResult>& GetReprioritizedMissData() const
 	{
 		return vReprioritizedMissData;
 	}
-	auto GetCopyOfReprioritizedMissData() const -> std::vector<MissReplayResult>
+	std::vector<MissReplayResult> GetCopyOfReprioritizedMissData() const
 	{
 		return vReprioritizedMissData;
 	}
 	void SetReprioritizedMissData(const std::vector<MissReplayResult>& v) {
 		vReprioritizedMissData = v;
 	}
-	auto GetReprioritizedHoldData() const
-	  -> const std::vector<HoldReplayResult>&
+	const std::vector<HoldReplayResult>& GetReprioritizedHoldData() const
 	{
 		return vReprioritizedHoldData;
 	}
-	auto GetCopyOfReprioritizedHoldData() const -> std::vector<HoldReplayResult>
+	std::vector<HoldReplayResult> GetCopyOfReprioritizedHoldData() const
 	{
 		return vReprioritizedHoldData;
 	}
@@ -232,12 +235,11 @@ class Replay
 	{
 		vReprioritizedHoldData = v;
 	}
-	auto GetReprioritizedMineData() const
-	  -> const std::vector<MineReplayResult>&
+	const std::vector<MineReplayResult>& GetReprioritizedMineData() const
 	{
 		return vReprioritizedMineData;
 	}
-	auto GetCopyOfReprioritizedMineData() const -> std::vector<MineReplayResult>
+	std::vector<MineReplayResult> GetCopyOfReprioritizedMineData() const
 	{
 		return vReprioritizedMineData;
 	}
@@ -246,7 +248,7 @@ class Replay
 		vReprioritizedMineData = v;
 	}
 
-	auto GetRelevantMissData() const -> const std::vector<MissReplayResult>&
+	const std::vector<MissReplayResult>& GetRelevantMissData() const
 	{
 		if (useReprioritizedNoterows) {
 			return vReprioritizedMissData;
@@ -254,14 +256,16 @@ class Replay
 			return vMissReplayDataVector;
 		}
 	}
-	auto GetRelevantHoldData() const -> const std::vector<HoldReplayResult>& {
+	const std::vector<HoldReplayResult>& GetRelevantHoldData() const
+	{
 		if (useReprioritizedNoterows) {
 			return vReprioritizedHoldData;
 		} else {
 			return vHoldReplayDataVector;
 		}
 	}
-	auto GetRelevantMineData() const -> const std::vector<MineReplayResult>& {
+	const std::vector<MineReplayResult>& GetRelevantMineData() const
+	{
 		if (useReprioritizedNoterows) {
 			return vReprioritizedMineData;
 		} else {
@@ -269,19 +273,19 @@ class Replay
 		}
 	}
 
-	auto IngestInputData(bool ispress,
+	void IngestInputData(bool ispress,
 						 int col,
 						 int row,
 						 float musicsecs,
 						 float offset,
 						 TapNoteType tnt,
-						 TapNoteSubType tnst) -> void
+						 TapNoteSubType tnst)
 	{
 		InputData.emplace_back(
 		  ispress, col, musicsecs, row, -offset, tnt, tnst);
 	}
 
-	auto IngestHoldDrop(int col, int row, TapNoteSubType tnst) -> void
+	void IngestHoldDrop(int col, int row, TapNoteSubType tnst)
 	{
 		HoldReplayResult hrr;
 		hrr.row = row;
@@ -290,14 +294,15 @@ class Replay
 		vHoldReplayDataVector.push_back(hrr);
 	}
 
-	auto IngestMineHit(int col, int row) -> void {
+	void IngestMineHit(int col, int row)
+	{
 		MineReplayResult mrr;
 		mrr.row = row;
 		mrr.track = col;
 		vMineReplayDataVector.push_back(mrr);
 	}
 
-	auto IngestMissData(int col, int row, TapNoteType tnt, TapNoteSubType tnst) -> void
+	void IngestMissData(int col, int row, TapNoteType tnt, TapNoteSubType tnst)
 	{
 		MissReplayResult mrr;
 		mrr.row = row;
@@ -325,60 +330,59 @@ class Replay
 	}
 
 	/// true for V2 and InputData
-	auto HasColumnData() const -> bool
+	bool HasColumnData() const
 	{
 		const auto t = GetReplayType();
 		return t >= ReplayType_V2 && t < NUM_ReplayType;
 	}
 
-	auto WriteReplayData() -> bool;
-	auto WriteInputData() -> bool;
-	auto LoadReplayData() -> bool;
-	auto HasReplayData() -> bool;
-	auto HasWrittenReplayData() -> bool;
+	bool WriteReplayData();
+	bool WriteInputData();
+	bool LoadReplayData();
+	bool HasReplayData() const;
+	bool HasWrittenReplayData() const;
 
 	/// Corrects missing fields for InputData.
 	/// Will only work for InputData backed by loaded NoteData
-	auto FillInBlanksForInputData() -> bool;
+	bool FillInBlanksForInputData();
 
 	/// Generate ReplayV2 Data from InputData.
 	/// The main use of this is for rescoring the classic way
-	auto GeneratePrimitiveVectors() -> bool;
+	bool GeneratePrimitiveVectors();
 	/// Generate Noterow vector using online timestamp replay format
-	auto GenerateNoterowsFromTimestamps() -> bool;
+	bool GenerateNoterowsFromTimestamps();
 	/// Generate InputData using any ReplayData
-	auto GenerateInputData() -> bool;
+	bool GenerateInputData();
 
 	/// Used for recalculating notedata nearest noterows.
 	/// Uses a different algorithm than "closest note" to rejudge the data.
-	auto ReprioritizeInputData() -> bool;
+	bool ReprioritizeInputData();
 
 	/// Generate events used for playing back replay in gameplay
-	auto GeneratePlaybackEvents(int startRow = 0)
-	  -> std::map<int, std::vector<PlaybackEvent>>;
+	std::map<int, std::vector<PlaybackEvent>> GeneratePlaybackEvents(
+	  int startRow = 0);
 
 	/// Generate an event for replay playback for only one InputData element
-	auto GeneratePlaybackEventForInputDataHead()
-	  -> std::map<int, std::vector<PlaybackEvent>>;
+	std::map<int, std::vector<PlaybackEvent>>
+	GeneratePlaybackEventForInputDataHead();
 
 	/// For Stats and ReplaySnapshots
-	auto GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
-											 float timingScale = 1.F) -> bool;
+	bool GenerateJudgeInfoAndReplaySnapshots(int startingRow = 0,
+											 float timingScale = 1.F);
 
 	// Instead of making some complex iterator...
 	// Just offer both solutions
 	/// Returns map of columns to a set of rows which are dropped
 	/// See which columns have drops using this
-	auto GenerateDroppedHoldColumnsToRowsMap(int startRow = 0)
-	  -> std::map<int, std::set<int>>;
+	std::map<int, std::set<int>> GenerateDroppedHoldColumnsToRowsMap(
+	  int startRow = 0);
 	/// Returns a map of rows to a set of columns which are dropped
 	/// See which rows have drops using this
-	auto GenerateDroppedHoldRowsToColumnsMap(int startRow = 0)
-	  -> std::map<int, std::set<int>>;
+	std::map<int, std::set<int>> GenerateDroppedHoldRowsToColumnsMap(
+	  int startRow = 0);
 
 	/// Generate the event required for spectator playback
-	auto GenerateDroppedHoldColumnsToRowsMapFromHead()
-	  -> std::map<int, std::set<int>>;
+	std::map<int, std::set<int>> GenerateDroppedHoldColumnsToRowsMapFromHead();
 
 	/// Offsets can be really weird - Remove all impossible offsets
 	void ValidateOffsets();
@@ -389,7 +393,7 @@ class Replay
 	/// So this function tries to correct data by shifting it
 	/// to match the existing notedata.
 	/// If this function returns false, reloading InputData is recommended.
-	auto ValidateInputDataNoterows() -> bool;
+	bool ValidateInputDataNoterows();
 
 	/// Used to validate that converting input data to replay data
 	/// produces correct and equal output vs replay data alone.
@@ -401,18 +405,16 @@ class Replay
 	/// This is not meant to ever be used outside of debug.
 	void VerifyGeneratedInputDataMatchesReplayData();
 
-	auto GetHighScore() -> HighScore*;
-	auto GetSteps() -> Steps*;
-	auto GetNoteData(Steps* pSteps = nullptr, bool bTransform = true)
-	  -> NoteData;
-	auto GetTimingData() -> TimingData*;
-	auto GetStyle() -> const Style*;
+	HighScore* GetHighScore() const;
+	Steps* GetSteps() const;
+	NoteData GetNoteData(Steps* pSteps = nullptr, bool bTransform = true);
+	TimingData* GetTimingData() const;
+	const Style* GetStyle() const;
 
-	auto GetReplaySnapshotForNoterow(int row)
-	  -> std::shared_ptr<ReplaySnapshot>;
+	std::shared_ptr<ReplaySnapshot> GetReplaySnapshotForNoterow(int row);
 
 	/// A check to see if the Replay has an RNG seed, if it uses shuffle.
-	auto CanSafelyTransformNoteData() -> bool;
+	bool CanSafelyTransformNoteData();
 
 	bool IsOnlineScore() const
 	{
@@ -455,25 +457,22 @@ class Replay
 
 	/// Setting the mod string is handled separately.
 	/// Use this to set mods, as long as a scorekey is given.
-	auto SetHighScoreMods() -> void;
+	void SetHighScoreMods();
 
 	/// Lua
 	void PushSelf(lua_State* L);
 
   private:
-	auto LoadReplayDataBasic(const std::string& replayDir = BASIC_REPLAY_DIR)
-	  -> bool;
-	auto LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR)
-	  -> bool;
-	auto LoadInputData(const std::string& replayDir = INPUT_DATA_DIR) -> bool;
-	auto LoadOnlineDataFromDisk(const std::string& replayDir = ONLINE_DATA_DIR)
-	  -> bool;
-	auto LoadStoredOnlineData() -> bool;
+	bool LoadReplayDataBasic(const std::string& replayDir = BASIC_REPLAY_DIR);
+	bool LoadReplayDataFull(const std::string& replayDir = FULL_REPLAY_DIR);
+	bool LoadInputData(const std::string& replayDir = INPUT_DATA_DIR);
+	bool LoadOnlineDataFromDisk(const std::string& replayDir = ONLINE_DATA_DIR);
+	bool LoadStoredOnlineData();
 
 	/// For V1 or earlier replays lacking column data, we need to assume
 	/// information. Make it all up. This fills in the column data using
 	/// NoteData. This also provides TapNoteTypes
-	auto GenerateReplayV2DataPresumptively() -> bool;
+	bool GenerateReplayV2DataPresumptively();
 
 	void ClearPrimitiveVectors() {
 		vOffsetVector.clear();
