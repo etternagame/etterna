@@ -1,6 +1,6 @@
 #pragma once
-#ifndef REPLAYMAN
-#define REPLAYMAN
+#ifndef REPLAYMAN_H
+#define REPLAYMAN_H
 
 #include "Etterna/Models/Lua/LuaBinding.h"
 #include "Etterna/Models/HighScore/Replay.h"
@@ -48,6 +48,7 @@ class ReplayManager
 	/// Return the Replay for this HighScore. Never null
 	Replay* GetReplay(const HighScore* hs);
 	void ReleaseReplay(Replay* replay);
+	Replay* GetSpectateReplay(const std::string& playerID);
 
 	/// The use of this is for scores which are about to viewed
 	/// via eval or ingame replay.
@@ -55,6 +56,13 @@ class ReplayManager
 	Replay* InitReplayPlaybackForScore(HighScore* hs,
 									   float timingScale = 1.F,
 									   int startRow = 0);
+
+	Replay* InitReplayPlaybackForSpectate(std::string playerID,
+										  std::string chartKey,
+										  float musicRate,
+										  float songOffset,
+										  float globalOffset,
+										  int rngSeed);
 
 	void UnsetActiveReplay();
 
@@ -164,6 +172,9 @@ class ReplayManager
 	/// scorekey to {refcount, pointer}
 	std::unordered_map<std::string, std::pair<unsigned, Replay*>>
 	  scoresToReplays{};
+
+	/// playerID to replay pointer
+	std::unordered_map<std::string, Replay*> spectatorReplays{};
 
 	LuaReference m_totalWifePointsCalcFunc;
 	LuaReference m_mineScoringFunc;

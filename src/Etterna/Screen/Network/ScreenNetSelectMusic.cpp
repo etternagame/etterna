@@ -17,6 +17,7 @@
 #include "ScreenNetSelectBase.h"
 #include "Etterna/Models/Songs/Song.h"
 #include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Singletons/ReplayManager.h"
 
 #include <vector>
 
@@ -116,6 +117,13 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		msg.SetParam("steps", NSMAN->steps);
 		MESSAGEMAN->Broadcast(msg);
 		if (start) {
+			if (NSMAN->spectating) {
+				REPLAYS->ResetActiveReplaySettings();
+				REPLAYS->InitReplayPlaybackForSpectate(
+				  "0", NSMAN->steps->GetChartKey(), 1, 1, 1, 1);
+				std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+				GAMESTATE->m_gameplayMode.Set(GameplayMode_Spectate);
+			}
 			s->StartSelectedSong();
 			m_MusicWheel.Select();
 		}

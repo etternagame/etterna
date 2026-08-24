@@ -3,13 +3,15 @@ list(APPEND SCREEN_GAMEPLAY_SRC
 	"Gameplay/ScreenGameplayNormal.cpp"
 	"Gameplay/ScreenGameplaySyncMachine.cpp"
 	"Gameplay/ScreenGameplayReplay.cpp"
-	"Gameplay/ScreenGameplayPractice.cpp")
+	"Gameplay/ScreenGameplayPractice.cpp"
+	"Gameplay/ScreenGameplaySpectate.cpp")
 list(APPEND SCREEN_GAMEPLAY_HPP
 	"Gameplay/ScreenGameplay.h"
 	"Gameplay/ScreenGameplayNormal.h"
 	"Gameplay/ScreenGameplaySyncMachine.h"
 	"Gameplay/ScreenGameplayReplay.h"
-	"Gameplay/ScreenGameplayPractice.h")
+	"Gameplay/ScreenGameplayPractice.h"
+	"Gameplay/ScreenGameplaySpectate.h")
 
 list(APPEND SCREEN_OPTION_SRC
 	"Options/ScreenOptions.cpp"

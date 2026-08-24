@@ -168,6 +168,8 @@ ScreenEvaluation::TriggerDiscordRPC()
 		prefix = "Practicing: ";
 	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Replay) {
 		prefix = "Replaying: ";
+	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Spectate) {
+		prefix = "Spectating: ";
 	}
 
 	auto details =

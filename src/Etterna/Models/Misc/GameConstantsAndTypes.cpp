@@ -58,10 +58,7 @@ ToString<StepsType>(const StepsType& value)
 LuaXType(StepsType);
 
 static const char* PlayerControllerNames[] = {
-	"Human",
-	"Autoplay",
-	"Cpu",
-	"Replay",
+	"Human", "Autoplay", "Cpu", "Replay", "Spectate",
 };
 XToString(PlayerController);
 StringToX(PlayerController);
@@ -81,6 +78,7 @@ static const char* GameplayModeNames[] = {
 	"Normal",
 	"Practice",
 	"Replay",
+	"Spectate",
 };
 XToString(GameplayMode);
 LuaXType(GameplayMode);

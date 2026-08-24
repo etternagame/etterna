@@ -721,6 +721,7 @@ static LocalizedString FORCE_CRASH("ScreenDebugOverlay", "Force Crash");
 static LocalizedString SLOW("ScreenDebugOverlay", "Slow");
 static LocalizedString CPU("ScreenDebugOverlay", "CPU");
 static LocalizedString REPLAY("ScreenDebugOverlay", "REPLAY");
+static LocalizedString SPECTATE("ScreenDebugOverlay", "SPECTATE");
 static LocalizedString SONG("ScreenDebugOverlay", "Song");
 static LocalizedString MACHINE("ScreenDebugOverlay", "Machine");
 static LocalizedString RENDER_SKIPS("ScreenDebugOverlay", "Rendering Skips");
@@ -752,6 +753,9 @@ class DebugLineAutoplay : public IDebugLine
 			case PC_REPLAY:
 				return REPLAY.GetValue();
 				break;
+			case PC_SPECTATE:
+				return SPECTATE.GetValue();
+				break;
 			default:
 				FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}
@@ -776,7 +780,8 @@ class DebugLineAutoplay : public IDebugLine
 			pc = (pc == PC_CPU) ? PC_HUMAN : PC_CPU;
 		else
 			pc = (pc == PC_AUTOPLAY) ? PC_HUMAN : PC_AUTOPLAY;
-		if (GamePreferences::m_AutoPlay != PC_REPLAY)
+		if (GamePreferences::m_AutoPlay != PC_REPLAY &&
+			GamePreferences::m_AutoPlay != PC_SPECTATE)
 			GamePreferences::m_AutoPlay.Set(pc);
 		GAMESTATE->m_pPlayerState->m_PlayerController =
 		  GamePreferences::m_AutoPlay;

@@ -505,7 +505,8 @@ Player::NeedsHoldJudging(const TapNote& tn) -> bool
 static TapNoteScore
 GetAutoplayTapNoteScore(const PlayerState* pPlayerState)
 {
-	if (pPlayerState->m_PlayerController == PC_REPLAY)
+	if (pPlayerState->m_PlayerController == PC_REPLAY ||
+		pPlayerState->m_PlayerController == PC_SPECTATE)
 		return TNS_Miss;
 	if (pPlayerState->m_PlayerController == PC_AUTOPLAY ||
 		pPlayerState->m_PlayerController == PC_CPU)
@@ -3064,7 +3065,8 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 				}
 			}
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
-				m_pPlayerState->m_PlayerController == PC_REPLAY) {
+				m_pPlayerState->m_PlayerController == PC_REPLAY ||
+				m_pPlayerState->m_PlayerController == PC_SPECTATE) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
@@ -3175,7 +3177,8 @@ Player::SetJudgment(int iRow,
 				}
 			}
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
-				m_pPlayerState->m_PlayerController == PC_REPLAY) {
+				m_pPlayerState->m_PlayerController == PC_REPLAY ||
+				m_pPlayerState->m_PlayerController == PC_SPECTATE) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
@@ -3296,7 +3299,8 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 				}
 			}
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
-				m_pPlayerState->m_PlayerController == PC_REPLAY) {
+				m_pPlayerState->m_PlayerController == PC_REPLAY ||
+				m_pPlayerState->m_PlayerController == PC_SPECTATE) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;

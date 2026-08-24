@@ -86,9 +86,11 @@ ScreenSelectMusic::Init()
 	GAMESTATE->m_bPlayingMulti = false;
 	GAMESTATE->TogglePracticeMode(false);
 	g_ScreenStartedLoadingAt.Touch();
-	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+	if (GamePreferences::m_AutoPlay == PC_REPLAY ||
+		GamePreferences::m_AutoPlay == PC_SPECTATE)
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
-	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY)
+	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY ||
+		GAMESTATE->m_pPlayerState->m_PlayerController == PC_SPECTATE)
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_HUMAN;
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
@@ -1335,7 +1337,8 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 		CheckBackgroundRequests(true);
 		m_MusicWheel.Lock();
-		if (OPTIONS_MENU_AVAILABLE && mode != GameplayMode_Replay) {
+		if (OPTIONS_MENU_AVAILABLE && mode != GameplayMode_Replay &&
+			mode != GameplayMode_Spectate) {
 			// show "hold START for options"
 			this->PlayCommand("ShowPressStartForOptions");
 
@@ -1367,7 +1370,8 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 		 * we want to know if the function call returned early to prevent
 		 * loading replay/practice stuff at the wrong time)
 		 */
-		return mode == GameplayMode_Practice || mode == GameplayMode_Replay;
+		return mode == GameplayMode_Practice || mode == GameplayMode_Replay ||
+			   mode == GameplayMode_Spectate;
 	}
 	return false;
 }

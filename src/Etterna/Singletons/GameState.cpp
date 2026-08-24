@@ -1506,7 +1506,8 @@ GameState::TogglePracticeModeSafe(bool set)
 	  screenname.find("ScreenGameplay") != std::string::npos;
 
 	// This isnt really "safe" but should at least make it harder to break
-	if (m_gameplayMode != GameplayMode_Replay && !gameplayscreen) {
+	if (m_gameplayMode != GameplayMode_Replay &&
+		m_gameplayMode != GameplayMode_Spectate && !gameplayscreen) {
 		TogglePracticeMode(set);
 	}
 }
@@ -1985,7 +1986,9 @@ class LunaGameState : public Luna<GameState>
 	{
 		// Don't allow disabling replay controlller
 		if (PC_REPLAY == p->m_pPlayerState->m_PlayerController ||
-			PC_REPLAY == GamePreferences::m_AutoPlay)
+			PC_REPLAY == GamePreferences::m_AutoPlay ||
+			PC_SPECTATE == p->m_pPlayerState->m_PlayerController ||
+			PC_SPECTATE == GamePreferences::m_AutoPlay)
 			return 0;
 		p->m_pPlayerState->m_PlayerController = BArg(1) ? PC_CPU : PC_HUMAN;
 		GamePreferences::m_AutoPlay.Set(p->m_pPlayerState->m_PlayerController);

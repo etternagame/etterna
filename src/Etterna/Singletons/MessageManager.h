@@ -86,6 +86,8 @@ enum MessageID
 	Message_FavoritesUpdated,
 	Message_PermamirrorUpdated,
 	Message_GoalsUpdated,
+	Message_SpectatorInputUpdate,
+	Message_SpectatorHoldUpdate,
 	NUM_MessageID, // leave this at the end
 	MessageID_Invalid
 };

@@ -589,7 +589,9 @@ ScreenGameplay::LoadNextSong()
 
 	// apply permamirror
 	if (GamePreferences::m_AutoPlay != PC_REPLAY &&
-		GAMESTATE->m_pPlayerState->m_PlayerController != PC_REPLAY) {
+		GAMESTATE->m_pPlayerState->m_PlayerController != PC_REPLAY &&
+		GAMESTATE->m_pPlayerState->m_PlayerController != PC_SPECTATE &&
+		GamePreferences::m_AutoPlay != PC_SPECTATE) {
 		auto& pmc = PROFILEMAN->GetProfile(PLAYER_1)->PermaMirrorCharts;
 		auto* pSteps = m_vPlayerInfo.m_vpStepsQueue[iPlaySongIndex];
 		if (pSteps != nullptr && pmc.count(pSteps->GetChartKey())) {
@@ -947,6 +949,8 @@ ScreenGameplay::TriggerDiscordRPCUpdate()
 		prefix = "Practicing: ";
 	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Replay) {
 		prefix = "Replaying: ";
+	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Spectate) {
+		prefix = "Spectating: ";
 	}
 
 	auto details = fmt::format("{}{}: {} [{}]", prefix, songtitle, rate, groupname);

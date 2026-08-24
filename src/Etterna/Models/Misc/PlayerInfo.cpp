@@ -50,7 +50,9 @@ PlayerInfo::Load(PlayerNumber pn,
 	  SCORE_KEEPER_CLASS, pPlayerState, pPlayerStageStats);
 
 	m_ptextPlayerOptions = nullptr;
-	if (mode == GameplayMode_Replay) {
+	if (mode == GameplayMode_Spectate) {
+		m_pPlayer = nullptr;
+	} else if (mode == GameplayMode_Replay) {
 		m_pPlayer = new PlayerReplay(m_NoteData, bShowNoteField);
 	} else if (mode == GameplayMode_Practice) {
 		m_pPlayer = new PlayerPractice(m_NoteData, bShowNoteField);

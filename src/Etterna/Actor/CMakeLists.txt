@@ -50,6 +50,7 @@ list(APPEND ACTOR_GAMEPLAY_SRC
 	"Gameplay/Player.cpp"
 	"Gameplay/PlayerPractice.cpp"
 	"Gameplay/PlayerReplay.cpp"
+	"Gameplay/PlayerSpectate.cpp"
 	"Gameplay/ReceptorArrow.cpp"
 	"Gameplay/ReceptorArrowRow.cpp")
 
@@ -68,6 +69,7 @@ list(APPEND ACTOR_GAMEPLAY_HPP
 	"Gameplay/Player.h"
 	"Gameplay/PlayerPractice.h"
 	"Gameplay/PlayerReplay.h"
+	"Gameplay/PlayerSpectate.h"
 	"Gameplay/ReceptorArrow.h"
 	"Gameplay/ReceptorArrowRow.h")
 
