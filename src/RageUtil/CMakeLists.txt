@@ -102,21 +102,21 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageTextureID.h"
   "Graphics/RageTextureManager.h"
   "Graphics/RageTextureRenderTarget.h"
-
-  "Graphics/Display/CommandBatcher.h"
-  "Graphics/Display/DrawMode.h"
-  "Graphics/Display/MatrixState.h"
-  "Graphics/Display/RenderState.h"
-  "Graphics/Display/Display.h"
-  "Graphics/Display/Renderer.h"
-  "Graphics/Display/CompiledGeometry.h"
-  "Graphics/Display/RenderNode.h"
-  "Graphics/Display/Vertex.h"
-  "Graphics/Display/PipelineHandle.h"
 )
 
 if(WITH_VULKAN)
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP
+    "Graphics/Display/CommandBatcher.h"
+    "Graphics/Display/DrawMode.h"
+    "Graphics/Display/MatrixState.h"
+    "Graphics/Display/RenderState.h"
+    "Graphics/Display/Display.h"
+    "Graphics/Display/Renderer.h"
+    "Graphics/Display/CompiledGeometry.h"
+    "Graphics/Display/RenderNode.h"
+    "Graphics/Display/Vertex.h"
+    "Graphics/Display/PipelineHandle.h"
+
     "Graphics/RendererVK/RendererVK.h"
     "Graphics/RendererVK/VkUtils.h"
     "Graphics/RendererVK/PersistentBuffer.h"

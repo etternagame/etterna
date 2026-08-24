@@ -44,6 +44,10 @@ DisplayAdapter::Display::BeginFrame()
 {
 	m_Window->Update();
 
+	if (!m_Renderer->IsReadyForRender()) {
+		return false;
+	}
+
 	m_Batcher.Clear();
 
 	m_RenderState.textureFiltering = true;
@@ -116,7 +120,11 @@ DisplayAdapter::Display::TryVideoMode(const VideoModeParams& p,
 	if (!m_IsInitDone) {
 		m_Renderer->InitializeRenderer(p);
 	} else {
-		m_Renderer->TryVideoMode(p);
+		try {
+			m_Renderer->TryVideoMode(p);
+		} catch (std::exception e) {
+			return std::string("Display::TryVideoMode() failed: ") + e.what();
+		}
 	}
 
 	ResolutionChanged();

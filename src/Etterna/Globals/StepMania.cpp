@@ -29,9 +29,9 @@
 #include "RageUtil/Graphics/RageSurface_Load.h"
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Globals/GameLoop.h"
-#include "RageUtil/Graphics/Display/Display.h"
 
 #if defined(WITH_VULKAN)
+#include "RageUtil/Graphics/Display/Display.h"
 #include "RageUtil/Graphics/RendererVK/RendererVK.h"
 #endif
 

@@ -44,6 +44,7 @@ add_executable(Etterna)
 # Project Compile Options
 set(WITH_CRASHPAD TRUE CACHE BOOL "Compile with Crash Handler (Requires depot_tools installed)")
 set(WITH_VULKAN TRUE CACHE BOOL "Compile Vulkan support (Requires Vulkan SDK to be installed and VULKAN_SDK environment variable to be set to SDK root dir)")
+set(WITH_VULKAN_LINUX_EXTRAS FALSE CACHE BOOL "Link additional Vulkan dependencies (fix for some Linux distros)")
 
 # Discord doesn't seem to provide Linux arm64 binaries...
 set(SUPPORT_DISCORD_SDK ON)
@@ -140,6 +141,18 @@ if(WITH_VULKAN)
     target_link_libraries(Etterna PRIVATE
         Vulkan::Vulkan
         Vulkan::shaderc_combined)
+
+    if(WITH_VULKAN_LINUX_EXTRAS AND UNIX AND NOT APPLE)
+        target_link_libraries(Etterna PRIVATE
+            glslang
+            MachineIndependent
+            OSDependent
+            GenericCodeGen
+            SPIRV
+            glslang-default-resource-limits
+            SPIRV-Tools
+            SPIRV-Tools-opt)
+    endif()
 endif()
 
 string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)

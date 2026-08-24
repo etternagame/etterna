@@ -38,6 +38,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	RendererVK();
 	std::string GetApiDescription() const override;
 	void InitializeRenderer(const VideoModeParams& p) override;
+	bool IsReadyForRender() override;
 	void OnRender(const ActualVideoModeParams* p,
 				  const DisplayAdapter::CommandBatcher& batcher) override;
 	bool IsD3DInternal() override;
@@ -64,6 +65,8 @@ class RendererVK : public DisplayAdapter::Renderer
 	void RescaleBatchBuffers(size_t sizeScale) override;
 
   private:
+	constexpr static size_t FramesInFlight = 3;
+
 	vk::raii::Context m_Context;
 	vk::raii::Instance m_Instance = nullptr;
 	vk::raii::DebugUtilsMessengerEXT m_DebugMessenger = nullptr;
@@ -76,17 +79,27 @@ class RendererVK : public DisplayAdapter::Renderer
 	uint32_t m_PresentQueueFamily = 0;
 	VmaAllocator m_Allocator = nullptr;
 	vk::Format m_DepthFormat = {};
+	vk::SampleCountFlagBits m_MsaaSamples = {};
 	void InitVulkanState();
 
 	vk::raii::SwapchainKHR m_Swapchain = nullptr;
 	vk::Extent2D m_SwapchainExtent;
 	std::vector<vk::Image> m_SwapchainImages;
 	vk::Format m_ImageFormat = {};
-	Texture m_DepthTexture = {};
-
+	std::array<Texture, FramesInFlight> m_SwapchainDepthTextures;
+	std::array<Texture, FramesInFlight> m_MsaaTextures;
+	bool m_MsaaTexturesAreDirty = false;
+	bool m_SwapchainVSync = false;
+	bool m_SwapchainBorderless = false;
 	bool m_SwapchainIsInvalid = false;
-	void InitSwapchain(const VideoModeParams& p);
-	void RecreateSwapchain(const VideoModeParams& p);
+	bool m_SmoothLines = false;
+
+	void InitSwapchain(uint32_t width,
+					   uint32_t height,
+					   bool vSync,
+					   bool borderlessWindow,
+					   bool smoothLines);
+	void RecreateSwapchain();
 	void CleanupSwapchain();
 
 	std::vector<vk::raii::ImageView> m_SwapchainImageViews;
@@ -128,8 +141,6 @@ class RendererVK : public DisplayAdapter::Renderer
 	void RecordCommands(uint32_t imageIndex,
 						const DisplayAdapter::CommandBatcher& batcher);
 	void SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer);
-
-	constexpr static size_t FramesInFlight = 3;
 
 	std::array<PersistentBuffer, FramesInFlight> m_VertexBuffer;
 	std::array<PersistentBuffer, FramesInFlight> m_IndexBuffer;
