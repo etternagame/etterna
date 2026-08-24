@@ -206,8 +206,6 @@ class NetworkSyncManager
 	std::vector<ChartRequest*> requests;
 	std::vector<ChartRequest*> staleRequests;
 
-	bool m_scoreboardchange[NUM_NSScoreBoardColumn];
-
 	bool spectating = false;
 
 	// Lua

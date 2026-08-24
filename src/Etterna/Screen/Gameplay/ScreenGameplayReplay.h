@@ -6,7 +6,7 @@
 class ScreenGameplayReplay : public ScreenGameplay
 {
   public:
-	void FillPlayerInfo(PlayerInfo* playerInfoOut) override;
+	void FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut) override;
 	ScreenGameplayReplay();
 	void Init() override;
 	~ScreenGameplayReplay() override;
@@ -16,9 +16,6 @@ class ScreenGameplayReplay : public ScreenGameplay
 
 	// Lua
 	void PushSelf(lua_State* L) override;
-	PlayerInfo* GetPlayerInfo(PlayerNumber pn);
-
-	// void BeginBackingOutFromGameplay();
 
 	// Set the playback rate in the middle of gameplay
 	float SetRate(float newRate);

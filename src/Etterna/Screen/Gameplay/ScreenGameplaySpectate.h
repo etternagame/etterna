@@ -6,7 +6,7 @@
 class ScreenGameplaySpectate : public ScreenGameplay
 {
   public:
-	void FillPlayerInfo(PlayerInfo* playerInfoOut) override;
+	void FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut) override;
 	ScreenGameplaySpectate();
 	void Init() override;
 	~ScreenGameplaySpectate() override;
@@ -18,7 +18,6 @@ class ScreenGameplaySpectate : public ScreenGameplay
 
 	// Lua
 	void PushSelf(lua_State* L) override;
-	PlayerInfo* GetPlayerInfo(PlayerNumber pn);
 
   protected:
 	void SaveStats() override;

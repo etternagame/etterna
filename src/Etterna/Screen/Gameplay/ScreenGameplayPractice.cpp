@@ -31,9 +31,12 @@
 REGISTER_SCREEN_CLASS(ScreenGameplayPractice);
 
 void
-ScreenGameplayPractice::FillPlayerInfo(PlayerInfo* playerInfoOut)
+ScreenGameplayPractice::FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut)
 {
-	playerInfoOut->Load(PLAYER_1,
+	playerInfoOut.clear();
+
+	playerInfoOut.push_back(PlayerInfo());
+	playerInfoOut[0].Load(PLAYER_1,
 						MultiPlayer_Invalid,
 						true,
 						Difficulty_Invalid,
@@ -103,8 +106,8 @@ ScreenGameplayPractice::Input(const InputEventPlus& input) -> bool
 
 			AdjustSync::ResetOriginalSyncData();
 			SetupNoteDataFromRow(GAMESTATE->m_pCurSteps);
-			if (!m_vPlayerInfo.m_NoteData.IsEmpty())
-				m_vPlayerInfo.GetPlayerState()->ResetCacheInfo();
+			if (!GetPlayerInfo()->m_NoteData.IsEmpty())
+				GetPlayerInfo()->GetPlayerState()->ResetCacheInfo();
 
 			float fSecondsToStartFadingOutMusic;
 			float fSecondsToStartTransitioningOut;
@@ -177,7 +180,7 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 
 	m_AutoKeysounds.Update(fDeltaTime);
 
-	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
+	GetPlayerInfo()->m_SoundEffectControl.Update(fDeltaTime);
 
 	{
 		const auto fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -211,7 +214,7 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 		}
 
 		// Reset the wife/judge counter related visible stuff
-		auto* pl = dynamic_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+		auto* pl = dynamic_cast<PlayerPractice*>(GetPlayerInfo()->m_pPlayer);
 		ASSERT_M(pl != nullptr,
 				 "Dynamic cast in ScreenGameplayPractice::Update failed.");
 		pl->PositionReset();
@@ -230,8 +233,8 @@ ScreenGameplayPractice::Update(const float fDeltaTime)
 			m_gave_up = bGiveUpTimerFired;
 
 			if (bGiveUpTimerFired) {
-				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
-				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
+				GetPlayerInfo()->GetPlayerStageStats()->gaveuplikeadumbass = true;
+				GetPlayerInfo()->GetPlayerStageStats()->m_bDisqualified = true;
 				Locator::getLogger()->info("Exited Practice Mode to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
 				return;
@@ -257,19 +260,19 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
 
-	const auto* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
+	const auto* pStyle = GAMESTATE->GetCurrentStyle(GetPlayerInfo()->m_pn);
 	NoteData ndTransformed;
 	pStyle->GetTransformedNoteDataForStyle(
-	  m_vPlayerInfo.GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
+	  GetPlayerInfo()->GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
 
-	m_vPlayerInfo.GetPlayerState()->Update(0);
+	GetPlayerInfo()->GetPlayerState()->Update(0);
 
 	NoteDataUtil::RemoveAllButRange(ndTransformed, minRow, maxRow);
 
 	// load player
 	{
-		m_vPlayerInfo.m_NoteData = ndTransformed;
-		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
+		GetPlayerInfo()->m_NoteData = ndTransformed;
+		NoteDataUtil::RemoveAllTapsOfType(GetPlayerInfo()->m_NoteData,
 										  TapNoteType_AutoKeysound);
 		ReloadPlayer();
 	}
@@ -278,7 +281,7 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 	{
 		auto nd = ndTransformed;
 		NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
-		m_AutoKeysounds.Load(m_vPlayerInfo.GetStepsAndTrailIndex(), nd);
+		m_AutoKeysounds.Load(GetPlayerInfo()->GetStepsAndTrailIndex(), nd);
 	}
 
 	{
@@ -297,8 +300,8 @@ ScreenGameplayPractice::SetupNoteDataFromRow(Steps* pSteps,
 				break;
 		}
 
-		m_vPlayerInfo.m_SoundEffectControl.Load(
-		  sType, m_vPlayerInfo.GetPlayerState(), &m_vPlayerInfo.m_NoteData);
+		GetPlayerInfo()->m_SoundEffectControl.Load(
+		  sType, GetPlayerInfo()->GetPlayerState(), &GetPlayerInfo()->m_NoteData);
 	}
 }
 
@@ -416,7 +419,7 @@ ScreenGameplayPractice::SetSongPosition(float newSongPositionSeconds,
 	}
 
 	// Reset the wife/judge counter related visible stuff
-	auto* pl = dynamic_cast<PlayerPractice*>(m_vPlayerInfo.m_pPlayer);
+	auto* pl = dynamic_cast<PlayerPractice*>(GetPlayerInfo()->m_pPlayer);
 	ASSERT_M(pl != nullptr,
 			 "Dynamic cast in ScreenGameplayPractice::SetSongPosition failed.");
 	pl->RenderAllNotesIgnoreScores();

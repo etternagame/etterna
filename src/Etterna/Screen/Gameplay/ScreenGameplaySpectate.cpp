@@ -32,9 +32,14 @@ AutoScreenMessage(SM_Spectator_InputUpdate);
 AutoScreenMessage(SM_Spectator_HoldUpdate);
 
 void
-ScreenGameplaySpectate::FillPlayerInfo(PlayerInfo* playerInfoOut)
+ScreenGameplaySpectate::FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut)
 {
-	playerInfoOut->Load(PLAYER_1,
+	playerInfoOut.clear();
+
+	playerInfoOut.push_back(PlayerInfo());
+	playerInfoOut.push_back(PlayerInfo());
+
+	playerInfoOut[0].Load(PLAYER_1,
 						MultiPlayer_Invalid,
 						true,
 						Difficulty_Invalid,
@@ -81,15 +86,15 @@ ScreenGameplaySpectate::Init()
 void
 ScreenGameplaySpectate::LoadPlayer()
 {
-	m_vPlayerInfo.m_pPlayer->Load();
+	GetPlayerInfo()->m_pPlayer->Load();
 }
 
 void
 ScreenGameplaySpectate::LoadScoreKeeper()
 {
-	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
-		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
-												  m_vPlayerInfo.m_vpStepsQueue);
+	if (GetPlayerInfo()->m_pPrimaryScoreKeeper != nullptr) {
+		GetPlayerInfo()->m_pPrimaryScoreKeeper->Load(
+		  m_apSongsQueue, GetPlayerInfo()->m_vpStepsQueue);
 	}
 }
 
@@ -104,12 +109,12 @@ ScreenGameplaySpectate::HandleScreenMessage(const ScreenMessage& SM)
 {
 	if (SM == SM_Spectator_InputUpdate) {
 		Message msg("SpectatorInputUpdate");
-		m_vPlayerInfo.m_pPlayer->HandleMessage(msg);
+		GetPlayerInfo()->m_pPlayer->HandleMessage(msg);
 		return;
 	}
 	else if (SM == SM_Spectator_HoldUpdate) {
 		Message msg("SpectatorHoldUpdate");
-		m_vPlayerInfo.m_pPlayer->HandleMessage(msg);
+		GetPlayerInfo()->m_pPlayer->HandleMessage(msg);
 		return;
 	}
 
@@ -140,7 +145,7 @@ ScreenGameplaySpectate::Update(const float fDeltaTime)
 
 	m_AutoKeysounds.Update(fDeltaTime);
 
-	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
+	GetPlayerInfo()->m_SoundEffectControl.Update(fDeltaTime);
 
 	{
 		const auto fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
