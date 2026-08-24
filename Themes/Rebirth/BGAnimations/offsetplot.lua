@@ -251,6 +251,7 @@ local t = Def.ActorFrame {
                     mines = replay:GetMineHitVector(),
                     misses = replay:GetMissDataVector(),
                     tracks = replay:GetTrackVector(),
+                    types = replay:GetTapNoteTypeVector(),
                 }
             end
 
@@ -263,6 +264,7 @@ local t = Def.ActorFrame {
             local minesV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].mines
             local missV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].misses
             local trackV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].tracks
+            local typeV = replayVectorsMapToMakeItNotSuck[replay:GetScoreKey()].types
 
             local maxwifescore = 0
             local curwifescore = 0
@@ -356,6 +358,10 @@ local t = Def.ActorFrame {
                             trackedMisses[nr] = {}
                         end
                         trackedMisses[nr][trackV[i]] = true
+                    elseif typeV[i] ~= nil and typeV[i] == "TapNoteType_Mine" then
+                        -- this is a mine and we dont want to do anything with it
+                        -- because mine hits are tracked separately.
+                        -- the offset data shouldnt have mines but sometimes it does
                     else
                         -- not a miss
 

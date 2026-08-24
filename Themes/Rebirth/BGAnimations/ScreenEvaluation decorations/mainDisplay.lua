@@ -388,13 +388,35 @@ local function gatherRescoreTableFromScore(score)
     -- tap offsets
     local replay = score:GetReplay()
     replay:LoadAllData()
-    o["dvt"] = replay:GetOffsetVector()
+
+    local types = replay:GetTapNoteTypeVector()
+    if #types > 0 then
+        local dvt = {}
+        local offsets = replay:GetOffsetVector()
+        for i,v in ipairs(offsets) do
+            if types[i] ~= nil and (types[i] == "TapNoteType_Tap" or types[i] == "TapNoteType_HoldHead" or types[i] == "TapNoteType_Lift") then
+                dvt[#dvt+1] = v
+            end
+        end
+        o["dvt"] = dvt
+    else
+        -- this can have unintended 0s or 1000s hidden within
+        o["dvt"] = replay:GetOffsetVector()
+    end
+
     -- holds
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
     o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
     o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
+
     -- mines
-    o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
+    local mineV = replay:GetMineHitVector()
+    if #mineV > 0 then
+        o["minesHit"] = #mineV
+    else
+        o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
+    end
+    
     -- taps
     o["totalTaps"] = 0
     for _, j in ipairs(tapJudgments) do
