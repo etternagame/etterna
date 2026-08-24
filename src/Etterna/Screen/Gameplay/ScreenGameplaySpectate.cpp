@@ -37,8 +37,8 @@ ScreenGameplaySpectate::FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut)
 	playerInfoOut.clear();
 
 	playerInfoOut.push_back(PlayerInfo());
-	playerInfoOut.push_back(PlayerInfo());
 
+	// for now, only 1 can be spectated
 	playerInfoOut[0].Load(PLAYER_1,
 						MultiPlayer_Invalid,
 						true,
