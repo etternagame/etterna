@@ -196,6 +196,10 @@ local o = Def.ActorFrame {
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
 	end,
+	LoadScoreInOffsetPlotMessageCommand = function(self, params)
+		if params.score == nil then return end
+		self:playcommand("SetFromScore", params)
+	end,
 	LoadedCustomWindowMessageCommand = function(self)
 		usingCustomWindows = true
 		local replay = REPLAYS:GetActiveReplay()
