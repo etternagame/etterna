@@ -277,7 +277,16 @@ local function perceptualBins(bars, fft, values, lastframevals, samplingRate, nf
     end
 end
 
-audioVisualizer = {}
+audioVisualizer = {
+
+    -- the idea is you pick one string name and put it into params.binfunc
+    binfuncs = {
+        PERCEPTION = true,
+        BARK = true,
+        DLB = true,
+    }
+
+}
 --[[
 Note: This is relatively barebones, and not very customizable.
 Ex:
@@ -346,7 +355,14 @@ function audioVisualizer:new(params)
                     end
                 end
             )
-        end
+        end,
+        StoppedMusicMessageCommand = function(self)
+            self:RunCommandsOnChildren(
+                function(self)
+                    self:finishtweening():smooth(0.3):zoomtoheight(0)
+                end
+            )
+        end,
     }
     params.barcount = params.barcount or 16
 
@@ -354,6 +370,12 @@ function audioVisualizer:new(params)
     frame.values = {}
     frame.lastframevals = {}
     frame.barcount = params.barcount
+
+    frame.binfunc = params.binfunc or "PERCEPTION"
+    if self.binfuncs[frame.binfunc] == nil then
+        frame.binfunc = "PERCEPTION"
+    end
+
     for i=1, frame.barcount do
         frame.values[i] = 0
         frame.lastframevals[i] = 0
@@ -440,9 +462,13 @@ function audioVisualizer:new(params)
         -- pick one binning function to use
         -- and it handles inserting into the values table
 
-        --dlbBins(bars, fft, values, lastframevals)
-        --barkBins(bars, fft, values, lastframevals, samplingRate)
-        perceptualBins(bars, fft, values, lastframevals, samplingRate, nbins)
+        if frame.binfunc == "PERCEPTION" then
+            perceptualBins(bars, fft, values, lastframevals, samplingRate, nbins)
+        elseif frame.binfunc == "DLB" then
+            dlbBins(bars, fft, values, lastframevals)
+        else
+            barkBins(bars, fft, values, lastframevals, samplingRate)
+        end
 
 
         ----------- FINISH AND DISPLAY --------
