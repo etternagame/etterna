@@ -43,15 +43,33 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 		self:xy(125,frameY-82):zoom(0.7):align(0.5,1)
 		self:diffusetopedge(Saturation(getMainColor("highlight"), 0.5))
 		self:diffusebottomedge(Saturation(getMainColor("positive"), 0.8))
+		self:diffusealpha(0)
 	end,
 	OnCommand=function(self)
 		self:settext("Etterna")
+		if SOUND:GetMusicPath() ~= "" then
+			self:playcommand("PlayingMusic", {file = SOUND:GetMusicPath()})
+		end
 	end,
 	MouseOverCommand = function(self)
 		self:diffusealpha(0.6)
 	end,
 	MouseOutCommand = function(self)
 		self:diffusealpha(1)
+	end,
+	PlayingMusicMessageCommand = function(self, params)
+		if params.file ~= "" and params.file:find("_missing") == nil then
+			self:effectclock("beat")
+			self:heartbeat()
+			if playingMusicCounter == 1 then
+				self:diffusealpha(0):sleep(2):smooth(3):diffusealpha(1)
+			end
+		else
+			self:diffusealpha(1)
+		end
+	end,
+	StoppedMusicMessageCommand = function(self)
+		self:stopeffect()
 	end,
 	MouseDownCommand = function(self, params)
 		if params.event == "DeviceButton_left mouse button" then
