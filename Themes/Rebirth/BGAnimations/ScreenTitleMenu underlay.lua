@@ -149,7 +149,18 @@ t[#t+1] = Def.ActorFrame {
             InitCommand = function(self)
                 self:halign(0):valign(0)
                 self:zoomto(logoW, logoH)
+                self:effectclock("beat")
+		        self:heartbeat()
                 registerActorToColorConfigElement(self, "title", "LogoTriangle")
+            end,
+            PlayingMusicMessageCommand = function(self, params)
+                if params.file ~= "" and params.file:find("_missing") == nil then
+                    self:effectclock("beat")
+                    self:heartbeat()
+                end
+            end,
+            StoppedMusicMessageCommand = function(self)
+                self:stopeffect()
             end,
         },
         UIElements.SpriteButton(100, 1, THEME:GetPathG("", "Logo-E")) .. {
