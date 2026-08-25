@@ -63,7 +63,11 @@ class GameSoundManager : MessageSubscriber
 				   bool align_beat = true,
 				   bool bApplyMusicRate = false,
 				   bool bAccurateSync = false);
-	void StopMusic() { PlayMusic(""); }
+	void StopMusic()
+	{
+		MESSAGEMAN->Broadcast("StoppedMusic");
+		PlayMusic("");
+	}
 	void DimMusic(float fVolume, float fDurationSeconds);
 	[[nodiscard]] auto GetMusicPath() const -> std::string;
 	void Flush();

@@ -299,6 +299,11 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 			p.StopMode = RageSoundParams::M_LOOP;
 		NewMusic->m_Music->SetParams(p);
 		NewMusic->m_Music->StartPlaying();
+		if (MESSAGEMAN) {
+			Message msg("PlayingMusic");
+			msg.SetParam("file", ToPlay.m_sFile);
+			MESSAGEMAN->Broadcast(msg);
+		}
 	}
 
 	LockMut(*g_Mutex);
