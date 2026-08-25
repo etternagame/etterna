@@ -49,6 +49,10 @@ local versionTextSizeSmall = 0.25
 local animationSeconds = 0.5 -- the intro animation
 local updateDownloadIconSize = 30 / 1080 * SCREEN_HEIGHT
 
+local visualizer_wait_time = 15
+local visualizer_fadein_time = 5
+local visualizer_height = SCREEN_HEIGHT * 0.2
+
 local updateRequired = false
 local function setUpdateRequired()
     -- information for the update button
@@ -246,78 +250,115 @@ t[#t+1] = Def.ActorFrame {
                 self:diffusealpha(1)
             end
         },
-        LoadFont("Menu Normal") .. {
-            Name = "VersionNumber",
-            InitCommand = function(self) -- happens first
-                self:halign(0):valign(0)
-                self:xy(versionNumberLeftGap, versionNumberUpperGap)
-                self:zoom(versionTextSize)
-                self:settext("V "..GAMESTATE:GetEtternaVersion())
-                self:diffuse(COLORS:getTitleColor("PrimaryText"))
-                self:diffusealpha(1)
-            end
-        },
-        UIElements.TextToolTip(100, 1, "Menu Normal") .. {
-            Name = "VersionUpdate",
-            BeginCommand = function(self) -- happens second
-                self:halign(0):valign(0)
-                local vnc = self:GetParent():GetChild("VersionNumber")
-                local bufferspace = 5 / 1920 * SCREEN_WIDTH
-                self:xy(vnc:GetX() + vnc:GetZoomedWidth() + bufferspace, versionNumberUpperGap)
-                self:zoom(versionTextSize)
-                self:maxwidth(((gradientwidth - vnc:GetX() - vnc:GetZoomedWidth() - logoFrameLeftGap - separatorthickness) / versionTextSize))
-                self:settextf("- %s (%s)", translations["UpdateAvailable"], DLMAN:GetLastVersion())
-                self:diffuse(COLORS:getTitleColor("UpdateText"))
-                self:diffusealpha(1)
-                self:visible(false)
-
-                if updateRequired then
-                    self:visible(true)
-                end
-            end,
-            MouseOutCommand = hoverfunc,
-            MouseOverCommand = hoverfunc,
-            MouseDownCommand = clickDownload,
-            LastVersionUpdatedMessageCommand = function(self)
-                setUpdateRequired()
-                self:visible(updateRequired)
-                self:settextf("- %s (%s)", translations["UpdateAvailable"], DLMAN:GetLastVersion())
-            end,
-        },
-        UIElements.SpriteButton(100, 1, THEME:GetPathG("", "updatedownload")) .. {
-            Name = "VersionUpdateDownload",
-            OnCommand = function(self) -- happens third
-                self:halign(0):valign(0)
-                local vuc = self:GetParent():GetChild("VersionUpdate")
-                local bufferspace = 5 / 1920 * SCREEN_WIDTH
-                self:xy(vuc:GetX() + vuc:GetZoomedWidth() + bufferspace, versionNumberUpperGap)
-                self:zoomto(updateDownloadIconSize, updateDownloadIconSize)
-                self:diffuse(COLORS:getTitleColor("UpdateText"))
-                self:diffusealpha(1)
-                self:visible(false)
-
-                if updateRequired then
-                    self:visible(true)
-                end
-            end,
-            MouseOutCommand = hoverfunc,
-            MouseOverCommand = hoverfunc,
-            MouseDownCommand = clickDownload,
-        },
-
-        LoadFont("Menu Normal") .. {
-            Name = "ThemeVersionAndCredits",
+        Def.ActorFrame {
+            Name = "VersionGrouping",
             InitCommand = function(self)
-                self:halign(0):valign(0)
-                self:xy(versionNumberLeftGap, themeVersionUpperGap)
-                self:maxwidth((gradientwidth - versionNumberLeftGap - logoFrameLeftGap - separatorthickness) / versionTextSizeSmall)
-                self:zoom(versionTextSizeSmall)
-                self:settext("("..getThemeName().." v"..getThemeVersion().."@"..getThemeDate().." " .. translations["By"] .. " "..getThemeAuthor()..")")
-                self:diffuse(COLORS:getTitleColor("SecondaryText"))
-                self:diffusealpha(1)
-            end
+            end,
+            BeginCommand = function(self)
+                self:sleep(visualizer_wait_time):smooth(visualizer_fadein_time):addy(-visualizer_height)
+            end,
+
+            LoadFont("Menu Normal") .. {
+                Name = "VersionNumber",
+                InitCommand = function(self) -- happens first
+                    self:halign(0):valign(0)
+                    self:xy(versionNumberLeftGap, versionNumberUpperGap)
+                    self:zoom(versionTextSize)
+                    self:settext("V "..GAMESTATE:GetEtternaVersion())
+                    self:diffuse(COLORS:getTitleColor("PrimaryText"))
+                    self:diffusealpha(1)
+                end
+            },
+            UIElements.TextToolTip(100, 1, "Menu Normal") .. {
+                Name = "VersionUpdate",
+                BeginCommand = function(self) -- happens second
+                    self:halign(0):valign(0)
+                    local vnc = self:GetParent():GetChild("VersionNumber")
+                    local bufferspace = 5 / 1920 * SCREEN_WIDTH
+                    self:xy(vnc:GetX() + vnc:GetZoomedWidth() + bufferspace, versionNumberUpperGap)
+                    self:zoom(versionTextSize)
+                    self:maxwidth(((gradientwidth - vnc:GetX() - vnc:GetZoomedWidth() - logoFrameLeftGap - separatorthickness) / versionTextSize))
+                    self:settextf("- %s (%s)", translations["UpdateAvailable"], DLMAN:GetLastVersion())
+                    self:diffuse(COLORS:getTitleColor("UpdateText"))
+                    self:diffusealpha(1)
+                    self:visible(false)
+
+                    if updateRequired then
+                        self:visible(true)
+                    end
+                end,
+                MouseOutCommand = hoverfunc,
+                MouseOverCommand = hoverfunc,
+                MouseDownCommand = clickDownload,
+                LastVersionUpdatedMessageCommand = function(self)
+                    setUpdateRequired()
+                    self:visible(updateRequired)
+                    self:settextf("- %s (%s)", translations["UpdateAvailable"], DLMAN:GetLastVersion())
+                end,
+            },
+            UIElements.SpriteButton(100, 1, THEME:GetPathG("", "updatedownload")) .. {
+                Name = "VersionUpdateDownload",
+                OnCommand = function(self) -- happens third
+                    self:halign(0):valign(0)
+                    local vuc = self:GetParent():GetChild("VersionUpdate")
+                    local bufferspace = 5 / 1920 * SCREEN_WIDTH
+                    self:xy(vuc:GetX() + vuc:GetZoomedWidth() + bufferspace, versionNumberUpperGap)
+                    self:zoomto(updateDownloadIconSize, updateDownloadIconSize)
+                    self:diffuse(COLORS:getTitleColor("UpdateText"))
+                    self:diffusealpha(1)
+                    self:visible(false)
+
+                    if updateRequired then
+                        self:visible(true)
+                    end
+                end,
+                MouseOutCommand = hoverfunc,
+                MouseOverCommand = hoverfunc,
+                MouseDownCommand = clickDownload,
+            },
+
+            LoadFont("Menu Normal") .. {
+                Name = "ThemeVersionAndCredits",
+                InitCommand = function(self)
+                    self:halign(0):valign(0)
+                    self:xy(versionNumberLeftGap, themeVersionUpperGap)
+                    self:maxwidth((gradientwidth - versionNumberLeftGap - logoFrameLeftGap - separatorthickness) / versionTextSizeSmall)
+                    self:zoom(versionTextSizeSmall)
+                    self:settext("("..getThemeName().." v"..getThemeVersion().."@"..getThemeDate().." " .. translations["By"] .. " "..getThemeAuthor()..")")
+                    self:diffuse(COLORS:getTitleColor("SecondaryText"))
+                    self:diffusealpha(1)
+                end
+            }
         }
-    }
+    },
+    Def.ActorFrame {
+        Name = "VisualizerOwner",
+        InitCommand = function(self)
+            -- basically this sits dormant for a while and then activates
+            self:sleep(visualizer_wait_time):queuecommand("Fart")
+        end,
+        FartCommand = function(self)
+            local viz = self:AddChild(audioVisualizer:new {
+                x = 0,
+                y = SCREEN_HEIGHT + 1,
+                width = gradientwidth,
+                maxHeight = visualizer_height * 2,
+                barcount = 288,
+                color = color("1,1,1,1"),
+                binfunc = "PERCEPTION",
+                onBarUpdate = function(self)
+                    -- hmm
+                end
+            } .. {
+                BeginCommand = function(self)
+                    registerActorToColorConfigElement(self, "main", "Visualizer")
+                    self:diffusealpha(0)
+                    self:playcommand("ResetVisualizer")
+                end,
+            })
+            viz:playcommand("Begin"):smooth(visualizer_fadein_time):diffusealpha(1)
+        end,
+    },
 }
 
 
