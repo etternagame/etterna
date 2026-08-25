@@ -255,6 +255,9 @@ t[#t+1] = Def.ActorFrame {
             InitCommand = function(self)
             end,
             BeginCommand = function(self)
+                self:queuecommand("lazy")
+            end,
+            lazyCommand = function(self)
                 self:sleep(visualizer_wait_time):smooth(visualizer_fadein_time):addy(-visualizer_height)
             end,
 
@@ -335,6 +338,9 @@ t[#t+1] = Def.ActorFrame {
         Name = "VisualizerOwner",
         InitCommand = function(self)
             -- basically this sits dormant for a while and then activates
+            self:queuecommand("lazy")
+        end,
+        lazyCommand = function(self)
             self:sleep(visualizer_wait_time):queuecommand("Fart")
         end,
         FartCommand = function(self)
