@@ -511,7 +511,7 @@ jobs:
 
       - name: Install openSSL (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
-        run: choco install openssl -y
+        run: msiexec /i https://slproweb.com/download/Win64OpenSSL-4_0_2.msi /quiet
       
       #TODO: Also print Python install logs, more?
       - name: Print Install Failures (if present)
