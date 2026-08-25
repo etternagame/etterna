@@ -4,17 +4,17 @@
 #include "Etterna/Models/Misc/NoteTypes.h"
 
 // contains only tap offset data for rescoring/plots
-const std::string BASIC_REPLAY_DIR = "Save/Replays/";
+const std::string BASIC_REPLAY_DIR = "/Save/Replays/";
 
 // contains freeze drops and mine hits as well as tap
 // offsets; fully "rewatchable"
-const std::string FULL_REPLAY_DIR = "Save/ReplaysV2/";
+const std::string FULL_REPLAY_DIR = "/Save/ReplaysV2/";
 
 // contains input data files corresponding to replays
-const std::string INPUT_DATA_DIR = "Save/InputData/";
+const std::string INPUT_DATA_DIR = "/Save/InputData/";
 
 // contains replays to be imported from online
-const std::string ONLINE_DATA_DIR = "Save/OnlineReplays/";
+const std::string ONLINE_DATA_DIR = "/Save/OnlineReplays/";
 
 const std::string NO_MODS = "none";
 

@@ -72,6 +72,17 @@ RetriedRemove(const std::string& path)
 	}
 }
 
+inline static std::string
+getRealFSPath(const std::string& path) {
+	auto resolvedPath = FILEMAN->ResolvePath(path);
+	// on windows, remove the beginning / to give an absolute path
+#ifdef _WIN32
+	if (resolvedPath.length() > 0)
+		resolvedPath.erase(0, 1);
+#endif
+	return resolvedPath;
+}
+
 Replay::Replay() {
 
 }
@@ -360,8 +371,8 @@ Replay::WriteReplayData()
 
 	const auto path = FULL_REPLAY_DIR + scoreKey;
 
-	std::ofstream fileStream(path, std::ios::binary);
-	if (!fileStream) {
+	RageFile fileStream;
+	if (!fileStream.Open(path, RageFile::WRITE)) {
 		Locator::getLogger()->warn("Failed to create replay file at {}", path);
 		return false;
 	}
@@ -380,7 +391,7 @@ Replay::WriteReplayData()
 						? " " + std::to_string(vTapNoteTypeVector.at(i))
 						: "") +
 					 "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 		// output:
 		// H n n	- noterow, column
@@ -393,15 +404,16 @@ Replay::WriteReplayData()
 						? " " + std::to_string(hold.subType)
 						: "") +
 					 "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
-		fileStream.close();
+		fileStream.Flush();
+		fileStream.Close();
 	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
 		  "Failed to write replay data at {} due to exception: {}",
 		  path,
 		  e.what());
-		fileStream.close();
+		fileStream.Close();
 		return false;
 	}
 
@@ -429,8 +441,9 @@ Replay::WriteInputData()
 	const auto path = INPUT_DATA_DIR + scoreKey;
 	const auto path_z = path + "z";
 
-	std::ofstream fileStream(path, std::ios::binary);
-	if (!fileStream) {
+	RageFile fileStream;
+
+	if (!fileStream.Open(path, RageFile::WRITE)) {
 		Locator::getLogger()->warn("Failed to create input data file at {}",
 								   path);
 		return false;
@@ -448,7 +461,7 @@ Replay::WriteInputData()
 		  std::to_string(fSongOffset) + " " + std::to_string(fGlobalOffset) +
 		  " " + modStr + " " + std::to_string(rngSeed) + " " +
 		  std::to_string(INPUT_DATA_VERSION) + "\n";
-		fileStream.write(headerLine1.c_str(), headerLine1.size());
+		fileStream.Write(headerLine1.c_str(), headerLine1.size());
 
 		// input data:
 		// column press/lift time nearest_tap tap_offset
@@ -462,7 +475,7 @@ Replay::WriteInputData()
 					 std::to_string(data.offsetFromNearest) + " " +
 					 std::to_string(data.nearestTapNoteType) + " " +
 					 std::to_string(data.nearestTapNoteSubType) + "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
 		// dropped hold data:
@@ -476,7 +489,7 @@ Replay::WriteInputData()
 						? " " + std::to_string(hold.subType)
 						: "") +
 					 "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
 		// hit mine data:
@@ -484,7 +497,7 @@ Replay::WriteInputData()
 		for (auto& mine : vMineReplayDataVector) {
 			append = "M " + std::to_string(mine.row) + " " +
 					 std::to_string(mine.track) + "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
 		// miss data:
@@ -494,20 +507,23 @@ Replay::WriteInputData()
 					 std::to_string(miss.row) + " " +
 					 std::to_string(miss.tapNoteType) + " " +
 					 std::to_string(miss.tapNoteSubType) + "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
-		fileStream.close();
+		fileStream.Flush();
+		fileStream.Close();
+		const auto real_fs_path = getRealFSPath(path);
+		const auto real_fs_pathz = getRealFSPath(path_z);
 
 		/// compression
-		FILE* infile = fopen(path.c_str(), "rb");
+		FILE* infile = fopen(real_fs_path.c_str(), "rb");
 		if (infile == nullptr) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
 									   path);
 			return false;
 		}
-		gzFile outfile = gzopen(path_z.c_str(), "wb");
+		gzFile outfile = gzopen(real_fs_pathz.c_str(), "wb");
 		if (outfile == Z_NULL) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
@@ -542,7 +558,7 @@ Replay::WriteInputData()
 		  "Failed to write input data at {} due to exception: {}",
 		  path,
 		  e.what());
-		fileStream.close();
+		fileStream.Close();
 		return false;
 	}
 
@@ -619,9 +635,12 @@ Replay::LoadInputData(const std::string& replayDir)
 		}
 	};
 
+	const auto real_fs_path = getRealFSPath(path);
+	const auto real_fs_pathz = getRealFSPath(path_z);
+
 	// human readable compression read-in
 	try {
-		gzFile infile = gzopen(path_z.c_str(), "rb");
+		gzFile infile = gzopen(real_fs_pathz.c_str(), "rb");
 		if (infile == Z_NULL) {
 			Locator::getLogger()->warn(
 			  "Failed to load input data at {} (probably doesnt exist)",
@@ -630,7 +649,7 @@ Replay::LoadInputData(const std::string& replayDir)
 		}
 
 		// hope nothing already exists here
-		FILE* outfile = fopen(path.c_str(), "wb");
+		FILE* outfile = fopen(real_fs_path.c_str(), "wb");
 		if (outfile == nullptr) {
 			Locator::getLogger()->warn(
 			  "Failed to create tmp output file for input data at {}", path);
@@ -646,7 +665,7 @@ Replay::LoadInputData(const std::string& replayDir)
 		gzclose(infile);
 		fclose(outfile);
 
-		std::ifstream inputStream(path, std::ios::binary);
+		std::ifstream inputStream(real_fs_path, std::ios::binary);
 		if (!inputStream) {
 			Locator::getLogger()->debug(
 			  "Failed to load input data at {} (can't read tmp file?)", path);
@@ -842,8 +861,9 @@ Replay::LoadReplayDataBasic(const std::string& replayDir)
 	std::vector<int> vNoteRowVector;
 	std::vector<float> vOffsetVector;
 	const auto path = replayDir + scoreKey;
+	const auto real_fs_path = getRealFSPath(path);
 
-	std::ifstream fileStream(path, std::ios::binary);
+	std::ifstream fileStream(real_fs_path, std::ios::binary);
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
@@ -932,8 +952,9 @@ Replay::LoadReplayDataFull(const std::string& replayDir)
 	std::vector<TapNoteType> vTapNoteTypeVector;
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
 	const auto path = replayDir + scoreKey;
+	const auto real_fs_path = getRealFSPath(path);
 
-	std::ifstream fileStream(path, std::ios::binary);
+	std::ifstream fileStream(real_fs_path, std::ios::binary);
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
@@ -1065,8 +1086,9 @@ Replay::LoadOnlineDataFromDisk(const std::string& replayDir)
 	std::vector<int> rows;
 	std::vector<TapNoteType> types;
 	const auto path = replayDir + scoreKey;
+	const auto real_fs_path = getRealFSPath(path);
 
-	std::ifstream fileStream(path, std::ios::binary);
+	std::ifstream fileStream(real_fs_path, std::ios::binary);
 
 	// check file
 	if (!fileStream) {
