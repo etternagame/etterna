@@ -1,6 +1,11 @@
 #ifndef RENDERER_VULKAN_H
 #define RENDERER_VULKAN_H
 
+#define VK_NO_PROTOTYPES
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+
 #include "RageUtil/Graphics/Display/Renderer.h"
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "Core/Services/Locator.hpp"
