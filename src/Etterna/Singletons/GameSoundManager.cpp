@@ -174,11 +174,11 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		Song song;
 		SSCLoader loaderSSC;
 		SMLoader loaderSM;
-		if (GetExtension(ToPlay.m_sTimingFile) == ".ssc" &&
+		if (GetExtension(ToPlay.m_sTimingFile) == "ssc" &&
 			loaderSSC.LoadFromSimfile(ToPlay.m_sTimingFile, song)) {
 			ToPlay.HasTiming = true;
 			ToPlay.m_TimingData = song.m_SongTiming;
-		} else if (GetExtension(ToPlay.m_sTimingFile) == ".sm" &&
+		} else if (GetExtension(ToPlay.m_sTimingFile) == "sm" &&
 				   loaderSM.LoadFromSimfile(ToPlay.m_sTimingFile, song)) {
 			ToPlay.HasTiming = true;
 			ToPlay.m_TimingData = song.m_SongTiming;
