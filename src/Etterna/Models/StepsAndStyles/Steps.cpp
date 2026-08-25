@@ -1050,32 +1050,69 @@ class LunaSteps : public Luna<Steps>
 		auto nd = p->GetNoteData();
 		auto loot = nd.BuildAndGetNerv(p->GetTimingData());
 
-		LuaHelpers::CreateTableFromArray(
-		  loot, L); // row (we need timestamps technically)
+		// row (we need timestamps technically)
+		LuaHelpers::CreateTableFromArray(loot, L);
 		lua_rawseti(L, -2, 1);
 
-		for (auto i = 0; i < nd.GetNumTracks(); ++i) { // tap or not
+		// output:
+		// { [column] = { [rownum] = tap, ... }, [column2] = { ... }, ... }
+		// in other words, t[col][row] = tap type
+		for (auto i = 0; i < nd.GetNumTracks(); ++i) {
 			std::vector<int> doot;
-			for (auto r : loot) {
-				const auto tn = nd.GetTapNote(i, r);
+			for (auto& r : loot) {
+				const auto& tn = nd.GetTapNote(i, r);
 				if (tn.type == TapNoteType_Empty) {
 					doot.push_back(0);
 				} else if (tn.type == TapNoteType_Tap) {
 					doot.push_back(1);
+				} else if (tn.type == TapNoteType_HoldHead) {
+					doot.push_back(2);
+				} else if (tn.type == TapNoteType_Mine) {
+					doot.push_back(4);
+				} else if (tn.type == TapNoteType_Fake) {
+					doot.push_back(5);
+				} else {
+					// ????
+					// just to make sure the output is square
+					doot.push_back(-1);
 				}
 			}
 			LuaHelpers::CreateTableFromArray(doot, L);
 			lua_rawseti(L, -2, i + 2);
 		}
 
-		std::vector<int> doot;
-		for (auto r : loot) {
-			doot.push_back(static_cast<int>(GetNoteType(r)) + 1); // note denom
-			LuaHelpers::CreateTableFromArray(doot, L);
-			lua_rawseti(L, -2, 6);
+		nd.UnsetNerv();
+		return 1;
+	}
+	static auto GetETANER(T* p, lua_State* L) -> int
+	{
+		auto nd = p->GetNoteData();
+		auto& nerv = nd.BuildAndGetNerv(p->GetTimingData());
+		auto etaner = p->GetTimingData()->BuildAndGetEtaner(nerv);
+
+		lua_newtable(L);
+
+		// nerv and etaner should be the same size
+		// if not, just give up but basically
+		// it isnt important, no bpm or 1 bpm or no notedata
+		if (nerv.size() != etaner.size()) {
+			return 1;
 		}
 
-		nd.UnsetNerv();
+		// output: [n] = {row = r, time = t}
+		// in other words, array of rows and timestamps
+		for (size_t i = 0; i < nerv.size(); i++) {
+			lua_createtable(L, 0, 2);
+
+			lua_pushnumber(L, nerv.at(i));
+			lua_setfield(L, -2, "row");
+
+			lua_pushnumber(L, etaner.at(i));
+			lua_setfield(L, -2, "time");
+
+			lua_rawseti(L, -2, i + 1);
+		}
+
 		return 1;
 	}
 	static auto GetCDGraphVectors(T* p, lua_State* L) -> int
@@ -1382,7 +1419,6 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetRelevantRadars);
 		ADD_METHOD(GetTimingData);
 		ADD_METHOD(GetChartName);
-		// ADD_METHOD( GetSMNoteData );
 		ADD_METHOD(GetStepsType);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetMSD);
@@ -1397,6 +1433,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
+		ADD_METHOD(GetETANER);
 		ADD_METHOD(GetCalcDebugJack);
 		ADD_METHOD(GetCalcDebugExt);
 		ADD_METHOD(GetCalcDebugOutput);
