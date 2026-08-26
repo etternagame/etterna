@@ -47,6 +47,9 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 	end,
 	OnCommand=function(self)
 		self:settext("Etterna")
+		self:queuecommand("lazy")
+	end,
+	lazyCommand = function(self)
 		if SOUND:GetMusicPath() ~= "" then
 			self:playcommand("PlayingMusic", {file = SOUND:GetMusicPath()})
 		end
