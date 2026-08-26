@@ -139,7 +139,7 @@ if(WITH_VULKAN)
 
     find_package(Vulkan REQUIRED COMPONENTS shaderc_combined)
     target_link_libraries(Etterna PRIVATE
-        Vulkan::Vulkan
+        Vulkan::Headers
         Vulkan::shaderc_combined)
 
     if(WITH_VULKAN_LINUX_EXTRAS AND UNIX AND NOT APPLE)

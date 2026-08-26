@@ -29,6 +29,8 @@
 #endif
 #include <RageUtil/Graphics/Display/Display.h>
 
+VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
+
 constexpr uint64_t Timeout = 2000'000'000;
 
 RendererVK::RendererVK()
@@ -448,10 +450,7 @@ RendererVK::CreateScreenshot()
 	ThrowIfFail(m_Device.waitForFences({ fence }, VK_TRUE, Timeout));
 
 	VkImageSubresource subresource{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 };
-	VkSubresourceLayout subresourceLayout = {};
-
-	vkGetImageSubresourceLayout(
-	  (vk::Device)m_Device, destImageRaw, &subresource, &subresourceLayout);
+	VkSubresourceLayout subresourceLayout = (*m_Device).getImageSubresourceLayout(destImageRaw, subresource);
 
 	uint8_t* data = static_cast<uint8_t*>(destAllocInfo.pMappedData) +
 					subresourceLayout.offset;
@@ -640,6 +639,8 @@ VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 void
 RendererVK::InitVulkanState()
 {
+	VULKAN_HPP_DEFAULT_DISPATCHER.init();
+
 	auto instanceResult = CreateInstance(VulkanDebugCallback);
 	if (!instanceResult) {
 		Locator::getLogger()->fatal("RendererVK: instance creation failed - {}",
@@ -648,6 +649,8 @@ RendererVK::InitVulkanState()
 	}
 
 	m_Instance = vk::raii::Instance(m_Context, instanceResult->instance);
+
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_Instance);
 
 	if (DISPLAY->DisplayDebugModeEnabled()) {
 		m_DebugMessenger = vk::raii::DebugUtilsMessengerEXT(
@@ -718,6 +721,8 @@ RendererVK::InitVulkanState()
 	  m_Instance, physicalDeviceResult->physical_device);
 	m_Device = vk::raii::Device(m_PhysicalDevice, deviceResult->device);
 
+	VULKAN_HPP_DEFAULT_DISPATCHER.init(*m_Device);
+
 	Locator::getLogger()->info("RendererVK: selected GPU: {}",
 							   physicalDeviceResult->name);
 
@@ -731,12 +736,20 @@ RendererVK::InitVulkanState()
 	m_PresentQueueFamily =
 	  deviceResult->get_queue_index(vkb::QueueType::present).value();
 
+	VmaVulkanFunctions vulkanFunctions{};
+	vulkanFunctions.vkGetInstanceProcAddr =
+	  VULKAN_HPP_DEFAULT_DISPATCHER.vkGetInstanceProcAddr;
+	vulkanFunctions.vkGetDeviceProcAddr =
+	  VULKAN_HPP_DEFAULT_DISPATCHER.vkGetDeviceProcAddr;
+
 	VmaAllocatorCreateInfo allocatorInfo = {};
 	allocatorInfo.physicalDevice =
 	  static_cast<vk::PhysicalDevice>(m_PhysicalDevice);
 	allocatorInfo.device = static_cast<vk::Device>(m_Device);
 	allocatorInfo.instance = static_cast<vk::Instance>(m_Instance);
 	allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
+	allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 
 	ThrowIfFail(vmaCreateAllocator(&allocatorInfo, &m_Allocator));
 
@@ -1915,7 +1928,7 @@ RendererVK::DestroyTexture(Texture& texture)
 		vmaDestroyImage(m_Allocator, texture.image, texture.allocation);
 	}
 	if (texture.view) {
-		vkDestroyImageView(*m_Device, texture.view, nullptr);
+		(*m_Device).destroyImageView(texture.view);
 	}
 
 	texture = {};
