@@ -1811,7 +1811,7 @@ ETTProtocol::ReportV2Data(int col, int row, float offset, int tapNoteType)
 	doc.AddMember("payload", payload, allocator);
 
 
-	completeAndSend(doc);
+	//completeAndSend(doc);
 }
 
 void
