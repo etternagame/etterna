@@ -25,7 +25,6 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_closeeval, "closeeval" },
 	{ ettpc_logout, "logout" },
 	{ ettpc_hello, "hello" },
-	{ ettpc_gameplay_judgment, "gameplay_judgment" },
 	{ ettpc_replay_input, "replay_input" },
 	{ ettpc_replay_holddrop, "replay_holddrop" },
 	{ ettpc_replay_miss, "replay_miss" },
@@ -51,8 +50,9 @@ std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {
 	{ "updateroom", ettps_updateroom },
 	{ "userlist", ettps_roomuserlist },
 	{ "chartrequest", ettps_chartrequest },
+	{ "packlist", ettps_roompacklist },
 	{ "gameplay_replay_update", ettps_gameplay_replay_update },
-	{ "packlist", ettps_roompacklist }
+	{ "spectating_update", ettps_spectating_update }
 };
 
 }

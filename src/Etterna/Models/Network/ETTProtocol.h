@@ -143,6 +143,7 @@ private:
 	void handleRoomPacklist(rapidjson::Value& payload);
 	void handleRoomUserlist(rapidjson::Value& payload);
 	void handleGameplayReplayUpdate(rapidjson::Value& payload);
+	void handleSpectatingUpdate(rapidjson::Value& payload);
 
 	void FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch);
 

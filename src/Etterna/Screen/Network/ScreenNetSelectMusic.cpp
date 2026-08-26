@@ -117,8 +117,7 @@ SelectSongUsingNSMAN(ScreenNetSelectMusic* s, bool start)
 		msg.SetParam("steps", NSMAN->steps);
 		MESSAGEMAN->Broadcast(msg);
 		if (start) {
-			if (NSMAN->spectating) {
-				REPLAYS->ResetActiveReplaySettings();
+			if (NSMAN->spectating && !NSMAN->spectatingWho.empty()) {
 				std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 				GAMESTATE->m_gameplayMode.Set(GameplayMode_Spectate);
 			}

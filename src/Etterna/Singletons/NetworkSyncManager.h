@@ -145,6 +145,7 @@ class NetworkSyncManager
 
 	void Update(float fDeltaTime);
 
+	bool need_to_disconnect = false;
 	bool useSMserver;
 	bool isSMOnline;
 	bool loggedIn;
@@ -207,6 +208,7 @@ class NetworkSyncManager
 	std::vector<ChartRequest*> staleRequests;
 
 	bool spectating = false;
+	std::string spectatingWho{};
 
 	// Lua
 	void PushSelf(lua_State* L);

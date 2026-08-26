@@ -25,6 +25,7 @@ enum ETTServerMessageTypes
 	ettps_chartrequest,
 	ettps_roompacklist,
 	ettps_gameplay_replay_update,
+	ettps_spectating_update,
 	ettps_end
 };
 
@@ -51,7 +52,6 @@ enum ETTClientMessageTypes
 	ettpc_closeeval,
 	ettpc_logout,
 	ettpc_hello,
-	ettpc_gameplay_judgment,
 	ettpc_replay_input,
 	ettpc_replay_miss,
 	ettpc_replay_holddrop,

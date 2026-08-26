@@ -468,9 +468,17 @@ ETTProtocol::LaunchPollingThread()
 						// almost always means nothing to us
 						// just move on so that the lock can be released
 					} else if (result != CURLE_OK) {
+						// a lot of these mean that connection is lost
+						// so kill it
 						Locator::getLogger()->error(
-						  "CURL request from ETTP failed: {}",
+						  "CURL request from ETTP failed (FORCING A "
+						  "DISCONNECT!): {}",
 						  curl_easy_strerror(result));
+						stopPolling = true;
+						NSMAN->need_to_disconnect = true;
+						SCREENMAN->SystemMessage(
+						  "Disconnecting due to network error.");
+						break;
 					} else {
 						buffer[rlen] = '\0';
 						message += buffer.data();
@@ -680,6 +688,11 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 				case ettps_gameplay_replay_update: {
 					auto& payload = d["payload"];
 					handleGameplayReplayUpdate(payload);
+
+				} break;
+				case ettps_spectating_update: {
+					auto& payload = d["payload"];
+					handleSpectatingUpdate(payload);
 
 				} break;
 				case ettps_end:
@@ -1312,6 +1325,53 @@ ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
 }
 
 void
+ETTProtocol::handleSpectatingUpdate(rapidjson::Value& payload)
+{
+
+	if (!payload.HasMember("state") || !payload["state"].IsBool()) {
+		// required
+		return;
+	}
+
+	if (!payload.HasMember("who") || !payload["who"].IsString()) {
+		// required
+		return;
+	}
+
+	auto isSpectating = payload["state"].GetBool();
+	std::string whom = payload["who"].GetString();
+
+	// not much we can do with this without knowing that it is yourself
+
+	if (NSMAN->loggedInUsername == whom) {
+		Locator::getLogger()->info(
+		  "We got notice that you are now spectating=={} from the server",
+		  isSpectating);
+
+		if (payload.HasMember("spectatingWho") &&
+			payload["spectatingWho"].IsString()) {
+			std::string recipient = payload["spectatingWho"].GetString();
+
+			
+			if (isSpectating) {
+				Locator::getLogger()->info("You are spectating player '{}'",
+										   recipient);
+				NSMAN->spectatingWho = recipient;
+			}
+		}
+
+		NSMAN->spectating = isSpectating;
+		MESSAGEMAN->Broadcast("SpectatingUpdate");
+	}
+	else {
+		Locator::getLogger()->info(
+		  "We got notice that {} is now spectating set to {} but didn't care",
+		  whom,
+		  isSpectating);
+	}
+}
+
+void
 ETTProtocol::Logout()
 {
 	auto doc = newMsg(ettpc_logout);
@@ -1493,12 +1553,25 @@ ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
 		  "valid", static_cast<int>(hs->GetEtternaValid()), allocator);
 		addStringMember(payload, "mods", hs->GetModifiers(), allocator);
 
-		payload.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
-		payload.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
-		payload.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
-		payload.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
-		payload.AddMember("perfect", hs->GetTapNoteScore(TNS_W2), allocator);
-		payload.AddMember("marv", hs->GetTapNoteScore(TNS_W1), allocator);
+		if (hs->IsEmptyNormalized()) {
+			payload.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
+			payload.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
+			payload.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
+			payload.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
+			payload.AddMember(
+			  "perfect", hs->GetTapNoteScore(TNS_W2), allocator);
+			payload.AddMember("marv", hs->GetTapNoteScore(TNS_W1), allocator);
+		}
+		else {
+			payload.AddMember(
+			  "miss", hs->GetTNSNormalized(TNS_Miss), allocator);
+			payload.AddMember("bad", hs->GetTNSNormalized(TNS_W5), allocator);
+			payload.AddMember("good", hs->GetTNSNormalized(TNS_W4), allocator);
+			payload.AddMember("great", hs->GetTNSNormalized(TNS_W3), allocator);
+			payload.AddMember(
+			  "perfect", hs->GetTNSNormalized(TNS_W2), allocator);
+			payload.AddMember("marv", hs->GetTNSNormalized(TNS_W1), allocator);
+		}
 
 		payload.AddMember("score", hs->GetSSRNormPercent(), allocator);
 		payload.AddMember("wifever", hs->GetWifeVersion(), allocator);

@@ -108,6 +108,7 @@ NetworkSyncManager::CloseConnection()
 	if (!useSMserver)
 		return;
 	m_sChatText = "";
+	need_to_disconnect = false;
 	useSMserver = false;
 	isSMOnline = false;
 	loggedIn = false;
@@ -322,8 +323,13 @@ NetworkSyncManager::DisplayStartupStatus() const
 void
 NetworkSyncManager::Update(float fDeltaTime)
 {
-	if (curProtocol != nullptr)
-		curProtocol->Update(this, fDeltaTime);
+	if (curProtocol != nullptr) {
+		if (need_to_disconnect) {
+			CloseConnection();
+		} else {
+			curProtocol->Update(this, fDeltaTime);
+		}
+	}
 }
 
 void
@@ -561,12 +567,6 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 		}
 		return 1;
 	}
-	static int Spectate(T* p, lua_State* L)
-	{
-		NSMAN->spectating = true;
-		NSMAN->SendChat("/spec", "spectest", 1);
-		return 0;
-	}
 	LunaNetworkSyncManager()
 	{
 		ADD_METHOD(GetEvalScores);
@@ -580,7 +580,6 @@ class LunaNetworkSyncManager : public Luna<NetworkSyncManager>
 		ADD_METHOD(GetCurrentRoomName);
 		ADD_METHOD(GetLobbyUserList);
 		ADD_METHOD(GetLoggedInUsername);
-		ADD_METHOD(Spectate);
 	}
 };
 
