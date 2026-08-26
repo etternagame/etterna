@@ -1215,9 +1215,6 @@ PlayerOptions::GetInvalidatingModifiers() const
 {
 	std::vector<std::string> AddTo;
 
-	if (m_bForceHoldReleases)
-		AddTo.push_back("HoldReleases");
-
 	if (m_bTurns[TURN_BACKWARDS])
 		AddTo.push_back("Backwards");
 	if (m_bTurns[TURN_LEFT])
