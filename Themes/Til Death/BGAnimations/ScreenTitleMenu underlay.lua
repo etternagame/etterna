@@ -65,7 +65,7 @@ t[#t + 1] = UIElements.TextToolTip(1, 1, "Common Large") .. {
 			self:effectclock("beat")
 			self:heartbeat()
 			if playingMusicCounter == 1 then
-				self:diffusealpha(0):sleep(2):smooth(3):diffusealpha(1)
+				self:diffusealpha(0):smooth(2):diffusealpha(1)
 			end
 		else
 			self:diffusealpha(1)
