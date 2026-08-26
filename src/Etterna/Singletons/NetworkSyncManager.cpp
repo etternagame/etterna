@@ -138,11 +138,19 @@ NetworkSyncManager::PostStartUp(const std::string& ServerIP)
 	m_startupStatus = NSMANStartupStatus::NOT_SUCCESSFUL;
 
 	size_t cLoc = ServerIP.find(':');
-	if (ServerIP.find(':') != std::string::npos) {
-		sAddress = ServerIP.substr(0, cLoc);
+
+	auto tmp = ServerIP;
+	if (ServerIP.starts_with("wss://")) {
+		tmp = ServerIP.substr(6);
+	} else if (ServerIP.starts_with("ws://")) {
+		tmp = ServerIP.substr(5);
+	}
+
+	if (tmp.find(':') != std::string::npos) {
+		sAddress = tmp.substr(0, cLoc);
 		char* cEnd;
 		errno = 0;
-		auto sub = ServerIP.substr(cLoc + 1);
+		auto sub = tmp.substr(cLoc + 1);
 		iPort = static_cast<unsigned short>(strtol(sub.c_str(), &cEnd, 10));
 		if (*cEnd != 0 || errno != 0) {
 			Locator::getLogger()->warn("Invalid port {}", sub);

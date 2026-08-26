@@ -213,11 +213,12 @@ ETTProtocol::Connect(NetworkSyncManager* n,
 			throw std::runtime_error("failed to initialize curl");
 		}
 
-		std::string url =
-		  fmt::format("{}{}:{}",
-					  starts_with("wss://", address) ? "" : "ws://",
-					  address,
-					  port);
+		std::string url = fmt::format("{}{}:{}",
+									  address.starts_with("wss://")	  ? ""
+									  : address.starts_with("ws://") ? ""
+																	  : "ws://",
+									  address,
+									  port);
 		auto res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 		if (res != CURLE_OK) {
 			throw std::runtime_error(
