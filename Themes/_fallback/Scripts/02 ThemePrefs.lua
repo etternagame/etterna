@@ -240,6 +240,33 @@ function JudgeDifficulty()
 	return t
 end
 
+function DiscordRPC()
+	local t = {
+		Name = "DiscordRPC",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+        ExportOnCancel = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = PREFSMAN:GetPreference("EnableDiscord")
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			PREFSMAN:SetPreference("EnableDiscord", value)
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function RateList()
     local ratelist = {}
     do

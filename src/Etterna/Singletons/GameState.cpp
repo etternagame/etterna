@@ -52,6 +52,7 @@ static const auto discord_appid = 378543094531883009;
 static auto discord_thread_running = false;
 std::unique_ptr<std::thread> discord_thread;
 static std::mutex discord_mut;
+static Preference<bool> DISCORD_ENABLED("EnableDiscord", true);
 
 static std::vector<discordpp::Activity> rpc_queue{};
 
@@ -63,6 +64,11 @@ static void discordRpcQueue(discordpp::Activity activity) {
 static void discord_thread_work() {
 
 	while (discord_thread_running) {
+
+		if (!DISCORD_ENABLED) {
+			discord_thread_running = false;
+			return;
+		}
 
 		std::vector<discordpp::Activity> copied_rpc_activity{};
 		{
@@ -1338,6 +1344,12 @@ void
 GameState::discordInit()
 {
 #ifdef SUPPORT_DISCORD_SDK
+
+	if (!DISCORD_ENABLED) {
+		discord_thread_running = false;
+		return;
+	}
+
 	if (DISCORD != nullptr) {
 		Locator::getLogger()->warn("Tried to initialize Discord twice. Skipped");
 		return;
