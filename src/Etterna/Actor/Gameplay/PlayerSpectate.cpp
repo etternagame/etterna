@@ -3,6 +3,7 @@
 #include "ArrowEffects.h"
 #include "NoteField.h"
 #include "Etterna/Models/Misc/Game.h"
+#include "Etterna/Models/Misc/GamePreferences.h"
 #include "Etterna/Models/StepsAndStyles/Style.h"
 #include "Etterna/Models/NoteData/NoteDataWithScoring.h"
 #include "Etterna/Models/ScoreKeepers/ScoreKeeperNormal.h"
@@ -38,6 +39,11 @@ PlayerSpectate::PlayerSpectate(NoteData& nd, bool bVisibleParts)
 {
 	SubscribeToMessage(Message_SpectatorHoldUpdate);
 	SubscribeToMessage(Message_SpectatorInputUpdate);
+	SubscribeToMessage(Message_SpectatorMineUpdate);
+	//SubscribeToMessage(Message_SpectatorV2Update);
+
+	GamePreferences::m_AutoPlay.Set(PC_SPECTATE);
+	GAMESTATE->m_pPlayerState->m_PlayerController = PC_SPECTATE;
 }
 
 PlayerSpectate::~PlayerSpectate()
@@ -83,25 +89,26 @@ PlayerSpectate::Load()
 	const auto iSongRow = BeatToNoteRow(fSongBeat);
 
 	if (!NSMAN->spectating) {
-		// this replay will always be real or a dummy replay
-		auto replay = REPLAYS->InitReplayPlaybackForScore(
-		  REPLAYS->GetActiveReplayScore(), GetTimingWindowScale());
-		SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
-		SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+		//
 	} else {
 		// the replay should be set by now
-		auto replay = REPLAYS->GetActiveReplay();
-		SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
-		SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+		auto replay = REPLAYS->GetSpectateReplay(NSMAN->spectatingWho);
+		if (replay != nullptr) {
+			SetPlaybackEvents(replay->GeneratePlaybackEvents(iSongRow));
+			SetDroppedHolds(
+			  replay->GenerateDroppedHoldColumnsToRowsMap(iSongRow));
+		}
 	}
 }
 
 void
 PlayerSpectate::UpdateLoadedReplay(int startRow)
 {
-	auto replay = REPLAYS->GetActiveReplay();
-	SetPlaybackEvents(replay->GeneratePlaybackEvents(startRow));
-	SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(startRow));
+	auto replay = REPLAYS->GetSpectateReplay(NSMAN->spectatingWho);
+	if (replay != nullptr) {
+		SetPlaybackEvents(replay->GeneratePlaybackEvents(startRow));
+		SetDroppedHolds(replay->GenerateDroppedHoldColumnsToRowsMap(startRow));
+	}
 }
 
 void
@@ -309,7 +316,12 @@ PlayerSpectate::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v,
 	std::vector<PlaybackEvent> ghostTaps{};
 	auto gapError = 0.F;
 
-	auto musicRate = REPLAYS->GetActiveReplay()->GetMusicRate();
+	auto* replay = REPLAYS->GetSpectateReplay(NSMAN->spectatingWho);
+	if (replay == nullptr) {
+		return;
+	}
+
+	auto musicRate = replay->GetMusicRate();
 
 	for (auto& p : v) {
 		auto noterow = p.first;
@@ -387,36 +399,12 @@ PlayerSpectate::CheckForSteps(const std::chrono::steady_clock::time_point& tm)
 
 	// execute all the events
 	for (const auto& evt : evts) {
+		// skipping these for now
+		// because button state orders are wrong
 		if (evt.isPress) {
-			if (holdingColumns.contains(evt.track)) {
-				// it wont break the game, but we should track dupe presses
-				Locator::getLogger()->warn(
-				  "Please report an issue with this replay: {} - press {}, row "
-				  "{}, judgerow {}, time {}, col {}",
-				  REPLAYS->GetActiveReplay()->GetScoreKey(),
-				  evt.isPress,
-				  evt.noterow,
-				  evt.noterowJudged,
-				  evt.songPositionSeconds,
-				  evt.track);
-			}
-
-			holdingColumns.insert(evt.track);
+			//holdingColumns.insert(evt.track);
 		} else {
-			if (!holdingColumns.contains(evt.track)) {
-				// it wont break the game, but we should track dupe releases
-				Locator::getLogger()->warn(
-				  "Please report an issue with this replay: {} - press {}, row "
-				  "{}, judgerow {}, time {}, col {}",
-				  REPLAYS->GetActiveReplay()->GetScoreKey(),
-				  evt.isPress,
-				  evt.noterow,
-				  evt.noterowJudged,
-				  evt.songPositionSeconds,
-				  evt.track);
-			}
-
-			holdingColumns.erase(evt.track);
+			//holdingColumns.erase(evt.track);
 		}
 		Step(evt.track,
 			 evt.noterow,
@@ -475,17 +463,19 @@ PlayerSpectate::CrossedRows(int iLastRowCrossed,
 				break;
 			}
 			case TapNoteType_Mine: {
+				/*
+				* ignore hitting mines due to
+				* weird message sequencing thing causing
+				* hold states to be bad
 				if (holdingColumns.count(iTrack))
 					Step(iTrack, iRow, now, true, false, 0.F, iRow);
+				*/
 				break;
 			}
 			default:
 				break;
 		}
 
-		// TODO: Can we remove the iLastSeenRow logic and the
-		// autokeysound for loop, since the iterator in this loop will
-		// already be iterating over all of the tracks?
 		if (iRow != iLastSeenRow) {
 			// crossed a new not-empty row
 			iLastSeenRow = iRow;
@@ -531,6 +521,25 @@ PlayerSpectate::HandleMessage(const Message& msg)
 					}
 				}
 			}
+		}
+	} else if (msg == Message_SpectatorV2Update) {
+
+	} else if (msg == Message_SpectatorMineUpdate) {
+		std::string playerID;
+		msg.GetParam("playerID", playerID);
+
+		auto replay = REPLAYS->GetSpectateReplay(playerID);
+		if (replay != nullptr) {
+
+			// no reason for this to be empty here
+			MineReplayResult mrr = replay->GetMineReplayDataVector().back();
+			Step(mrr.track,
+				 mrr.row,
+				 std::chrono::steady_clock::now(),
+				 true,
+				 false,
+				 0,
+				 mrr.row);
 		}
 	}
 
@@ -793,11 +802,15 @@ PlayerSpectate::Step(int col,
 		// compute the score for this hit
 		auto fNoteOffset = 0.f;
 
+		auto* replay = REPLAYS->GetSpectateReplay(NSMAN->spectatingWho);
 		const auto fStepSeconds = m_Timing->GetTimeFromRowFast(rowBeingJudged);
+		auto rate = 1.F;
+		if (replay != nullptr) {
+			rate = replay->GetMusicRate();
+		}
 
 		// The offset from the actual step in seconds:
-		fNoteOffset = (fStepSeconds - fPositionSeconds) /
-					  REPLAYS->GetActiveReplay()->GetMusicRate();
+		fNoteOffset = (fStepSeconds - fPositionSeconds) / rate;
 
 		auto closestNR = GetClosestNote(
 		  col, rowBeingJudged, MAX_NOTE_ROW, MAX_NOTE_ROW, false, false);
@@ -815,15 +828,6 @@ PlayerSpectate::Step(int col,
 		}
 
 		if (closestNR == -1 && !bRelease) {
-			// the last notes of the file will trigger this due to releases
-			// go ahead and skip releases
-			Locator::getLogger()->warn(
-			  "Please report an issue with this replay: {} - col {} steppedrow "
-			  "{} rowtojudge {}",
-			  REPLAYS->GetActiveReplay()->GetScoreKey(),
-			  col,
-			  steppedRow,
-			  rowToJudge);
 			return;
 		}
 

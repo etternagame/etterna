@@ -49,28 +49,32 @@ ScreenGameplaySpectate::ScreenGameplaySpectate()
 	  NSMAN->spectating,
 	  "You tried to go into ScreenGameplaySpectate while not spectating.");
 
-	// Set up rate
-	GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = 1.F;
-	GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = 1.F;
-	GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = 1.F;
-	GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = 1.F;
+	auto* replay = REPLAYS->GetSpectateReplay(NSMAN->spectatingWho);
+	if (replay != nullptr) {
+		const auto r = replay->GetMusicRate();
+		// Set up rate
+		GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate = r;
+		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate = r;
+		GAMESTATE->m_SongOptions.GetSong().m_fMusicRate = r;
+		GAMESTATE->m_SongOptions.GetStage().m_fMusicRate = r;
 
-	PlayerOptions po;
-	po.Init();
-	po.SetForReplay(true);
-	po.FromString("");
+		PlayerOptions po;
+		po.Init();
+		po.SetForReplay(true);
+		po.FromString(replay->GetModifiers());
 
-	// Set up transforming mods
-	{
-		auto f = [&po](PlayerOptions& playerOptions) {
-			std::copy(std::begin(po.m_bTurns),
-					  std::end(po.m_bTurns),
-					  std::begin(playerOptions.m_bTurns));
-		};
-		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred());
-		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent());
-		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong());
-		f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage());
+		// Set up transforming mods
+		{
+			auto f = [&po](PlayerOptions& playerOptions) {
+				std::copy(std::begin(po.m_bTurns),
+						  std::end(po.m_bTurns),
+						  std::begin(playerOptions.m_bTurns));
+			};
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred());
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent());
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetSong());
+			f(GAMESTATE->m_pPlayerState->m_PlayerOptions.GetStage());
+		}
 	}
 }
 

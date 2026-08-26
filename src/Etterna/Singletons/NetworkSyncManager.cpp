@@ -245,7 +245,7 @@ NetworkSyncManager::ReportReplayInput(bool isPress,
 									  int tapNoteType,
 									  int tapNoteSubType)
 {
-	if (ShouldSendMessage(true))
+	if (ShouldSendMessage(true) && !spectating)
 		curProtocol->ReportReplayInput(this,
 									   isPress,
 									   col,
@@ -262,7 +262,7 @@ NetworkSyncManager::ReportReplayMiss(int col,
 									 int tapNoteType,
 									 int tapNoteSubType)
 {
-	if (ShouldSendMessage(true))
+	if (ShouldSendMessage(true) && !spectating)
 		curProtocol->ReportReplayMiss(
 		  this, col, row, tapNoteType, tapNoteSubType);
 }
@@ -270,15 +270,25 @@ NetworkSyncManager::ReportReplayMiss(int col,
 void
 NetworkSyncManager::ReportReplayHold(int col, int row, int subType)
 {
-	if (ShouldSendMessage(true))
+	if (ShouldSendMessage(true) && !spectating)
 		curProtocol->ReportReplayHold(this, col, row, subType);
 }
 
 void
 NetworkSyncManager::ReportReplayMine(int row, int col)
 {
-	if (ShouldSendMessage(true))
+	if (ShouldSendMessage(true) && !spectating)
 		curProtocol->ReportReplayMine(this, row, col);
+}
+
+void
+NetworkSyncManager::ReportV2Data(int col,
+								 int row,
+								 float offset,
+								 int tapNoteType)
+{
+	if (ShouldSendMessage(true) && !spectating)
+		curProtocol->ReportV2Data(col, row, offset, tapNoteType);
 }
 
 void
@@ -344,7 +354,7 @@ NetworkSyncManager::SendChat(const std::string& message,
 void
 NetworkSyncManager::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
 {
-	if (ShouldSendMessage(true))
+	if (ShouldSendMessage(true) && !spectating)
 		curProtocol->SendMPLeaderboardUpdate(wife, jdgstr);
 }
 

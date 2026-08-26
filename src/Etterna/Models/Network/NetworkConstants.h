@@ -56,6 +56,7 @@ enum ETTClientMessageTypes
 	ettpc_replay_miss,
 	ettpc_replay_holddrop,
 	ettpc_replay_minehit,
+	ettpc_replay_v2data,
 	ettpc_end
 };
 

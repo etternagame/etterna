@@ -312,6 +312,14 @@ class Replay
 		vMissReplayDataVector.push_back(mrr);
 	}
 
+	void IngestV2Data(int col, int row, float offset, TapNoteType tnt)
+	{
+		vTrackVector.push_back(col);
+		vNoteRowVector.push_back(row);
+		vOffsetVector.push_back(offset);
+		vTapNoteTypeVector.push_back(tnt);
+	}
+
 	ReplayType GetReplayType() const
 	{
 		if (!InputData.empty()) {

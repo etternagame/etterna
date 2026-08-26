@@ -969,9 +969,10 @@ ETTProtocol::handleStartChart(rapidjson::Value& payload)
 	float songoffset = ch["songoffset"].GetInt() / 1000.F;
 	float globaloffset = ch["globaloffset"].GetInt() / 1000.F;
 	int rng = payload["rng"].GetInt();
+	std::string mods = payload["mods"].GetString();
 
 	REPLAYS->InitReplayPlaybackForSpectate(
-	  whom, ck, rate, songoffset, globaloffset, rng);
+	  whom, ck, rate, songoffset, globaloffset, rng, mods);
 
 	const auto type = NSMAN->song != nullptr && state == 0
 						? ettpc_startingchart
@@ -1313,6 +1314,10 @@ ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
 		auto col = data["col"].GetInt();
 		auto row = data["row"].GetInt();
 		spectateReplay->IngestMineHit(col, row);
+
+		Message msg(Message_SpectatorMineUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
 	}
 	else if (subtype == "miss") {
 		auto col = data["col"].GetInt();
@@ -1321,6 +1326,21 @@ ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
 		auto tnst =
 		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
 		spectateReplay->IngestMissData(col, row, tnt, tnst);
+
+		Message msg(Message_SpectatorMissUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
+	}
+	else if (subtype == "v2") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto offset = data["offset"].GetFloat();
+		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
+		spectateReplay->IngestV2Data(col, row, offset, tnt);
+
+		Message msg(Message_SpectatorV2Update);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
 	}
 }
 
@@ -1775,6 +1795,26 @@ ETTProtocol::ReportReplayMine(NetworkSyncManager* n, int row, int col)
 }
 
 void
+ETTProtocol::ReportV2Data(int col, int row, float offset, int tapNoteType)
+{
+	auto doc = newMsg(ettpc_replay_v2data);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("offset", offset, allocator);
+		payload.AddMember("tapnote_type", tapNoteType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
 ETTProtocol::ReportSongOver(NetworkSyncManager* n)
 {
 	auto doc = newMsg(ettpc_gameover);
@@ -1897,6 +1937,11 @@ ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
 		  static_cast<int>(PREFSMAN->m_fGlobalOffsetSeconds.Get() * 1000),
 		  allocator);
 		payload.AddMember("rng", GAMESTATE->m_iStageSeed, allocator);
+		addStringMember(
+		  payload,
+		  "mods",
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(),
+		  allocator);
 	}
 	doc.AddMember("payload", payload, allocator);
 

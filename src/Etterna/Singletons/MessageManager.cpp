@@ -93,6 +93,9 @@ static const char* MessageIDNames[] = {
 	"GoalsUpdated",
 	"SpectatorInputUpdate",
 	"SpectatorHoldUpdate",
+	"SpectatorMineUpdate",
+	"SpectatorMissUpdate",
+	"SpectatorV2Update",
 };
 XToString(MessageID);
 

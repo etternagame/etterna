@@ -143,7 +143,8 @@ ReplayManager::InitReplayPlaybackForSpectate(std::string playerID,
 											 float musicRate,
 											 float songOffset,
 											 float globalOffset,
-											 int rngSeed)
+											 int rngSeed,
+											 std::string mods)
 {
 	UnsetActiveReplay();
 
@@ -153,6 +154,7 @@ ReplayManager::InitReplayPlaybackForSpectate(std::string playerID,
 	} else {
 		Replay* spectateReplay =
 		  new Replay(chartKey, musicRate, songOffset, globalOffset, rngSeed);
+		spectateReplay->SetModifiers(mods);
 		spectatorReplays[playerID] = spectateReplay;
 	}
 

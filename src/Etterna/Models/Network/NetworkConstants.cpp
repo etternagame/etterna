@@ -29,6 +29,7 @@ std::map<ETTClientMessageTypes, std::string> ettClientMessageMap = {
 	{ ettpc_replay_holddrop, "replay_holddrop" },
 	{ ettpc_replay_miss, "replay_miss" },
 	{ ettpc_replay_minehit, "replay_minehit" },
+	{ ettpc_replay_v2data, "replay_v2data" },
 };
 
 std::map<std::string, ETTServerMessageTypes> ettServerMessageMap = {

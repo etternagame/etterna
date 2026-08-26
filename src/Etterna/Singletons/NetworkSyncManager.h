@@ -111,6 +111,9 @@ class NetworkSyncManager
 	// triggered by hitting a mine in gameplay
 	void ReportReplayMine(int row, int col);
 
+	// triggered by a judgment
+	void ReportV2Data(int col, int row, float offset, int tapNoteType);
+
 	void OnMusicSelect();
 	void OffMusicSelect();
 

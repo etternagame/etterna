@@ -76,4 +76,6 @@ class NetProtocol
 
 	// triggered by hitting a mine in gameplay
 	virtual void ReportReplayMine(NetworkSyncManager* n, int row, int col) {};
+
+	virtual void ReportV2Data(int col, int row, float offset, int tapNoteType) {};
 };

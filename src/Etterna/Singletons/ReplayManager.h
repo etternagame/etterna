@@ -62,7 +62,8 @@ class ReplayManager
 										  float musicRate,
 										  float songOffset,
 										  float globalOffset,
-										  int rngSeed);
+										  int rngSeed,
+										  std::string mods);
 
 	void UnsetActiveReplay();
 

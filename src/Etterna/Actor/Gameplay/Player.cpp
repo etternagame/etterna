@@ -1125,7 +1125,8 @@ Player::UpdateHoldNotes(int iSongRow,
 		/*if( iMaxEndRow-iStartRow <= 4 )
 			bInitiatedNote = true;
 		else*/
-		bInitiatedNote = bSteppedOnHead;
+		bInitiatedNote =
+		  bSteppedOnHead || m_pPlayerState->m_PlayerController == PC_SPECTATE;
 	} else {
 		bInitiatedNote = true;
 		bHeadJudged = true;
@@ -1154,8 +1155,11 @@ Player::UpdateHoldNotes(int iSongRow,
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, GameI);
 
+				// spectators are always holding the button
+				// and hold drops are forced by the replay
 				bIsHoldingButton &=
-				  INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp);
+				  INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp) ||
+				  m_pPlayerState->m_PlayerController == PC_SPECTATE;
 			}
 		}
 	}
@@ -1840,6 +1844,9 @@ Player::AddNoteToReplayData(int col,
 	m_pPlayerStageStats->m_vNoteRowVector.emplace_back(
 	  RowOfOverlappingNoteOrRow);
 	m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
+
+	NSMAN->ReportV2Data(
+	  col, RowOfOverlappingNoteOrRow, pTN->result.fTapNoteOffset, pTN->type);
 }
 
 void

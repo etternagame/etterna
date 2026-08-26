@@ -82,6 +82,8 @@ class ETTProtocol : public NetProtocol
 						  int row,
 						  int subType) override;
 
+	void ReportV2Data(int col, int row, float offset, int tapNoteType) override;
+
 	// triggered by hitting a mine in gameplay
 	void ReportReplayMine(NetworkSyncManager* n, int row, int col) override;
 	void Send(const std::string& str);
