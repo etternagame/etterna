@@ -139,6 +139,10 @@ local function getRescoreElements(score)
 	o["dvt"] = dvt
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
 	o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
+	if o["totalHolds"] < o["holdsHit"] then
+		-- dunno
+		o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	end
 	o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
     o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
 	o["totalTaps"] = totalTaps
