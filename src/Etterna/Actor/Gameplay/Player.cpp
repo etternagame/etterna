@@ -1855,7 +1855,10 @@ Player::AddHoldToReplayData(int col,
 	hrr.track = col;
 	hrr.subType = pTN->subType;
 	m_pPlayerStageStats->m_vHoldReplayData.emplace_back(hrr);
-	NSMAN->ReportReplayHold(col, RowOfOverlappingNoteOrRow, pTN->subType);
+
+	if (pTN->HoldResult.hns == HNS_LetGo || pTN->HoldResult.hns == HNS_Missed) {
+		NSMAN->ReportReplayHold(col, RowOfOverlappingNoteOrRow, pTN->subType);
+	}
 }
 
 void
