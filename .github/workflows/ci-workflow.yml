@@ -511,7 +511,7 @@ jobs:
 
       - name: Install openSSL (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
-        run: choco install openssl --version=3.6.2
+        run: choco install openssl --version=3.6.4
       
       #TODO: Also print Python install logs, more?
       - name: Print Install Failures (if present)
