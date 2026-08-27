@@ -937,7 +937,7 @@ WinWdmFilter::InstantiateRenderPin(
 
 					Locator::getLogger()->trace("KS: trying format: {} channels: {} samplerate: "
 							   "{} format: {:04x}",
-							   PreferredOutputSampleFormat,
+							   static_cast<int>(PreferredOutputSampleFormat),
 							   iPreferredOutputChannels,
 							   iPreferredSampleRate,
 							   wfx.Format.wFormatTag);

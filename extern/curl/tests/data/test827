@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -5,19 +6,19 @@ IMAP
 SASL
 SASL AUTH NTLM
 SASL-IR
+NTLM
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 <servercmd>
 AUTH NTLM
 CAPA SASL-IR
 REPLY AUTHENTICATE + TlRMTVNTUAACAAAAAgACADAAAACGggEAc51AYVDgyNcAAAAAAAAAAG4AbgAyAAAAQ0MCAAQAQwBDAAEAEgBFAEwASQBTAEEAQgBFAFQASAAEABgAYwBjAC4AaQBjAGUAZABlAHYALgBuAHUAAwAsAGUAbABpAHMAYQBiAGUAdABoAC4AYwBjAC4AaQBjAGUAZABlAHYALgBuAHUAAAAAAA==
-REPLY TlRMTVNTUAADAAAAGAAYAEAAAAAYABgAWAAAAAAAAABwAAAACAAIAHAAAAAIAAgAeAAAAAAAAAAAAAAAhoIBAFpkQwKRCZFMhjj0tw47wEjKHRHlvzfxQamFcheMuv8v+xeqphEO5V41xRd7R9deOXRlc3R1c2VyY3VybGhvc3Q= A002 OK AUTHENTICATE completed
+REPLY TlRMTVNTUAADAAAAGAAYAEAAAAAYABgAWAAAAAAAAABwAAAACAAIAHAAAAALAAsAeAAAAAAAAAAAAAAAhoIBAFpkQwKRCZFMhjj0tw47wEjKHRHlvzfxQamFcheMuv8v+xeqphEO5V41xRd7R9deOXRlc3R1c2VyV09SS1NUQVRJT04= A002 OK AUTHENTICATE completed
 </servercmd>
-<data>
+<data crlf="yes">
 From: me@somewhere
 To: fake@nowhere
 
@@ -28,7 +29,6 @@ body
 </data>
 </reply>
 
-#
 # Client-side
 <client>
 <server>
@@ -38,32 +38,21 @@ imap
 NTLM
 SSL
 !SSPI
-debug
 </features>
- <name>
+<name>
 IMAP NTLM authentication with initial response
- </name>
- <setenv>
-# we force our own host name, in order to make the test machine independent
-CURL_GETHOSTNAME=curlhost
-# we try to use the LD_PRELOAD hack, if not a debug build
-LD_PRELOAD=%PWD/libtest/.libs/libhostname.so
- </setenv>
- <command>
+</name>
+<command>
 'imap://%HOSTIP:%IMAPPORT/%TESTNUMBER/;MAILINDEX=1' -u testuser:testpass
 </command>
-<precheck>
-chkhostname curlhost
-</precheck>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
-<protocol>
+<protocol crlf="yes">
 A001 CAPABILITY
-A002 AUTHENTICATE NTLM TlRMTVNTUAABAAAABoIIAAAAAAAAAAAAAAAAAAAAAAA=
-TlRMTVNTUAADAAAAGAAYAEAAAAAYABgAWAAAAAAAAABwAAAACAAIAHAAAAAIAAgAeAAAAAAAAAAAAAAAhoIBAFpkQwKRCZFMhjj0tw47wEjKHRHlvzfxQamFcheMuv8v+xeqphEO5V41xRd7R9deOXRlc3R1c2VyY3VybGhvc3Q=
+A002 AUTHENTICATE NTLM %b64[NTLMSSP%00%01%00%00%00%06%82%08%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00]b64%
+TlRMTVNTUAADAAAAGAAYAEAAAAAYABgAWAAAAAAAAABwAAAACAAIAHAAAAALAAsAeAAAAAAAAAAAAAAAhoIBAFpkQwKRCZFMhjj0tw47wEjKHRHlvzfxQamFcheMuv8v+xeqphEO5V41xRd7R9deOXRlc3R1c2VyV09SS1NUQVRJT04=
 A003 SELECT %TESTNUMBER
 A004 FETCH 1 BODY[]
 A005 LOGOUT

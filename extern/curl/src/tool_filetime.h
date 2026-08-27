@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -20,20 +20,18 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
 #include "tool_setup.h"
 
-struct GlobalConfig;
+int getfiletime(const char *filename, curl_off_t *stamp);
 
-curl_off_t getfiletime(const char *filename, struct GlobalConfig *global);
-
-#if defined(HAVE_UTIME) || defined(HAVE_UTIMES) ||      \
-  (defined(WIN32) && (SIZEOF_CURL_OFF_T >= 8))
-void setfiletime(curl_off_t filetime, const char *filename,
-                 struct GlobalConfig *global);
+#if defined(HAVE_UTIME) || defined(HAVE_UTIMES) || \
+  (defined(_WIN32) && (SIZEOF_CURL_OFF_T >= 8))
+void setfiletime(curl_off_t filetime, const char *filename);
 #else
-#define setfiletime(a,b,c) Curl_nop_stmt
-#endif /* defined(HAVE_UTIME) || defined(HAVE_UTIMES) ||        \
-          (defined(WIN32) && (SIZEOF_CURL_OFF_T >= 8)) */
+#define setfiletime(a, b) tool_nop_stmt
+#endif
 
 #endif /* HEADER_CURL_TOOL_FILETIME_H */

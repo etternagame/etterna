@@ -358,7 +358,7 @@ ArrowEffects::GetYOffset(const PlayerState* pPlayerState,
 	if (curr_options->m_fTimeSpacing != 0.0f) {
 		const auto fSongSeconds = GAMESTATE->m_Position.m_fMusicSecondsVisible;
 		const auto fNoteSeconds =
-		  pCurSteps->GetTimingData()->WhereUAtBro(fNoteBeat);
+		  pCurSteps->GetTimingData()->GetTimeFromBeatFast(fNoteBeat);
 		const auto fSecondsUntilStep = fNoteSeconds - fSongSeconds;
 		const auto fBPM = curr_options->m_fScrollBPM;
 		const auto fBPS =

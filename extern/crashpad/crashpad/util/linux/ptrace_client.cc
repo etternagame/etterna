@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <iterator>
 #include <string>
 
-#include "base/cxx17_backports.h"
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/strings/string_number_conversions.h"
 #include "util/file/file_io.h"
@@ -248,7 +249,7 @@ bool PtraceClient::ReadFileContents(const base::FilePath& path,
   return true;
 }
 
-ProcessMemory* PtraceClient::Memory() {
+ProcessMemoryLinux* PtraceClient::Memory() {
   INITIALIZATION_STATE_DCHECK_VALID(initialized_);
   if (!memory_) {
     memory_ = std::make_unique<ProcessMemoryLinux>(this);
@@ -265,7 +266,7 @@ bool PtraceClient::Threads(std::vector<pid_t>* threads) {
   threads->push_back(pid_);
 
   char path[32];
-  snprintf(path, base::size(path), "/proc/%d/task", pid_);
+  snprintf(path, std::size(path), "/proc/%d/task", pid_);
 
   PtraceBroker::Request request = {};
   request.type = PtraceBroker::Request::kTypeListDirectory;
@@ -329,6 +330,11 @@ ssize_t PtraceClient::ReadUpTo(VMAddress address, size_t size, void* buffer) {
 
     if (bytes_read == 0) {
       return total_read;
+    }
+
+    if (static_cast<size_t>(bytes_read) > size) {
+      LOG(ERROR) << "invalid size " << bytes_read;
+      return -1;
     }
 
     if (!LoggingReadFileExactly(sock_, buffer_c, bytes_read)) {

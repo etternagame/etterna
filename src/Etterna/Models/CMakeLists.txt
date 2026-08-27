@@ -200,6 +200,14 @@ list(APPEND REST_HPP
 	"Misc/TitleSubstitution.h"
 	"Misc/RoomWheel.h")
 
+list(APPEND NETWORK_HPP
+	"Network/NetworkConstants.h"
+	"Network/NetProtocol.h"
+	"Network/ETTProtocol.h")
+list(APPEND NETWORK_SRC
+	"Network/NetworkConstants.cpp"
+	"Network/ETTProtocol.cpp")
+
 list(APPEND ALL_DATA_SRC
   ${FONT_SRC}
   ${LUA_SRC}
@@ -210,6 +218,7 @@ list(APPEND ALL_DATA_SRC
   ${SCORE_SRC}
   ${SONG_SRC}
   ${STEPS_SRC}
+  ${NETWORK_SRC}
   ${REST_SRC})
 
 list(APPEND ALL_DATA_HPP
@@ -222,6 +231,7 @@ list(APPEND ALL_DATA_HPP
   ${SCORE_HPP}
   ${SONG_HPP}
   ${STEPS_HPP}
+  ${NETWORK_HPP}
   ${REST_HPP})
 
 target_sources(Etterna PUBLIC ${ALL_DATA_SRC} ${ALL_DATA_HPP})

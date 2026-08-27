@@ -146,8 +146,8 @@ local t = Def.ActorFrame {
         self:playcommand("LoadNoteData", {song = params.song, steps = params.steps})
         lastusedsong = params.song
 
-       SCUFF.preview.resetmusic = false
-       if lastusedsong ~= nil and SCUFF.preview.active then
+        SCUFF.preview.resetmusic = false
+        if lastusedsong ~= nil and SCUFF.preview.active then
             local top = SCREENMAN:GetTopScreen()
             if top.PlayCurrentSongSampleMusic then
                 -- reset music, force start, force full length
@@ -155,13 +155,43 @@ local t = Def.ActorFrame {
                 SOUND:StopMusic()
                 top:PlayCurrentSongSampleMusic(true, true)
             end
-       end
-       self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
+        end
+        if params.steps ~= nil then
+            self.stepspreview = params.steps:GetPreviewMusicPath()
+        else
+            self.stepspreview = nil
+        end
+        self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end,
     ChangedStepsMessageCommand = function(self, params)
         -- should trigger only if switching steps, not when switching songs
         self:playcommand("LoadNoteData", {song = GAMESTATE:GetCurrentSong(), steps = params.steps})
+
+        if lastusedsong == GAMESTATE:GetCurrentSong() then
+            -- only changed steps, so see if the preview music must restart
+            -- because ssc music can differ across difficulties
+            if params.steps ~= nil then
+                if params.steps:GetPreviewMusicPath() ~= self.stepspreview then
+                    if lastusedsong ~= nil and SCUFF.preview.active then
+                        local top = SCREENMAN:GetTopScreen()
+                        if top.PlayCurrentSongSampleMusic then
+                            -- reset music, force start, force full length
+                            SCUFF.preview.resetmusic = true
+                            SOUND:StopMusic()
+                            top:PlayCurrentSongSampleMusic(true, true)
+                        end
+                    end
+                end
+            end
+        end
         lastusedsong = GAMESTATE:GetCurrentSong()
+
+        if params.steps ~= nil then
+            self.stepspreview = params.steps:GetPreviewMusicPath()
+        else
+            self.stepspreview = nil
+        end
+
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastusedsong, steps = params.steps})
     end,
     CurrentRateChangedMessageCommand = function(self)
@@ -237,15 +267,9 @@ t[#t+1] = UIElements.TextButton(2, 2, "Common Normal") .. {
         end
     end,
     SetPositionCommand = function(self)
-        if getWheelPosition() then
-            self.bg:halign(0)
-            self.txt:halign(0)
-            self:x(-actuals.Width + actuals.EdgePadding)
-        else
-            self.bg:halign(1)
-            self.txt:halign(1)
-            self:x(-actuals.EdgePadding)
-        end
+        self.bg:halign(0)
+        self.txt:halign(0)
+        self:x(-actuals.Width + actuals.EdgePadding)
     end,
     RolloverUpdateCommand = function(self, params)
         self:alphaDeterminingFunction()

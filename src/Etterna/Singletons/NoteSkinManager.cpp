@@ -88,12 +88,15 @@ NoteSkinManager::RefreshNoteSkinData(const Game* pGame)
 	auto sBaseSkinFolder = SpecialFiles::NOTESKINS_DIR + gameName + "/";
 	std::string sGlobalSkinFolder =
 	  SpecialFiles::NOTESKINS_DIR + "global" + "/";
-	auto sThemeSkinFolder =
+	auto sThemeBaseSkinFolder =
 	  THEME->GetCurThemeDir() + "/NoteSkins/" + gameName + "/";
+	auto sThemeGlobalSkinFolder =
+	  THEME->GetCurThemeDir() + "/NoteSkins/" + "global" + "/";
 	std::vector<std::string> asNoteSkinNames;
 	FILEMAN->GetDirListing(sBaseSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
 	FILEMAN->GetDirListing(sGlobalSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
-	FILEMAN->GetDirListing(sThemeSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
+	FILEMAN->GetDirListing(sThemeBaseSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
+	FILEMAN->GetDirListing(sThemeGlobalSkinFolder + "*", asNoteSkinNames, ONLY_DIR);
 
 	g_mapNameToData.clear();
 	for (unsigned j = 0; j < asNoteSkinNames.size(); j++) {
@@ -150,6 +153,10 @@ NoteSkinManager::LoadNoteSkinDataRecursive(const std::string& sNoteSkinName_,
 
 		if (!FILEMAN->IsADirectory(sDir))
 			sDir = THEME->GetCurThemeDir() + "/NoteSkins/" + gameName + "/" +
+				   sNoteSkinName + "/";
+
+		if (!FILEMAN->IsADirectory(sDir))
+			sDir = THEME->GetCurThemeDir() + "/NoteSkins/" + "global" + "/" +
 				   sNoteSkinName + "/";
 
 		if (!FILEMAN->IsADirectory(sDir)) {

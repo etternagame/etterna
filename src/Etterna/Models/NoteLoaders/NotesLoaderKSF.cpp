@@ -283,7 +283,7 @@ LoadFromKSFFile(const std::string& sPath,
 			}
 			/* have this row be the last moment in the song, unless
 			 * a future step ends later. */
-			// float curTime = stepsTiming.GetElapsedTimeFromBeat(fCurBeat);
+			// float curTime = stepsTiming.GetTimeFromBeatFast(fCurBeat);
 			// if (curTime > song.GetSpecifiedLastSecond())
 			//{
 			//	song.SetSpecifiedLastSecond(curTime);

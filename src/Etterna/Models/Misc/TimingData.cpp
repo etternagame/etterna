@@ -1086,14 +1086,14 @@ TimingData::GetDisplayedSpeedPercent(float fBeat, float fMusicSeconds) const
 	const SpeedSegment* seg = ToSpeed(speeds[index]);
 	const auto fStartBeat = seg->GetBeat();
 	const auto fStartTime =
-	  WhereUAtBro(fStartBeat) - GetDelayAtBeat(fStartBeat);
+	  GetTimeFromBeatFast(fStartBeat) - GetDelayAtBeat(fStartBeat);
 	float fEndTime = 0.f;
 	const auto fCurTime = fMusicSeconds;
 
 	if (seg->GetUnit() == SpeedSegment::UNIT_SECONDS) {
 		fEndTime = fStartTime + seg->GetDelay();
 	} else {
-		fEndTime = WhereUAtBro(fStartBeat + seg->GetDelay()) -
+		fEndTime = GetTimeFromBeatFast(fStartBeat + seg->GetDelay()) -
 				   GetDelayAtBeat(fStartBeat + seg->GetDelay());
 	}
 
@@ -1278,7 +1278,7 @@ TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 }
 
 float
-TimingData::WhereUAtBro(float beat)
+TimingData::GetTimeFromBeatFast(float beat) const
 {
 	if (beat < 0)
 		return 0;
@@ -1294,23 +1294,7 @@ TimingData::WhereUAtBro(float beat)
 }
 
 float
-TimingData::WhereUAtBro(float beat) const
-{
-	if (beat < 0)
-		return 0;
-	const size_t row = BeatToNoteRow(beat);
-
-	if (row < ElapsedTimesAtAllRows.size() &&
-		!AdjustSync::IsSyncDataChanged())
-		return ElapsedTimesAtAllRows[row] -
-			   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
-				 PREFSMAN->m_fGlobalOffsetSeconds;
-
-	return GetElapsedTimeFromBeat(beat);
-}
-
-float
-TimingData::WhereUAtBro(int row)
+TimingData::GetTimeFromRowFast(int row) const
 {
 	if (row < 0)
 		return 0;
@@ -1325,41 +1309,38 @@ TimingData::WhereUAtBro(int row)
 }
 
 float
-TimingData::WhereUAtBroNoOffset(float beat)
+TimingData::GetTimeFromBeatFastNoOffset(float beat) const
 {
 	if (beat < 0)
 		return 0;
 	const size_t row = BeatToNoteRow(beat);
 
-	if (row < ElapsedTimesAtAllRows.size() &&
-		!AdjustSync::IsSyncDataChanged())
+	if (row < ElapsedTimesAtAllRows.size() && !AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
 float
-TimingData::WhereUAtBroNoOffset(float beat) const
+TimingData::GetTimeFromRowFastNoOffset(int row) const
 {
-	if (beat < 0)
+	if (row < 0)
 		return 0;
-	const size_t row = BeatToNoteRow(beat);
 
-	if (row < ElapsedTimesAtAllRows.size() &&
-		!AdjustSync::IsSyncDataChanged())
+	if (row < ElapsedTimesAtAllRows.size() && !AdjustSync::IsSyncDataChanged())
 		return ElapsedTimesAtAllRows[row];
 
-	return GetElapsedTimeFromBeatNoOffset(beat);
+	return GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(row));
 }
 
 std::vector<float>
 TimingData::ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
-											  float rate)
+											  float rate) const
 {
 	std::vector<float> o;
 	o.reserve(nrv.size());
 	for (auto nr : nrv)
-		o.emplace_back(WhereUAtBro(nr) / rate);
+		o.emplace_back(GetTimeFromRowFast(nr) / rate);
 	return o;
 }
 
@@ -1625,15 +1606,28 @@ class LunaTimingData : public Luna<TimingData>
 
 	static int GetElapsedTimeFromBeat(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->WhereUAtBro(FArg(1)));
+		lua_pushnumber(L, p->GetTimeFromBeatFast(FArg(1)));
 		return 1;
 	}
 
 	static int GetElapsedTimeFromNoteRow(T* p, lua_State* L)
 	{
-		lua_pushnumber(L, p->WhereUAtBro(IArg(1)));
+		lua_pushnumber(L, p->GetTimeFromRowFast(IArg(1)));
 		return 1;
 	}
+
+	static int GetElapsedTimeFromBeatNoOffset(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetTimeFromBeatFastNoOffset(FArg(1)));
+		return 1;
+	}
+
+	static int GetElapsedTimeFromNoteRowNoOffset(T* p, lua_State* L)
+	{
+		lua_pushnumber(L, p->GetTimeFromRowFastNoOffset(IArg(1)));
+		return 1;
+	}
+
 
 	LunaTimingData()
 	{
@@ -1663,6 +1657,8 @@ class LunaTimingData : public Luna<TimingData>
 		ADD_METHOD(GetBeatFromElapsedTime);
 		ADD_METHOD(GetElapsedTimeFromBeat);
 		ADD_METHOD(GetElapsedTimeFromNoteRow);
+		ADD_METHOD(GetElapsedTimeFromBeatNoOffset);
+		ADD_METHOD(GetElapsedTimeFromNoteRowNoOffset);
 	}
 };
 

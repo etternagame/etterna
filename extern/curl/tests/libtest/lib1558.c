@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,16 +18,14 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "testutil.h"
-#include "warnless.h"
-#include "memdebug.h"
-
-int test(char *URL)
+static CURLcode test_lib1558(const char *URL)
 {
-  CURLcode res = 0;
+  CURLcode result = CURLE_OK;
   CURL *curl = NULL;
   long protocol = 0;
 
@@ -35,31 +33,31 @@ int test(char *URL)
   easy_init(curl);
 
   easy_setopt(curl, CURLOPT_URL, URL);
-  res = curl_easy_perform(curl);
-  if(res) {
-    fprintf(stderr, "curl_easy_perform() returned %d (%s)\n",
-            res, curl_easy_strerror(res));
+  result = curl_easy_perform(curl);
+  if(result) {
+    curl_mfprintf(stderr, "curl_easy_perform() returned %d (%s)\n",
+                  (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
 
-  res = curl_easy_getinfo(curl, CURLINFO_PROTOCOL, &protocol);
-  if(res) {
-    fprintf(stderr, "curl_easy_getinfo() returned %d (%s)\n",
-            res, curl_easy_strerror(res));
+  result = curl_easy_getinfo(curl, CURLINFO_PROTOCOL, &protocol);
+  if(result) {
+    curl_mfprintf(stderr, "curl_easy_getinfo() returned %d (%s)\n",
+                  (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
 
-  printf("Protocol: %lx\n", protocol);
+  curl_mprintf("Protocol: %lx\n", (unsigned long)protocol);
 
   curl_easy_cleanup(curl);
   curl_global_cleanup();
 
-  return 0;
+  return CURLE_OK;
 
 test_cleanup:
 
   curl_easy_cleanup(curl);
   curl_global_cleanup();
 
-  return res; /* return the final return code */
+  return result; /* return the final return code */
 }

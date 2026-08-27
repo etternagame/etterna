@@ -123,7 +123,10 @@ local defaultConfig = {
 		cover = "#333333",
 		bpmText = "#4CBB17",
 		heightText = "#FFFFFF"
-	}
+	},
+	gameplay = {
+		NoteFieldBG = "#000000",
+	},
 }
 
 colorConfig = create_setting("colorConfig", "colorConfig.lua", defaultConfig, -1)
@@ -174,6 +177,10 @@ end
 
 function getComboColor(type)
 	return color(colorConfig:get_data().combo[type])
+end
+
+function getGameplayColor(type)
+	return color(colorConfig:get_data().gameplay[type]) or color("#FFFFFF")
 end
 
 -- expecting ms input (153, 13.321, etc) so convert to seconds to compare to judgment windows -mina

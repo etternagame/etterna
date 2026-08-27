@@ -1,4 +1,4 @@
-// Copyright 2020 The Crashpad Authors. All rights reserved.
+// Copyright 2020 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -110,6 +110,13 @@ bool WriteTestModule(const base::FilePath& module_path,
   module.ehdr.e_machine = EM_AARCH64;
 #elif defined(ARCH_CPU_MIPSEL) || defined(ARCH_CPU_MIPS64EL)
   module.ehdr.e_machine = EM_MIPS;
+#elif defined(ARCH_CPU_RISCV64)
+  module.ehdr.e_machine = EM_RISCV;
+#endif
+
+#if defined(ARCH_CPU_RISCV64)
+  // Crashpad supports RV64GC
+  module.ehdr.e_flags = EF_RISCV_RVC | EF_RISCV_FLOAT_ABI_DOUBLE;
 #endif
 
   module.ehdr.e_version = EV_CURRENT;

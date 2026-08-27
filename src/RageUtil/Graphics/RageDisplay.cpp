@@ -19,6 +19,7 @@
 
 #include <chrono>
 #include <thread>
+#include <optional>
 
 #ifdef _WIN32
 #include "archutils/Win32/GraphicsWindow.h"
@@ -1349,6 +1350,18 @@ RageCompiledGeometry::Set(const std::vector<msMesh>& vMeshes, bool bNeedsNormals
 	this->Allocate(vMeshes);
 
 	Change(vMeshes);
+}
+
+bool
+RageDisplay::DisplayDebugModeEnabled()
+{
+	// PREFSMAN might get destroyed before we log debug stuff for RageDisplay, so save the value for later
+	static std::optional<bool> enabled = std::nullopt;
+	if (!enabled.has_value()) {
+		enabled = PREFSMAN->m_bVideoRendererDebugMode;
+	}
+
+	return *enabled;
 }
 
 // lua start

@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 #ifndef CRASHPAD_UTIL_LINUX_THREAD_INFO_H_
 #define CRASHPAD_UTIL_LINUX_THREAD_INFO_H_
 
+#include <features.h>
 #include <stdint.h>
 #include <sys/user.h>
 
@@ -24,8 +25,13 @@
 #include "util/linux/address_types.h"
 #include "util/numeric/int128.h"
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 #include <android/api-level.h>
+#endif
+
+// x86_64 has compilation errors if asm/ptrace.h is #included.
+#if defined(ARCH_CPU_RISCV64)
+#include <asm/ptrace.h>
 #endif
 
 namespace crashpad {
@@ -79,6 +85,8 @@ union ThreadContext {
     uint32_t cp0_status;
     uint32_t cp0_cause;
     uint32_t padding1_;
+#elif defined(ARCH_CPU_RISCV64)
+    // 32 bit RISC-V not supported
 #else
 #error Port.
 #endif  // ARCH_CPU_X86_FAMILY
@@ -132,12 +140,17 @@ union ThreadContext {
     uint64_t cp0_badvaddr;
     uint64_t cp0_status;
     uint64_t cp0_cause;
+#elif defined(ARCH_CPU_RISCV64)
+    // Reflects user_regs_struct in asm/ptrace.h.
+    uint64_t pc;
+    uint64_t regs[31];
 #else
 #error Port.
 #endif  // ARCH_CPU_X86_FAMILY
   } t64;
 
-#if defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARM64)
+#if defined(ARCH_CPU_X86_FAMILY) || defined(ARCH_CPU_ARM64) || \
+    defined(ARCH_CPU_RISCV64)
   using NativeThreadContext = user_regs_struct;
 #elif defined(ARCH_CPU_ARMEL)
   using NativeThreadContext = user_regs;
@@ -145,7 +158,7 @@ union ThreadContext {
 // No appropriate NativeThreadsContext type available for MIPS
 #else
 #error Port.
-#endif  // ARCH_CPU_X86_FAMILY || ARCH_CPU_ARM64
+#endif  // ARCH_CPU_X86_FAMILY || ARCH_CPU_ARM64 || ARCH_CPU_RISCV64
 
 #if !defined(ARCH_CPU_MIPS_FAMILY)
 #if defined(ARCH_CPU_32_BITS)
@@ -218,6 +231,8 @@ union FloatContext {
     } fpregs[32];
     uint32_t fpcsr;
     uint32_t fpu_id;
+#elif defined(ARCH_CPU_RISCV64)
+    // 32 bit RISC-V not supported
 #else
 #error Port.
 #endif  // ARCH_CPU_X86_FAMILY
@@ -252,6 +267,10 @@ union FloatContext {
     double fpregs[32];
     uint32_t fpcsr;
     uint32_t fpu_id;
+#elif defined(ARCH_CPU_RISCV64)
+    // Reflects __riscv_d_ext_state in asm/ptrace.h
+    uint64_t fpregs[32];
+    uint64_t fcsr;
 #else
 #error Port.
 #endif  // ARCH_CPU_X86_FAMILY
@@ -261,11 +280,12 @@ union FloatContext {
 // __ANDROID_API_N__ is a proxy for determining whether unified headers are in
 // use. It’s only defined by unified headers. Unified headers call this
 // structure user_fpxregs_struct regardless of API level.
-#if defined(OS_ANDROID) && __ANDROID_API__ <= 19 && !defined(__ANDROID_API_N__)
+#if BUILDFLAG(IS_ANDROID) && __ANDROID_API__ <= 19 && \
+    !defined(__ANDROID_API_N__)
   using NativeFpxregs = user_fxsr_struct;
 #else
   using NativeFpxregs = user_fpxregs_struct;
-#endif  // OS_ANDROID
+#endif  // BUILDFLAG(IS_ANDROID)
   static_assert(sizeof(f32_t::fxsave) == sizeof(NativeFpxregs),
                 "Size mismatch");
 #elif defined(ARCH_CPU_X86_64)
@@ -273,13 +293,15 @@ union FloatContext {
                 "Size mismatch");
 #elif defined(ARCH_CPU_ARMEL)
   static_assert(sizeof(f32_t::fpregs) == sizeof(user_fpregs), "Size mismatch");
-#if !defined(__GLIBC__)
+#if defined(__BIONIC__)
   static_assert(sizeof(f32_t::vfp) == sizeof(user_vfp), "Size mismatch");
 #endif
 #elif defined(ARCH_CPU_ARM64)
   static_assert(sizeof(f64) == sizeof(user_fpsimd_struct), "Size mismatch");
 #elif defined(ARCH_CPU_MIPS_FAMILY)
 // No appropriate floating point context native type for available MIPS.
+#elif defined(ARCH_CPU_RISCV64)
+  static_assert(sizeof(f64) == sizeof(__riscv_d_ext_state), "Size mismatch");
 #else
 #error Port.
 #endif  // ARCH_CPU_X86

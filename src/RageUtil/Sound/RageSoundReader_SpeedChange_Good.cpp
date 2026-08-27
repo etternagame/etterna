@@ -23,7 +23,7 @@ static Preference<bool> g_StepmaniaUnpitchRates("StepmaniaUnpitchRates", false);
 
 static const double BaseWindowsizeInMilliseconds = 266.0;
 static const double MaxTimingAdjustStep = 20.0;
-static const double FFTNonsenseBelowRate = 0.6;
+static const double FFTNonsenseBelowRate = 0.65;
 
 static float
 rsqrt(float x)
@@ -128,7 +128,7 @@ Lerp(float t, float a, float b)
 }
 
 static void
-ComputeRandomPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float *pBuffer, int64_t iSamples, int64_t iNumChannels)
+ComputeRandomPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float *pBuffer, int64_t iSamples, int64_t iNumChannels, float fAmount)
 {
 	ASSERT(uint64_t(iSamples) < Junk->iSize);
 
@@ -163,13 +163,15 @@ ComputeRandomPhases(SpeedChangeFFT *Junk, uint32_t iSeed, float *pBuffer, int64_
 		complex fr = pFreq[i+1];
 		float nc = fl.real*fr.real + fl.imag*fr.imag;
 		if (nc > 0) {
+			auto z1 = RandomPhasor1;
 			RandomPhasor1 *= complex{ x, y };
 			RandomPhasor1 *= rsqrt(norm(RandomPhasor1));
-			pFreq[i] = RandomPhasor1;
+			pFreq[i] = fAmount * (z1 + RandomPhasor1);
 		} else {
+			auto z1 = RandomPhasor2;
 			RandomPhasor2 += complex{ x, y };
 			RandomPhasor2 *= rsqrt(norm(RandomPhasor2));
-			pFreq[i] = RandomPhasor2;
+			pFreq[i] = fAmount * (z1 + RandomPhasor2);
 		}
 	}
 	pFreq[0] = { 1.0f, 0.0f };
@@ -243,7 +245,7 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 	// These are exponents in a pow of the window. Rates < 0.5 need dShape < 1 as the window will be applied twice,
 	// once before the FFT and then again after
 	double dShape = (dRate >= 1.0)                  ? 3.0 :
-					(dRate >= FFTNonsenseBelowRate) ? 2.0 :
+					(dRate >= FFTNonsenseBelowRate) ? 3.0 / dRate :
 												 sqrt(0.5);
 	double dWindowScale = 1.0;
 	if (dRate >= 2.0) dWindowScale = 0.8;
@@ -256,7 +258,7 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 		if (dRate >= 0.85) {
 			iSourceStep = RoundPositive(dWindowSize * 0.5);
 		} else {
-			iSourceStep = RoundPositive(dWindowSize * (1.0 / 3.0));
+			iSourceStep = RoundPositive(dWindowSize * (dRate / 2.0));
 		}
 	} else {
 		double dUncorrectedDestStep = 0.0;
@@ -279,10 +281,16 @@ RageSoundReader_SpeedChange_Good::Window::Make(int iSampleRate, double dRate) {
 	double dN = W.iSize+1;
 	for (int64_t i = 0; i < W.iSize; ++i) {
 		double t = (i + 1) / dN;
-		if (dRate >= FFTNonsenseBelowRate)
+		// Window variations
+		// /\_ on uprates. Puts more energy on transients
+		// _/\ on downrates. Put less energy on transients and makes transient doubling less obnoxious
+		// / \ on fft down rates. STFT needs symmetric windows
+		if (dRate >= 1.0)
 			t = sqrt(t);
+		else if (dRate >= FFTNonsenseBelowRate)
+			t = 1.0 - sqrt(1.0 - t);
         t = 2.0 * t - 1.0;
-		W.Buffer[i] = (float)pow(0.5 + 0.5*cos(PI*t), dShape);
+		W.Buffer[i] = (float)pow(0.5 + 0.5*cos(PI*t), dShape) + 1.0e-8f;
 	}
 
 	if (dRate < FFTNonsenseBelowRate) {
@@ -316,26 +324,26 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 	}
 
 	int64_t iNumChannels = m_pSource->GetNumChannels();
-	int64_t iNextSourceFrame = m_pSource->GetNextSourceFrame();
 	double dSampleRate = double(m_pSource->GetSampleRate());
 
 	int64_t iWindowFrames = m_Window.iSize;
 	double dRate = double(m_fRate);
 
 	bool bUseFFT = (dRate < FFTNonsenseBelowRate);
-	bool bAttemptToAlignWndowsToBeats = (dRate > 1.0);
 
 	int64_t iMixedFramesMinimum = 2*iFrames;
 	while (m_Mixed.Frames() < iMixedFramesMinimum && !m_bDraining) {
 		DEBUG_ASSERT(m_ReadAhead.iReadPosition == 0);
 
+		int64_t iNextSourceFrame = m_pSource->GetNextSourceFrame();
+		int64_t iSourceStartFrame = iNextSourceFrame - m_ReadAhead.iWritePosition;
 		int64_t iReadAheadPosition = m_ReadAhead.iWritePosition;
 		int64_t iSourceStepFrames = m_Window.iSourceStep;
 		int64_t iSourceFramesToRead = std::max(int64_t(0), iWindowFrames - m_ReadAhead.Frames());
 		m_ReadAhead.Extend(iSourceFramesToRead);
 
 		double dAdjustScale = 1.0;
-		if (bAttemptToAlignWndowsToBeats) {
+		{
 			// For high rates (> 2 or so) we want the peak of each window to lie over beats because
 			// theres enough window overlap that not aligning to beats causes arhythmic attenuation
 			// of drum hits which sounds terrible. But it doesn't need to be accurate for this to work,
@@ -357,7 +365,13 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 			double dNearestTickSecond = dCurrentSecond + (dNearestTick - dCurrentFractionalTick) / dCurrentTPS;
 			int64_t iNearestTickFrame = int64_t(RoundPositive(dNearestTickSecond * dSampleRate));
 			int64_t iMaxTimingAdjustFrames = RoundPositive((MaxTimingAdjustStep * dSampleRate) / 1000.0);
-			int64_t iNextWindowPeak = iNextSourceFrame - iReadAheadPosition + iSourceStepFrames + iWindowFrames / 4;
+			int64_t iNextWindowPeak = iNextSourceFrame - iReadAheadPosition + iSourceStepFrames;
+			if (dRate > 1.0)
+				iNextWindowPeak += iWindowFrames / 4;
+			else if (dRate >= FFTNonsenseBelowRate)
+				iNextWindowPeak += 3 * iWindowFrames / 4;
+			else
+				iNextWindowPeak += iWindowFrames / 2;
 
 			int64_t iTimingAdjustment = Clamp(iNextWindowPeak - iNearestTickFrame, -iMaxTimingAdjustFrames, iMaxTimingAdjustFrames);
 			int64_t iAdjustedStep = iSourceStepFrames - iTimingAdjustment;
@@ -403,10 +417,11 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 				}
 			}
 
-			uint32_t iSeed = uint32_t(iNextSourceFrame);
-			ComputeRandomPhases(m_Window.Junk.get(), iSeed, m_ReadAhead.Samples.data(), iFramesToMix, iNumChannels);
-
 			float fMix = Clamp(SCALE(m_fRate, 0.15f, float(FFTNonsenseBelowRate), 1.0f, 0.0f), 0.0f, 1.0f);
+
+			uint32_t iSeed = uint32_t(iNextSourceFrame);
+			ComputeRandomPhases(m_Window.Junk.get(), iSeed, m_ReadAhead.Samples.data(), iFramesToMix, iNumChannels, fMix);
+
 			for (int64_t iChannel = 0; iChannel < iNumChannels; ++iChannel) {
 				ApplyPhases(m_Window.Junk.get(), iSeed, fMix, m_ReadAhead.Samples.data() + iChannel, iFramesToMix, iNumChannels, dSampleRate);
 			}
@@ -416,6 +431,7 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 		int64_t iOffsetSample = m_Mixed.iWritePosition * iNumChannels;
 		m_Mixed.Extend(iWindowFrames);
 		m_Scale.resize(iOffsetFrame + iWindowFrames);
+		m_Source.resize(iOffsetFrame + iWindowFrames);
 
 		for (int64_t iChannel = 0; iChannel < iNumChannels; ++iChannel) {
 			for (int64_t iSample = iChannel, iFrame = 0; iFrame < iFramesToMix; iSample += iNumChannels, iFrame += 1) {
@@ -423,7 +439,12 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 			}
 		}
 		for (int64_t iFrame = 0; iFrame < iFramesToMix; ++iFrame) {
-			m_Scale[iOffsetFrame + iFrame] += m_Window.Buffer[iFrame] * m_Window.Buffer[iFrame];
+			float fWeight = m_Window.Buffer[iFrame] * m_Window.Buffer[iFrame];
+			m_Scale[iOffsetFrame + iFrame] += fWeight;
+			// Accumulate weighted average of the time of samples contributing to this frame.
+			// This sounds excessive compared to just computing it directly but means we stay correct even if rate
+			// changes and we don't have to care about any rate-dependent hop size or whatever
+			m_Source[iOffsetFrame + iFrame] = std::fma(double(fWeight), double(iSourceStartFrame + iFrame), m_Source[iOffsetFrame + iFrame]);
 		}
 
 		if (bUseFFT) {
@@ -437,6 +458,7 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 
 		if (m_Mixed.Frames() >= iMixedFramesMinimum) {
 			m_Scale.erase(m_Scale.begin(), m_Scale.begin() + m_Mixed.iReadPosition);
+			m_Source.erase(m_Source.begin(), m_Source.begin() + m_Mixed.iReadPosition);
 			m_Mixed.Shift();
 		}
 	}
@@ -491,6 +513,7 @@ RageSoundReader_SpeedChange_Good::SetPosition(int iFrame)
 	m_ReadAhead = { GetNumChannels() };
 	m_Mixed = { GetNumChannels() };
 	m_Scale.clear();
+	m_Source.clear();
 
 	m_dPos = 0.0;
 	return m_pSource->SetPosition(iFrame);
@@ -513,19 +536,14 @@ RageSoundReader_SpeedChange_Good::GetNextSourceFrame() const
 {
 	if (m_Mixed.Frames() == 0) {
 		return RageSoundReader_Filter::GetNextSourceFrame();
+	} else if (m_fRate < 1.0) {
+		return int(m_Source[m_Mixed.iReadPosition] / double(m_Scale[m_Mixed.iReadPosition]) + 0.5);
 	} else {
 		double dRate = double(m_fRate);
 		int64_t iCurrent = RageSoundReader_Filter::GetNextSourceFrame();
 		iCurrent -= m_ReadAhead.Frames();
 		iCurrent -= int64_t(m_Mixed.Frames() * dRate);
-
-		// For very low rates the beat shifts towards the centre of the window
-		int iStretchCorrection = 0;
-		if (m_fRate < 0.75f) {
-			iStretchCorrection = int(SCALE(Clamp(dRate, 0.25, 0.75), 0.25, 0.75, m_Window.iSize / 2.0, m_Window.iSize / 4.0));
-		}
-
-		return iCurrent + iStretchCorrection;
+		return int(iCurrent);
 	}
 }
 

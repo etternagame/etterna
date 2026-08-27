@@ -46,6 +46,7 @@
 #include "RageUtil/Misc/RageInput.h"
 
 #include <algorithm>
+#include <array>
 
 #include "Core/Platform/Platform.hpp"
 
@@ -137,7 +138,7 @@ ScreenGameplay::Init()
 
 	// Tells the screen what player we are using
 	// specifically Normal, Practice, or Replay
-	this->FillPlayerInfo(&m_vPlayerInfo);
+	this->FillPlayerInfo(m_vPlayerInfo);
 
 	m_pSoundMusic = nullptr;
 
@@ -155,9 +156,9 @@ ScreenGameplay::Init()
 	GAMESTATE->SetPaused(false);
 
 	// Make sure we have NoteData to play
-	const unsigned int count = m_vPlayerInfo.m_vpStepsQueue.size();
+	const unsigned int count = GetPlayerInfo()->m_vpStepsQueue.size();
 	for (unsigned int i = 0; i < count; i++) {
-		auto* curSteps = m_vPlayerInfo.m_vpStepsQueue[i];
+		auto* curSteps = GetPlayerInfo()->m_vpStepsQueue[i];
 		if (curSteps->IsNoteDataEmpty()) {
 			if (curSteps->GetNoteDataFromSimfile()) {
 				Locator::getLogger()->debug("Notes should be loaded for player 1");
@@ -173,7 +174,7 @@ ScreenGameplay::Init()
 	  GAMESTATE->GetCurrentStyle(PLAYER_1);
 
 	/* Record combo rollover. */
-	m_vPlayerInfo.GetPlayerStageStats()->UpdateComboList(0, true);
+	GetPlayerInfo()->GetPlayerStageStats()->UpdateComboList(0, true);
 
 	m_DancingState = STATE_INTRO;
 
@@ -233,24 +234,24 @@ ScreenGameplay::Init()
 
 	const auto left_edge = 0.0F;
 	const std::string sName("PlayerP1");
-	m_vPlayerInfo.m_pPlayer->SetName(sName);
+	GetPlayerInfo()->m_pPlayer->SetName(sName);
 	const auto edge = left_edge;
 	const auto screen_space = SCREEN_WIDTH / 2.0F;
 	const auto left_marge = margins[0];
 	const auto right_marge = margins[1];
 	const auto field_space = screen_space - left_marge - right_marge;
 	const auto player_x = edge + left_marge + (field_space / 2.0F);
-	m_vPlayerInfo.GetPlayerState()->m_NotefieldZoom = 1.F;
+	GetPlayerInfo()->GetPlayerState()->m_NotefieldZoom = 1.F;
 
 	if (!Center1Player()) {
-		m_vPlayerInfo.m_pPlayer->SetX(player_x);
+		GetPlayerInfo()->m_pPlayer->SetX(player_x);
 	} else {
-		m_vPlayerInfo.m_pPlayer->SetX(SCREEN_CENTER_X);
+		GetPlayerInfo()->m_pPlayer->SetX(SCREEN_CENTER_X);
 	}
-	m_vPlayerInfo.m_pPlayer->RunCommands(PLAYER_INIT_COMMAND);
-	// ActorUtil::LoadAllCommands(m_vPlayerInfo.m_pPlayer, m_sName);
-	this->AddChild(m_vPlayerInfo.m_pPlayer);
-	m_vPlayerInfo.m_pPlayer->PlayCommand("On");
+	GetPlayerInfo()->m_pPlayer->RunCommands(PLAYER_INIT_COMMAND);
+	// ActorUtil::LoadAllCommands(GetPlayerInfo()->m_pPlayer, m_sName);
+	this->AddChild(GetPlayerInfo()->m_pPlayer);
+	GetPlayerInfo()->m_pPlayer->PlayCommand("On");
 
 	//
 	//
@@ -267,16 +268,18 @@ ScreenGameplay::Init()
 
 	// Add individual life meter, when not in sync mode
 	if (m_sName != "ScreenGameplaySyncMachine") {
-		m_vPlayerInfo.m_pLifeMeter =
-		  LifeMeter::MakeLifeMeter(m_vPlayerInfo.GetPlayerState()
+		GetPlayerInfo()->m_pLifeMeter =
+		  LifeMeter::MakeLifeMeter(GetPlayerInfo()
+									 ->GetPlayerState()
 									 ->m_PlayerOptions.GetStage()
 									 .m_LifeType);
-		m_vPlayerInfo.m_pLifeMeter->Load(m_vPlayerInfo.GetPlayerState(),
-										 m_vPlayerInfo.GetPlayerStageStats());
-		m_vPlayerInfo.m_pLifeMeter->SetName(
-		  ssprintf("Life%s", m_vPlayerInfo.GetName().c_str()));
-		LOAD_ALL_COMMANDS_AND_SET_XY(m_vPlayerInfo.m_pLifeMeter);
-		this->AddChild(m_vPlayerInfo.m_pLifeMeter);
+		GetPlayerInfo()->m_pLifeMeter->Load(
+		  GetPlayerInfo()->GetPlayerState(),
+		  GetPlayerInfo()->GetPlayerStageStats());
+		GetPlayerInfo()->m_pLifeMeter->SetName(
+		  ssprintf("Life%s", GetPlayerInfo()->GetName().c_str()));
+		LOAD_ALL_COMMANDS_AND_SET_XY(GetPlayerInfo()->m_pLifeMeter);
+		this->AddChild(GetPlayerInfo()->m_pLifeMeter);
 	}
 
 	// For multi scoreboard; may be used in the future
@@ -313,28 +316,28 @@ ScreenGameplay::Init()
 	}
 
 	std::string sType = PLAYER_TYPE;
-	if (m_vPlayerInfo.m_bIsDummy) {
+	if (GetPlayerInfo()->m_bIsDummy) {
 		sType += "Dummy";
 	}
-	m_vPlayerInfo.m_pPlayer->Init(sType,
-								  m_vPlayerInfo.GetPlayerState(),
-								  m_vPlayerInfo.GetPlayerStageStats(),
-								  m_vPlayerInfo.m_pLifeMeter,
-								  m_vPlayerInfo.m_pPrimaryScoreKeeper);
+	GetPlayerInfo()->m_pPlayer->Init(sType,
+									 GetPlayerInfo()->GetPlayerState(),
+									 GetPlayerInfo()->GetPlayerStageStats(),
+									 GetPlayerInfo()->m_pLifeMeter,
+									 GetPlayerInfo()->m_pPrimaryScoreKeeper);
 
 	// fill in m_apSongsQueue, m_vpStepsQueue, m_asModifiersQueue
 	InitSongQueues();
 
 	// Fill StageStats
 	STATSMAN->m_CurStageStats.m_vpPossibleSongs = m_apSongsQueue;
-	if (m_vPlayerInfo.GetPlayerStageStats() != nullptr) {
-		m_vPlayerInfo.GetPlayerStageStats()->m_vpPossibleSteps =
-		  m_vPlayerInfo.m_vpStepsQueue;
+	if (GetPlayerInfo()->GetPlayerStageStats() != nullptr) {
+		GetPlayerInfo()->GetPlayerStageStats()->m_vpPossibleSteps =
+		  GetPlayerInfo()->m_vpStepsQueue;
 	}
 
-	ASSERT(!m_vPlayerInfo.m_vpStepsQueue.empty());
-	if (m_vPlayerInfo.GetPlayerStageStats() != nullptr) {
-		m_vPlayerInfo.GetPlayerStageStats()->m_bJoined = true;
+	ASSERT(!GetPlayerInfo()->m_vpStepsQueue.empty());
+	if (GetPlayerInfo()->GetPlayerStageStats() != nullptr) {
+		GetPlayerInfo()->GetPlayerStageStats()->m_bJoined = true;
 	}
 	LoadScoreKeeper();
 
@@ -345,6 +348,9 @@ ScreenGameplay::Init()
 	LoadNextSong();
 
 	m_GiveUpTimer.SetZero();
+	m_DiscordRPCCheckTimer.SetZero();
+	m_timerGameplaySeconds.SetZero();
+	TriggerDiscordRPCUpdate();
 	m_gave_up = false;
 	GAMESTATE->m_bRestartedGameplay = false;
 }
@@ -361,17 +367,17 @@ ScreenGameplay::InitSongQueues()
 {
 	m_apSongsQueue.push_back(GAMESTATE->m_pCurSong);
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
-	m_vPlayerInfo.m_vpStepsQueue.push_back(pSteps);
+	GetPlayerInfo()->m_vpStepsQueue.push_back(pSteps);
 
 	if (GAMESTATE->IsPlaylistCourse()) {
 
 		m_apSongsQueue.clear();
-		m_vPlayerInfo.m_vpStepsQueue.clear();
+		GetPlayerInfo()->m_vpStepsQueue.clear();
 
 		auto& pl = SongManager::GetPlaylists()[SONGMAN->playlistcourse];
 		for (auto& ch : pl.chartlist) {
 			m_apSongsQueue.emplace_back(ch.songptr);
-			m_vPlayerInfo.m_vpStepsQueue.emplace_back(ch.stepsptr);
+			GetPlayerInfo()->m_vpStepsQueue.emplace_back(ch.stepsptr);
 			ratesqueue.emplace_back(ch.rate);
 		}
 	}
@@ -422,19 +428,19 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
 
-	const auto* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
+	const auto* pStyle = GAMESTATE->GetCurrentStyle(GetPlayerInfo()->m_pn);
 	NoteData ndTransformed;
 	pStyle->GetTransformedNoteDataForStyle(
-	  m_vPlayerInfo.GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
+	  GetPlayerInfo()->GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
 
-	m_vPlayerInfo.GetPlayerState()->Update(0);
+	GetPlayerInfo()->GetPlayerState()->Update(0);
 
 	NoteDataUtil::RemoveAllButRange(ndTransformed, row, maxrow);
 
 	// load player
 	{
-		m_vPlayerInfo.m_NoteData = ndTransformed;
-		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
+		GetPlayerInfo()->m_NoteData = ndTransformed;
+		NoteDataUtil::RemoveAllTapsOfType(GetPlayerInfo()->m_NoteData,
 										  TapNoteType_AutoKeysound);
 		ReloadPlayer();
 	}
@@ -443,7 +449,7 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 	{
 		auto nd = ndTransformed;
 		NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
-		m_AutoKeysounds.Load(m_vPlayerInfo.GetStepsAndTrailIndex(), nd);
+		m_AutoKeysounds.Load(GetPlayerInfo()->GetStepsAndTrailIndex(), nd);
 	}
 
 	{
@@ -462,29 +468,29 @@ ScreenGameplay::SetupNoteDataFromRow(Steps* pSteps, int row, int maxrow)
 				break;
 		}
 
-		m_vPlayerInfo.m_SoundEffectControl.Load(
-		  sType, m_vPlayerInfo.GetPlayerState(), &m_vPlayerInfo.m_NoteData);
+		GetPlayerInfo()->m_SoundEffectControl.Load(
+		  sType, GetPlayerInfo()->GetPlayerState(), &GetPlayerInfo()->m_NoteData);
 	}
 }
 
 void
 ScreenGameplay::ReloadPlayer()
 {
-	m_vPlayerInfo.m_pPlayer->Reload();
+	GetPlayerInfo()->m_pPlayer->Reload();
 }
 
 void
 ScreenGameplay::LoadPlayer()
 {
-	m_vPlayerInfo.m_pPlayer->Load();
+	GetPlayerInfo()->m_pPlayer->Load();
 }
 
 void
 ScreenGameplay::LoadScoreKeeper()
 {
-	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
-		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
-												  m_vPlayerInfo.m_vpStepsQueue);
+	if (GetPlayerInfo()->m_pPrimaryScoreKeeper != nullptr) {
+		GetPlayerInfo()->m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
+												  GetPlayerInfo()->m_vpStepsQueue);
 	}
 }
 
@@ -493,25 +499,25 @@ ScreenGameplay::SetupSong(int iSongIndex)
 {
 	/* This is the first beat that can be changed without it being visible.
 	 * Until we draw for the first time, any beat can be changed. */
-	m_vPlayerInfo.GetPlayerState()->m_fLastDrawnBeat = -100;
+	GetPlayerInfo()->GetPlayerState()->m_fLastDrawnBeat = -100;
 
-	auto* pSteps = m_vPlayerInfo.m_vpStepsQueue[iSongIndex];
+	auto* pSteps = GetPlayerInfo()->m_vpStepsQueue[iSongIndex];
 	GAMESTATE->m_pCurSteps.Set(pSteps);
 
 	NoteData originalNoteData;
 	pSteps->GetNoteData(originalNoteData);
 
-	const auto* pStyle = GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
+	const auto* pStyle = GAMESTATE->GetCurrentStyle(GetPlayerInfo()->m_pn);
 	NoteData ndTransformed;
 	pStyle->GetTransformedNoteDataForStyle(
-	  m_vPlayerInfo.GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
+	  GetPlayerInfo()->GetStepsAndTrailIndex(), originalNoteData, ndTransformed);
 
-	m_vPlayerInfo.GetPlayerState()->Update(0);
+	GetPlayerInfo()->GetPlayerState()->Update(0);
 
 	// load player
 	{
-		m_vPlayerInfo.m_NoteData = ndTransformed;
-		NoteDataUtil::RemoveAllTapsOfType(m_vPlayerInfo.m_NoteData,
+		GetPlayerInfo()->m_NoteData = ndTransformed;
+		NoteDataUtil::RemoveAllTapsOfType(GetPlayerInfo()->m_NoteData,
 										  TapNoteType_AutoKeysound);
 		LoadPlayer();
 	}
@@ -520,7 +526,7 @@ ScreenGameplay::SetupSong(int iSongIndex)
 	{
 		auto nd = ndTransformed;
 		NoteDataUtil::RemoveAllTapsExceptForType(nd, TapNoteType_AutoKeysound);
-		m_AutoKeysounds.Load(m_vPlayerInfo.GetStepsAndTrailIndex(), nd);
+		m_AutoKeysounds.Load(GetPlayerInfo()->GetStepsAndTrailIndex(), nd);
 	}
 
 	{
@@ -539,22 +545,22 @@ ScreenGameplay::SetupSong(int iSongIndex)
 				break;
 		}
 
-		m_vPlayerInfo.m_SoundEffectControl.Load(
-		  sType, m_vPlayerInfo.GetPlayerState(), &m_vPlayerInfo.m_NoteData);
+		GetPlayerInfo()->m_SoundEffectControl.Load(
+		  sType, GetPlayerInfo()->GetPlayerState(), &GetPlayerInfo()->m_NoteData);
 	}
 
-	m_vPlayerInfo.GetPlayerState()->Update(0);
+	GetPlayerInfo()->GetPlayerState()->Update(0);
 
 	// Hack: Course modifiers that are set to start immediately shouldn't
 	// tween on.
-	m_vPlayerInfo.GetPlayerState()->m_PlayerOptions.SetCurrentToLevel(
+	GetPlayerInfo()->GetPlayerState()->m_PlayerOptions.SetCurrentToLevel(
 	  ModsLevel_Stage);
 }
 
 void
 ScreenGameplay::ReloadCurrentSong()
 {
-	m_vPlayerInfo.GetPlayerStageStats()->m_iSongsPlayed--;
+	GetPlayerInfo()->GetPlayerStageStats()->m_iSongsPlayed--;
 
 	LoadNextSong();
 }
@@ -564,14 +570,14 @@ ScreenGameplay::LoadNextSong()
 {
 	// never allow input to remain redirected during gameplay unless an lua
 	// script forces it when loaded below -mina
-	SCREENMAN->set_input_redirected(m_vPlayerInfo.m_pn, false);
+	SCREENMAN->set_input_redirected(GetPlayerInfo()->m_pn, false);
 
 	// Time begins now (so each individual song can be counted)
 	m_initTimer.Touch();
 
 	GAMESTATE->ResetMusicStatistics();
 
-	m_vPlayerInfo.GetPlayerStageStats()->m_iSongsPlayed++;
+	GetPlayerInfo()->GetPlayerStageStats()->m_iSongsPlayed++;
 
 	auto iPlaySongIndex = GAMESTATE->GetCourseSongIndex();
 	iPlaySongIndex %= m_apSongsQueue.size();
@@ -585,9 +591,11 @@ ScreenGameplay::LoadNextSong()
 
 	// apply permamirror
 	if (GamePreferences::m_AutoPlay != PC_REPLAY &&
-		GAMESTATE->m_pPlayerState->m_PlayerController != PC_REPLAY) {
+		GAMESTATE->m_pPlayerState->m_PlayerController != PC_REPLAY &&
+		GAMESTATE->m_pPlayerState->m_PlayerController != PC_SPECTATE &&
+		GamePreferences::m_AutoPlay != PC_SPECTATE) {
 		auto& pmc = PROFILEMAN->GetProfile(PLAYER_1)->PermaMirrorCharts;
-		auto* pSteps = m_vPlayerInfo.m_vpStepsQueue[iPlaySongIndex];
+		auto* pSteps = GetPlayerInfo()->m_vpStepsQueue[iPlaySongIndex];
 		if (pSteps != nullptr && pmc.count(pSteps->GetChartKey())) {
 			// apply mirror to only stage so it turns on temporarily
 			PO_GROUP_ASSIGN_N(GAMESTATE->m_pPlayerState->m_PlayerOptions,
@@ -601,64 +609,64 @@ ScreenGameplay::LoadNextSong()
 	SetupSong(iPlaySongIndex);
 
 	Steps* pSteps = GAMESTATE->m_pCurSteps;
-	++m_vPlayerInfo.GetPlayerStageStats()->m_iStepsPlayed;
+	++GetPlayerInfo()->GetPlayerStageStats()->m_iStepsPlayed;
 
 	ASSERT(GAMESTATE->m_pCurSteps != nullptr);
-	if (m_vPlayerInfo.m_ptextStepsDescription != nullptr) {
-		m_vPlayerInfo.m_ptextStepsDescription->SetText(
+	if (GetPlayerInfo()->m_ptextStepsDescription != nullptr) {
+		GetPlayerInfo()->m_ptextStepsDescription->SetText(
 		  pSteps->GetDescription());
 	}
 
-	if (m_vPlayerInfo.m_ptextPlayerOptions != nullptr) {
-		m_vPlayerInfo.m_ptextPlayerOptions->SetText(
-		  m_vPlayerInfo.GetPlayerState()
+	if (GetPlayerInfo()->m_ptextPlayerOptions != nullptr) {
+		GetPlayerInfo()->m_ptextPlayerOptions->SetText(
+		  GetPlayerInfo()->GetPlayerState()
 			->m_PlayerOptions.GetCurrent()
 			.GetString());
 	}
 
-	if (m_vPlayerInfo.m_pStepsDisplay != nullptr) {
-		m_vPlayerInfo.m_pStepsDisplay->SetFromSteps(pSteps);
+	if (GetPlayerInfo()->m_pStepsDisplay != nullptr) {
+		GetPlayerInfo()->m_pStepsDisplay->SetFromSteps(pSteps);
 	}
 
 	/* The actual note data for scoring is the base class of Player.  This
 	 * includes transforms, like Wide.  Otherwise, the scoring will operate
 	 * on the wrong data. */
-	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
-		m_vPlayerInfo.m_pPrimaryScoreKeeper->OnNextSong(
+	if (GetPlayerInfo()->m_pPrimaryScoreKeeper != nullptr) {
+		GetPlayerInfo()->m_pPrimaryScoreKeeper->OnNextSong(
 		  GAMESTATE->GetCourseSongIndex(),
 		  pSteps,
-		  &m_vPlayerInfo.m_pPlayer->GetNoteData());
+		  &GetPlayerInfo()->m_pPlayer->GetNoteData());
 	}
 
 	// Don't mess with the PlayerController of the Dummy player
-	if (!m_vPlayerInfo.m_bIsDummy) {
-		if (GAMESTATE->IsCpuPlayer(m_vPlayerInfo.GetStepsAndTrailIndex())) {
-			m_vPlayerInfo.GetPlayerState()->m_PlayerController = PC_CPU;
+	if (!GetPlayerInfo()->m_bIsDummy) {
+		if (GAMESTATE->IsCpuPlayer(GetPlayerInfo()->GetStepsAndTrailIndex())) {
+			GetPlayerInfo()->GetPlayerState()->m_PlayerController = PC_CPU;
 			const auto iMeter = pSteps->GetMeter();
 			auto iNewSkill = SCALE(iMeter, MIN_METER, MAX_METER, 0, 5);
 			/* Watch out: songs aren't actually bound by MAX_METER. */
 			iNewSkill = std::clamp(iNewSkill, 0, 5);
-			m_vPlayerInfo.GetPlayerState()->m_iCpuSkill = iNewSkill;
+			GetPlayerInfo()->GetPlayerState()->m_iCpuSkill = iNewSkill;
 		} else {
-			if (m_vPlayerInfo.GetPlayerState()
+			if (GetPlayerInfo()->GetPlayerState()
 				  ->m_PlayerOptions.GetCurrent()
 				  .m_fPlayerAutoPlay != 0) {
-				m_vPlayerInfo.GetPlayerState()->m_PlayerController =
+				GetPlayerInfo()->GetPlayerState()->m_PlayerController =
 				  PC_AUTOPLAY;
 			} else {
-				m_vPlayerInfo.GetPlayerState()->m_PlayerController =
+				GetPlayerInfo()->GetPlayerState()->m_PlayerController =
 				  GamePreferences::m_AutoPlay;
 			}
 		}
 	}
 
 	const auto using_reverse =
-	  m_vPlayerInfo.GetPlayerState()
+	  GetPlayerInfo()->GetPlayerState()
 		->m_PlayerOptions.GetCurrent()
 		.m_fScrolls[PlayerOptions::SCROLL_REVERSE] == 1;
 
-	if (m_vPlayerInfo.m_pStepsDisplay != nullptr) {
-		m_vPlayerInfo.m_pStepsDisplay->PlayCommand(
+	if (GetPlayerInfo()->m_pStepsDisplay != nullptr) {
+		GetPlayerInfo()->m_pStepsDisplay->PlayCommand(
 		  using_reverse ? "SetReverse" : "SetNoReverse");
 	}
 
@@ -691,10 +699,10 @@ ScreenGameplay::LoadNextSong()
 		m_pSongBackground->FadeToActualBrightness();
 	}
 
-	if (!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
+	if (!GetPlayerInfo()->GetPlayerStageStats()->m_bFailed) {
 		// give a little life back between stages
-		if (m_vPlayerInfo.m_pLifeMeter != nullptr) {
-			m_vPlayerInfo.m_pLifeMeter->OnLoadSong();
+		if (GetPlayerInfo()->m_pLifeMeter != nullptr) {
+			GetPlayerInfo()->m_pLifeMeter->OnLoadSong();
 		}
 	}
 
@@ -716,16 +724,17 @@ ScreenGameplay::LoadNextSong()
 	m_pSoundMusic = m_AutoKeysounds.GetSound();
 
 	/* Give SoundEffectControls the new RageSoundReaders. */
-	auto* pPlayerSound = m_AutoKeysounds.GetPlayerSound(m_vPlayerInfo.m_pn);
+	auto* pPlayerSound = m_AutoKeysounds.GetPlayerSound(GetPlayerInfo()->m_pn);
 	if (pPlayerSound == nullptr &&
-		m_vPlayerInfo.m_pn == GAMESTATE->GetMasterPlayerNumber()) {
+		GetPlayerInfo()->m_pn == GAMESTATE->GetMasterPlayerNumber()) {
 		pPlayerSound = m_AutoKeysounds.GetSharedSound();
 	}
-	m_vPlayerInfo.m_SoundEffectControl.SetSoundReader(pPlayerSound);
+	GetPlayerInfo()->m_SoundEffectControl.SetSoundReader(pPlayerSound);
 
 	if (!GAMESTATE->GetPaused()) {
 		MESSAGEMAN->Broadcast("DoneLoadingNextSong");
 	}
+	TriggerDiscordRPCUpdate();
 }
 
 void
@@ -781,7 +790,7 @@ ScreenGameplay::PlayTicks()
 	/* TODO: Allow all players to have ticks. Not as simple as it looks.
 	 * If a loop takes place, it could make one player's ticks come later
 	 * than intended. Any help here would be appreciated. -Wolfman2000 */
-	auto& player = *m_vPlayerInfo.m_pPlayer;
+	auto& player = *GetPlayerInfo()->m_pPlayer;
 	const auto& nd = player.GetNoteData();
 	m_GameplayAssist.PlayTicks(nd, player.GetPlayerState());
 }
@@ -847,7 +856,7 @@ ScreenGameplay::BeginScreen()
 	if (GAMESTATE->m_bPlayingMulti) {
 		this->SetInterval(
 		  [this]() {
-			  auto& ptns = this->GetPlayerInfo(PLAYER_1)
+			  auto& ptns = this->GetPlayerInfo()
 							 ->GetPlayerStageStats()
 							 ->m_iTapNoteScores;
 
@@ -858,10 +867,10 @@ ScreenGameplay::BeginScreen()
 								   ptns[TNS_W4],
 								   ptns[TNS_W5],
 								   ptns[TNS_Miss],
-								   this->GetPlayerInfo(PLAYER_1)
+								   this->GetPlayerInfo()
 									 ->GetPlayerStageStats()
 									 ->m_iCurCombo);
-			  auto* player = this->GetPlayerInfo(PLAYER_1)->m_pPlayer;
+			  auto* player = this->GetPlayerInfo()->m_pPlayer;
 			  if (player->maxwifescore > 0) {
 				  NSMAN->SendMPLeaderboardUpdate(
 					player->curwifescore / player->maxwifescore, doot);
@@ -875,8 +884,8 @@ ScreenGameplay::BeginScreen()
 auto
 ScreenGameplay::AllAreFailing() -> bool
 {
-	return !((m_vPlayerInfo.m_pLifeMeter != nullptr) &&
-			 !m_vPlayerInfo.m_pLifeMeter->IsFailing());
+	return !((GetPlayerInfo()->m_pLifeMeter != nullptr) &&
+			 !GetPlayerInfo()->m_pLifeMeter->IsFailing());
 }
 
 void
@@ -917,6 +926,63 @@ ScreenGameplay::GetMusicEndTiming(float& fSecondsToStartFadingOutMusic,
 }
 
 void
+ScreenGameplay::CheckDiscordRPCTimer()
+{
+	if (m_DiscordRPCCheckTimer.Ago() > 10.F) {
+		m_DiscordRPCCheckTimer.SetZero();
+		TriggerDiscordRPCUpdate();
+	}
+}
+
+void
+ScreenGameplay::TriggerDiscordRPCUpdate()
+{
+	std::string songtitle = "";
+	std::string groupname = "";
+	if (GAMESTATE->m_pCurSong != nullptr) {
+		songtitle = GAMESTATE->m_pCurSong->GetDisplayMainTitle();
+		groupname = GAMESTATE->m_pCurSong->m_sGroupName;
+	}
+
+	std::string rate =
+	  fmt::format("{:.2}x", GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
+	std::string prefix = "";
+	if (GAMESTATE->GetGameplayMode() == GameplayMode_Practice) {
+		prefix = "Practicing: ";
+	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Replay) {
+		prefix = "Replaying: ";
+	} else if (GAMESTATE->GetGameplayMode() == GameplayMode_Spectate) {
+		prefix = "Spectating: ";
+	}
+
+	auto details = fmt::format("{}{}: {} [{}]", prefix, songtitle, rate, groupname);
+	if (GetName().find("SyncMachine") != std::string::npos) {
+		details = "Setting up machine offset...";
+	} else {
+		if (details.size() > 128) {
+			details = details.substr(0, 124) + "...";
+		}
+	}
+
+	uint64_t startTime = (std::chrono::system_clock::now().time_since_epoch() /
+						  std::chrono::milliseconds(1)) -
+						 (m_timerGameplaySeconds.Ago() * 1000.F);
+	uint64_t endTime = startTime;
+
+	std::string state = "";
+	if (GAMESTATE->m_pCurSteps != nullptr) {
+		state = fmt::format(
+		  "MSD: {:5.2f}",
+		  GAMESTATE->m_pCurSteps->GetMSD(
+			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate, Skill_Overall));
+		endTime =
+		  startTime + (GAMESTATE->m_pCurSteps->GetLengthSeconds() * 1000.F);
+	}
+
+	GAMESTATE->updateDiscordPresence(details, state, startTime, endTime);
+}
+
+void
 ScreenGameplay::Update(float fDeltaTime)
 {
 	if (GAMESTATE->m_pCurSong == nullptr) {
@@ -951,18 +1017,18 @@ ScreenGameplay::Update(float fDeltaTime)
 	m_AutoKeysounds.Update(fDeltaTime);
 
 	const auto failtype =
-	  GAMESTATE->GetPlayerFailType(m_vPlayerInfo.GetPlayerState());
+	  GAMESTATE->GetPlayerFailType(GetPlayerInfo()->GetPlayerState());
 	// update GameState HealthState
-	auto& hs = m_vPlayerInfo.GetPlayerState()->m_HealthState;
+	auto& hs = GetPlayerInfo()->GetPlayerState()->m_HealthState;
 	const auto OldHealthState = hs;
-	if (m_vPlayerInfo.m_pLifeMeter != nullptr) {
+	if (GetPlayerInfo()->m_pLifeMeter != nullptr) {
 		if (failtype != FailType_Off &&
-			m_vPlayerInfo.m_pLifeMeter->IsFailing()) {
+			GetPlayerInfo()->m_pLifeMeter->IsFailing()) {
 			hs = HealthState_Dead;
-		} else if (m_vPlayerInfo.m_pLifeMeter->IsHot()) {
+		} else if (GetPlayerInfo()->m_pLifeMeter->IsHot()) {
 			hs = HealthState_Hot;
 		} else if (failtype != FailType_Off &&
-				   m_vPlayerInfo.m_pLifeMeter->IsInDanger()) {
+				   GetPlayerInfo()->m_pLifeMeter->IsInDanger()) {
 			hs = HealthState_Danger;
 		} else {
 			hs = HealthState_Alive;
@@ -970,14 +1036,14 @@ ScreenGameplay::Update(float fDeltaTime)
 
 		if (hs != OldHealthState) {
 			Message msg("HealthStateChanged");
-			msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
+			msg.SetParam("PlayerNumber", GetPlayerInfo()->m_pn);
 			msg.SetParam("HealthState", hs);
 			msg.SetParam("OldHealthState", OldHealthState);
 			MESSAGEMAN->Broadcast(msg);
 		}
 	}
 
-	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
+	GetPlayerInfo()->m_SoundEffectControl.Update(fDeltaTime);
 
 	{
 		const auto fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -993,25 +1059,25 @@ ScreenGameplay::Update(float fDeltaTime)
 			/* Set STATSMAN->m_CurStageStats.bFailed for failed players.  In,
 			 * FAIL_IMMEDIATE, send SM_BeginFailed if all players failed, and
 			 * kill dead Oni players. */
-			const auto pn = m_vPlayerInfo.GetStepsAndTrailIndex();
+			const auto pn = GetPlayerInfo()->GetStepsAndTrailIndex();
 
-			if (m_vPlayerInfo.m_pLifeMeter != nullptr) {
-				const auto lt = m_vPlayerInfo.GetPlayerState()
+			if (GetPlayerInfo()->m_pLifeMeter != nullptr) {
+				const auto lt = GetPlayerInfo()->GetPlayerState()
 								  ->m_PlayerOptions.GetStage()
 								  .m_LifeType;
 
 				// check for individual fail
 				if (!(failtype == FailType_Off) &&
-					m_vPlayerInfo.m_pLifeMeter->IsFailing() &&
-					!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
+					GetPlayerInfo()->m_pLifeMeter->IsFailing() &&
+					!GetPlayerInfo()->GetPlayerStageStats()->m_bFailed) {
 
 					Locator::getLogger()->info("Player {} failed", static_cast<int>(pn));
-					m_vPlayerInfo.GetPlayerStageStats()->m_bFailed =
+					GetPlayerInfo()->GetPlayerStageStats()->m_bFailed =
 					  true; // fail
 
 					{
 						Message msg("PlayerFailed");
-						msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
+						msg.SetParam("PlayerNumber", GetPlayerInfo()->m_pn);
 						MESSAGEMAN->Broadcast(msg);
 					}
 				}
@@ -1026,18 +1092,18 @@ ScreenGameplay::Update(float fDeltaTime)
 						break;
 				}
 				if (bAllowOniDie && failtype == FailType_Immediate) {
-					if (!STATSMAN->m_CurStageStats
-						   .Failed()) // if not the last one to fail
+					if (!STATSMAN->m_CurStageStats.Failed())
 					{
+						// if not the last one to fail
 						// kill them!
-						FailFadeRemovePlayer(&m_vPlayerInfo);
+						FailFadeRemovePlayer(GetPlayerInfo());
 					}
 				}
 
 				auto failed = true;
 				switch (failtype) {
 					case FailType_Immediate:
-						if (!m_vPlayerInfo.m_pLifeMeter->IsFailing()) {
+						if (!GetPlayerInfo()->m_pLifeMeter->IsFailing()) {
 							failed = false;
 						}
 						break;
@@ -1089,8 +1155,8 @@ ScreenGameplay::Update(float fDeltaTime)
 			// Quitters deserve a failed score.
 			if (bGiveUpTimerFired) {
 				STATSMAN->m_CurStageStats.m_bGaveUp = true;
-				m_vPlayerInfo.GetPlayerStageStats()->m_bDisqualified = true;
-				m_vPlayerInfo.GetPlayerStageStats()->gaveuplikeadumbass = true;
+				GetPlayerInfo()->GetPlayerStageStats()->m_bDisqualified = true;
+				GetPlayerInfo()->GetPlayerStageStats()->gaveuplikeadumbass = true;
 				ResetGiveUpTimers(false);
 				Locator::getLogger()->info("Exited Gameplay to Evaluation");
 				this->PostScreenMessage(SM_LeaveGameplay, 0);
@@ -1117,22 +1183,6 @@ ScreenGameplay::Update(float fDeltaTime)
 	PlayTicks();
 	SendCrossedMessages();
 
-	/*
-	// Multiplayer Life & C++ Scoreboard Update Stuff. Useless for now.
-	if (GAMESTATE->m_bPlayingMulti && NSMAN->useSMserver) {
-		if (m_vPlayerInfo.m_pLifeMeter)
-			NSMAN->m_playerLife =
-			  int(m_vPlayerInfo.m_pLifeMeter->GetLife() * 10000);
-
-		if (m_bShowScoreboard)
-			FOREACH_NSScoreBoardColumn(
-			  cn) if (m_bShowScoreboard && NSMAN->ChangedScoreboard(cn) &&
-					  GAMESTATE->GetFirstDisabledPlayer() != PLAYER_INVALID)
-			  m_Scoreboard[cn]
-				.SetText(NSMAN->m_Scoreboard[cn]);
-	}
-	*/
-
 	// ArrowEffects::Update call moved because having it happen once per
 	// NoteField (which means twice in two player) seemed wasteful. -Kyz
 	ArrowEffects::Update();
@@ -1156,7 +1206,7 @@ ScreenGameplay::DrawPrimitives()
 		m_pSongBackground->Draw();
 		m_pSongBackground->m_disable_draw = true;
 	}
-	m_vPlayerInfo.m_pPlayer->DrawNoteFieldBoard();
+	GetPlayerInfo()->m_pPlayer->DrawNoteFieldBoard();
 	ScreenWithMenuElements::DrawPrimitives();
 }
 
@@ -1204,14 +1254,14 @@ ScreenGameplay::SendCrossedMessages()
 
 		auto pn = PLAYER_INVALID;
 		if (GAMESTATE->m_pCurSteps->GetDifficulty() == Difficulty_Beginner) {
-			pn = m_vPlayerInfo.m_pn;
+			pn = GetPlayerInfo()->m_pn;
 		}
 
 		if (pn == PLAYER_INVALID) {
 			return;
 		}
 
-		const auto& nd = m_vPlayerInfo.m_pPlayer->GetNoteData();
+		const auto& nd = GetPlayerInfo()->m_pPlayer->GetNoteData();
 
 		static int iRowLastCrossedAll[NUM_MESSAGES_TO_SEND] = { 0, 0, 0, 0 };
 		for (auto i = 0; i < NUM_MESSAGES_TO_SEND; i++) {
@@ -1242,12 +1292,12 @@ ScreenGameplay::SendCrossedMessages()
 					if (GAMESTATE->GetCurrentGame()
 						  ->m_PlayersHaveSeparateStyles) {
 						const auto* pStyle =
-						  GAMESTATE->GetCurrentStyle(m_vPlayerInfo.m_pn);
+						  GAMESTATE->GetCurrentStyle(GetPlayerInfo()->m_pn);
 						auto sButton = pStyle->ColToButtonName(t);
 						Message msg(i == 0 ? "NoteCrossed" : "NoteWillCross");
 						msg.SetParam("ButtonName", sButton);
 						msg.SetParam("NumMessagesFromCrossed", i);
-						msg.SetParam("PlayerNumber", m_vPlayerInfo.m_pn);
+						msg.SetParam("PlayerNumber", GetPlayerInfo()->m_pn);
 						MESSAGEMAN->Broadcast(msg);
 					} else {
 						const auto* pStyle =
@@ -1505,7 +1555,7 @@ ScreenGameplay::Input(const InputEventPlus& input) -> bool
 						if (!ignoreInput) {
 							g_buttonsByColumnPressed[iCol].emplace(
 							  input.DeviceI.button);
-							m_vPlayerInfo.m_pPlayer->Step(
+							GetPlayerInfo()->m_pPlayer->Step(
 							  iCol, -1, input.DeviceI.ts, false, bRelease);
 						}
 					}
@@ -1541,8 +1591,8 @@ ScreenGameplay::SaveStats()
 	/* Note that adding stats is only meaningful for the counters (eg.
 	 * RadarCategory_Jumps), not for the percentages (RadarCategory_Air). */
 	RadarValues rv;
-	auto& pss = *m_vPlayerInfo.GetPlayerStageStats();
-	const auto& nd = m_vPlayerInfo.m_pPlayer->GetNoteData();
+	auto& pss = *GetPlayerInfo()->GetPlayerStageStats();
+	const auto& nd = GetPlayerInfo()->m_pPlayer->GetNoteData();
 
 	GAMESTATE->SetProcessedTimingData(GAMESTATE->m_pCurSteps->GetTimingData());
 	NoteDataUtil::CalculateRadarValues(nd, rv);
@@ -1654,6 +1704,7 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		GAMESTATE->m_bGameplayLeadIn.Set(false);
 		m_DancingState =
 		  STATE_DANCING; // STATE CHANGE!  Now the user is allowed to press Back
+		TriggerDiscordRPCUpdate();
 	} else if (SM == SM_NotesEnded) // received while STATE_DANCING
 	{
 		if (GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
@@ -1667,22 +1718,22 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		  false); // don't allow giveup while the next song is loading
 
 		// Mark failure.
-		if (GAMESTATE->GetPlayerFailType(m_vPlayerInfo.GetPlayerState()) !=
+		if (GAMESTATE->GetPlayerFailType(GetPlayerInfo()->GetPlayerState()) !=
 			  FailType_Off &&
-			((m_vPlayerInfo.m_pLifeMeter != nullptr) &&
-			 m_vPlayerInfo.m_pLifeMeter->IsFailing())) {
-			m_vPlayerInfo.GetPlayerStageStats()->m_bFailed = true;
+			((GetPlayerInfo()->m_pLifeMeter != nullptr) &&
+			 GetPlayerInfo()->m_pLifeMeter->IsFailing())) {
+			GetPlayerInfo()->GetPlayerStageStats()->m_bFailed = true;
 			Message msg("SongFinished");
 			MESSAGEMAN->Broadcast(msg);
 		}
 
-		if (!m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
-			m_vPlayerInfo.GetPlayerStageStats()->m_iSongsPassed++;
+		if (!GetPlayerInfo()->GetPlayerStageStats()->m_bFailed) {
+			GetPlayerInfo()->GetPlayerStageStats()->m_iSongsPassed++;
 		}
 
 		// set a life record at the point of failure
-		if (m_vPlayerInfo.GetPlayerStageStats()->m_bFailed) {
-			m_vPlayerInfo.GetPlayerStageStats()->SetLifeRecordAt(
+		if (GetPlayerInfo()->GetPlayerStageStats()->m_bFailed) {
+			GetPlayerInfo()->GetPlayerStageStats()->SetLifeRecordAt(
 			  0.F, GAMESTATE->m_Position.m_fMusicSeconds);
 		}
 
@@ -1699,9 +1750,9 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 		if (GAMESTATE->IsPlaylistCourse()) {
 			m_apSongsQueue.erase(m_apSongsQueue.begin(),
 								 m_apSongsQueue.begin() + 1);
-			m_vPlayerInfo.m_vpStepsQueue.erase(
-			  m_vPlayerInfo.m_vpStepsQueue.begin(),
-			  m_vPlayerInfo.m_vpStepsQueue.begin() + 1);
+			GetPlayerInfo()->m_vpStepsQueue.erase(
+			  GetPlayerInfo()->m_vpStepsQueue.begin(),
+			  GetPlayerInfo()->m_vpStepsQueue.begin() + 1);
 			ratesqueue.erase(ratesqueue.begin(), ratesqueue.begin() + 1);
 
 			this->StageFinished(false);
@@ -1771,8 +1822,8 @@ ScreenGameplay::HandleScreenMessage(const ScreenMessage& SM)
 	} else if (SM == SM_StartLoadingNextSong) {
 		// Next song.
 		// give a little life back between stages
-		if (m_vPlayerInfo.m_pLifeMeter != nullptr) {
-			m_vPlayerInfo.m_pLifeMeter->OnSongEnded();
+		if (GetPlayerInfo()->m_pLifeMeter != nullptr) {
+			GetPlayerInfo()->m_pLifeMeter->OnSongEnded();
 		}
 
 		GAMESTATE->m_bLoadingNextSong = true;
@@ -1871,7 +1922,7 @@ ScreenGameplay::HandleMessage(const Message& msg)
 		PlayerNumber pn;
 		msg.GetParam("Player", pn);
 
-		if (m_vPlayerInfo.m_pn == pn && m_vPlayerInfo.GetPlayerState()
+		if (GetPlayerInfo()->m_pn == pn && GetPlayerInfo()->GetPlayerState()
 										  ->m_PlayerOptions.GetCurrent()
 										  .m_bMuteOnError) {
 
@@ -1910,10 +1961,10 @@ ScreenGameplay::Cancel(ScreenMessage smSendWhenDone)
 }
 
 auto
-ScreenGameplay::GetPlayerInfo(PlayerNumber pn) -> PlayerInfo*
+ScreenGameplay::GetPlayerInfo() -> PlayerInfo*
 {
-	if (m_vPlayerInfo.m_pn == pn) {
-		return &m_vPlayerInfo;
+	if (m_vPlayerInfo.size() > 0) {
+		return &m_vPlayerInfo[0];
 	}
 	return nullptr;
 }
@@ -1939,9 +1990,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static auto GetLifeMeter(T* p, lua_State* L) -> int
 	{
-		const auto pn = PLAYER_1;
-
-		auto* pi = p->GetPlayerInfo(pn);
+		auto* pi = p->GetPlayerInfo();
 		if (pi == nullptr) {
 			return 0;
 		}
@@ -1955,9 +2004,7 @@ class LunaScreenGameplay : public Luna<ScreenGameplay>
 	}
 	static auto GetPlayerInfo(T* p, lua_State* L) -> int
 	{
-		const auto pn = PLAYER_1;
-
-		auto* pi = p->GetPlayerInfo(pn);
+		auto* pi = p->GetPlayerInfo();
 		if (pi == nullptr) {
 			return 0;
 		}

@@ -64,3 +64,9 @@ aggregate_skill(const std::vector<float>& v,
 
 	return rating * result_multiplier;
 }
+
+inline auto
+old_normalizer(const float x, const float y, const float z1, const float z2) {
+	const auto norm = std::clamp(((x/y) - 1.F) * z1, 0.F, 1.F);
+	return x * z2 * norm + x * (1.F - z2);
+}

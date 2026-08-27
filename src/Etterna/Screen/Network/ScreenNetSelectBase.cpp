@@ -365,33 +365,6 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 			lua_pushnumber(L, 0);
 		return 1;
 	}
-	static int GetFriendQty(T* p, lua_State* L)
-	{
-		lua_pushnumber(L, NSMAN->fl_PlayerNames.size());
-		return 1;
-	}
-	static int GetFriendName(T* p, lua_State* L)
-	{
-		if (lua_isnil(L, 1))
-			return 0;
-		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerNames.size() &&
-			IArg(1) >= 1)
-			lua_pushstring(L, (NSMAN->fl_PlayerNames[IArg(1) - 1]).c_str());
-		else
-			lua_pushstring(L, "");
-		return 1;
-	}
-	static int GetFriendState(T* p, lua_State* L)
-	{
-		if (lua_isnil(L, 1))
-			return 0;
-		if (static_cast<size_t>(IArg(1)) <= NSMAN->fl_PlayerStates.size() &&
-			IArg(1) >= 1)
-			lua_pushnumber(L, NSMAN->fl_PlayerStates[IArg(1) - 1]);
-		else
-			lua_pushnumber(L, 0);
-		return 1;
-	}
 	static int ScrollChatUp(T* p, lua_State* L)
 	{
 		p->Scroll(1);
@@ -437,9 +410,6 @@ class LunaScreenNetSelectBase : public Luna<ScreenNetSelectBase>
 		ADD_METHOD(ChatboxVisible);
 		ADD_METHOD(GetUserQty);
 		ADD_METHOD(GetUserState);
-		ADD_METHOD(GetFriendQty);
-		ADD_METHOD(GetFriendState);
-		ADD_METHOD(GetFriendName);
 		ADD_METHOD(ScrollChatUp);
 		ADD_METHOD(ScrollChatDown);
 		ADD_METHOD(ShowNextMsg);

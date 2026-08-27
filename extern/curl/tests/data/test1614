@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<testcase>
+<info>
+<keywords>
+unittest
+noproxy
+</keywords>
+</info>
+
+# Client-side
+<client>
+<features>
+unittest
+proxy
+</features>
+<name>
+noproxy and cidr comparisons
+</name>
+</client>
+<errorcode>
+0
+</errorcode>
+</testcase>

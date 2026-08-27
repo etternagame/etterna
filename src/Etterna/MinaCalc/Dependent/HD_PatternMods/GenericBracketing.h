@@ -78,7 +78,7 @@ struct GBracketingMod
 		}
 
 		// definitely no brackets, decay
-		if (mitvghi.taps_bracketing == 0) {
+		if (mitvghi.taps_bracketing == 0 || mitvghi.total_taps == static_cast<int>(prop_buffer)) {
 			decay_mod();
 			return pmod;
 		}
@@ -87,8 +87,9 @@ struct GBracketingMod
 		bracket_taps = static_cast<float>(mitvghi.taps_bracketing);
 
 		total_prop =
-		  total_prop_base + ((bracket_taps + prop_buffer) /
-							 (t_taps - prop_buffer) * total_prop_scaler);
+		total_prop_base + ((bracket_taps + prop_buffer) /
+							(t_taps - prop_buffer) * total_prop_scaler);
+
 		total_prop =
 		  std::clamp(fastsqrt(total_prop), total_prop_min, total_prop_max);
 

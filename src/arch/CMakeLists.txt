@@ -80,29 +80,33 @@ if(APPLE)
 elseif(MSVC)
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
-  
-else() # Unix
-  if (${HAS_FFMPEG})
+
+elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64") # Unix
     list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
     list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
-  endif()
   
 endif()
 source_group("Arch Specific\\\\Movie Texture" FILES ${SMDATA_ARCH_MOVIE_TEXTURE_SRC} ${SMDATA_ARCH_MOVIE_TEXTURE_HPP})
 
 list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow.cpp")
 list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow.h")
+list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindowVK/LowLevelWindowVK.cpp")
+list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindowVK/LowLevelWindowVK.h")
 if(WIN32)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_Win32.cpp")
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_Win32.h")
+  list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindowVK/LowLevelWindowVK_Win32.cpp")
+  list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindowVK/LowLevelWindowVK_Win32.h")
   
 elseif(APPLE)
   list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_MacOSX.mm")
   list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_MacOSX.h")
   
-else(UNIX)
+else() # Unix
     list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindow/LowLevelWindow_X11.cpp")
     list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindow/LowLevelWindow_X11.h")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_SRC "LowLevelWindowVK/LowLevelWindowVK_X11.cpp")
+    list(APPEND SMDATA_ARCH_LOWLEVEL_HPP "LowLevelWindowVK/LowLevelWindowVK_X11.h")
   
 endif(WIN32)
 source_group("Arch Specific\\\\Low Level Window" FILES ${SMDATA_ARCH_LOWLEVEL_SRC} ${SMDATA_ARCH_LOWLEVEL_HPP})
@@ -120,7 +124,7 @@ else()
     list(APPEND SMDATA_ARCH_LOADING_SRC "LoadingWindow/LoadingWindow_MacOSX.mm")
     list(APPEND SMDATA_ARCH_LOADING_HPP "LoadingWindow/LoadingWindow_MacOSX.h")
     
-  elseif(LINUX)
+  elseif(UNIX)
     
     if (GTK2_FOUND)
       list(APPEND SMDATA_ARCH_LOADING_SRC "LoadingWindow/LoadingWindow_Gtk.cpp")
@@ -155,7 +159,7 @@ elseif(APPLE)
   list(APPEND SMDATA_ARCH_INPUT_SRC "InputHandler/InputHandler_MacOSX_HID.cpp")
   list(APPEND SMDATA_ARCH_INPUT_HPP "InputHandler/InputHandler_MacOSX_HID.h")
 else() # Unix/Linux
-  if (LINUX)
+  if (UNIX)
     list(APPEND SMDATA_ARCH_INPUT_SRC
       "InputHandler/LinuxInputManager.cpp"
       "InputHandler/InputHandler_Linux_Joystick.cpp"

@@ -46,6 +46,11 @@ function WHEELDATA.Reset(self)
         },
     }
 
+    self.RandomSongList = {} -- list of songs populated by GetRandomSongInFolder
+    self.RandomSongIndex = 0 -- current position in the RandomSongList
+    self.RandomFolderSongIndices = {} -- mapping of folder names to numbers like above
+    self.RandomFolderSongLists = {} -- mapping of folder names to song lists like above
+
     -- last generated list of WheelItems
     self.WheelItems = {}
 end
@@ -147,7 +152,7 @@ function WHEELDATA.SetSearch(self, t)
     if t.ChartKey ~= nil then
         self.ActiveFilter.metadata.ChartKey = t.ChartKey:lower()
     else
-        self.ActiveFilter.metadata.ChartKEy = ""
+        self.ActiveFilter.metadata.ChartKey = ""
     end
     -- end
 end
@@ -863,18 +868,44 @@ local sortmodeImplementations = {
         function()
             WHEELDATA:ResetSorts()
             local songs = WHEELDATA:GetAllSongsPassingFilter()
+            local playlistsAreSongGroups = PREFSMAN:GetPreference("PlaylistsAreSongGroups")
 
-            -- for reasons determined by higher powers, literally mimic the behavior of AllSongsByGroup construction
-            for _, song in ipairs(songs) do
-                local fname = song:GetGroupName()
+            local function addSongToFolder(song, fname)
                 if WHEELDATA.AllSongsByFolder[fname] ~= nil then
                     WHEELDATA.AllSongsByFolder[fname][#WHEELDATA.AllSongsByFolder[fname] + 1] = song
                 else
                     WHEELDATA.AllSongsByFolder[fname] = {song}
                     WHEELDATA.AllFolders[#WHEELDATA.AllFolders + 1] = fname
                 end
+            end
+
+            -- for reasons determined by higher powers, literally mimic the behavior of AllSongsByGroup construction
+            for _, song in ipairs(songs) do
+                local fname = song:GetGroupName()
+                addSongToFolder(song, fname)
                 WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
             end
+
+            -- add songs into new groups based on playlists if the preference is true
+            if playlistsAreSongGroups then
+                local lists = SONGMAN:GetPlaylists()
+                for _, playlist in ipairs(lists) do
+                    local pname = playlist:GetName()
+                    -- dont replace a pack with a playlist. dont merge them either
+                    if WHEELDATA.AllFolders[pname] == nil then
+                        local songlist = playlist:GetSonglist()
+                        for ii, chart in ipairs(playlist:GetAllSteps()) do
+                            if chart:IsLoaded() then
+                                local song = songlist[ii]
+                                addSongToFolder(song, pname)
+                                -- it's odd to do this but whatever
+                                WHEELDATA.AllFilteredSongs[#WHEELDATA.AllFilteredSongs + 1] = song
+                            end
+                        end
+                    end
+                end
+            end
+
             -- sort the groups and then songlists in groups
             table.sort(WHEELDATA.AllFolders, function(a,b) return a:lower() < b:lower() end)
             for _, songlist in pairs(WHEELDATA.AllSongsByFolder) do
@@ -885,6 +916,8 @@ local sortmodeImplementations = {
             end
         end,
         function(song)
+            -- caring about playlistsAreSongGroups here would fix some potential song search jumping stuff
+            -- but we are only handling a single existing instance of a song on the wheel with multiple refs
             return song:GetGroupName()
         end,
         function(packName)
@@ -1872,7 +1905,7 @@ function WHEELDATA.SortByCurrentSortmode(self)
     end
 
     -- sort timing debug
-    print(string.format("WHEELDATA -- Sorting took %f.", tafter - tbefore))
+    print(string.format("WHEELDATA -- Sorting took %f seconds.", tafter - tbefore))
     MESSAGEMAN:Broadcast("FinishedSort")
 end
 
@@ -1933,6 +1966,47 @@ end
 -- getter for a random folder
 function WHEELDATA.GetRandomFolder(self)
     return self.AllFolders[math.random(#self.AllFolders)]
+end
+
+-- getter for a random song overall, supporting forward and reverse memory
+function WHEELDATA.GetRandomSongReversible(self, bReverse)
+    local diff = 1
+    if bReverse then diff = -1 end
+    self.RandomSongIndex = self.RandomSongIndex + diff
+
+    if self.RandomSongIndex < 1 then
+        self.RandomSongIndex = 1
+        local folder = self:GetRandomFolder()
+        table.insert(self.RandomSongList, 1, self:GetRandomSongInFolder(folder))
+    elseif self.RandomSongIndex > #self.RandomSongList then
+        self.RandomSongIndex = #self.RandomSongList + 1
+        local folder = self:GetRandomFolder()
+        table.insert(self.RandomSongList, self:GetRandomSongInFolder(folder))
+    end
+    return self.RandomSongList[self.RandomSongIndex]
+end
+
+-- getter for a random song in the given folder, supporting forward and reverse memory
+function WHEELDATA.GetRandomSongInFolderReversible(self, name, bReverse)
+    local diff = 1
+    if bReverse then diff = -1 end
+    if self.RandomFolderSongIndices[name] == nil then
+        self.RandomFolderSongIndices[name] = 0
+    end
+    if self.RandomFolderSongLists[name] == nil then
+        self.RandomFolderSongLists[name] = {}
+    end
+    self.RandomFolderSongIndices[name] = self.RandomFolderSongIndices[name] + diff
+
+    if self.RandomFolderSongIndices[name] < 1 then
+        self.RandomFolderSongIndices[name] = 1
+        table.insert(self.RandomFolderSongLists[name], 1, self:GetRandomSongInFolder(name))
+    elseif self.RandomFolderSongIndices[name] > #self.RandomFolderSongLists[name] then
+        self.RandomFolderSongIndices[name] = #self.RandomFolderSongLists[name] + 1
+        table.insert(self.RandomFolderSongLists[name], self:GetRandomSongInFolder(name))
+    end
+    
+    return self.RandomFolderSongLists[name][self.RandomFolderSongIndices[name]]
 end
 
 -- to simplify a lot of copy paste....
@@ -2060,7 +2134,6 @@ local function getClearStatsForGroup(group)
             local scorestack = SCOREMAN:GetScoresByKey(chart:GetChartKey())
 
             -- scorestack is nil if no scores on the chart
-            -- skip if the chart has negbpms: these scores are always invalid for now and ruin lamps
             if scorestack ~= nil then
                 -- the scores are in lists for each rate
                 -- find the highest
@@ -2168,7 +2241,7 @@ function WHEELDATA.RefreshStats(self)
                 if curcount ~= nil then
                     self.TotalStats.clearPerGrade[grade] = curcount + count
                 else
-                    self.TotalStats.clearPerGrade[grade] = 1
+                    self.TotalStats.clearPerGrade[grade] = count
                 end
             end
         end

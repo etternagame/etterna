@@ -3,7 +3,7 @@
  * @ingroup tests
  * @brief   Test of a SQLiteCpp Database.
  *
- * Copyright (c) 2012-2024 Sebastien Rombauts (sebastien.rombauts@gmail.com)
+ * Copyright (c) 2012-2025 Sebastien Rombauts (sebastien.rombauts@gmail.com)
  *
  * Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
  * or copy at http://opensource.org/licenses/MIT)
@@ -34,7 +34,8 @@ void assertion_failed(const char* apFile, const long apLine, const char* apFunc,
 }
 #endif
 
-#ifdef SQLITECPP_INTERNAL_SQLITE
+// NOTE on macOS FindSQLite3 find an unrelated sqlite3.h from Mono.framework that doesn't match the actual package version!
+#if defined(SQLITECPP_INTERNAL_SQLITE) || !defined(__APPLE__)
 TEST(SQLiteCpp, version)
 {
     EXPECT_STREQ(SQLITE_VERSION,        SQLite::VERSION);
@@ -219,26 +220,26 @@ TEST(Database, exec)
     EXPECT_EQ(0, db.getTotalChanges());
 
     // first row : insert the "first" text value into new row of id 1
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\")"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'first')"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(1, db.getLastInsertRowid());
     EXPECT_EQ(1, db.getTotalChanges());
 
     // second row : insert the "second" text value into new row of id 2
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"second\")"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'second')"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(2, db.getLastInsertRowid());
     EXPECT_EQ(2, db.getTotalChanges());
 
     // third row : insert the "third" text value into new row of id 3
-    const std::string insert("INSERT INTO test VALUES (NULL, \"third\")");
+    const std::string insert("INSERT INTO test VALUES (NULL, 'third')");
     EXPECT_EQ(1, db.exec(insert));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid());
     EXPECT_EQ(3, db.getTotalChanges());
 
     // update the second row : update text value to "second_updated"
-    EXPECT_EQ(1, db.exec("UPDATE test SET value=\"second-updated\" WHERE id='2'"));
+    EXPECT_EQ(1, db.exec("UPDATE test SET value='second-updated' WHERE id='2'"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid()); // last inserted row ID is still 3
     EXPECT_EQ(4, db.getTotalChanges());
@@ -261,14 +262,14 @@ TEST(Database, exec)
     EXPECT_EQ(5, db.getTotalChanges());
 
     // insert two rows with two *different* statements => returns only 1, ie. for the second INSERT statement
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\");INSERT INTO test VALUES (NULL, \"second\");"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'first');INSERT INTO test VALUES (NULL, 'second');"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(2, db.getLastInsertRowid());
     EXPECT_EQ(7, db.getTotalChanges());
 
 #if (SQLITE_VERSION_NUMBER >= 3007011)
     // insert two rows with only one statement (starting with SQLite 3.7.11) => returns 2
-    EXPECT_EQ(2, db.exec("INSERT INTO test VALUES (NULL, \"third\"), (NULL, \"fourth\");"));
+    EXPECT_EQ(2, db.exec("INSERT INTO test VALUES (NULL, 'third'), (NULL, 'fourth');"));
     EXPECT_EQ(2, db.getChanges());
     EXPECT_EQ(4, db.getLastInsertRowid());
     EXPECT_EQ(9, db.getTotalChanges());
@@ -287,26 +288,26 @@ TEST(Database, tryExec)
     EXPECT_EQ(0, db.getTotalChanges());
 
     // first row : insert the "first" text value into new row of id 1
-    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"first\")"));
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, 'first')"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(1, db.getLastInsertRowid());
     EXPECT_EQ(1, db.getTotalChanges());
 
     // second row : insert the "second" text value into new row of id 2
-    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"second\")"));
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, 'second')"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(2, db.getLastInsertRowid());
     EXPECT_EQ(2, db.getTotalChanges());
 
     // third row : insert the "third" text value into new row of id 3
-    const std::string insert("INSERT INTO test VALUES (NULL, \"third\")");
+    const std::string insert("INSERT INTO test VALUES (NULL, 'third')");
     EXPECT_EQ(SQLite::OK, db.tryExec(insert));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid());
     EXPECT_EQ(3, db.getTotalChanges());
 
     // update the second row : update text value to "second_updated"
-    EXPECT_EQ(SQLite::OK, db.tryExec("UPDATE test SET value=\"second-updated\" WHERE id='2'"));
+    EXPECT_EQ(SQLite::OK, db.tryExec("UPDATE test SET value='second-updated' WHERE id='2'"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(3, db.getLastInsertRowid()); // last inserted row ID is still 3
     EXPECT_EQ(4, db.getTotalChanges());
@@ -327,14 +328,14 @@ TEST(Database, tryExec)
     EXPECT_EQ(5, db.getTotalChanges());
 
     // insert two rows with two *different* statements => only 1 change, ie. for the second INSERT statement
-    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"first\");INSERT INTO test VALUES (NULL, \"second\");"));
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, 'first');INSERT INTO test VALUES (NULL, 'second');"));
     EXPECT_EQ(1, db.getChanges());
     EXPECT_EQ(2, db.getLastInsertRowid());
     EXPECT_EQ(7, db.getTotalChanges());
 
 #if (SQLITE_VERSION_NUMBER >= 3007011)
     // insert two rows with only one statement (starting with SQLite 3.7.11)
-    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"third\"), (NULL, \"fourth\");"));
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, 'third'), (NULL, 'fourth');"));
     EXPECT_EQ(2, db.getChanges());
     EXPECT_EQ(4, db.getLastInsertRowid());
     EXPECT_EQ(9, db.getTotalChanges());
@@ -350,14 +351,14 @@ TEST(Database, execAndGet)
     db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT, weight INTEGER)");
 
     // insert a few rows
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\",  3)"));
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"second\", 5)"));
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"third\",  7)"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'first',  3)"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'second', 5)"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'third',  7)"));
 
     // Get a single value result with an easy to use shortcut
     EXPECT_STREQ("second",  db.execAndGet("SELECT value FROM test WHERE id=2"));
     EXPECT_STREQ("third",   db.execAndGet("SELECT value FROM test WHERE weight=7"));
-    const std::string query("SELECT weight FROM test WHERE value=\"first\"");
+    const std::string query("SELECT weight FROM test WHERE value='first'");
     EXPECT_EQ(3,            db.execAndGet(query).getInt());
 }
 
@@ -369,7 +370,7 @@ TEST(Database, execException)
     EXPECT_EQ(SQLite::OK, db.getExtendedErrorCode());
 
     // exception with SQL error: "no such table"
-    EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL, \"first\",  3)"), SQLite::Exception);
+    EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL, 'first',  3)"), SQLite::Exception);
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
     EXPECT_STREQ("no such table: test", db.getErrorMsg());
@@ -387,14 +388,14 @@ TEST(Database, execException)
     EXPECT_STREQ("table test has 3 columns but 2 values were supplied", db.getErrorMsg());
 
     // exception with SQL error: "No row to get a column from"
-    EXPECT_THROW(db.execAndGet("SELECT weight FROM test WHERE value=\"first\""), SQLite::Exception);
+    EXPECT_THROW(db.execAndGet("SELECT weight FROM test WHERE value='first'"), SQLite::Exception);
 
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\",  3)"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'first',  3)"));
     // exception with SQL error: "No row to get a column from"
-    EXPECT_THROW(db.execAndGet("SELECT weight FROM test WHERE value=\"second\""), SQLite::Exception);
+    EXPECT_THROW(db.execAndGet("SELECT weight FROM test WHERE value='second'"), SQLite::Exception);
 
     // Add a row with more values than columns in the table: "table test has 3 columns but 4 values were supplied"
-    EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL, \"first\", 123, 0.123)"), SQLite::Exception);
+    EXPECT_THROW(db.exec("INSERT INTO test VALUES (NULL, 'first', 123, 0.123)"), SQLite::Exception);
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
     EXPECT_STREQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
@@ -408,7 +409,7 @@ TEST(Database, tryExecError)
     EXPECT_EQ(SQLite::OK, db.getExtendedErrorCode());
 
     // Insert into nonexistent table: "no such table"
-    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL, \"first\",  3)"));
+    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL, 'first',  3)"));
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
     EXPECT_STREQ("no such table: test", db.getErrorMsg());
@@ -426,17 +427,17 @@ TEST(Database, tryExecError)
     EXPECT_STREQ("table test has 3 columns but 2 values were supplied", db.getErrorMsg());
 
     // Add a row with more values than columns in the table: "table test has 3 columns but 4 values were supplied"
-    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL, \"first\", 123, 0.123)"));
+    EXPECT_EQ(SQLITE_ERROR, db.tryExec("INSERT INTO test VALUES (NULL, 'first', 123, 0.123)"));
     EXPECT_EQ(SQLITE_ERROR, db.getErrorCode());
     EXPECT_EQ(SQLITE_ERROR, db.getExtendedErrorCode());
     EXPECT_STREQ("table test has 3 columns but 4 values were supplied", db.getErrorMsg());
 
     // Create a first row
-    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, \"first\",  3)"));
+    EXPECT_EQ(SQLite::OK, db.tryExec("INSERT INTO test VALUES (NULL, 'first',  3)"));
     EXPECT_EQ(1, db.getLastInsertRowid());
 
     // Try to insert a new row with the same PRIMARY KEY: "UNIQUE constraint failed: test.id"
-    EXPECT_EQ(SQLITE_CONSTRAINT, db.tryExec("INSERT INTO test VALUES (1, \"impossible\", 456)"));
+    EXPECT_EQ(SQLITE_CONSTRAINT, db.tryExec("INSERT INTO test VALUES (1, 'impossible', 456)"));
     EXPECT_EQ(SQLITE_CONSTRAINT, db.getErrorCode());
     EXPECT_EQ(SQLITE_CONSTRAINT_PRIMARYKEY, db.getExtendedErrorCode());
     EXPECT_STREQ("UNIQUE constraint failed: test.id", db.getErrorMsg());
@@ -464,8 +465,8 @@ TEST(Database, createFunction)
     SQLite::Database db(":memory:", SQLite::OPEN_READWRITE);
     db.exec("CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)");
 
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"first\")"));
-    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, \"second\")"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'first')"));
+    EXPECT_EQ(1, db.exec("INSERT INTO test VALUES (NULL, 'second')"));
 
     // exception with SQL error: "no such function: firstchar"
     EXPECT_THROW(db.exec("SELECT firstchar(value) FROM test WHERE id=1"), SQLite::Exception);
@@ -559,7 +560,10 @@ TEST(Database, getHeaderInfo)
         EXPECT_EQ(h.databaseTextEncoding, 1);
         EXPECT_EQ(h.incrementalVaccumMode, 0);
         EXPECT_EQ(h.versionValidFor, 3);
+// NOTE on macOS FindSQLite3 find an unrelated sqlite3.h from Mono.framework that doesn't match the actual package version!
+#if defined(SQLITECPP_INTERNAL_SQLITE) || !defined(__APPLE__)
         EXPECT_EQ(h.sqliteVersion, SQLITE_VERSION_NUMBER);
+#endif
     }
     remove("test.db3");
 }

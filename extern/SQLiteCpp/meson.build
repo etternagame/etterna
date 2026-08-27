@@ -4,10 +4,11 @@ project(
     # however newer versions of gtest requires C++14
     default_options: ['cpp_std=c++14', 'warning_level=3'],
     license: 'MIT',
-    version: '3.3.2',
+    version: '3.3.3',
 )
 
 cxx = meson.get_compiler('cpp')
+cpp_std = get_option('cpp_std')
 
 ## at best we might try to test if this code compiles
 ## testing for compilers or platforms is not reliable enough
@@ -91,11 +92,12 @@ sqlitecpp_test_args = []
 ## 'auto' return without trailing return type; deduced return types are a C++14 extension
 if host_machine.system() == 'windows'
     ## check if the std version is less than c++14
-    if get_option('cpp_std').endswith('11')
-        message('[WINDOWS] using c++14 standard')
-        message('[WINDOWS] you can disable this warning by setting cpp_std to c++14 or newer')
+    if cpp_std.version_compare('<c++14')
+        message('[WINDOWS] setting minimal version to c++14')
+        message('[WINDOWS] you can disable this warning by setting cpp_std to c++14 or newer.')
+        cpp_std = 'c++14'
         sqlitecpp_opts += [
-            'cpp_std=c++14',
+            'cpp_std=' + cpp_std,
         ]
     endif
 endif
@@ -277,16 +279,22 @@ if get_option('SQLITECPP_BUILD_TESTS')
                 'gtest',
                 main : true,
                 fallback: ['gtest', 'gtest_main_dep'])
-    # check if Gtest is newer than 1.14.0
-    # if so set the minimum standard to c++14
-    if gtest_dep.found() and gtest_dep.version().version_compare('>=1.14.0')
-        ## check if the std version is less than c++14
-        if get_option('cpp_std').version_compare('<c++14')
-            message('warning: current Gtest version requires c++14, setting the minimum standard to c++14')
-            message('warning: you can disable this warning by setting cpp_std to c++14 or newer')
-
-            sqlitecpp_test_args += [
-                'cpp_std=c++14',
+    # check for the current version of gtest as newer versions require newer C++ standards
+    if gtest_dep.found()
+        gtest_version = gtest_dep.version()
+        minimum_standard = 'none'
+        required_std_format = 'current Gtest version requires at least @0@, setting the minimum standard to @0@. You can disable this warning by setting cpp_std to @0@ or newer.'
+        ## gtest 1.17.0 requires c++17 while gtest 1.14.0 requires c++14
+        if gtest_version.version_compare('>=1.17.0') and cpp_std.version_compare('<c++17')
+            minimum_standard = 'c++17'
+        elif gtest_version.version_compare('>=1.14.0') and cpp_std.version_compare('<c++14')
+            minimum_standard = 'c++14'
+        endif
+        if minimum_standard != 'none'
+            warning(required_std_format.format(minimum_standard))
+            cpp_std = minimum_standard
+            sqlitecpp_opts += [
+                'cpp_std=' + cpp_std,
             ]
         endif
     endif

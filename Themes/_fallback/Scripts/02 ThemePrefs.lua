@@ -240,6 +240,33 @@ function JudgeDifficulty()
 	return t
 end
 
+function DiscordRPC()
+	local t = {
+		Name = "DiscordRPC",
+		LayoutType = "ShowAllInRow",
+		SelectType = "SelectOne",
+		OneChoiceForAllPlayers = false,
+		ExportOnChange = true,
+        ExportOnCancel = true,
+		Choices = {THEME:GetString("OptionNames", "Off"), THEME:GetString("OptionNames", "On")},
+		LoadSelections = function(self, list, pn)
+			local pref = PREFSMAN:GetPreference("EnableDiscord")
+			if pref then
+				list[2] = true
+			else
+				list[1] = true
+			end
+		end,
+		SaveSelections = function(self, list, pn)
+			local value
+			value = list[2]
+			PREFSMAN:SetPreference("EnableDiscord", value)
+		end
+	}
+	setmetatable(t, t)
+	return t
+end
+
 function RateList()
     local ratelist = {}
     do
@@ -727,7 +754,7 @@ function GranularSuddenOffset()
 	return t
 end
 
-function SoundVolumeControl()
+function SoundVolumeMasterControl()
     local numlist = {}
     do
         local start = 0
@@ -741,7 +768,7 @@ function SoundVolumeControl()
     end
 
     local t = {
-        Name = "SoundVolume",
+        Name = "SoundVolumeMaster",
         LayoutType = "ShowAllInRow",
         SelectType = "SelectOne",
         OneChoiceForAllPlayers = true,
@@ -750,7 +777,7 @@ function SoundVolumeControl()
         Choices = numlist,
         LoadSelections = function(self, list, pn)
             local rateindex = 1
-            local rate = notShit.round(PREFSMAN:GetPreference("SoundVolume"), 4)
+            local rate = notShit.round(PREFSMAN:GetPreference("SoundVolumeMaster"), 4)
             local acceptable_delta = 0.0005
             for i = 1, #numlist do
                 local r = tonumber(numlist[i]:sub(1, -2)) / 100
@@ -765,14 +792,118 @@ function SoundVolumeControl()
             for i, v in ipairs(list) do
                 if v == true then
                     local r = notShit.round(tonumber(numlist[i]:sub(1, -2)) / 100, 3)
-					PREFSMAN:SetPreference("SoundVolume", r)
+					PREFSMAN:SetPreference("SoundVolumeMaster", r)
 					SOUND:SetVolume(r)
                     break
                 end
             end
         end,
 		NotifyOfSelection = function(self, pn, choice)
-			MESSAGEMAN:Broadcast("SoundVolumeOptionChanged", {value = PREFSMAN:GetPreference("SoundVolume")})
+			MESSAGEMAN:Broadcast("SoundVolumeMasterOptionChanged", {value = PREFSMAN:GetPreference("SoundVolumeMaster")})
+		end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function SoundVolumeActionsControl()
+    local numlist = {}
+    do
+        local start = 0
+        local upper = 1
+        local increment = 0.05
+        while start <= upper do
+			-- these rounds should force it to be milliseconds only
+            numlist[#numlist+1] = tostring(notShit.round(start * 100)) .. "%"
+            start = notShit.round(start + increment, 3)
+        end
+    end
+
+    local t = {
+        Name = "SoundVolumeActions",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = true,
+        ExportOnChange = true,
+        ExportOnCancel = false,
+        Choices = numlist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+            local rate = notShit.round(PREFSMAN:GetPreference("SoundVolumeActions"), 4)
+            local acceptable_delta = 0.0005
+            for i = 1, #numlist do
+                local r = tonumber(numlist[i]:sub(1, -2)) / 100
+                if r == rate or (rate - acceptable_delta <= r and rate + acceptable_delta >= r) then
+                    rateindex = i
+                    break
+                end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(numlist[i]:sub(1, -2)) / 100, 3)
+					PREFSMAN:SetPreference("SoundVolumeActions", r)
+					SOUND:SetActionsVolume(r)
+                    break
+                end
+            end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("SoundVolumeActionsOptionChanged", {value = PREFSMAN:GetPreference("SoundVolumeActions")})
+		end
+    }
+    setmetatable(t, t)
+    return t
+end
+
+function SoundVolumeBGMControl()
+    local numlist = {}
+    do
+        local start = 0
+        local upper = 1
+        local increment = 0.05
+        while start <= upper do
+			-- these rounds should force it to be milliseconds only
+            numlist[#numlist+1] = tostring(notShit.round(start * 100)) .. "%"
+            start = notShit.round(start + increment, 3)
+        end
+    end
+
+    local t = {
+        Name = "SoundVolumeBGM",
+        LayoutType = "ShowAllInRow",
+        SelectType = "SelectOne",
+        OneChoiceForAllPlayers = true,
+        ExportOnChange = true,
+        ExportOnCancel = false,
+        Choices = numlist,
+        LoadSelections = function(self, list, pn)
+            local rateindex = 1
+            local rate = notShit.round(PREFSMAN:GetPreference("SoundVolumeBGM"), 4)
+            local acceptable_delta = 0.0005
+            for i = 1, #numlist do
+                local r = tonumber(numlist[i]:sub(1, -2)) / 100
+                if r == rate or (rate - acceptable_delta <= r and rate + acceptable_delta >= r) then
+                    rateindex = i
+                    break
+                end
+            end
+            list[rateindex] = true
+        end,
+        SaveSelections = function(self, list, pn)
+            for i, v in ipairs(list) do
+                if v == true then
+                    local r = notShit.round(tonumber(numlist[i]:sub(1, -2)) / 100, 3)
+					PREFSMAN:SetPreference("SoundVolumeBGM", r)
+					SOUND:SetBGMVolume(r)
+                    break
+                end
+            end
+        end,
+		NotifyOfSelection = function(self, pn, choice)
+			MESSAGEMAN:Broadcast("SoundVolumeBGMOptionChanged", {value = PREFSMAN:GetPreference("SoundVolumeBGM")})
 		end
     }
     setmetatable(t, t)

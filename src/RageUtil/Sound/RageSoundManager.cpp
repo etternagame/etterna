@@ -203,12 +203,34 @@ RageSoundManager::AddLoadedSound(const std::string& sPath_,
 	m_mapPreloadedSounds[sPath] = pSound->Copy();
 }
 
-static Preference<float> g_fSoundVolume("SoundVolume", 1.0f);
+static Preference<float> g_fSoundVolumeMaster("SoundVolumeMaster", 0.5f);
+static Preference<float> g_fSoundVolumeBGM("SoundVolumeBGM", 0.4f);
+static Preference<float> g_fSoundVolumeActions("SoundVolumeActions", 1.0f);
+
+float
+RageSoundManager::GetActionVolume() const
+{
+	return g_fSoundVolumeActions.Get();
+}
+
+float
+RageSoundManager::GetBGMVolume() const
+{
+	return g_fSoundVolumeBGM.Get();
+}
+
+float
+RageSoundManager::GetMasterVolume() const
+{
+	return g_fSoundVolumeMaster.Get();
+}
 
 void
 RageSoundManager::SetMixVolume()
 {
-	RageSoundReader_PostBuffering::SetMasterVolume(g_fSoundVolume.Get());
+	RageSoundReader_PostBuffering::SetMasterVolume(g_fSoundVolumeMaster.Get());
+	RageSoundReader_PostBuffering::SetBGMVolume(g_fSoundVolumeBGM.Get());
+	RageSoundReader_PostBuffering::SetActionVolume(g_fSoundVolumeActions.Get());
 }
 
 void

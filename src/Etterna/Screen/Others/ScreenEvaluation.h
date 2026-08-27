@@ -29,6 +29,7 @@ class ScreenEvaluation : public ScreenWithMenuElements
 
   protected:
 	void HandleMenuStart();
+	void TriggerDiscordRPC();
 
 	StageStats* m_pStageStats;
 

@@ -181,7 +181,8 @@ BUTTON = {
 	CurTopButtonDepth = 0,
 	CurDownButton = {}, -- Current button that is being held down.
 	CurDownButtonDepth = {},
-	UpdateOnlyOnMouseMovement = false
+	UpdateOnlyOnMouseMovement = false,
+	DOUBLE_CLICK_THRESHOLD = 0.5, -- seconds between clicks to consider it a double click
 }
 
 -- List of DeviceInput enum strings to handle for button inputs.
@@ -226,6 +227,7 @@ function BUTTON.ResetButtonTable(self, screenName)
 	print("Resetting the current button table")
     if screenName ~= nil then
 		self.ButtonTable[screenName] = nil
+		self.DepthTable[screenName] = nil
 		self.CurTopButton = nil
 		self.CurDownButton = {}
 		self.mouseMoved = false
@@ -476,6 +478,19 @@ end
 function BUTTON.OnMouseClick(self, actor, depth, param)
 	actor:playcommand("MouseClick", param)
 	actor:GetButtonRoot(depth):playcommand("ChildMouseClick", param)
+
+	if actor.lastclick == nil then
+		actor.lastclick = GetTimeSinceStart()
+	else
+		local now = GetTimeSinceStart()
+		if now - actor.lastclick < self.DOUBLE_CLICK_THRESHOLD then
+			actor.lastclick = nil -- dont repeat double clicks
+			actor:playcommand("MouseDoubleClick", param)
+			actor:GetButtonRoot(depth):playcommand("ChildMouseDoubleClick", param)
+		else
+			actor.lastclick = now -- restart a double click
+		end
+	end
 end
 
 -- Called when a button was pressed but a mouseup event occured while not on the button.
@@ -548,6 +563,7 @@ function UIElements.QuadButton(z, depth)
 		MouseUpCommand = function(self, params) end,
 		MouseDownCommand = function(self, params) end,
 		MouseClickCommand = function(self, params) end,
+		MouseDoubleClickCommand = function(self, params) end,
 		MouseReleaseCommand = function(self, params) end,
 		MouseDragCommand = function(self, params) end,
 		MouseHoldCommand = function(self, params) end,
@@ -593,6 +609,7 @@ function UIElements.SpriteButton(z, depth, tex)
 		MouseUpCommand = function(self, params) end,
 		MouseDownCommand = function(self, params) end,
 		MouseClickCommand = function(self, params) end,
+		MouseDoubleClickCommand = function(self, params) end,
 		MouseReleaseCommand = function(self, params) end,
 		MouseDragCommand = function(self, params) end,
 		MouseHoldCommand = function(self, params) end,
@@ -642,6 +659,7 @@ function UIElements.TextButton(z, depth, font)
 			MouseUpCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseUp", event = params.event}) end,
 			MouseDownCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseDown", event = params.event}) end,
 			MouseClickCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseClicked", event = params.event}) end,
+			MouseDoubleClickCommand = function(self, params) self:GetParent():playcommand("Click",{update = "OnMouseDoubleClicked", event = params.event}) end,
 			MouseReleaseCommand = function(self,params) self:GetParent():playcommand("Click",{update = "OnMouseReleased", event = params.event}) end,
 			MouseDragCommand = function(self, params) self:GetParent():playcommand("DragUpdate", params) end,
 	

@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,14 +17,16 @@
 
 #include "build/build_config.h"
 
-#if defined(OS_MAC)
+// IWYU pragma: begin_exports
+#if BUILDFLAG(IS_MAC)
 #include "client/simulate_crash_mac.h"
-#elif defined(OS_IOS)
+#elif BUILDFLAG(IS_IOS)
 #include "client/simulate_crash_ios.h"
-#elif defined(OS_WIN)
+#elif BUILDFLAG(IS_WIN)
 #include "client/simulate_crash_win.h"
-#elif defined(OS_LINUX) || defined(OS_CHROMEOS) || defined(OS_ANDROID)
+#elif BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_CHROMEOS) || BUILDFLAG(IS_ANDROID)
 #include "client/simulate_crash_linux.h"
 #endif
+// IWYU pragma: end_exports
 
 #endif  // CRASHPAD_CLIENT_SIMULATE_CRASH_H_

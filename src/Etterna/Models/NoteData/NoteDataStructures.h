@@ -69,6 +69,7 @@ enum CalcPatternMod
 	WideRangeJJ, // wrjumpjack
 	WideRangeBalance,
 	WideRangeAnchor,
+	WideRangeCJAnchor,
 	TheThing,
 	TheThing2,
 	RanMan,
@@ -88,6 +89,12 @@ enum CalcPatternMod
 	GStream,
 	GChordStream,
 	GBracketing,
+	HandSwitch,
+	OldAnchorScaler,
+	OldJumpScaler,
+	OldOHJScaler,
+	OldRollScaler,
+	HandBalance,
 	NUM_CalcPatternMod,
 	CalcPatternMod_Invalid,
 };

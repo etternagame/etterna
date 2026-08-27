@@ -7,21 +7,20 @@ on:
 
 jobs:
   linux-x64:
-    name: Linux x64 (${{matrix.cfg.cxx}})
+    name: Linux ${{matrix.cfg.archstr}} (${{matrix.cfg.cxx}})
     runs-on: ${{matrix.cfg.os}}
     strategy:
       fail-fast: false
       matrix:
         cfg:
-          - { os: ubuntu-22.04, apt: g++-8,    cxx: g++-8,      cc: gcc-8,    dist: false}
-          - { os: ubuntu-22.04, apt: g++-9,    cxx: g++-9,      cc: gcc-9,    dist: false}
-          - { os: ubuntu-22.04, apt: g++-10,   cxx: g++-10,     cc: gcc-10,   dist: false}
-          - { os: ubuntu-22.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false}
-          - { os: ubuntu-22.04, apt: clang-9,  cxx: clang++-9,  cc: clang-9,  dist: false}
-          - { os: ubuntu-22.04, apt: clang-10, cxx: clang++-10, cc: clang-10, dist: false}
-          - { os: ubuntu-22.04, apt: clang-11, cxx: clang++-11, cc: clang-11, dist: false}
-          - { os: ubuntu-22.04, apt: clang-12, cxx: clang++-12, cc: clang-12, dist: true}
-          - { os: ubuntu-22.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false}
+          - { os: ubuntu-24.04, apt: g++-11,   cxx: g++-11,     cc: gcc-11,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: g++-12,   cxx: g++-12,     cc: gcc-12,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: g++-13,   cxx: g++-13,     cc: gcc-13,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: g++-14,   cxx: g++-14,     cc: gcc-14,   dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: true, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-17, cxx: clang++-17, cc: clang-17, dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04, apt: clang-18, cxx: clang++-18, cc: clang-18, dist: false, archstr: "x64"}
+          - { os: ubuntu-24.04-arm, apt: clang-16, cxx: clang++-16, cc: clang-16, dist: false, archstr: "aarch64"}
 
     steps:
       - name: Checkout Etterna
@@ -34,14 +33,34 @@ jobs:
         with:
           repository: etternagame/CrashpadTools
           path: tools
+      
+      - name: Install Vulkan SDK
+        shell: bash
+        run: |
+          . main/.ci/vulkan_setup_env.sh
+          preset_env
+          . main/.ci/vulkan_prebuilt_helpers.sh
+          download_vulkan_installer ${VULKAN_SDK_PLATFORM}
+          unpack_vulkan_installer ${VULKAN_SDK_PLATFORM}
+
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
 
       - name: Install apt packages
-        run: sudo apt update && sudo apt install ${{ matrix.cfg.cpp-version }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
-
+        run: sudo apt update && sudo apt install ${{ matrix.cfg.apt }} nasm ninja-build libglew-dev libxrandr-dev libxtst-dev libpulse-dev libasound-dev libogg-dev libvorbis-dev xorg-dev libcurl4-openssl-dev
+      - name: Install OpenSSL 3.5
+        run: mkdir -p tmp/openssl && cd tmp/openssl && wget https://github.com/openssl/openssl/releases/download/openssl-3.5.1/openssl-3.5.1.tar.gz && tar -xf openssl-3.5.1.tar.gz && cd openssl-3.5.1 && ./Configure --prefix="${HOME}/toolchain" && make -j `nproc` && make test -j `nproc` && sudo make install
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DOPENSSL_ROOT_DIR=~/toolchain/ -DCMAKE_CXX_FLAGS="-D_DEBUG" ${{ (matrix.cfg.archstr == 'aarch64' || matrix.cfg.cxx == 'g++-11') && '-DWITH_VULKAN=OFF' || '' }} ..
         env:
-          CXX: ${{matrix.cfg.cpp-version}}
+          CXX: ${{matrix.cfg.cxx}}
+          CC: ${{matrix.cfg.cc}}
 
       - name: Build Project
         run: cd main/build && ninja
@@ -54,7 +73,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: "Etterna - Linux x64"
+          name: "Etterna - Linux ${{matrix.cfg.archstr}}"
           path: '${{github.workspace}}/main/build/*.tar.gz'
 
       - name: Update Environment Variables
@@ -80,7 +99,7 @@ jobs:
         if: ${{matrix.cfg.dist}}
         uses: actions/upload-artifact@v4
         with:
-          name: Etterna Symbols Linux x64 - ${{github.sha}}
+          name: Etterna Symbols Linux ${{matrix.cfg.archstr}} - ${{github.sha}}
           path: '${{github.workspace}}/sym/EtternaSymbolsUploadDir'
 
       - name: Get version for CrashServer Upload
@@ -121,11 +140,29 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Install Vulkan SDK
+        shell: bash
+        run: |
+          . main/.ci/vulkan_setup_env.sh
+          preset_env
+          . main/.ci/vulkan_prebuilt_helpers.sh
+          download_vulkan_installer ${VULKAN_SDK_PLATFORM}
+          unpack_vulkan_installer ${VULKAN_SDK_PLATFORM}
+
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja openssl
+        run: brew install cmake nasm yasm ninja openssl
 
       - name: Setup Python 3
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -135,7 +172,7 @@ jobs:
           echo "ETT_MAC_SYS_NAME=M1" >> $GITHUB_ENV
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_CRASHPAD=OFF -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWITH_CRASHPAD=OFF -DWITH_VULKAN=OFF -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -G Ninja ..
 
       - name: Build Project
         run: cd main/build && ninja
@@ -202,9 +239,10 @@ jobs:
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          - { os: macos-13,     name: "Ventura", dist: true}
+          #- { os: macos-13,     name: "Ventura", dist: true} # rendered useless by GHA
           #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
           #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
+          - { os: macos-15-intel,     name: "Sequoia", dist: true}
 
     steps:
 
@@ -219,18 +257,22 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
-      - name: Install homebrew packages
-        run: brew install cmake nasm ninja openssl
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
 
-      - name: Setup Python 2.7
-        uses: MatteoH2O1999/setup-python@v1.4.1
-        with:
-          python-version: '2.7'
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
+      - name: Install homebrew packages
+        run: brew install cmake nasm yasm ninja openssl
 
       - name: Setup Python 3
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.8'
+          python-version: '3.12'
       
       - name: Update CPack Environment
         if: ${{matrix.cfg.dist}}
@@ -238,7 +280,7 @@ jobs:
           echo "ETT_MAC_SYS_NAME=Darwin-x64" >> $GITHUB_ENV
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DWITH_VULKAN=OFF -G Ninja ..
 
       - name: Build Project
         run: cd main/build && ninja
@@ -297,16 +339,17 @@ jobs:
         with:
           files: ${{github.workspace}}/main/build/*.dmg
   macos_high_sierra:
-    name: macOS High Sierra (Legacy) ${{matrix.cfg.name}}
+    name: macOS 10.x (Legacy) via ${{matrix.cfg.name}} Runner
     runs-on: ${{matrix.cfg.os}}
     strategy:
       fail-fast: false
       matrix:
         cfg:
           #- { os: macos-10.15,  name: "Catalina", dist: false} # rendered useless by GHA
-          - { os: macos-13,     name: "Ventura", dist: true}
+          #- { os: macos-13,     name: "Ventura", dist: true} # rendered useless by GHA
           #- { os: macos-12,     name: "Monterey", dist: true} # rendered useless by GHA
-          #- { os: macos-11,     name: "Big Sur",  dist: true}
+          #- { os: macos-11,     name: "Big Sur",  dist: true} # rendered useless by GHA
+          - { os: macos-14,     name: "Sonoma", dist: true}
 
     steps:
 
@@ -321,8 +364,26 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Install Vulkan SDK
+        shell: bash
+        run: |
+          . main/.ci/vulkan_setup_env.sh
+          preset_env
+          . main/.ci/vulkan_prebuilt_helpers.sh
+          download_vulkan_installer ${VULKAN_SDK_PLATFORM}
+          unpack_vulkan_installer ${VULKAN_SDK_PLATFORM}
+
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Install homebrew packages
-        run: brew install cmake nasm ninja && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 brew install etternagame/etterna/openssl@1.1_osx_high_sierra
+        run: brew install cmake nasm ninja openssl && brew tap etternagame/etterna && brew update && HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
 
       - name: Update CPack Environment
         if: ${{matrix.cfg.dist}}
@@ -330,7 +391,7 @@ jobs:
           echo "ETT_MAC_SYS_NAME=High-Sierra" >> $GITHUB_ENV
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl@1.1_osx_high_sierra -DWITH_CRASHPAD=OFF -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
+        run: mkdir main/build && cd main/build && cmake -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DWITH_CRASHPAD=OFF -DWITH_VULKAN=OFF -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE -DCMAKE_BUILD_TYPE=RelWithDebInfo -G Ninja ..
 
       - name: Build Project
         run: cd main/build && ninja
@@ -388,16 +449,16 @@ jobs:
         if: ${{ matrix.cfg.dist && github.event_name == 'release' && github.event.action == 'published' }}
         with:
           files: ${{github.workspace}}/main/build/*.dmg
-  windows: # Windows x64 and x86 build matrix
+  windows: # Windows x64 (RIP x86) build matrix
     strategy:
       fail-fast: false # Don't cancel other matrix jobs if one fails
       matrix:
         cfg:
-        - { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
+        #- { name: i386, arch: x86,  ssl-dir: 'C:\Program Files (x86)\OpenSSL-Win32' }
         - { name: x64,  arch: x64,  ssl-dir: 'C:\Program Files\OpenSSL-Win64'}
 
     name: "Windows ${{matrix.cfg.name}}"
-    runs-on: windows-2019
+    runs-on: windows-2022
     steps:
       - name: Checkout Etterna
         uses: actions/checkout@v3
@@ -410,11 +471,29 @@ jobs:
           repository: etternagame/CrashpadTools
           path: tools
 
+      - name: Setup Crashpad
+        shell: bash
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git "$HOME/depot_tools"
+
+          cd main/extern/crashpad
+          "$HOME/depot_tools/gclient" sync
+          "$HOME/depot_tools/gclient" runhooks
+
       - name: Checkout DirectX SDK
         uses: actions/checkout@v3
         with:
           repository: nico-abram/dxsdk
           path: dxsdk
+
+      - name: Install Vulkan SDK
+        shell: bash
+        run: |
+          . main/.ci/vulkan_setup_env.sh
+          preset_env
+          . main/.ci/vulkan_prebuilt_helpers.sh
+          download_vulkan_installer ${VULKAN_SDK_PLATFORM}
+          unpack_vulkan_installer ${VULKAN_SDK_PLATFORM}
 
       - name: Update Environment Variables
         run: |
@@ -422,30 +501,22 @@ jobs:
           echo "ETTERNA_ARCH=${{matrix.cfg.name}}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup Python 3
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.8'
+          python-version: '3.12'
           
-      - name: Setup Python 2.7
-        uses: MatteoH2O1999/setup-python@v1.4.1
-        with:
-          python-version: '2.7'
-
-      - name: Install chocolatey packages (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install ninja nsis curl -y --x86
-      
-      - name: Install openSSL (i386)
-        if: ${{ matrix.cfg.arch == 'x86' }}
-        run: choco install openssl --version=1.1.1.2100 -y --x86
-
       - name: Install chocolatey packages (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
         run: choco install ninja nsis curl -y
 
       - name: Install openSSL (x64)
         if: ${{ matrix.cfg.arch == 'x64' }}
-        run: choco install openssl --version=1.1.1.2100 -y
+        run: msiexec /i https://slproweb.com/download/Win64OpenSSL-4_0_2.msi /quiet
+      
+      #TODO: Also print Python install logs, more?
+      - name: Print Install Failures (if present)
+        if: ${{ failure() }}
+        run: type C:\ProgramData\chocolatey\logs\chocolatey.log && exit 1
 
       - name: Configure MSBuild
         uses: ilammy/msvc-dev-cmd@v1
@@ -453,7 +524,7 @@ jobs:
           arch: ${{ matrix.cfg.arch }}
 
       - name: Generate CMake
-        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+        run: mkdir main/build && cd main/build && cmake -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=FALSE -DBUILD_EXAMPLES=FALSE ..
         env:
           DXSDK_DIR: "${{github.workspace}}/dxsdk/"
 
@@ -475,9 +546,9 @@ jobs:
           dump_syms.exe main/Program/Etterna.pdb > ${{github.workspace}}/main/Etterna.sym
 
       - name: Setup Python 3
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.8'
+          python-version: '3.12'
 
       - name: Prepare symbols for action artifacts
         run: cd main && python ${{github.workspace}}/main/.ci/prepare_symbols.py

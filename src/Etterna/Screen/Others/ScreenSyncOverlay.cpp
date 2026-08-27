@@ -68,7 +68,9 @@ ScreenSyncOverlay::SetShowAutoplay(bool b)
 static LocalizedString AUTO_PLAY("ScreenSyncOverlay", "AutoPlay");
 static LocalizedString AUTO_PLAY_CPU("ScreenSyncOverlay", "AutoPlayCPU");
 static LocalizedString AUTO_PLAY_REPLAY("ScreenSyncOverlay", "Replay");
-static LocalizedString AUTO_SYNC_SONG("ScreenSyncOverlay", "AutoSync Song");
+static LocalizedString AUTO_PLAY_SPECTATE("ScreenSyncOverlay", "Spectate");
+static LocalizedString
+  AUTO_SYNC_SONG("ScreenSyncOverlay", "AutoSync Song");
 static LocalizedString AUTO_SYNC_MACHINE("ScreenSyncOverlay",
 										 "AutoSync Machine");
 static LocalizedString OLD_OFFSET("ScreenSyncOverlay", "Old offset");
@@ -97,6 +99,9 @@ ScreenSyncOverlay::UpdateText(bool forcedChange)
 				break;
 			case PC_REPLAY:
 				vs.push_back(AUTO_PLAY_REPLAY);
+				break;
+			case PC_SPECTATE:
+				vs.push_back(AUTO_PLAY_SPECTATE);
 				break;
 			default:
 				FAIL_M(ssprintf("Invalid PlayerController: %i", pc));

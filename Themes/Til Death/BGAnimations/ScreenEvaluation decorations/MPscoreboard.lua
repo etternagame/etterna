@@ -4,9 +4,11 @@ local framey = 60
 local frameWidth = capWideScale(get43size(220), 220)
 local spacing = 34
 local multiscores = {}
+local selectedplayer = -1
 
 -- Takes an index into multiscores
 local function SetActivePlayer(locaIndex)
+	selectedplayer = locaIndex
 	local scoreBoard = SCREENMAN:GetTopScreen():GetChildren().scoreBoard
 	local item = scoreBoard:GetChild(locaIndex)
 	SCREENMAN:GetTopScreen():SetCurrentPlayerByName(multiscores[locaIndex].user)
@@ -69,6 +71,8 @@ local function updateScoreBoard(self)
 
 	if #multiscores > 0 and type(selectedIndex) == "number" then
 		SetActivePlayer(selectedIndex)
+	elseif selectedplayer == -1 and #multiscores > 0 then
+		SetActivePlayer(1)
 	end
 end
 local t = Def.ActorFrame {
@@ -78,6 +82,7 @@ local t = Def.ActorFrame {
 	end,
 	BeginCommand = function(self)
 		SCREENMAN:GetTopScreen():AddInputCallback(MPinput)
+		updateScoreBoard(self)
 	end,
 	NewMultiScoreMessageCommand = updateScoreBoard
 }

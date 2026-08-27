@@ -1,4 +1,4 @@
-// Copyright 2020 The Crashpad Authors. All rights reserved.
+// Copyright 2020 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -57,7 +57,6 @@ bool OutputStreamFileWriter::WriteIoVec(std::vector<WritableIoVec>* iovecs) {
 
 FileOffset OutputStreamFileWriter::Seek(FileOffset offset, int whence) {
   NOTREACHED();
-  return -1;
 }
 
 bool OutputStreamFileWriter::Flush() {

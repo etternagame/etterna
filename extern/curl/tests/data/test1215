@@ -1,11 +1,13 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
-# This test is a copy of test 67, modified to use a HTTP proxy.
+# This test is a copy of test 67, modified to use an HTTP proxy.
 <keywords>
 HTTP
 HTTP GET
 HTTP NTLM auth
 HTTP proxy
+NTLM
 </keywords>
 </info>
 # Server-side
@@ -60,42 +62,32 @@ Finally, this is the real page!
 NTLM
 SSL
 !SSPI
-debug
 proxy
 </features>
 <server>
 http
 </server>
- <name>
+<name>
 HTTP with server NTLM authorization using a proxy
- </name>
- <setenv>
-# we force our own host name, in order to make the test machine independent
-CURL_GETHOSTNAME=curlhost
-# we try to use the LD_PRELOAD hack, if not a debug build
-LD_PRELOAD=%PWD/libtest/.libs/libhostname.so
- </setenv>
- <command>
+</name>
+<command>
 http://%HOSTIP:%HTTPPORT/%TESTNUMBER -u testuser:testpass --ntlm --proxy http://%HOSTIP:%HTTPPORT
 </command>
-<precheck>
-chkhostname curlhost
-</precheck>
 </client>
 
 # Verify data after the test has been "shot"
 <verify>
-<protocol>
+<protocol crlf="headers">
 GET http://%HOSTIP:%HTTPPORT/%TESTNUMBER HTTP/1.1
 Host: %HOSTIP:%HTTPPORT
-Authorization: NTLM TlRMTVNTUAABAAAABoIIAAAAAAAAAAAAAAAAAAAAAAA=
+Authorization: NTLM %b64[NTLMSSP%00%01%00%00%00%06%82%08%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00%00]b64%
 User-Agent: curl/%VERSION
 Accept: */*
 Proxy-Connection: Keep-Alive
 
 GET http://%HOSTIP:%HTTPPORT/%TESTNUMBER HTTP/1.1
 Host: %HOSTIP:%HTTPPORT
-Authorization: NTLM TlRMTVNTUAADAAAAGAAYAEAAAAAYABgAWAAAAAAAAABwAAAACAAIAHAAAAAIAAgAeAAAAAAAAAAAAAAAhoIBAFpkQwKRCZFMhjj0tw47wEjKHRHlvzfxQamFcheMuv8v+xeqphEO5V41xRd7R9deOXRlc3R1c2VyY3VybGhvc3Q=
+Authorization: NTLM TlRMTVNTUAADAAAAGAAYAEAAAAAYABgAWAAAAAAAAABwAAAACAAIAHAAAAALAAsAeAAAAAAAAAAAAAAAhoIBAFpkQwKRCZFMhjj0tw47wEjKHRHlvzfxQamFcheMuv8v+xeqphEO5V41xRd7R9deOXRlc3R1c2VyV09SS1NUQVRJT04=
 User-Agent: curl/%VERSION
 Accept: */*
 Proxy-Connection: Keep-Alive

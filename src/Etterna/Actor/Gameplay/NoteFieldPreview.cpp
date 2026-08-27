@@ -19,6 +19,7 @@
 #include <RageUtil/Graphics/RageDisplay.h>
 
 #include "Etterna/Models/NoteData/NoteDataUtil.h"
+#include <algorithm>
 
 REGISTER_ACTOR_CLASS(NoteFieldPreview);
 
@@ -173,8 +174,13 @@ NoteFieldPreview::LoadNoteData(NoteData* pNoteData)
 	if (loadedNoteDataAtLeastOnce &&
 		m_pCurDisplay->m_ReceptorArrowRow.GetRendererCount() !=
 		  pNoteData->GetNumTracks()) {
-		for (auto& d : m_NoteDisplays) {
-			UncacheNoteSkin(d.first);
+		std::vector<std::string> names{};
+		for (auto d : m_NoteDisplays) {
+			// make copies or else
+			names.push_back(d.first);
+		}
+		for (auto& d : names) {
+			UncacheNoteSkin(d);
 		}
 		CacheAllUsedNoteSkins();
 	} else

@@ -1,4 +1,4 @@
-// Copyright 2015 The Crashpad Authors. All rights reserved.
+// Copyright 2015 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,9 +17,10 @@
 #include <utility>
 #include <vector>
 
+#include "base/apple/mach_logging.h"
+#include "base/apple/scoped_mach_port.h"
+#include "base/files/scoped_file.h"
 #include "base/logging.h"
-#include "base/mac/mach_logging.h"
-#include "base/mac/scoped_mach_port.h"
 #include "base/strings/stringprintf.h"
 #include "client/settings.h"
 #include "handler/mac/file_limit_annotation.h"
@@ -27,10 +28,14 @@
 #include "minidump/minidump_user_extension_stream_data_source.h"
 #include "snapshot/crashpad_info_client_options.h"
 #include "snapshot/mac/process_snapshot_mac.h"
+#include "util/file/file_helper.h"
+#include "util/file/file_io.h"
+#include "util/file/file_reader.h"
 #include "util/file/file_writer.h"
 #include "util/mach/bootstrap.h"
 #include "util/mach/exc_client_variants.h"
 #include "util/mach/exception_behaviors.h"
+#include "util/mach/exception_ports.h"
 #include "util/mach/exception_types.h"
 #include "util/mach/mach_extensions.h"
 #include "util/mach/mach_message.h"
@@ -46,10 +51,12 @@ CrashReportExceptionHandler::CrashReportExceptionHandler(
     CrashReportDatabase* database,
     CrashReportUploadThread* upload_thread,
     const std::map<std::string, std::string>* process_annotations,
+    const std::vector<base::FilePath>* attachments,
     const UserStreamDataSources* user_stream_data_sources)
     : database_(database),
       upload_thread_(upload_thread),
       process_annotations_(process_annotations),
+      attachments_(attachments),
       user_stream_data_sources_(user_stream_data_sources) {}
 
 CrashReportExceptionHandler::~CrashReportExceptionHandler() {
@@ -147,14 +154,9 @@ kern_return_t CrashReportExceptionHandler::CatchMachException(
 
     UUID client_id;
     Settings* const settings = database_->GetSettings();
-    if (settings) {
-      // If GetSettings() or GetClientID() fails, something else will log a
-      // message and client_id will be left at its default value, all zeroes,
-      // which is appropriate.
-      settings->GetClientID(&client_id);
+    if (settings && settings->GetClientID(&client_id)) {
+      process_snapshot.SetClientID(client_id);
     }
-
-    process_snapshot.SetClientID(client_id);
     process_snapshot.SetAnnotationsSimpleMap(*process_annotations_);
 
     std::unique_ptr<CrashReportDatabase::NewReport> new_report;
@@ -172,6 +174,21 @@ kern_return_t CrashReportExceptionHandler::CatchMachException(
     minidump.InitializeFromSnapshot(&process_snapshot);
     AddUserExtensionStreams(
         user_stream_data_sources_, &process_snapshot, &minidump);
+
+    for (const auto& attachment : *attachments_) {
+      base::FilePath name = attachment.BaseName();
+      FileWriter* writer = new_report->AddAttachment(name.value());
+      if (!writer) {
+        LOG(WARNING) << "Failed to add attachment";
+        continue;
+      }
+      FileReader reader;
+      if (!reader.Open(attachment)) {
+        LOG(WARNING) << "Failed to open attachment " << attachment.value();
+        continue;
+      }
+      CopyFileContent(&reader, writer);
+    }
 
     if (!minidump.WriteEverything(new_report->Writer())) {
       Metrics::ExceptionCaptureResult(
@@ -193,51 +210,71 @@ kern_return_t CrashReportExceptionHandler::CatchMachException(
     }
   }
 
-  if (client_options.system_crash_reporter_forwarding != TriState::kDisabled &&
-      (exception == EXC_CRASH ||
-       exception == EXC_RESOURCE ||
-       exception == EXC_GUARD)) {
-    // Don’t forward simulated exceptions such as kMachExceptionSimulated to the
-    // system crash reporter. Only forward the types of exceptions that it would
-    // receive under normal conditions. Although the system crash reporter is
-    // able to deal with other exceptions including simulated ones, forwarding
-    // them to the system crash reporter could present the system’s crash UI for
-    // processes that haven’t actually crashed, and could result in reports not
-    // actually associated with crashes being sent to the operating system
-    // vendor.
-    base::mac::ScopedMachSendRight
-        system_crash_reporter_handler(SystemCrashReporterHandler());
-    if (system_crash_reporter_handler.get()) {
-      // Make copies of mutable out parameters so that the system crash reporter
-      // can’t influence the state returned by this method.
-      thread_state_flavor_t flavor_forward = *flavor;
-      mach_msg_type_number_t new_state_forward_count = *new_state_count;
-      std::vector<natural_t> new_state_forward(
-          new_state, new_state + new_state_forward_count);
-
-      // The system crash reporter requires the behavior to be
-      // EXCEPTION_STATE_IDENTITY | MACH_EXCEPTION_CODES. It uses the identity
-      // parameters but doesn’t appear to use the state parameters, including
-      // |flavor|, and doesn’t care if they are 0 or invalid. As long as an
-      // identity is available (checked above), any other exception behavior is
-      // converted to what the system crash reporter wants, with the caveat that
-      // problems may arise if the state wasn’t available and the system crash
-      // reporter changes in the future to use it. However, normally, the state
-      // will be available.
-      kern_return_t kr = UniversalExceptionRaise(
-          EXCEPTION_STATE_IDENTITY | MACH_EXCEPTION_CODES,
-          system_crash_reporter_handler.get(),
-          thread,
-          task,
-          exception,
-          code,
-          code_count,
-          &flavor_forward,
-          old_state,
-          old_state_count,
-          new_state_forward_count ? &new_state_forward[0] : nullptr,
-          &new_state_forward_count);
-      MACH_LOG_IF(WARNING, kr != KERN_SUCCESS, kr) << "UniversalExceptionRaise";
+  if (client_options.system_crash_reporter_forwarding != TriState::kDisabled) {
+    if (exception == EXC_CRASH) {
+      // For exception handlers that respond to state-carrying behaviors, when
+      // the handler is called by the kernel (as it is normally), the kernel
+      // will attempt to set a new thread state when the exception handler
+      // returns successfully. Other code that mimics the kernel’s
+      // exception-delivery semantics may implement the same or similar
+      // behavior. In some situations, it is undesirable to set a new thread
+      // state. If the exception handler were to return unsuccessfully, however,
+      // the kernel would continue searching for an exception handler at a wider
+      // (task or host) scope. This may also be undesirable.
+      //
+      // If such exception handlers return `MACH_RCV_PORT_DIED`, the kernel will
+      // not set a new thread state and will also not search for another
+      // exception handler. See 15.3 xnu-11215.84.4/osfmk/kern/exception.c.
+      // `exception_deliver()` will only set a new thread state if the handler’s
+      // return code was `MACH_MSG_SUCCESS` (a synonym for `KERN_SUCCESS`), and
+      // subsequently, `exception_triage()` will not search for a new handler if
+      // the handler’s return code was `KERN_SUCCESS` or `MACH_RCV_PORT_DIED`.
+      //
+      // Another effect of returning `MACH_RCV_PORT_DIED` for `EXC_CRASH` is
+      // that an `EXC_CORPSE_NOTIFY` exception is generated. Starting with macOS
+      // 10.15, for the system crash reporter to generate a report,
+      // `EXC_CORPSE_NOTIFY` *must* be generated and forwarding `EXC_CRASH` (as
+      // we do below with `EXC_RESOURCE` and pre-macOS 13 `EXC_GUARD`) is not
+      // sufficient. Between macOS 10.11 and macOS 10.14 (inclusive), both
+      // forwarding as below, and causing `EXC_CORPSE_NOTIFY` to be generated
+      // are sufficient (and in fact, if we do both, two crash reports are
+      // generated).
+      return MACH_RCV_PORT_DIED;
+    }
+    if (exception == EXC_RESOURCE || exception == EXC_GUARD) {
+      // Only forward the types of exceptions that the crash reporter would
+      // receive under normal conditions. Otherwise, system crash reporter could
+      // present the system’s crash UI for processes that haven’t actually
+      // crashed, and could result in reports not actually associated with
+      // crashes being sent to the operating system vendor.
+      base::apple::ScopedMachSendRight system_crash_reporter_handler(
+          SystemCrashReporterHandler());
+      if (system_crash_reporter_handler.get()) {
+        // Make copies of mutable out parameters so that the system crash
+        // reporter can’t influence the state returned by this method.
+        thread_state_flavor_t flavor_forward = *flavor;
+        mach_msg_type_number_t new_state_forward_count = *new_state_count;
+        std::vector<natural_t> new_state_forward;
+        if (new_state_forward_count) {
+          new_state_forward.assign(new_state,
+                                   new_state + new_state_forward_count);
+        }
+        kern_return_t kr = UniversalExceptionRaise(
+            EXCEPTION_STATE_IDENTITY | MACH_EXCEPTION_CODES,
+            system_crash_reporter_handler.get(),
+            thread,
+            task,
+            exception,
+            code,
+            code_count,
+            &flavor_forward,
+            old_state,
+            old_state_count,
+            new_state_forward_count ? &new_state_forward[0] : nullptr,
+            &new_state_forward_count);
+        MACH_LOG_IF(WARNING, kr != KERN_SUCCESS, kr)
+            << "UniversalExceptionRaise";
+      }
     }
   }
 
@@ -245,7 +282,7 @@ kern_return_t CrashReportExceptionHandler::CatchMachException(
       behavior, old_state, old_state_count, new_state, new_state_count);
 
   Metrics::ExceptionCaptureResult(Metrics::CaptureResult::kSuccess);
-  return ExcServerSuccessfulReturnValue(exception, behavior, false);
+  return KERN_SUCCESS;
 }
 
 }  // namespace crashpad

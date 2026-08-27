@@ -48,11 +48,38 @@ function getTrueY(element)
 end
 
 --- Checks whether the mouse is over an actor
--- @tparam actor element the actor
--- @treturn bool true if the mouse is over the actor
-function isOver(element)
+-- @tparam actors the actors
+-- @treturn bool true if the mouse is over any given actor
+function isOver(...)
+	local actors = {...}
 	local mouse = getMousePosition()
-	return element:IsOver(mouse.x, mouse.y)
+	for i = 1, #actors do
+		local actor = actors[i]
+		if actor ~= nil and actor:IsOver(mouse.x, mouse.y) then
+			return true
+		end
+	end
+	return false
+end
+
+--- Checks whether the mouse is over an actor
+-- @tparam actors the actors
+-- @treturn bool true if the mouse is over all given actors unless none are given
+function isOverAll(...)
+	local actors = {...}
+	local mouse = getMousePosition()
+	local ret = false
+	for i = 1, #actors do
+		local actor = actors[i]
+		if actor ~= nil then
+			if not actor:IsOver(mouse.x, mouse.y) then
+				return false
+			else
+				ret = true
+			end
+		end
+	end
+	return ret
 end
 
 --- returns true if the table contains the key.

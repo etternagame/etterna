@@ -1,4 +1,4 @@
-# Copyright 2014 The Crashpad Authors. All rights reserved.
+# Copyright 2014 The Crashpad Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Keep sorted
+
 *.Makefile
 *.ninja
 *.pyc
@@ -20,11 +22,15 @@
 *~
 .*.sw?
 .DS_Store
+.cache
 .gdb_history
 .gdbinit
+/.vscode/
 /Makefile
+/build/fuchsia
 /out
 /third_party/edo/edo
+/third_party/fuchsia-gn-sdk
 /third_party/fuchsia/.cipd
 /third_party/fuchsia/clang
 /third_party/fuchsia/qemu
@@ -34,6 +40,12 @@
 /third_party/linux/.cipd
 /third_party/linux/clang
 /third_party/linux/sysroot
-/third_party/gyp/gyp
+/third_party/lss/lss
+/third_party/mini_chromium/mini_chromium
+/third_party/ninja/linux
+/third_party/ninja/mac*
+/third_party/ninja/ninja.exe
+/third_party/windows/clang/win-amd64
+/third_party/zlib/zlib
 /xcodebuild
 tags

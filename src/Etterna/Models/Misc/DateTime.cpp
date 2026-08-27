@@ -114,12 +114,7 @@ DateTime::StripTime()
 std::string
 DateTime::GetString() const
 {
-	auto s = ssprintf("%d-%02d-%02d", tm_year + 1900, tm_mon + 1, tm_mday);
-
-	if (tm_hour != 0 || tm_min != 0 || tm_sec != 0) {
-		s += ssprintf(" %02d:%02d:%02d", tm_hour, tm_min, tm_sec);
-	}
-
+	auto s = ssprintf("%d-%02d-%02d %02d:%02d:%02d", tm_year + 1900, tm_mon + 1, tm_mday, tm_hour, tm_min, tm_sec);
 	return s;
 }
 

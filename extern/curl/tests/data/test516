@@ -1,15 +1,16 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 HTTP
 HTTP POST
+FORM
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
-<data>
+<data crlf="headers">
 HTTP/1.1 200 OK swsclose
 Date: Tue, 09 Nov 2010 14:49:00 GMT
 Server: test-server/fake
@@ -21,6 +22,9 @@ OK
 
 # Client-side
 <client>
+<features>
+form-api
+</features>
 <server>
 http
 </server>
@@ -29,18 +33,17 @@ http
 lib%TESTNUMBER
 </tool>
 
- <name>
-make a HTTPPOST set to NULL
- </name>
- <command>
+<name>
+make an HTTPPOST set to NULL
+</name>
+<command>
 http://%HOSTIP:%HTTPPORT/%TESTNUMBER
 </command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
-<protocol>
+<protocol crlf="headers">
 POST /%TESTNUMBER HTTP/1.1
 Host: %HOSTIP:%HTTPPORT
 Accept: */*

@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #include <string.h>
 #include <uuid/uuid.h>
 
-#include <memory>
+#include <iterator>
 
-#include "base/cxx17_backports.h"
+#include "base/containers/heap_array.h"
 #include "snapshot/mac/process_types/internal.h"
 #include "util/process/process_memory_mac.h"
 
@@ -74,7 +74,7 @@ using UInt64Array4 = uint64_t[4];
 template <>
 inline void Assign<UInt64Array4, UInt32Array4>(UInt64Array4* destination,
                                                const UInt32Array4& source) {
-  for (size_t index = 0; index < base::size(source); ++index) {
+  for (size_t index = 0; index < std::size(source); ++index) {
     (*destination)[index] = source[index];
   }
 }
@@ -245,8 +245,9 @@ inline void Assign<UInt64Array4, UInt32Array4>(UInt64Array4* destination,
                                           mach_vm_address_t address,           \
                                           size_t count,                        \
                                           struct_name* generic) {              \
-    std::unique_ptr<T[]> specific(new T[count]);                               \
-    if (!T::ReadArrayInto(process_reader, address, count, &specific[0])) {     \
+    auto specific = base::HeapArray<T>::Uninit(count);                         \
+    if (!T::ReadArrayInto(                                                     \
+            process_reader, address, specific.size(), specific.data())) {      \
       return false;                                                            \
     }                                                                          \
     for (size_t index = 0; index < count; ++index) {                           \

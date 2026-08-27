@@ -30,6 +30,7 @@ local translated_info = {
 	MaxCombo = THEME:GetString("ScreenSelectMusic", "MaxCombo"),
 	BPM = THEME:GetString("ScreenSelectMusic", "BPM"),
 	NegBPM = THEME:GetString("ScreenSelectMusic", "NegativeBPM"),
+	HasLua = THEME:GetString("ScreenSelectMusic", "HasLua"),
 	UnForceStart = THEME:GetString("GeneralInfo", "UnforceStart"),
 	ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
 	Unready = THEME:GetString("GeneralInfo", "Unready"),
@@ -212,6 +213,8 @@ local t = Def.ActorFrame {
 		local s = GAMESTATE:GetCurrentSong()
 		local unexpectedlyChangedSong = s ~= song
 
+		local st = GAMESTATE:GetCurrentSteps()
+
 		shouldPlayMusic = false
 		-- should play the music because the notefield is visible
 		shouldPlayMusic = shouldPlayMusic or (noteField and mcbootlarder:GetChild("NoteField") and mcbootlarder:GetChild("NoteField"):IsVisible())
@@ -222,6 +225,23 @@ local t = Def.ActorFrame {
 		shouldPlayMusic = shouldPlayMusic or hackysack
 		-- should play the music if we already should and we either jumped song or we didnt change the song
 		shouldPlayMusic = shouldPlayMusic and (not onlyChangedSteps or unexpectedlyChangedSong) and not tryingToStart
+
+		if onlyChangedSteps and not shouldPlayMusic then
+			-- the sample music for a single song might change
+			-- if it is ssc and defines different songs for the music
+			if st ~= nil then
+				if st:GetPreviewMusicPath() ~= self.stepspreview then
+					shouldPlayMusic = true
+					self:queuecommand("PlayingSampleMusic")
+				end
+			end
+		end
+
+		if st ~= nil then
+			self.stepspreview = st:GetPreviewMusicPath()
+		else
+			self.stepspreview = nil
+		end
 
 		-- at this point the music will or will not play ....
 
@@ -631,10 +651,10 @@ t[#t + 1] = Def.ActorFrame {
 		end,
 		MintyFreshCommand = function(self)
 			if song and score then
-				self:settext(score:GetDate())
-			else
-				self:settext("")
-			end
+				self:settext(getScoreDate(score))
+            else
+                self:settext("")
+            end
 		end
 	},
 	-- MaxCombo
@@ -741,16 +761,15 @@ for i = 1, 5 do
 	r[#r + 1] = radarPairs(i)
 end
 
--- putting neg bpm warning here i guess
+-- putting lua warning here
 r[#r + 1] = LoadFont("Common Large") .. {
 	InitCommand = function(self)
 		self:xy(frameX + 120, SCREEN_BOTTOM - 245):visible(true):halign(0):zoom(0.5)
 		self:diffuse(getMainColor("negative"))
 	end,
 	MintyFreshCommand = function(self)
-		if song and steps:GetTimingData():HasWarps() then
-			-- might replace this with "special timing" or something...
-			--self:settext(translated_info["NegBPM"])
+		if song and song:HasLua() then
+			self:settext(translated_info["HasLua"])
 		else
 			self:settext("")
 		end
@@ -780,6 +799,7 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	InitCommand = function(self)
 		self:xy(capWideScale(get43size(344), 364) + 50, capWideScale(get43size(345), 255))
 		self:halign(0.5):valign(1)
+		self.clicked = false
 	end,
 	CurrentStyleChangedMessageCommand = function(self)
 		self:playcommand("MortyFarts")
@@ -848,9 +868,11 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 	end,
 	MouseOverCommand = function(self)
 		self:playcommand("ToolTip")
+		self:diffusealpha(hoverAlpha)
 	end,
 	MouseOutCommand = function(self)
 		TOOLTIP:Hide()
+		self:diffusealpha(1)
 	end,
 	MouseDownCommand = function(self, params)
 		-- because this button covers the background
@@ -859,6 +881,31 @@ t[#t + 1] = UIElements.SpriteButton(1, 1, nil) .. {
 			MESSAGEMAN:Broadcast("MusicPauseToggled")
 		end
 	end,
+	MouseDoubleClickCommand = function(self, params)
+		if params.event == "DeviceButton_left mouse button" then
+			if not self:GetVisible() then return end
+			local whee = SCREENMAN:GetTopScreen():GetMusicWheel()
+			local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
+
+			if self.clicked then
+				whee:ReloadSongList()
+				MESSAGEMAN:Broadcast("SetSearchString", {searchstring = ""})
+				self.clicked = false
+			elseif whee ~= nil and author ~= nil then
+				local theSongThatWasSelectedBeforeTheWheelWasReset = self.song
+				local searchstring = "author=" .. author
+				whee:SongSearch(searchstring)
+				whee:SelectSong(theSongThatWasSelectedBeforeTheWheelWasReset)
+				MESSAGEMAN:Broadcast("SetSearchString", {searchstring = searchstring})
+				self.clicked = true
+			end
+		end
+	end,
+	UpdateStringMessageCommand = function(self)
+		--if the searchstring is updated at all then we are no longer solely searching for the chart author,
+		--so we should reset
+		self.clicked = false
+	end
 }
 
 t[#t + 1] = Def.Sprite {
@@ -892,6 +939,11 @@ t[#t + 1] = Def.Sprite {
 				bnpath = THEME:GetPathG("Common", "fallback banner")
 			end
 			self:LoadBackground(bnpath)
+		end
+		if self:GetNumStates() > 1 then
+			self:StopUsingCustomTexCoords()
+		else
+			self:EnableCustomTexCoords()
 		end
 		self:diffusealpha(1)
 	end,
@@ -948,7 +1000,7 @@ local function toggleButton(textEnabled, textDisabled, msg, x, extrawidth, y, en
 					else
 						ison = (not ison)
 					end
-					
+
 					-- wtf 2
 					self:diffuse(ison and color(enabledC) or getMainColor("highlight"))
 					NSMAN:SendChatMsg(msg, 1, NSMAN:GetCurrentRoomName())

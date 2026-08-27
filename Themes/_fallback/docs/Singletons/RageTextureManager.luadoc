@@ -1,0 +1,10 @@
+--- Texture management singleton class
+-- @classmod RageTextureManager
+-- @alias TEXTUREMAN
+
+--- Get a RageTexture handle based on the given base64 String.
+-- This can arbitrarily load images from data. However, if you try to load garbage, you get an error and a pink texture.
+-- @tparam string base64String A base64 String representing an image, not a gif.
+-- @treturn RageTexture A RageTexture which might be nil or pink if an error occurs.
+function TEXTUREMAN:RageTextureFromBase64(base64String)
+end

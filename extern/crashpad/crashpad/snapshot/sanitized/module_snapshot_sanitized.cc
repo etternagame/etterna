@@ -1,4 +1,4 @@
-// Copyright 2018 The Crashpad Authors. All rights reserved.
+// Copyright 2018 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
 
 #include "snapshot/sanitized/module_snapshot_sanitized.h"
 
+#include "base/strings/pattern.h"
+
 namespace crashpad {
 namespace internal {
 
@@ -22,7 +24,7 @@ namespace {
 bool KeyIsAllowed(const std::string& name,
                   const std::vector<std::string>& allowed_keys) {
   for (const auto& key : allowed_keys) {
-    if (name == key) {
+    if (base::MatchPattern(name, key)) {
       return true;
     }
   }
@@ -97,9 +99,11 @@ ModuleSnapshotSanitized::AnnotationsSimpleMap() const {
   std::map<std::string, std::string> annotations =
       snapshot_->AnnotationsSimpleMap();
   if (allowed_annotations_) {
-    for (auto kv = annotations.begin(); kv != annotations.end(); ++kv) {
-      if (!KeyIsAllowed(kv->first, *allowed_annotations_)) {
-        annotations.erase(kv);
+    for (auto kv = annotations.begin(); kv != annotations.end();) {
+      if (KeyIsAllowed(kv->first, *allowed_annotations_)) {
+        ++kv;
+      } else {
+        kv = annotations.erase(kv);
       }
     }
   }

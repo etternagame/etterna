@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@
 #include <string>
 #include <vector>
 
-#include "base/mac/mach_logging.h"
-#include "base/mac/scoped_mach_port.h"
+#include "base/apple/mach_logging.h"
+#include "base/apple/scoped_mach_port.h"
 #include "tools/tool_support.h"
 #include "util/mach/bootstrap.h"
 #include "util/mach/exception_ports.h"
@@ -43,7 +43,7 @@ namespace {
 //!     destruction.
 //!
 //! This class effectively implements what a vector of
-//! base::mac::ScopedMachSendRight objects would be.
+//! base::apple::ScopedMachSendRight objects would be.
 //!
 //! The various “show” operations performed by this program display Mach ports
 //! by their names as they are known in this task. For this to be useful, rights
@@ -191,7 +191,7 @@ bool ParseHandlerString(const char* handler_string_ro,
 // |mach_send_right_pool|.
 void ShowBootstrapService(const std::string& service_name,
                           MachSendRightPool* mach_send_right_pool) {
-  base::mac::ScopedMachSendRight service_port(BootstrapLookUp(service_name));
+  base::apple::ScopedMachSendRight service_port(BootstrapLookUp(service_name));
   if (service_port == kMachPortNull) {
     return;
   }
@@ -283,7 +283,7 @@ void ShowExceptionPorts(const ExceptionPorts& exception_ports,
 // desired.
 bool SetExceptionPort(const ExceptionHandlerDescription* description,
                       mach_port_t target_port) {
-  base::mac::ScopedMachSendRight service_port;
+  base::apple::ScopedMachSendRight service_port;
   if (description->handler.compare(
           0, strlen(kHandlerBootstrapColon), kHandlerBootstrapColon) == 0) {
     const char* service_name =
@@ -311,6 +311,7 @@ bool SetExceptionPort(const ExceptionHandlerDescription* description,
 }
 
 void Usage(const std::string& me) {
+  // clang-format off
   fprintf(stderr,
 "Usage: %s [OPTION]... [COMMAND [ARG]...]\n"
 "View and change Mach exception ports, and run COMMAND if supplied.\n"
@@ -343,6 +344,7 @@ void Usage(const std::string& me) {
 "The default DESCRIPTION is\n"
 "  target=task,mask=CRASH,behavior=DEFAULT|MACH,flavor=NONE,handler=NULL\n",
           me.c_str());
+  // clang-format on
   ToolSupport::UsageTail(me);
 }
 
@@ -488,7 +490,7 @@ int ExceptionPortToolMain(int argc, char* argv[]) {
     return kExitFailure;
   }
 
-  base::mac::ScopedMachSendRight alternate_task_owner;
+  base::apple::ScopedMachSendRight alternate_task_owner;
   if (options.pid) {
     if (argc) {
       ToolSupport::UsageHint(me, "cannot combine -p with COMMAND");

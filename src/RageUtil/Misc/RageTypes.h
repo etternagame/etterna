@@ -645,4 +645,25 @@ struct RageMatrix
 	float m[4][4]{};
 };
 
+enum ShaderType
+{
+	ShaderType_Vertex,
+	ShaderType_Fragment,
+	NUM_ShaderType,
+	ShaderType_Invalid
+};
+LuaDeclareType(ShaderType);
+
+enum ShaderParamType
+{
+	ShaderParamType_Int,
+	ShaderParamType_IntArray,
+	ShaderParamType_Float,
+	ShaderParamType_FloatArray,
+	ShaderParamType_Texture,
+	NUM_ShaderParamType,
+	ShaderParamType_Invalid
+};
+LuaDeclareType(ShaderParamType);
+
 #endif

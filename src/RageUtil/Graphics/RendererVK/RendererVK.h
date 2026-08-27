@@ -1,0 +1,188 @@
+#ifndef RENDERER_VULKAN_H
+#define RENDERER_VULKAN_H
+
+#define VK_NO_PROTOTYPES
+#define VULKAN_HPP_DISPATCH_LOADER_DYNAMIC 1
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
+
+#include "RageUtil/Graphics/Display/Renderer.h"
+#include "RageUtil/Graphics/RageDisplay.h"
+#include "Core/Services/Locator.hpp"
+
+#define VMA_DEBUG_LOG
+#define VMA_DEBUG_INITIALIZE_ALLOCATIONS 1
+#define VMA_DEBUG_LOG_FORMAT(format, ...)                                      \
+	do {                                                                       \
+		if (DISPLAY->DisplayDebugModeEnabled()) {                              \
+			char buffer[256] = {};                                             \
+			snprintf(buffer, sizeof(buffer), format, __VA_ARGS__);             \
+			std::string str(buffer);                                           \
+			Locator::getLogger()->debug("{}",                                  \
+										"VulkanMemoryAllocator: " + str);      \
+		}                                                                      \
+	} while (false)
+
+#include <vulkan/vulkan_raii.hpp>
+#include <vk_mem_alloc.h>
+#include <VkBootstrap.h>
+#include <array>
+#include <map>
+#include <set>
+#include <utility>
+#include <optional>
+#include "VkUtils.h"
+#include "Texture.h"
+#include "PersistentBuffer.h"
+#include <bitset>
+#include "PipelineCache.h"
+
+class RendererVK : public DisplayAdapter::Renderer
+{
+  public:
+	RendererVK();
+	std::string GetApiDescription() const override;
+	void InitializeRenderer(const VideoModeParams& p) override;
+	bool IsReadyForRender() override;
+	void OnRender(const ActualVideoModeParams* p,
+				  const DisplayAdapter::CommandBatcher& batcher) override;
+	bool IsD3DInternal() override;
+	intptr_t CreateTexture(RageSurface* img, bool RGBA8) override;
+	void UpdateTexture(intptr_t textureHandle,
+					   RageSurface* img,
+					   int xOffset,
+					   int yOffset,
+					   int width,
+					   int height) override;
+	void DeleteTexture(intptr_t handle) override;
+	void ClearAllTextures() override;
+	RageSurface* CreateScreenshot() override;
+	intptr_t CreateRenderTarget(const RenderTargetParam& param,
+								int& iTextureWidthOut,
+								int& iTextureHeightOut) override;
+	DisplayAdapter::PipelineHandle CreateGraphicsPipeline(
+	  const std::string& vertexShaderPath,
+	  const std::string& fragmentShaderPath) override;
+	void ReloadPipelines() override;
+	void TryVideoMode(const VideoModeParams& params) override;
+	int GetMaxTextureSize() override;
+	~RendererVK() override;
+	void RescaleBatchBuffers(size_t sizeScale) override;
+
+  private:
+	constexpr static size_t FramesInFlight = 3;
+
+	vk::raii::Context m_Context;
+	vk::raii::Instance m_Instance = nullptr;
+	vk::raii::DebugUtilsMessengerEXT m_DebugMessenger = nullptr;
+	vk::raii::PhysicalDevice m_PhysicalDevice = nullptr;
+	vk::raii::Device m_Device = nullptr;
+	vk::raii::SurfaceKHR m_Surface = nullptr;
+	vk::raii::Queue m_GraphicsQueue = nullptr;
+	uint32_t m_GraphicsQueueFamily = 0;
+	vk::raii::Queue m_PresentQueue = nullptr;
+	uint32_t m_PresentQueueFamily = 0;
+	VmaAllocator m_Allocator = nullptr;
+	vk::Format m_DepthFormat = {};
+	vk::SampleCountFlagBits m_MsaaSamples = {};
+	void InitVulkanState();
+
+	vk::raii::SwapchainKHR m_Swapchain = nullptr;
+	vk::Extent2D m_SwapchainExtent;
+	std::vector<vk::Image> m_SwapchainImages;
+	vk::Format m_ImageFormat = {};
+	std::array<Texture, FramesInFlight> m_SwapchainDepthTextures;
+	std::array<Texture, FramesInFlight> m_MsaaTextures;
+	bool m_MsaaTexturesAreDirty = false;
+	bool m_SwapchainVSync = false;
+	bool m_SwapchainBorderless = false;
+	bool m_SwapchainIsInvalid = false;
+	bool m_SmoothLines = false;
+
+	void InitSwapchain(uint32_t width,
+					   uint32_t height,
+					   bool vSync,
+					   bool borderlessWindow,
+					   bool smoothLines);
+	void RecreateSwapchain();
+	void CleanupSwapchain();
+
+	std::vector<vk::raii::ImageView> m_SwapchainImageViews;
+	void InitImageViews();
+
+	vk::raii::DescriptorSetLayout m_DescriptorSetLayout = nullptr;
+	vk::raii::DescriptorSetLayout m_TextureLayout = nullptr;
+	void InitGraphicsPipeline();
+	std::vector<vk::DescriptorSetLayoutBinding> GetDescriptorBindings();
+	vk::raii::DescriptorPool m_DescriptorPool = nullptr;
+	std::vector<vk::raii::DescriptorSet> m_DescriptorSets;
+
+	std::vector<vk::DescriptorSetLayoutBinding> GetTextureBindings();
+	vk::raii::DescriptorPool m_TextureDescriptorPool = nullptr;
+	vk::raii::DescriptorSet m_TextureDescriptorSet = nullptr;
+
+	vk::raii::CommandPool m_CommandPool = nullptr;
+	void InitCommandPool();
+
+	std::vector<vk::raii::CommandBuffer> m_CommandBuffers;
+	void InitCommandBuffers();
+
+	void TransitionImageLayout(vk::Image& image,
+							   vk::ImageLayout oldLayout,
+							   vk::ImageLayout newLayout,
+							   vk::AccessFlags2 srcAccessMask,
+							   vk::AccessFlags2 dstAccessMask,
+							   vk::PipelineStageFlags2 srcStageMask,
+							   vk::PipelineStageFlags2 dstStageMask,
+							   vk::ImageAspectFlags aspectMask,
+							   vk::raii::CommandBuffer& commandBuffer);
+
+	std::vector<vk::raii::Semaphore> m_PresentCompleteSemaphore;
+	std::vector<vk::raii::Semaphore> m_RenderFinishedSemaphore;
+	std::vector<vk::raii::Fence> m_InFlightFence;
+	uint32_t m_CurrentFrame = 0;
+	int m_CurrentImage = 0;
+	void InitSyncStructures();
+	void RecordCommands(uint32_t imageIndex,
+						const DisplayAdapter::CommandBatcher& batcher);
+	void SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer);
+
+	std::array<PersistentBuffer, FramesInFlight> m_VertexBuffer;
+	std::array<PersistentBuffer, FramesInFlight> m_IndexBuffer;
+	std::array<PersistentBuffer, FramesInFlight> m_MatrixStateBuffer;
+	std::array<PersistentBuffer, FramesInFlight> m_ShaderScratchBuffer;
+	std::array<PersistentBuffer, FramesInFlight> m_StagingBuffer;
+
+	void InitBatchDescriptors();
+	void InitBatchBuffers(size_t sizeScale);
+	void InitTextureInfo();
+	void UpdateBatchBuffers(const DisplayAdapter::CommandBatcher& batcher);
+
+	std::map<intptr_t, Texture> m_Textures;
+	std::map<intptr_t, Texture> m_DepthTextures;
+	std::set<intptr_t> m_EmptyTextureSlots;
+
+	std::vector<intptr_t> m_DirtyTextures;
+	std::vector<intptr_t> m_DirtyDepthTextures;
+	std::vector<intptr_t> m_DirtyTextureDescriptors;
+	std::vector<vk::ImageMemoryBarrier2> m_DirtyPreBarriers;
+	std::vector<vk::ImageMemoryBarrier2> m_DirtyPostBarriers;
+	std::vector<vk::DescriptorImageInfo> m_DirtyImageInfos;
+	std::vector<vk::WriteDescriptorSet> m_DirtyImageDescWrites;
+	int GetMaxTextureCount();
+	int m_TextureCount = 0;
+	int m_TextureSize = -1;
+	void DestroyTexture(Texture& texture);
+
+	std::array<vk::raii::Sampler, Texture::PossibleSamplerCount> m_Samplers;
+	void InitTextures();
+	void ResolutionChanged() override;
+	intptr_t CreateRenderTargetTexture(int width,
+									   int height,
+									   bool withAlpha,
+									   bool withDepth);
+
+	std::optional<PipelineCache> m_Cache;
+};
+
+#endif

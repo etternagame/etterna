@@ -105,6 +105,7 @@ class IDebugLine
 	virtual std::string GetPageName() const { return "Main"; }
 	virtual bool ForceOffAfterUse() const { return false; }
 	virtual bool IsEnabled() = 0;
+	virtual bool AllowRepeatEvents() const { return false; }
 
 	virtual void DoAndLog(std::string& sMessageOut)
 	{
@@ -115,7 +116,23 @@ class IDebugLine
 		sMessageOut = s1 + s2;
 	};
 
-	DeviceInput m_Button;
+	void SetButton(std::vector<DeviceInput>& buttons, int buttonIndex)
+	{
+		this->buttonIndex = buttonIndex;
+		this->buttons = &buttons;
+	}
+
+	auto GetButton() const
+	{
+		if (buttons == nullptr || buttonIndex >= buttons->size() || buttonIndex < 0)
+			return DeviceInput();
+
+		return buttons->at(buttonIndex);
+	}
+
+  private:
+	std::vector<DeviceInput>* buttons;
+	int buttonIndex;
 };
 
 static bool
@@ -141,7 +158,6 @@ ScreenDebugOverlay::~ScreenDebugOverlay()
 	m_vptextFunction.clear();
 }
 
-const int MAX_DEBUG_LINES = 30;
 
 struct MapDebugToDI
 {
@@ -150,8 +166,8 @@ struct MapDebugToDI
 	DeviceInput holdForSlow;
 	DeviceInput holdForFast;
 	DeviceInput toggleMute;
-	DeviceInput debugButton[MAX_DEBUG_LINES];
-	DeviceInput gameplayButton[MAX_DEBUG_LINES];
+	std::vector<DeviceInput> debugButton;
+	std::vector<DeviceInput> gameplayButton;
 	std::map<DeviceInput, int> pageButton;
 
 	void Clear()
@@ -161,10 +177,9 @@ struct MapDebugToDI
 		holdForSlow.MakeInvalid();
 		holdForFast.MakeInvalid();
 		toggleMute.MakeInvalid();
-		for (int i = 0; i < MAX_DEBUG_LINES; i++) {
-			debugButton[i].MakeInvalid();
-			gameplayButton[i].MakeInvalid();
-		}
+		debugButton.clear();
+		gameplayButton.clear();
+		pageButton.clear();
 	}
 };
 
@@ -176,7 +191,7 @@ static LocalizedString OR("ScreenDebugOverlay", "or");
 static std::string
 GetDebugButtonName(const IDebugLine* pLine)
 {
-	std::string s = INPUTMAN->GetDeviceSpecificInputString(pLine->m_Button);
+	std::string s = INPUTMAN->GetDeviceSpecificInputString(pLine->GetButton());
 	IDebugLine::Type type = pLine->GetType();
 	switch (type) {
 		case IDebugLine::all_screens:
@@ -210,54 +225,8 @@ ScreenDebugOverlay::Init()
 {
 	Screen::Init();
 
-	// Init debug mappings
-	// TODO: Arch-specific?
-	{
-		g_Mappings.Clear();
-
-		g_Mappings.holdForDebug1 = DeviceInput(DEVICE_KEYBOARD, KEY_F3);
-		g_Mappings.holdForDebug2.MakeInvalid();
-		g_Mappings.holdForSlow = DeviceInput(DEVICE_KEYBOARD, KEY_ACCENT);
-		g_Mappings.holdForFast = DeviceInput(DEVICE_KEYBOARD, KEY_TAB);
-		g_Mappings.toggleMute = DeviceInput(DEVICE_KEYBOARD, KEY_PAUSE);
-
-		/* TODO: Find a better way of indicating which option is which here.
-		 * Maybe we should take a page from ScreenEdit's menus and make
-		 * RowDefs()? */
-
-		int i = 0;
-		g_Mappings.gameplayButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_F8);
-		g_Mappings.gameplayButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_F7);
-		g_Mappings.gameplayButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_F6);
-		i = 0;
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C1);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C2);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C3);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C4);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C5);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C6);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C7);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C8);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C9);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_C0);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cq);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cw);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ce);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cr);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ct);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cy);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cu);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ci);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Co);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cp);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Ca);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cs);
-		g_Mappings.debugButton[i++] = DeviceInput(DEVICE_KEYBOARD, KEY_Cd);
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F5)] = 0;
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F6)] = 1;
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F7)] = 2;
-		g_Mappings.pageButton[DeviceInput(DEVICE_KEYBOARD, KEY_F8)] = 3;
-	}
+	this->SubscribeToMessage("ReloadedMetrics");
+	UpdateMappings();
 
 	std::map<std::string, int> iNextDebugButton;
 	int iNextGameplayButton = 0;
@@ -265,16 +234,16 @@ ScreenDebugOverlay::Init()
 	{
 		std::string sPageName = (*p)->GetPageName();
 
-		DeviceInput di;
 		switch ((*p)->GetType()) {
 			case IDebugLine::all_screens:
-				di = g_Mappings.debugButton[iNextDebugButton[sPageName]++];
+				(*p)->SetButton(g_Mappings.debugButton,
+								iNextDebugButton[sPageName]++);
 				break;
 			case IDebugLine::gameplay_only:
-				di = g_Mappings.gameplayButton[iNextGameplayButton++];
+				(*p)->SetButton(g_Mappings.gameplayButton,
+								iNextGameplayButton++);
 				break;
 		}
-		(*p)->m_Button = di;
 
 		if (find(m_asPages.begin(), m_asPages.end(), sPageName) ==
 			m_asPages.end())
@@ -389,6 +358,17 @@ ScreenDebugOverlay::Update(float fDeltaTime)
 }
 
 void
+ScreenDebugOverlay::HandleMessage(const Message& msg)
+{
+	if (msg == Message_ReloadedMetrics) {
+		UpdateMappings();
+		UpdateText();
+	}
+
+	Screen::HandleMessage(msg);
+}
+
+void
 ScreenDebugOverlay::UpdateText()
 {
 	FOREACH_CONST(std::string, m_asPages, s)
@@ -396,6 +376,12 @@ ScreenDebugOverlay::UpdateText()
 		int iPage = s - m_asPages.begin();
 		m_vptextPages[iPage]->PlayCommand(
 		  (iPage == m_iCurrentPage) ? "GainFocus" : "LoseFocus");
+
+		DeviceInput di;
+		ASSERT(GetKeyFromMap(g_Mappings.pageButton, iPage, di));
+
+		std::string sButton = INPUTMAN->GetDeviceSpecificInputString(di);
+		m_vptextPages[iPage]->SetText(*s + " (" + sButton + ")");
 	}
 
 	// todo: allow changing of various spacing/location things -aj
@@ -451,6 +437,56 @@ ScreenDebugOverlay::UpdateText()
 			Locator::getLogger()->warn("Game halted");
 		}
 	}
+}
+void
+ScreenDebugOverlay::UpdateMappings()
+{
+	// TODO: Arch-specific?
+
+	g_Mappings.Clear();
+
+	DeviceInput temp = {};
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForDebug1"));
+	g_Mappings.holdForDebug1 = temp;
+	g_Mappings.holdForDebug2.MakeInvalid();
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForSlow"));
+	g_Mappings.holdForSlow = temp;
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "HoldForFast"));
+	g_Mappings.holdForFast = temp;
+
+	temp.FromString(
+	  ThemeMetric<std::string>("ScreenDebugOverlay", "ToggleMute"));
+	g_Mappings.toggleMute = temp;
+
+	for (int i = 0; i < 3; i++) {
+		auto key = ThemeMetric<std::string>(
+		  "ScreenDebugOverlay", "GameplayButton" + std::to_string(i));
+		auto dInput = DeviceInput();
+		dInput.FromString(key);
+		g_Mappings.gameplayButton.push_back(dInput);
+	}
+	for (int i = 0; i < 23; i++) {
+		auto key = ThemeMetric<std::string>("ScreenDebugOverlay",
+											"DebugButton" + std::to_string(i));
+		auto dInput = DeviceInput();
+		dInput.FromString(key);
+
+		g_Mappings.debugButton.push_back(dInput);
+	}
+	for (int i = 0; i < 4; i++) {
+		auto key = ThemeMetric<std::string>("ScreenDebugOverlay",
+											"PageButton" + std::to_string(i));
+		auto dInput = DeviceInput();
+		dInput.FromString(key);
+		g_Mappings.pageButton[dInput] = i;
+	}
+
 }
 
 template<typename U, typename V>
@@ -539,9 +575,15 @@ ScreenDebugOverlay::Input(const InputEventPlus& input)
 				FAIL_M(ssprintf("Invalid debug line type: %i", type));
 		}
 
-		if (input.DeviceI == (*p)->m_Button) {
-			if (input.type != IET_FIRST_PRESS)
-				return true; // eat the input but do nothing
+		if (input.DeviceI == (*p)->GetButton()) {
+			if (input.type == IET_FIRST_PRESS ||
+				(input.type == IET_REPEAT && (*p)->AllowRepeatEvents())) {
+				// allowed so do nothing and fall through
+				// way too lazy to figure out the right way to write this
+			} else {
+				// eat the input but do nothing
+				return true;
+			}
 
 			// do the action
 			std::string sMessage;
@@ -578,7 +620,7 @@ void
 ChangeVolume(float fDelta)
 {
 	Preference<float>* pRet =
-	  Preference<float>::GetPreferenceByName("SoundVolume");
+	  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 	float fVol = pRet->Get();
 	fVol += fDelta;
 	CLAMP(fVol, 0.0f, 1.0f);
@@ -671,6 +713,7 @@ static LocalizedString KEY_CONFIG("ScreenDebugOverlay", "Key Config");
 static LocalizedString CHART_FOLDER("ScreenDebugOverlay", "Chart Folder");
 static LocalizedString CHART_KEY("ScreenDebugOverlay", "Chartkey");
 static LocalizedString FORCE_SNAPS("ScreenDebugOverlay", "ForceSnaps");
+static LocalizedString REPLAY_OFFSETS("ScreenDebugOverlay", "ReplayOffsets");
 static LocalizedString VOLUME_UP("ScreenDebugOverlay", "Volume Up");
 static LocalizedString VOLUME_DOWN("ScreenDebugOverlay", "Volume Down");
 static LocalizedString UPTIME("ScreenDebugOverlay", "Uptime");
@@ -678,6 +721,7 @@ static LocalizedString FORCE_CRASH("ScreenDebugOverlay", "Force Crash");
 static LocalizedString SLOW("ScreenDebugOverlay", "Slow");
 static LocalizedString CPU("ScreenDebugOverlay", "CPU");
 static LocalizedString REPLAY("ScreenDebugOverlay", "REPLAY");
+static LocalizedString SPECTATE("ScreenDebugOverlay", "SPECTATE");
 static LocalizedString SONG("ScreenDebugOverlay", "Song");
 static LocalizedString MACHINE("ScreenDebugOverlay", "Machine");
 static LocalizedString RENDER_SKIPS("ScreenDebugOverlay", "Rendering Skips");
@@ -709,6 +753,9 @@ class DebugLineAutoplay : public IDebugLine
 			case PC_REPLAY:
 				return REPLAY.GetValue();
 				break;
+			case PC_SPECTATE:
+				return SPECTATE.GetValue();
+				break;
 			default:
 				FAIL_M(ssprintf("Invalid PlayerController: %i", pc));
 		}
@@ -733,7 +780,8 @@ class DebugLineAutoplay : public IDebugLine
 			pc = (pc == PC_CPU) ? PC_HUMAN : PC_CPU;
 		else
 			pc = (pc == PC_AUTOPLAY) ? PC_HUMAN : PC_AUTOPLAY;
-		if (GamePreferences::m_AutoPlay != PC_REPLAY)
+		if (GamePreferences::m_AutoPlay != PC_REPLAY &&
+			GamePreferences::m_AutoPlay != PC_SPECTATE)
 			GamePreferences::m_AutoPlay.Set(pc);
 		GAMESTATE->m_pPlayerState->m_PlayerController =
 		  GamePreferences::m_AutoPlay;
@@ -991,8 +1039,11 @@ class DebugLineClearProfileStats : public IDebugLine
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
-		Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
-		pProfile->ClearStats();
+		//Profile* pProfile = PROFILEMAN->GetProfile(g_ProfileSlot);
+		//pProfile->ClearStats();
+		Locator::getLogger()->warn(
+		  "You tried to clear profile stats, but this doesn't work anymore. Go "
+		  "delete the profile manually");
 		IDebugLine::DoAndLog(sMessageOut);
 	}
 };
@@ -1060,6 +1111,11 @@ class DebugLineReloadCurrentScreen : public IDebugLine
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
+		if (SCREENMAN->GetScreen(0) == nullptr) {
+			Locator::getLogger()->warn(
+			  "Cant reload the screen when there is no screen. wait a bit");
+			return;
+		}
 		std::string sScreenName = SCREENMAN->GetScreen(0)->GetName();
 		SCREENMAN->PopAllScreens();
 
@@ -1155,12 +1211,15 @@ class DebugLineReloadTheme : public IDebugLine
 	void DoAndLog(std::string& sMessageOut) override
 	{
 		THEME->ReloadMetrics();
+		DISPLAY->ReloadPipelines();
 		TEXTUREMAN->ReloadAll();
 		NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 		CodeDetector::RefreshCacheItems();
 		// HACK: Don't update text below. Return immediately because this screen
 		// was just destroyed as part of the theme reload.
 		IDebugLine::DoAndLog(sMessageOut);
+		MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
+		MESSAGEMAN->Broadcast(Message_ReloadedTextures);
 	}
 };
 
@@ -1335,6 +1394,7 @@ class DebugLineVolumeUp : public IDebugLine
 	}
 
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1344,7 +1404,7 @@ class DebugLineVolumeUp : public IDebugLine
 
 	Preference<float>* GetPref()
 	{
-		return Preference<float>::GetPreferenceByName("SoundVolume");
+		return Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 	}
 };
 
@@ -1353,6 +1413,7 @@ class DebugLineVolumeDown : public IDebugLine
 	std::string GetDisplayTitle() override { return VOLUME_DOWN.GetValue(); }
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1363,7 +1424,7 @@ class DebugLineVolumeDown : public IDebugLine
 
 	Preference<float>* GetPref()
 	{
-		return Preference<float>::GetPreferenceByName("SoundVolume");
+		return Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 	}
 };
 
@@ -1380,6 +1441,7 @@ class DebugLineVisualDelayUp : public IDebugLine
 	}
 
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1402,6 +1464,7 @@ class DebugLineVisualDelayDown : public IDebugLine
 
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1499,6 +1562,7 @@ class DebugLineGlobalOffsetUp : public IDebugLine
 
 	std::string GetPageName() const override { return "Misc"; }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 
 	void DoAndLog(std::string& sMessageOut) override
 	{
@@ -1521,6 +1585,7 @@ class DebugLineGlobalOffsetDown : public IDebugLine
 
 	std::string GetDisplayValue() override { return std::string(); }
 	bool IsEnabled() override { return true; }
+	bool AllowRepeatEvents() const override { return true; }
 	std::string GetPageName() const override { return "Misc"; }
 
 	void DoAndLog(std::string& sMessageOut) override
@@ -1638,6 +1703,19 @@ class DebugLineForceSnaps : public IDebugLine
 	}
 };
 
+class DebugLineReplayOffsets : public IDebugLine
+{
+	std::string GetDisplayTitle() override { return REPLAY_OFFSETS.GetValue(); }
+	std::string GetPageName() const override { return "Misc"; }
+	bool IsEnabled() override { return PREFSMAN->m_bReplaysShowOffsets; }
+
+	void DoAndLog(std::string& sMessageOut) override
+	{
+		PREFSMAN->m_bReplaysShowOffsets.Set(!PREFSMAN->m_bReplaysShowOffsets);
+		IDebugLine::DoAndLog(sMessageOut);
+	}
+};
+
 /* #ifdef out the lines below if you don't want them to appear on certain
  * platforms.  This is easier than #ifdefing the whole DebugLine definitions
  * that can span pages.
@@ -1690,3 +1768,4 @@ DECLARE_ONE(DebugLineKeyConfig);
 DECLARE_ONE(DebugLineChartFolder);
 DECLARE_ONE(DebugLineChartkey);
 DECLARE_ONE(DebugLineForceSnaps);
+DECLARE_ONE(DebugLineReplayOffsets);

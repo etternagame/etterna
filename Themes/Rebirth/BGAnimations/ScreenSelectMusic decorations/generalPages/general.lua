@@ -123,6 +123,7 @@ end
 local translations = {
     AverageNPS = THEME:GetString("ScreenSelectMusic General", "AverageNPS"),
     NegativeBPMs = THEME:GetString("ScreenSelectMusic General", "NegativeBPMs"),
+    HasLua = THEME:GetString("ScreenSelectMusic General", "HasLua"),
     Ready = THEME:GetString("GeneralInfo", "Ready"),
     Unready = THEME:GetString("GeneralInfo", "Unready"),
     ForceStart = THEME:GetString("GeneralInfo", "ForceStart"),
@@ -173,6 +174,7 @@ local textzoomFudge = 5
 local displayScoreBump = 8
 
 local buttonHoverAlpha = 0.6
+local buttonHoverAlpha2 = 0.8
 local buttonBGAlpha = 0.3
 
 local function createStatLines()
@@ -283,11 +285,23 @@ local function createMSDLines()
                 end,
                 SetCommand = function(self, params)
                     if i == 0 then
+                        --[[
                         if params.steps then
                             if params.steps:GetTimingData():HasWarps() then
                                 -- not sure what to do with this for now
                                 -- maybe replace with "special timing" for all TimingSegments...
                                 -- self:settext(translations["NegativeBPMs"])
+                                self:diffusealpha(1)
+                            else
+                                self:diffusealpha(0)
+                            end
+                        else
+                            self:diffusealpha(0)
+                        end
+                        ]]
+                        if params.song then
+                            if params.song:HasLua() then
+                                self:settext(translations["HasLua"])
                                 self:diffusealpha(1)
                             else
                                 self:diffusealpha(0)
@@ -310,7 +324,7 @@ local function createMSDLines()
                     if not labeltext then self:visible(false) end
                 end,
                 SetCommand = function(self, params)
-                    if i == 0 then return end -- negbpm indicator HACKS remove when validating negbpms soon
+                    if i == 0 then return end -- HasLua indicator
                     -- i == 1 is Average NPS, otherwise are skillsets
                     if i == 1 then
                         if params.steps then
@@ -355,7 +369,7 @@ local function createMSDLines()
         }
     end
     local t = Def.ActorFrame {Name = "MSDLines"}
-    for i = 0, #msdNames do -- starts at 0 for NegBPMs
+    for i = 0, #msdNames do -- starts at 0 for HasLua
         t[#t+1] = createMSDLine(i)
     end
     return t
@@ -669,6 +683,7 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     SetCommand = function(self, params)
         self:finishtweening()
         self.song = params.song
+        self.group = params.group
         if params.song then
             self:diffusealpha(1)
 
@@ -723,11 +738,32 @@ t[#t+1] = UIElements.SpriteButton(1, 1, nil) .. {
     MouseOverCommand = function(self)
         if self:IsInvisible() then return end
         self:playcommand("ToolTip")
+        self:diffusealpha(buttonHoverAlpha2)
     end,
     MouseOutCommand = function(self)
         if self:IsInvisible() then return end
         TOOLTIP:Hide()
+        self:diffusealpha(1)
     end,
+    MouseDownCommand = function(self)
+        if self:IsInvisible() then return end
+        local scr = SCREENMAN:GetTopScreen()
+        local w = scr:GetChild("WheelFile")
+        local author = string.lower(self.song:GetOrTryAtLeastToGetSimfileAuthor())
+        local currentSearch = WHEELDATA:GetSearch()
+        if currentSearch.Author == author then --clicking on the cdtitle again resets the filter
+            WHEELDATA:ResetActiveFilterMetadata()
+            MESSAGEMAN:Broadcast("SetSearchFilter", getEmptyActiveFilterMetadata())
+            w:sleep(0.01):queuecommand("ApplyFilter")
+        elseif w ~= nil and author ~= nil then
+            WHEELDATA:SetSearch({Author = author})
+            MESSAGEMAN:Broadcast("SetSearchFilter", {Author = author})
+            local theSongThatWasSelectedBeforeTheWheelWasReset = self.song
+            local theGroupThatTheAforementionedSongWasInBeforeTheWheelWasReset = self.group
+            w:playcommand("ApplyFilter")
+            w:playcommand("FindSong", {song = theSongThatWasSelectedBeforeTheWheelWasReset, group = theGroupThatTheAforementionedSongWasInBeforeTheWheelWasReset})
+        end
+    end
 }
 
 t[#t+1] = createStatLines()

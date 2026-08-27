@@ -1,6 +1,6 @@
 /*
 ** Configuration header.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #ifndef luaconf_h
@@ -9,7 +9,6 @@
 #ifndef WINVER
 #define WINVER 0x0501
 #endif
-#include <limits.h>
 #include <stddef.h>
 
 /* Default path for loading Lua and C modules with require(). */
@@ -37,7 +36,6 @@
 #endif
 #define LUA_LROOT	"/usr/local"
 #define LUA_LUADIR	"/lua/5.1/"
-#define LUA_LJDIR	"/luajit-2.1.0-beta3/"
 
 #ifdef LUA_ROOT
 #define LUA_JROOT	LUA_ROOT
@@ -51,7 +49,11 @@
 #define LUA_RCPATH
 #endif
 
-#define LUA_JPATH	";" LUA_JROOT "/share" LUA_LJDIR "?.lua"
+#ifndef LUA_LJDIR
+#define LUA_LJDIR	LUA_JROOT "/share/luajit-2.1"
+#endif
+
+#define LUA_JPATH	";" LUA_LJDIR "/?.lua"
 #define LUA_LLDIR	LUA_LROOT "/share" LUA_LUADIR
 #define LUA_LCDIR	LUA_LROOT "/" LUA_LMULTILIB LUA_LUADIR
 #define LUA_LLPATH	";" LUA_LLDIR "?.lua;" LUA_LLDIR "?/init.lua"
@@ -130,6 +132,8 @@
 #else
 #define LUA_API		__declspec(dllimport)
 #endif
+#elif (defined(__ELF__) || defined(__MACH__) || defined(__psp2__)) && !((defined(__sun__) && defined(__svr4__)) || defined(__CELLOS_LV2__))
+#define LUA_API		extern __attribute__((visibility("default")))
 #else
 #define LUA_API		extern
 #endif

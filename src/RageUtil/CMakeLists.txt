@@ -65,6 +65,22 @@ list(APPEND SMDATA_RAGE_GRAPHICS_SRC
   "Graphics/RageTextureManager.cpp"
   "Graphics/RageTextureRenderTarget.cpp"
 )
+
+if(WITH_VULKAN)
+  list(APPEND SMDATA_RAGE_GRAPHICS_SRC
+    "Graphics/Display/CommandBatcher.cpp"
+    "Graphics/Display/CompiledGeometry.cpp"
+    "Graphics/Display/Display.cpp"
+    "Graphics/RendererVK/RendererVK.cpp"
+    "Graphics/RendererVK/VkUtils.cpp"
+    "Graphics/RendererVK/PersistentBuffer.cpp"
+    "Graphics/RendererVK/RenderTargetVK.cpp"
+    "Graphics/RendererVK/PlatformUtils.cpp"
+    "Graphics/RendererVK/PipelineCache.cpp"
+    "Graphics/RendererVK/Texture.cpp"
+  )
+endif()
+
 list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageBitmapTexture.h"
   "Graphics/RageDisplay.h"
@@ -88,14 +104,32 @@ list(APPEND SMDATA_RAGE_GRAPHICS_HPP
   "Graphics/RageTextureRenderTarget.h"
 )
 
+if(WITH_VULKAN)
+  list(APPEND SMDATA_RAGE_GRAPHICS_HPP
+    "Graphics/Display/CommandBatcher.h"
+    "Graphics/Display/DrawMode.h"
+    "Graphics/Display/MatrixState.h"
+    "Graphics/Display/RenderState.h"
+    "Graphics/Display/Display.h"
+    "Graphics/Display/Renderer.h"
+    "Graphics/Display/CompiledGeometry.h"
+    "Graphics/Display/RenderNode.h"
+    "Graphics/Display/Vertex.h"
+    "Graphics/Display/PipelineHandle.h"
+
+    "Graphics/RendererVK/RendererVK.h"
+    "Graphics/RendererVK/VkUtils.h"
+    "Graphics/RendererVK/PersistentBuffer.h"
+    "Graphics/RendererVK/Texture.h"
+    "Graphics/RendererVK/RenderTargetVK.h"
+    "Graphics/RendererVK/PlatformUtils.h"
+    "Graphics/RendererVK/PipelineCache.h"
+  )
+endif()
+
 if(WIN32)
   list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_D3D.cpp")
   list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RageDisplay_D3D.h")
-elseif(LINUX)
-  if (WITH_GLES2)
-    list(APPEND SMDATA_RAGE_GRAPHICS_SRC "Graphics/RageDisplay_GLES2.cpp")
-    list(APPEND SMDATA_RAGE_GRAPHICS_HPP "Graphics/RageDisplay_GLES2.h")
-  endif()
 endif()
 
 source_group("Rage\\\\Graphics" FILES ${SMDATA_RAGE_GRAPHICS_SRC} ${SMDATA_RAGE_GRAPHICS_HPP})
@@ -204,4 +238,4 @@ list(APPEND SMDATA_ALL_RAGE_HPP
   ${SMDATA_RAGE_UTILS_HPP}
 )
 
-target_sources(Etterna PUBLIC ${SMDATA_ALL_RAGE_SRC})
+target_sources(Etterna PUBLIC ${SMDATA_ALL_RAGE_SRC} ${SMDATA_ALL_RAGE_HPP})

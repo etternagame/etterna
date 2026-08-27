@@ -149,6 +149,7 @@ PrefsManager::PrefsManager()
   , m_bFullTapExplosions("FullTapExplosions", true)
   , m_bNoGlow("NoGlow", false)
   , m_bReplaysUseScoreMods("ReplaysUseScoreMods", true)
+  , m_bReplaysShowOffsets("ReplaysShowOffsets", false)
   , m_iArcadeOptionsNavigation("ArcadeOptionsNavigation", 0)
   , m_ThreeKeyNavigation("ThreeKeyNavigation", false)
   , m_MusicWheelUsesSections("MusicWheelUsesSections",
@@ -188,6 +189,7 @@ PrefsManager::PrefsManager()
 
   , m_sLastSeenVideoDriver("LastSeenVideoDriver", "")
   , m_sVideoRenderers("VideoRenderers", "")
+  , m_bVideoRendererDebugMode("VideoRendererDebugMode", false)
 
   , m_bSmoothLines("SmoothLines", false)
   , m_iSoundWriteAhead("SoundWriteAhead", 0)

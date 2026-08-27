@@ -29,6 +29,19 @@ function ToGameplay()
 	end
 end
 
+function ToNetGameplay()
+	local mode = GAMESTATE:GetGameplayMode()
+	if mode == "GameplayMode_Practice" then
+		return "ScreenGameplayPractice"
+	elseif mode == "GameplayMode_Replay" then
+		return "ScreenGameplayReplay"
+	elseif mode == "GameplayMode_Spectate" then
+		return "ScreenGameplaySpectate"
+	else
+		return "ScreenNetGameplay"
+	end
+end
+
 function ToStageInformation()
 	if not IsSMOnlineLoggedIn() then
 		return "ScreenStageInformation"
@@ -76,9 +89,6 @@ Branch = {
 		return "ScreenOptionsEdit"
 	end,
 	AfterSelectStyle = function()
-		if IsNetConnected() then
-			ReportStyle()
-		end
 		return "ScreenProfileLoad"
 	end,
 	AfterSelectProfile = function()

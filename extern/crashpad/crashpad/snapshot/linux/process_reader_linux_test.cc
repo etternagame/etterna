@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@
 #include <sys/syscall.h>
 #include <unistd.h>
 
+#include <iterator>
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "base/cxx17_backports.h"
 #include "base/format_macros.h"
 #include "base/memory/free_deleter.h"
 #include "base/strings/stringprintf.h"
@@ -43,6 +43,7 @@
 #include "test/linux/get_tls.h"
 #include "test/multiprocess.h"
 #include "test/scoped_module_handle.h"
+#include "test/scoped_set_thread_name.h"
 #include "test/test_paths.h"
 #include "util/file/file_io.h"
 #include "util/file/file_writer.h"
@@ -51,9 +52,10 @@
 #include "util/misc/address_sanitizer.h"
 #include "util/misc/from_pointer_cast.h"
 #include "util/misc/memory_sanitizer.h"
+#include "util/posix/scoped_mmap.h"
 #include "util/synchronization/semaphore.h"
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 #include <android/api-level.h>
 #include <android/set_abort_message.h>
 #include "dlfcn_internal.h"
@@ -88,7 +90,7 @@ TEST(ProcessReaderLinux, SelfBasic) {
   EXPECT_EQ(process_reader.ParentProcessID(), getppid());
 
   static constexpr char kTestMemory[] = "Some test memory";
-  char buffer[base::size(kTestMemory)];
+  char buffer[std::size(kTestMemory)];
   ASSERT_TRUE(process_reader.Memory()->Read(
       reinterpret_cast<LinuxVMAddress>(kTestMemory),
       sizeof(kTestMemory),
@@ -169,7 +171,9 @@ class TestThreadPool {
 
   void StartThreads(size_t thread_count, size_t stack_size = 0) {
     for (size_t thread_index = 0; thread_index < thread_count; ++thread_index) {
-      threads_.push_back(std::make_unique<Thread>());
+      const std::string thread_name =
+          base::StringPrintf("ThreadPool-%zu", thread_index);
+      threads_.push_back(std::make_unique<Thread>(thread_name));
       Thread* thread = threads_.back().get();
 
       pthread_attr_t attr;
@@ -177,14 +181,21 @@ class TestThreadPool {
           << ErrnoMessage("pthread_attr_init");
 
       if (stack_size > 0) {
-        void* stack_ptr;
-        errno = posix_memalign(&stack_ptr, getpagesize(), stack_size);
-        ASSERT_EQ(errno, 0) << ErrnoMessage("posix_memalign");
+        const size_t page_size = getpagesize();
+        DCHECK_EQ(stack_size % page_size, 0u);
+        size_t stack_alloc_size = 2 * page_size + stack_size;
 
-        thread->stack.reset(reinterpret_cast<char*>(stack_ptr));
+        ASSERT_TRUE(thread->stack.ResetMmap(nullptr,
+                                            stack_alloc_size,
+                                            PROT_NONE,
+                                            MAP_PRIVATE | MAP_ANONYMOUS,
+                                            -1,
+                                            0));
+        char* stack_ptr = thread->stack.addr_as<char*>() + page_size;
+        ASSERT_EQ(mprotect(stack_ptr, stack_size, PROT_READ | PROT_WRITE), 0)
+            << "mprotect";
 
-        ASSERT_EQ(pthread_attr_setstack(&attr, thread->stack.get(), stack_size),
-                  0)
+        ASSERT_EQ(pthread_attr_setstack(&attr, stack_ptr, stack_size), 0)
             << ErrnoMessage("pthread_attr_setstack");
         thread->expectation.max_stack_size = stack_size;
       }
@@ -211,34 +222,40 @@ class TestThreadPool {
   }
 
   pid_t GetThreadExpectation(size_t thread_index,
-                             ThreadExpectation* expectation) {
+                             ThreadExpectation* expectation,
+                             std::string* thread_name_expectation) {
     CHECK_LT(thread_index, threads_.size());
 
     const Thread* thread = threads_[thread_index].get();
     *expectation = thread->expectation;
+    *thread_name_expectation = thread->name;
     return thread->tid;
   }
 
  private:
   struct Thread {
-    Thread()
+    explicit Thread(const std::string& name)
         : pthread(),
           expectation(),
           ready_semaphore(0),
           exit_semaphore(0),
-          tid(-1) {}
+          tid(-1),
+          name(name) {
+    }
     ~Thread() {}
 
     pthread_t pthread;
     ThreadExpectation expectation;
-    std::unique_ptr<char[], base::FreeDeleter> stack;
+    ScopedMmap stack;
     Semaphore ready_semaphore;
     Semaphore exit_semaphore;
     pid_t tid;
+    const std::string name;
   };
 
   static void* ThreadMain(void* argument) {
     Thread* thread = static_cast<Thread*>(argument);
+    const ScopedSetThreadName scoped_set_thread_name(thread->name);
 
     CHECK_EQ(setpriority(PRIO_PROCESS, 0, thread->expectation.nice_value), 0)
         << ErrnoMessage("setpriority");
@@ -260,20 +277,24 @@ class TestThreadPool {
 };
 
 using ThreadMap = std::map<pid_t, TestThreadPool::ThreadExpectation>;
+using ThreadNameMap = std::map<pid_t, std::string>;
 
 void ExpectThreads(const ThreadMap& thread_map,
+                   const ThreadNameMap& thread_name_map,
                    const std::vector<ProcessReaderLinux::Thread>& threads,
                    PtraceConnection* connection) {
   ASSERT_EQ(threads.size(), thread_map.size());
+  ASSERT_EQ(threads.size(), thread_name_map.size());
 
   MemoryMap memory_map;
   ASSERT_TRUE(memory_map.Initialize(connection));
 
   for (const auto& thread : threads) {
     SCOPED_TRACE(
-        base::StringPrintf("Thread id %d, tls 0x%" PRIx64
+        base::StringPrintf("Thread id %d, name %s, tls 0x%" PRIx64
                            ", stack addr 0x%" PRIx64 ", stack size 0x%" PRIx64,
                            thread.tid,
+                           thread.name.c_str(),
                            thread.thread_info.thread_specific_data_address,
                            thread.stack_region_address,
                            thread.stack_region_size));
@@ -291,9 +312,12 @@ void ExpectThreads(const ThreadMap& thread_map,
 #if !defined(ADDRESS_SANITIZER)
     // AddressSanitizer causes stack variables to be stored separately from the
     // call stack.
-    EXPECT_LE(thread.stack_region_address, iterator->second.stack_address);
-    EXPECT_GE(thread.stack_region_address + thread.stack_region_size,
-              iterator->second.stack_address);
+    EXPECT_LE(
+        thread.stack_region_address,
+        connection->Memory()->PointerToAddress(iterator->second.stack_address));
+    EXPECT_GE(
+        thread.stack_region_address + thread.stack_region_size,
+        connection->Memory()->PointerToAddress(iterator->second.stack_address));
 #endif  // !defined(ADDRESS_SANITIZER)
 
     if (iterator->second.max_stack_size) {
@@ -303,6 +327,10 @@ void ExpectThreads(const ThreadMap& thread_map,
     EXPECT_EQ(thread.sched_policy, iterator->second.sched_policy);
     EXPECT_EQ(thread.static_priority, iterator->second.static_priority);
     EXPECT_EQ(thread.nice_value, iterator->second.nice_value);
+
+    const auto& thread_name_iterator = thread_name_map.find(thread.tid);
+    ASSERT_NE(thread_name_iterator, thread_name_map.end());
+    EXPECT_EQ(thread.name, thread_name_iterator->second);
   }
 }
 
@@ -319,6 +347,7 @@ class ChildThreadTest : public Multiprocess {
  private:
   void MultiprocessParent() override {
     ThreadMap thread_map;
+    ThreadNameMap thread_name_map;
     for (size_t thread_index = 0; thread_index < kThreadCount + 1;
          ++thread_index) {
       pid_t tid;
@@ -328,6 +357,14 @@ class ChildThreadTest : public Multiprocess {
       CheckedReadFileExactly(
           ReadPipeHandle(), &expectation, sizeof(expectation));
       thread_map[tid] = expectation;
+
+      std::string::size_type thread_name_length;
+      CheckedReadFileExactly(
+          ReadPipeHandle(), &thread_name_length, sizeof(thread_name_length));
+      std::string thread_name(thread_name_length, '\0');
+      CheckedReadFileExactly(
+          ReadPipeHandle(), thread_name.data(), thread_name_length);
+      thread_name_map[tid] = thread_name;
     }
 
     DirectPtraceConnection connection;
@@ -337,19 +374,22 @@ class ChildThreadTest : public Multiprocess {
     ASSERT_TRUE(process_reader.Initialize(&connection));
     const std::vector<ProcessReaderLinux::Thread>& threads =
         process_reader.Threads();
-    ExpectThreads(thread_map, threads, &connection);
+    ExpectThreads(thread_map, thread_name_map, threads, &connection);
   }
 
   void MultiprocessChild() override {
     TestThreadPool thread_pool;
     thread_pool.StartThreads(kThreadCount, stack_size_);
 
+    const std::string current_thread_name = "MultiprocChild";
+    const ScopedSetThreadName scoped_set_thread_name(current_thread_name);
+
     TestThreadPool::ThreadExpectation expectation;
 #if defined(MEMORY_SANITIZER)
     // memset() + re-initialization is required to zero padding bytes for MSan.
     memset(&expectation, 0, sizeof(expectation));
 #endif  // defined(MEMORY_SANITIZER)
-    expectation = {};
+    expectation = {0};
     expectation.tls = GetTLS();
     expectation.stack_address = reinterpret_cast<LinuxVMAddress>(&thread_pool);
 
@@ -370,11 +410,28 @@ class ChildThreadTest : public Multiprocess {
 
     CheckedWriteFile(WritePipeHandle(), &tid, sizeof(tid));
     CheckedWriteFile(WritePipeHandle(), &expectation, sizeof(expectation));
+    const std::string::size_type current_thread_name_length =
+        current_thread_name.length();
+    CheckedWriteFile(WritePipeHandle(),
+                     &current_thread_name_length,
+                     sizeof(current_thread_name_length));
+    CheckedWriteFile(WritePipeHandle(),
+                     current_thread_name.data(),
+                     current_thread_name_length);
 
     for (size_t thread_index = 0; thread_index < kThreadCount; ++thread_index) {
-      tid = thread_pool.GetThreadExpectation(thread_index, &expectation);
+      std::string thread_name_expectation;
+      tid = thread_pool.GetThreadExpectation(
+          thread_index, &expectation, &thread_name_expectation);
       CheckedWriteFile(WritePipeHandle(), &tid, sizeof(tid));
       CheckedWriteFile(WritePipeHandle(), &expectation, sizeof(expectation));
+      const std::string::size_type thread_name_length =
+          thread_name_expectation.length();
+      CheckedWriteFile(
+          WritePipeHandle(), &thread_name_length, sizeof(thread_name_length));
+      CheckedWriteFile(WritePipeHandle(),
+                       thread_name_expectation.data(),
+                       thread_name_length);
     }
 
     CheckedReadFileAtEOF(ReadPipeHandle());
@@ -489,7 +546,7 @@ TEST(ProcessReaderLinux, MAYBE_ChildWithSplitStack) {
 }
 
 // Android doesn't provide dl_iterate_phdr on ARM until API 21.
-#if !defined(OS_ANDROID) || !defined(ARCH_CPU_ARMEL) || __ANDROID_API__ >= 21
+#if !BUILDFLAG(IS_ANDROID) || !defined(ARCH_CPU_ARMEL) || __ANDROID_API__ >= 21
 int ExpectFindModule(dl_phdr_info* info, size_t size, void* data) {
   SCOPED_TRACE(
       base::StringPrintf("module %s at 0x%" PRIx64 " phdrs 0x%" PRIx64,
@@ -499,8 +556,7 @@ int ExpectFindModule(dl_phdr_info* info, size_t size, void* data) {
   auto modules =
       reinterpret_cast<const std::vector<ProcessReaderLinux::Module>*>(data);
 
-
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
   // Prior to API 27, Bionic includes a null entry for /system/bin/linker.
   if (!info->dlpi_name) {
     EXPECT_EQ(info->dlpi_addr, 0u);
@@ -529,7 +585,7 @@ int ExpectFindModule(dl_phdr_info* info, size_t size, void* data) {
   EXPECT_TRUE(found);
   return 0;
 }
-#endif  // !OS_ANDROID || !ARCH_CPU_ARMEL || __ANDROID_API__ >= 21
+#endif  // !BUILDFLAG(IS_ANDROID) || !ARCH_CPU_ARMEL || __ANDROID_API__ >= 21
 
 void ExpectModulesFromSelf(
     const std::vector<ProcessReaderLinux::Module>& modules) {
@@ -539,14 +595,14 @@ void ExpectModulesFromSelf(
   }
 
 // Android doesn't provide dl_iterate_phdr on ARM until API 21.
-#if !defined(OS_ANDROID) || !defined(ARCH_CPU_ARMEL) || __ANDROID_API__ >= 21
+#if !BUILDFLAG(IS_ANDROID) || !defined(ARCH_CPU_ARMEL) || __ANDROID_API__ >= 21
   EXPECT_EQ(
       dl_iterate_phdr(
           ExpectFindModule,
           reinterpret_cast<void*>(
               const_cast<std::vector<ProcessReaderLinux::Module>*>(&modules))),
       0);
-#endif  // !OS_ANDROID || !ARCH_CPU_ARMEL || __ANDROID_API__ >= 21
+#endif  // !BUILDFLAG(IS_ANDROID) || !ARCH_CPU_ARMEL || __ANDROID_API__ >= 21
 }
 
 #if !defined(ADDRESS_SANITIZER) && !defined(MEMORY_SANITIZER)
@@ -638,7 +694,7 @@ TEST(ProcessReaderLinux, ChildModules) {
   test.Run();
 }
 
-#if defined(OS_ANDROID)
+#if BUILDFLAG(IS_ANDROID)
 const char kTestAbortMessage[] = "test abort message";
 
 TEST(ProcessReaderLinux, AbortMessage) {

@@ -1,6 +1,6 @@
 /*
 ** String formatting.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #include <stdio.h>
@@ -102,7 +102,7 @@ retlit:
 char * LJ_FASTCALL lj_strfmt_wint(char *p, int32_t k)
 {
   uint32_t u = (uint32_t)k;
-  if (k < 0) { u = (uint32_t)-k; *p++ = '-'; }
+  if (k < 0) { u = ~u+1u; *p++ = '-'; }
   if (u < 10000) {
     if (u < 10) goto dig1;
     if (u < 100) goto dig2;
@@ -170,7 +170,7 @@ const char *lj_strfmt_wstrnum(lua_State *L, cTValue *o, MSize *lenp)
   } else if (tvisbuf(o)) {
     SBufExt *sbx = bufV(o);
     *lenp = sbufxlen(sbx);
-    return sbx->r;
+    return sbx->r ? sbx->r : "";
   } else if (tvisint(o)) {
     sb = lj_strfmt_putint(lj_buf_tmp_(L), intV(o));
   } else if (tvisnum(o)) {
@@ -287,7 +287,7 @@ SBuf *lj_strfmt_putfxint(SBuf *sb, SFormat sf, uint64_t k)
   /* Figure out signed prefixes. */
   if (STRFMT_TYPE(sf) == STRFMT_INT) {
     if ((int64_t)k < 0) {
-      k = (uint64_t)-(int64_t)k;
+      k = ~k+1u;
       prefix = 256 + '-';
     } else if ((sf & STRFMT_F_PLUS)) {
       prefix = 256 + '+';
@@ -351,7 +351,7 @@ SBuf *lj_strfmt_putfxint(SBuf *sb, SFormat sf, uint64_t k)
 /* Add number formatted as signed integer to buffer. */
 SBuf *lj_strfmt_putfnum_int(SBuf *sb, SFormat sf, lua_Number n)
 {
-  int64_t k = (int64_t)n;
+  int64_t k = lj_num2i64(n);
   if (checki32(k) && sf == STRFMT_INT)
     return lj_strfmt_putint(sb, (int32_t)k);  /* Shortcut for plain %d. */
   else
@@ -361,12 +361,7 @@ SBuf *lj_strfmt_putfnum_int(SBuf *sb, SFormat sf, lua_Number n)
 /* Add number formatted as unsigned integer to buffer. */
 SBuf *lj_strfmt_putfnum_uint(SBuf *sb, SFormat sf, lua_Number n)
 {
-  int64_t k;
-  if (n >= 9223372036854775808.0)
-    k = (int64_t)(n - 18446744073709551616.0);
-  else
-    k = (int64_t)n;
-  return lj_strfmt_putfxint(sb, sf, (uint64_t)k);
+  return lj_strfmt_putfxint(sb, sf, lj_num2u64(n));
 }
 
 /* Format stack arguments to buffer. */

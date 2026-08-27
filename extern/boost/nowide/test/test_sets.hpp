@@ -1,10 +1,9 @@
 //
-//  Copyright (c) 2012 Artyom Beilis (Tonkikh)
+// Copyright (c) 2012 Artyom Beilis (Tonkikh)
 //
-//  Distributed under the Boost Software License, Version 1.0. (See
-//  accompanying file LICENSE or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-//
+// Distributed under the Boost Software License, Version 1.0.
+// https://www.boost.org/LICENSE_1_0.txt
+
 #ifndef NOWIDE_TEST_SETS_HPP_INCLUDED
 #define NOWIDE_TEST_SETS_HPP_INCLUDED
 
@@ -33,6 +32,17 @@ const std::wstring wreplacement_str(1, wchar_t(NOWIDE_REPLACEMENT_CHARACTER));
 // clang-format off
 const utf8_to_wide roundtrip_tests[] = {
     {"", L""},
+    // Ascii
+    {"a", L"a"},
+    // 2 Octet
+    {"\xc3\xb1", L"\u00F1"},
+    // 3 Octet
+    {"\xe2\x82\xa1", L"\u20A1"},
+    // 4 Octet
+    {"\xf0\x90\x8c\xbc", L"\U0001033C"},
+    // Last valid codepoint
+    {"\xf4\x8f\xbf\xbf", L"\U0010FFFF"},
+    // Misc
     {"\xf0\x9d\x92\x9e-\xD0\xBF\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82-\xE3\x82\x84\xE3\x81\x82.txt",
     L"\U0001D49E-\u043F\u0440\u0438\u0432\u0435\u0442-\u3084\u3042.txt"},
     {"\xd7\xa9-\xd0\xbc-\xce\xbd.txt",
@@ -42,6 +52,28 @@ const utf8_to_wide roundtrip_tests[] = {
 };
 
 const utf8_to_wide invalid_utf8_tests[] = {
+    // 2 Octet
+    {"\xc3\x28", L"\ufffd"},
+    {"\xa0\xa1", L"\ufffd\ufffd"},
+    // 3 Octet
+    {"\xe2\x28\xa1", L"\ufffd\ufffd"},
+    {"\xe2\x82\x28", L"\ufffd"},
+    // 4 Octet
+    {"\xf0\x28\x8c\xbc", L"\ufffd\ufffd\ufffd"},
+    {"\xf0\x90\x28\xbc", L"\ufffd\ufffd"},
+    {"\xf0\x90\x8c\x28", L"\ufffd"},
+    // 5 and 6 byte possible but invalid UTF
+    {"\xf8\xa1\xa1\xa1\xa1", L"\ufffd\ufffd\ufffd\ufffd\ufffd"},
+    {"\xfc\xa1\xa1\xa1\xa1\xa1", L"\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd"},
+    // First invalid codepoint
+    {"\xf4\x90\x80\x80", L"\ufffd\ufffd\ufffd\ufffd"},
+    // Overlong ascii (0x2F),
+    {"\xc0\xaf", L"\ufffd\ufffd"},
+    {"\xe0\x80\xaf", L"\ufffd\ufffd\ufffd"},
+    {"\xf0\x80\x80\xaf", L"\ufffd\ufffd\ufffd\ufffd"},
+    {"\xf8\x80\x80\x80\xaf", L"\ufffd\ufffd\ufffd\ufffd\ufffd"},
+    {"\xfc\x80\x80\x80\x80\xaf", L"\ufffd\ufffd\ufffd\ufffd\ufffd\ufffd"},
+    // Misc
     {"\xFF\xFF", L"\ufffd\ufffd"},
     {"\xd7\xa9\xFF", L"\u05e9\ufffd"},
     {"\xd7", L"\ufffd"},
@@ -84,7 +116,7 @@ const wide_to_utf8 invalid_utf32_tests[] = {
 #endif
 
 template<typename T, size_t N>
-size_t array_size(const T (&)[N])
+constexpr size_t array_size(const T (&)[N])
 {
     return N;
 }
@@ -101,6 +133,7 @@ void run_all(std::wstring (*to_wide)(const std::string&), std::string (*to_narro
     for(size_t i = 0; i < array_size(invalid_utf8_tests); i++)
     {
         std::cout << "  Invalid UTF8  " << i << std::endl;
+        const auto f3 = to_wide(invalid_utf8_tests[i].utf8);
         TEST(to_wide(invalid_utf8_tests[i].utf8) == invalid_utf8_tests[i].wide);
     }
 

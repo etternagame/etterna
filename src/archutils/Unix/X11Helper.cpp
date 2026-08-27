@@ -151,20 +151,6 @@ X11Helper::MakeWindow(Window& win,
 		XFree(hint);
 	}
 
-	// Hide the mouse cursor in certain situations.
-	if (!PREFSMAN->m_bShowMouseCursor) {
-		const char pBlank[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-		Pixmap BlankBitmap = XCreateBitmapFromData(Dpy, win, pBlank, 8, 8);
-
-		XColor black = { 0, 0, 0, 0, 0, 0 };
-		Cursor pBlankPointer = XCreatePixmapCursor(
-		  Dpy, BlankBitmap, BlankBitmap, &black, &black, 0, 0);
-		XFreePixmap(Dpy, BlankBitmap);
-
-		XDefineCursor(Dpy, win, pBlankPointer);
-		XFreeCursor(Dpy, pBlankPointer);
-	}
-
 	return true;
 }
 

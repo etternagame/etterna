@@ -380,6 +380,8 @@ class Song
 	[[nodiscard]] auto HasLyrics() const -> bool;
 	[[nodiscard]] auto HasPreviewVid() const -> bool;
 
+	[[nodiscard]] auto HasLua() const -> bool;
+
 	[[nodiscard]] auto Matches(const std::string& sGroup,
 							   const std::string& sSong) const -> bool;
 

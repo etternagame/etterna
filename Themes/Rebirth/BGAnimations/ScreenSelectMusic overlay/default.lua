@@ -6,7 +6,6 @@ local t = Def.ActorFrame {
 
 -- header
 t[#t+1] = LoadActorWithParams("../playerInfoFrame/main.lua", {visualizer = themeConfig:get_data().global.ShowVisualizer, screen = "ScreenSelectMusic"})
-updateDiscordStatusForMenus()
 updateNowPlaying()
 
 local scnm = Var ("LoadingScreen")

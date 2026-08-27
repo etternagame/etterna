@@ -5,6 +5,7 @@
 #include "ReplayManager.h"
 
 #include <memory>
+#include <algorithm>
 
 std::shared_ptr<ReplayManager> REPLAYS = nullptr;
 Replay* dummyReplay = new Replay;
@@ -18,7 +19,7 @@ ReplayManager::GetReplay(const HighScore* hs) {
 	if (hs == nullptr) {
 		return dummyReplay;
 	}
-	const auto key = hs->GetScoreKey();
+	const auto& key = hs->GetScoreKey();
 	auto it = scoresToReplays.find(key);
 	if (it == scoresToReplays.end()) {
 		Replay* replay = new Replay(hs);
@@ -29,6 +30,16 @@ ReplayManager::GetReplay(const HighScore* hs) {
 		it->second.first++;
 		return it->second.second;
 	}
+}
+
+Replay*
+ReplayManager::GetSpectateReplay(const std::string& playerID) {
+
+	auto it = spectatorReplays.find(playerID);
+	if (it == spectatorReplays.end()) {
+		return nullptr;
+	}
+	return it->second;
 }
 
 void
@@ -124,6 +135,30 @@ ReplayManager::InitReplayPlaybackForScore(HighScore* hs,
 	activeReplay->GenerateJudgeInfoAndReplaySnapshots(startRow, timingScale);
 
 	return activeReplay;
+}
+
+Replay*
+ReplayManager::InitReplayPlaybackForSpectate(std::string playerID,
+											 std::string chartKey,
+											 float musicRate,
+											 float songOffset,
+											 float globalOffset,
+											 int rngSeed,
+											 std::string mods)
+{
+	UnsetActiveReplay();
+
+	// when the replay already exists, reset it
+	if (spectatorReplays.count(playerID) != 0) {
+		spectatorReplays.at(playerID)->Unload();
+	} else {
+		Replay* spectateReplay =
+		  new Replay(chartKey, musicRate, songOffset, globalOffset, rngSeed);
+		spectateReplay->SetModifiers(mods);
+		spectatorReplays[playerID] = spectateReplay;
+	}
+
+	return spectatorReplays.at(playerID);
 }
 
 void
@@ -362,7 +397,7 @@ ReplayManager::GenerateLifeRecordForReplay(Replay& replay, float timingScale)
 
 
 	const auto firstSnapshotTime =
-	  td->WhereUAtBro(replay.GetReplaySnapshotMap().begin()->first);
+	  td->GetTimeFromRowFast(replay.GetReplaySnapshotMap().begin()->first);
 	auto& ji = replay.GetJudgeInfo();
 	auto& m_ReplayHoldMapByElapsedTime = ji.hrrMapByElapsedTime;
 	auto& m_ReplayTapMapByElapsedTime = ji.trrMapByElapsedTime;
@@ -470,7 +505,7 @@ ReplayManager::GenerateComboListForReplay(Replay& replay, float timingScale)
 	auto& m_ReplayHoldMapByElapsedTime = ji.hrrMapByElapsedTime;
 	auto& m_ReplayTapMapByElapsedTime = ji.trrMapByElapsedTime;
 	const auto firstSnapshotTime =
-	  td->WhereUAtBro(m_ReplaySnapshotMap.begin()->first);
+	  td->GetTimeFromRowFast(m_ReplaySnapshotMap.begin()->first);
 	auto curCombo = &(combos[0]);
 	auto rowOfComboStart = m_ReplayTapMapByElapsedTime.begin();
 

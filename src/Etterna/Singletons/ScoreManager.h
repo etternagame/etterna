@@ -197,6 +197,12 @@ class ScoreManager
 
 	auto GetTopSSRValue(unsigned int rank, int ss) -> float;
 
+	void SortTopSSRPtrsByPercent(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
+	void SortTopSSRPtrsByPercentForGame(
+	  const std::string& profileID =
+		PROFILEMAN->GetProfile(PLAYER_1)->m_sProfileID);
 	auto GetTopSSRHighScore(unsigned int rank, int ss) -> HighScore*;
 	auto GetTopSSRHighScoreForGame(unsigned int rank, int ss) -> HighScore*;
 	auto GetRecentScore(int rank) -> HighScore*;

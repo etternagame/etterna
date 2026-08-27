@@ -1,8 +1,10 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 HTTP
 CURLOPT_AWS_SIGV4
+aws-sigv4
 </keywords>
 </info>
 
@@ -32,11 +34,12 @@ Content-Length: 0
 <server>
 http
 </server>
-# this relies on the debug feature which allow to set the time
+# this relies on the Debug feature which allows tests to set the time
 <features>
 SSL
-debug
+Debug
 crypto
+aws
 </features>
 
 <name>
@@ -47,21 +50,20 @@ lib%TESTNUMBER
 </tool>
 
 <command>
-http://%HOSTIP:%HTTPPORT/%TESTNUMBER/testapi/test
+http://127.0.0.1:9000/%TESTNUMBER/testapi/test 127.0.0.1:9000:%HOSTIP:%HTTPPORT
 </command>
 </client>
 
 # Verify data after the test has been "shot"
 <verify>
 <strip>
-^User-Agent:.*
 ^Content-Type:.*
 ^Accept:.*
 </strip>
-<protocol>
+<protocol crlf="headers">
 GET /%TESTNUMBER/testapi/test HTTP/1.1
-Host: %HOSTIP:%HTTPPORT
-Authorization: XXX4-HMAC-SHA256 Credential=xxx/19700101/0/127/xxx4_request, SignedHeaders=content-type;host;x-yyy-date, Signature=938937ca7da6bb3dbf15e30928265ec6f061532d035d2afda92fa7cb10feb196
+Host: 127.0.0.1:9000
+Authorization: XXX4-HMAC-SHA256 Credential=xxx/19700101/0/127/xxx4_request, SignedHeaders=content-type;host;x-yyy-date, Signature=cf8dc9a4af903a1a9bb1385d8e2366d780afb501e266436598438395e502d58c
 X-Yyy-Date: 19700101T000000Z
 
 </protocol>

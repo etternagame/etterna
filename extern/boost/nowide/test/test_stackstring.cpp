@@ -1,18 +1,15 @@
 //
-//  Copyright (c) 2012 Artyom Beilis (Tonkikh)
-//  Copyright (c) 2019-2020 Alexander Grund
+// Copyright (c) 2012 Artyom Beilis (Tonkikh)
+// Copyright (c) 2019-2020 Alexander Grund
 //
-//  Distributed under the Boost Software License, Version 1.0. (See
-//  accompanying file LICENSE or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-//
+// Distributed under the Boost Software License, Version 1.0.
+// https://www.boost.org/LICENSE_1_0.txt
 
 #include <nowide/stackstring.hpp>
-#include <iostream>
-#include <vector>
-
 #include "test.hpp"
 #include "test_sets.hpp"
+#include <iostream>
+#include <vector>
 
 #if defined(NOWIDE_MSVC) && NOWIDE_MSVC < 1700
 #pragma warning(disable : 4428) // universal-character-name encountered in source
@@ -22,7 +19,7 @@ template<typename CharOut, typename CharIn, size_t BufferSize>
 class test_basic_stackstring : public nowide::basic_stackstring<CharOut, CharIn, BufferSize>
 {
 public:
-    typedef nowide::basic_stackstring<CharOut, CharIn, BufferSize> parent;
+    using parent = nowide::basic_stackstring<CharOut, CharIn, BufferSize>;
 
     using parent::parent;
     using parent::uses_stack_memory;
@@ -32,8 +29,8 @@ public:
     }
 };
 
-typedef test_basic_stackstring<wchar_t, char, 256> test_wstackstring;
-typedef test_basic_stackstring<char, wchar_t, 256> test_stackstring;
+using test_wstackstring = test_basic_stackstring<wchar_t, char, 256>;
+using test_stackstring = test_basic_stackstring<char, wchar_t, 256>;
 
 std::wstring stackstring_to_wide(const std::string& s)
 {
@@ -63,6 +60,7 @@ std::string heap_stackstring_to_narrow(const std::wstring& s)
     return ss.get();
 }
 
+// coverity[root_function]
 void test_main(int, char**, char**)
 {
     std::string hello = "\xd7\xa9\xd7\x9c\xd7\x95\xd7\x9d";
@@ -72,25 +70,25 @@ void test_main(int, char**, char**)
     {
         std::cout << "-- Default constructed string is NULL" << std::endl;
         const nowide::short_stackstring s;
-        TEST(s.get() == NULL);
+        TEST(s.get() == nullptr);
     }
     {
-        std::cout << "-- NULL ptr passed to ctor results in NULL" << std::endl;
-        const nowide::short_stackstring s(NULL);
-        TEST(s.get() == NULL);
-        const nowide::short_stackstring s2(NULL, NULL);
-        TEST(s2.get() == NULL);
+        std::cout << "-- nullptr passed to ctor results in NULL" << std::endl;
+        const nowide::short_stackstring s(nullptr);
+        TEST(s.get() == nullptr);
+        const nowide::short_stackstring s2(nullptr, nullptr);
+        TEST(s2.get() == nullptr);
     }
     {
-        std::cout << "-- NULL ptr passed to convert results in NULL" << std::endl;
+        std::cout << "-- nullptr passed to convert results in NULL" << std::endl;
         nowide::short_stackstring s(L"foo");
         TEST(s.get() == std::string("foo"));
-        s.convert(NULL);
-        TEST(s.get() == NULL);
+        s.convert(nullptr);
+        TEST(s.get() == nullptr);
         nowide::short_stackstring s2(L"foo");
         TEST(s2.get() == std::string("foo"));
-        s2.convert(NULL, NULL);
-        TEST(s2.get() == NULL);
+        s2.convert(nullptr, nullptr);
+        TEST(s2.get() == nullptr);
     }
     {
         std::cout << "-- An empty string is accepted" << std::endl;
@@ -150,7 +148,7 @@ void test_main(int, char**, char**)
         TEST(sw.get() == hello);
     }
     {
-        typedef test_basic_stackstring<wchar_t, char, 6> stackstring;
+        using stackstring = test_basic_stackstring<wchar_t, char, 6>;
         const std::wstring heapVal = L"heapValue";
         const std::wstring stackVal = L"stack";
         const stackstring heap(nowide::narrow(heapVal).c_str());
@@ -168,7 +166,7 @@ void test_main(int, char**, char**)
             TEST(sw3.get() == heapVal);
             // Assign empty
             sw3 = sEmpty; //-V820
-            TEST(sw3.get() == NULL);
+            TEST(sw3.get() == nullptr);
         }
         {
             stackstring sw2(stack), sw3, sEmpty;
@@ -180,7 +178,7 @@ void test_main(int, char**, char**)
             TEST(sw3.get() == stackVal);
             // Assign empty
             sw3 = sEmpty; //-V820
-            TEST(sw3.get() == NULL);
+            TEST(sw3.get() == nullptr);
         }
         {
             stackstring sw2(stack);
@@ -202,10 +200,10 @@ void test_main(int, char**, char**)
             TEST(sw3.get() == stackVal);
             swap(sw2, sEmpty1);
             TEST(sEmpty1.get() == heapVal);
-            TEST(sw2.get() == NULL);
+            TEST(sw2.get() == nullptr);
             swap(sw3, sEmpty2);
             TEST(sEmpty2.get() == stackVal);
-            TEST(sw3.get() == NULL);
+            TEST(sw3.get() == nullptr);
         }
         {
             stackstring sw2(heap), sw3(heap);
@@ -230,7 +228,7 @@ void test_main(int, char**, char**)
     {
         std::cout << "-- Test putting stackstrings into vector (done by args) class" << std::endl;
         // Use a smallish buffer, to have stack and heap values
-        typedef nowide::basic_stackstring<wchar_t, char, 5> stackstring;
+        using stackstring = nowide::basic_stackstring<wchar_t, char, 5>;
         std::vector<stackstring> strings;
         strings.resize(2);
         TEST(strings[0].convert("1234") == std::wstring(L"1234"));

@@ -86,9 +86,11 @@ ScreenSelectMusic::Init()
 	GAMESTATE->m_bPlayingMulti = false;
 	GAMESTATE->TogglePracticeMode(false);
 	g_ScreenStartedLoadingAt.Touch();
-	if (GamePreferences::m_AutoPlay == PC_REPLAY)
+	if (GamePreferences::m_AutoPlay == PC_REPLAY ||
+		GamePreferences::m_AutoPlay == PC_SPECTATE)
 		GamePreferences::m_AutoPlay.Set(PC_HUMAN);
-	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY)
+	if (GAMESTATE->m_pPlayerState->m_PlayerController == PC_REPLAY ||
+		GAMESTATE->m_pPlayerState->m_PlayerController == PC_SPECTATE)
 		GAMESTATE->m_pPlayerState->m_PlayerController = PC_HUMAN;
 
 	IDLE_COMMENT_SECONDS.Load(m_sName, "IdleCommentSeconds");
@@ -217,11 +219,10 @@ ScreenSelectMusic::BeginScreen()
 		const auto* pStyle = GAMEMAN->GetFirstCompatibleStyle(
 		  GAMESTATE->m_pCurGame, GAMESTATE->GetNumSidesJoined(), vst[0]);
 		if (pStyle == nullptr) {
-			Locator::getLogger()->warn(ssprintf("No compatible styles for %s with %d player%s.",
+			Locator::getLogger()->warn("No compatible styles for {} with {} player{}.",
 							   GAMESTATE->m_pCurGame->m_szName,
 							   GAMESTATE->GetNumSidesJoined(),
-							   GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s")
-						.c_str());
+							   GAMESTATE->GetNumSidesJoined() == 1 ? "" : "s");
 			SCREENMAN->SetNewScreen("ScreenTitleMenu");
 		}
 		GAMESTATE->SetCurrentStyle(pStyle, PLAYER_INVALID);
@@ -302,6 +303,30 @@ ScreenSelectMusic::CheckBackgroundRequests(bool bForce)
 }
 
 void
+ScreenSelectMusic::PlayLoopMusic()
+{
+	// this is just ScreenWithMenuElements::StartPlayingMusic
+	if (PLAY_MUSIC) {
+		GameSoundManager::PlayMusicParams pmp;
+		pmp.sFile = HandleLuaMusicFile(m_sLoopMusicPath);
+		pmp.bIsBGM = true;
+		pmp.bApplyMusicRate = false;
+		if (!pmp.sFile.empty()) {
+			pmp.bAlignBeat = MUSIC_ALIGN_BEAT;
+			if (DELAY_MUSIC_SECONDS > 0.0f) {
+				pmp.fStartSecond = -DELAY_MUSIC_SECONDS;
+			}
+			if (DONT_RESTART_MUSIC_IF_SAME) {
+				if (pmp.sFile == SOUND->GetMusicPath()) {
+					return;
+				}
+			}
+			SOUND->PlayMusic(pmp);
+		}
+	}
+}
+
+void
 ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccurate, bool bExtended)
 {
 	if (g_bSampleMusicWaiting || bForcePlay) {
@@ -315,10 +340,18 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		g_bSampleMusicWaiting = false;
 
 		Song* pSong = GAMESTATE->m_pCurSong;
+		Steps* pSteps = GAMESTATE->m_pCurSteps;
 		// Lua is what usually calls this with force on
 		// Since that bypasses a lot, update values if being forced.
 		if (bForcePlay && pSong != nullptr) {
-			m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+			if (pSteps != nullptr) {
+				m_sSampleMusicToPlay = pSteps->GetPreviewMusicPath();
+				m_bSampleMusicIsBGM = false;
+			} else {
+				m_sSampleMusicToPlay = pSong->GetPreviewMusicPath();
+				m_bSampleMusicIsBGM = false;
+			}
+			
 			if (!m_sSampleMusicToPlay.empty() &&
 				ActorUtil::GetFileType(m_sSampleMusicToPlay) != FT_Sound) {
 				LuaHelpers::ReportScriptErrorFmt(
@@ -349,7 +382,7 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 		PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
 		PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-		PlayParams.bApplyMusicRate = true;
+		PlayParams.bApplyMusicRate = !m_bSampleMusicIsBGM;
 
 		// We will leave this FALSE for standard sample music
 		// Because accurate seeking is slow for MP3.
@@ -364,6 +397,7 @@ ScreenSelectMusic::PlayCurrentSongSampleMusic(bool bForcePlay, bool bForceAccura
 		FallbackMusic.fFadeInLengthSeconds =
 		  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 		FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
+		FallbackMusic.bApplyMusicRate = false;
 		SOUND->PlayMusic(PlayParams);
 		GAMESTATE->SetPaused(false);
 		MESSAGEMAN->Broadcast("PlayingSampleMusic");
@@ -904,7 +938,7 @@ ScreenSelectMusic::UpdateSelectButton(PlayerNumber pn, bool bSelectIsDown)
 void
 ScreenSelectMusic::ChangeSteps(PlayerNumber pn, int dir)
 {
-	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", pn, dir);
+	Locator::getLogger()->debug("ScreenSelectMusic::ChangeSteps( {}, {} )", static_cast<int>(pn), dir);
 
 	ASSERT(GAMESTATE->IsHumanPlayer(pn));
 
@@ -1129,13 +1163,14 @@ ScreenSelectMusic::HandleScreenMessage(const ScreenMessage& SM)
 			PlayParams.fLengthSeconds = m_fSampleLengthSeconds;
 			PlayParams.fFadeOutLengthSeconds = SAMPLE_MUSIC_FADE_OUT_SECONDS;
 			PlayParams.bAlignBeat = ALIGN_MUSIC_BEATS;
-			PlayParams.bApplyMusicRate = true;
+			PlayParams.bApplyMusicRate = !m_bSampleMusicIsBGM;
 			PlayParams.bAccurateSync = false;
 			GameSoundManager::PlayMusicParams FallbackMusic;
 			FallbackMusic.sFile = m_sLoopMusicPath;
 			FallbackMusic.fFadeInLengthSeconds =
 			  SAMPLE_MUSIC_FALLBACK_FADE_IN_SECONDS;
 			FallbackMusic.bAlignBeat = ALIGN_MUSIC_BEATS;
+			FallbackMusic.bApplyMusicRate = false;
 			SOUND->PlayMusic(PlayParams);
 		}
 		GAMESTATE->SetPaused(false);
@@ -1226,7 +1261,7 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 			Locator::getLogger()->warn("song selection made while selectionstate_finalized");
 			return false;
 		}
-		case SelectionState_SelectingSong:
+		case SelectionState_SelectingSong: {
 			// If false, we don't have a selection just yet.
 			if (!m_MusicWheel.Select())
 				return false;
@@ -1243,9 +1278,38 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 				// We haven't made a selection yet.
 				return false;
 			}
+
+			// these are the various new criteria for the ssm comments
+			// before they were based on some things that are more arcadey
+			auto isRepeatSelection = false;
+			for (auto& hs : SCOREMAN->GetScoresThisSession()) {
+				if (GAMESTATE->m_pCurSteps != nullptr) {
+					if (hs->GetChartKey() ==
+						GAMESTATE->m_pCurSteps->GetChartKey())
+						isRepeatSelection = true;
+				}
+			}
+			auto isNewSelection =
+			  GAMESTATE->m_pCurSteps != nullptr &&
+			  SCOREMAN->GetScoresForChart(
+				GAMESTATE->m_pCurSteps->GetChartKey()) == nullptr;
+			auto isHardSelection =
+			  GAMESTATE->m_pCurSteps != nullptr &&
+			  GAMESTATE->m_pCurSteps->GetMSD(1.F, Skill_Overall) > 30.F;
+			if (isRepeatSelection) {
+				SOUND->PlayOnceFromAnnouncer("select music comment repeat");
+			} else if (isNewSelection) {
+				SOUND->PlayOnceFromAnnouncer("select music comment new");
+			} else if (isHardSelection) {
+				SOUND->PlayOnceFromAnnouncer("select music comment hard");
+			} else {
+				SOUND->PlayOnceFromAnnouncer("select music comment general");
+			}
+
 			// I believe this is for those who like pump pro. -aj
 			MESSAGEMAN->Broadcast("SongChosen");
 			break;
+		}
 		case SelectionState_SelectingSteps:
 		default:
 			break;
@@ -1278,7 +1342,8 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 
 		CheckBackgroundRequests(true);
 		m_MusicWheel.Lock();
-		if (OPTIONS_MENU_AVAILABLE && mode != GameplayMode_Replay) {
+		if (OPTIONS_MENU_AVAILABLE && mode != GameplayMode_Replay &&
+			mode != GameplayMode_Spectate) {
 			// show "hold START for options"
 			this->PlayCommand("ShowPressStartForOptions");
 
@@ -1310,7 +1375,8 @@ ScreenSelectMusic::SelectCurrent(PlayerNumber pn, GameplayMode mode)
 		 * we want to know if the function call returned early to prevent
 		 * loading replay/practice stuff at the wrong time)
 		 */
-		return mode == GameplayMode_Practice || mode == GameplayMode_Replay;
+		return mode == GameplayMode_Practice || mode == GameplayMode_Replay ||
+			   mode == GameplayMode_Spectate;
 	}
 	return false;
 }
@@ -1450,29 +1516,40 @@ ScreenSelectMusic::AfterMusicChange()
 					// reduce scope
 					{
 						if (SAMPLE_MUSIC_PREVIEW_MODE !=
-							SampleMusicPreviewMode_LastSong)
+							SampleMusicPreviewMode_LastSong) {
 							m_sSampleMusicToPlay = m_sSectionMusicPath;
+							m_bSampleMusicIsBGM = true;
+						}
 					}
 					break;
 				case WheelItemDataType_Sort:
 					if (SAMPLE_MUSIC_PREVIEW_MODE !=
-						SampleMusicPreviewMode_LastSong)
+						SampleMusicPreviewMode_LastSong) {
 						m_sSampleMusicToPlay = m_sSortMusicPath;
+						m_bSampleMusicIsBGM = true;
+					}
+
 					break;
 				case WheelItemDataType_Roulette:
 					if (SAMPLE_MUSIC_PREVIEW_MODE !=
-						SampleMusicPreviewMode_LastSong)
+						SampleMusicPreviewMode_LastSong) {
+
 						m_sSampleMusicToPlay = m_sRouletteMusicPath;
+						m_bSampleMusicIsBGM = true;
+					}
 					break;
 				case WheelItemDataType_Random:
 					// if( SAMPLE_MUSIC_PREVIEW_MODE !=
 					// SampleMusicPreviewMode_LastSong )
 					m_sSampleMusicToPlay = m_sRandomMusicPath;
+					m_bSampleMusicIsBGM = true;
 					break;
 				case WheelItemDataType_Custom: {
 					if (SAMPLE_MUSIC_PREVIEW_MODE !=
-						SampleMusicPreviewMode_LastSong)
+						SampleMusicPreviewMode_LastSong) {
 						m_sSampleMusicToPlay = m_sSectionMusicPath;
+						m_bSampleMusicIsBGM = true;
+					}
 				} break;
 				default:
 					FAIL_M(ssprintf("Invalid WheelItemDataType: %i", wtype));
@@ -1498,6 +1575,7 @@ ScreenSelectMusic::AfterMusicChange()
 					m_sSampleMusicToPlay = m_sLoopMusicPath;
 					m_fSampleStartSeconds = 0;
 					m_fSampleLengthSeconds = -1;
+					m_bSampleMusicIsBGM = true;
 					break;
 				case SampleMusicPreviewMode_StartToPreview:
 					// we want to load the sample music, but we don't want to
@@ -1516,6 +1594,7 @@ ScreenSelectMusic::AfterMusicChange()
 							  m_sSampleMusicToPlay.c_str());
 							m_sSampleMusicToPlay = "";
 						}
+						m_bSampleMusicIsBGM = false;
 						m_pSampleMusicTimingData = &pSong->m_SongTiming;
 						m_fSampleStartSeconds = pSong->GetPreviewStartSeconds();
 						m_fSampleLengthSeconds =
@@ -1544,6 +1623,11 @@ ScreenSelectMusic::AfterMusicChange()
 
 	// Don't stop music if it's already playing the right file.
 	g_bSampleMusicWaiting = false;
+
+	if (m_sSampleMusicToPlay != "") {
+		m_sSampleMusicToPlay = HandleLuaMusicFile(m_sSampleMusicToPlay);
+	}
+
 	if (!m_MusicWheel.IsRouletting() &&
 		SOUND->GetMusicPath() != m_sSampleMusicToPlay &&
 		SAMPLE_MUSIC_PREVIEW_MODE != SampleMusicPreviewMode_Nothing) {
@@ -1930,6 +2014,14 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		// get the highscore from lua and make the AI load it
 		auto* hs = Luna<HighScore>::check(L, 1);
 
+		Steps* steps = GAMESTATE->m_pCurSteps;
+		if (steps == nullptr || hs == nullptr ||
+			hs->GetChartKey() != steps->GetChartKey()) {
+			SCREENMAN->SystemMessage("No chart or no HighScore is selected.");
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
 		// Sometimes the site doesn't send a replay when we ask for one.
 		// This is not our fault.
 		// All scores should have keys.
@@ -2001,6 +2093,16 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 	{
 		// get the highscore from lua and fake it to the most recent score
 		auto* hs = Luna<HighScore>::check(L, 1);
+		Steps* steps = GAMESTATE->m_pCurSteps;
+
+		if (steps == nullptr || hs == nullptr ||
+			hs->GetChartKey() != steps->GetChartKey()) {
+			SCREENMAN->SystemMessage(
+			  "No chart or no HighScore is selected.");
+			lua_pushboolean(L, false);
+			return 1;
+		}
+
 		SCOREMAN->PutScoreAtTheTop(hs->GetScoreKey());
 
 		// set to replay mode to disable score saving
@@ -2011,7 +2113,6 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		StageStats ss;
 		RadarValues rv;
 		NoteData nd;
-		Steps* steps = GAMESTATE->m_pCurSteps;
 		steps->GetNoteData(nd);
 		ss.Init();
 		SCOREMAN->camefromreplay =
@@ -2130,6 +2231,11 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		p->PlayCurrentSongSampleMusic(true, BArg(1), BArg(2));
 		return 0;
 	}
+	static int PlayLoopMusic(T* p, lua_State* L)
+	{
+		p->PlayLoopMusic();
+		return 0;
+	}
 	static int DeleteCurrentSong(T* p, lua_State* L)
 	{
 		lua_pushboolean(L, p->DeleteCurrentSong());
@@ -2195,6 +2301,7 @@ class LunaScreenSelectMusic : public Luna<ScreenSelectMusic>
 		ADD_METHOD(IsSampleMusicPaused);
 		ADD_METHOD(ChangeSteps);
 		ADD_METHOD(PlayCurrentSongSampleMusic);
+		ADD_METHOD(PlayLoopMusic);
 		ADD_METHOD(DeleteCurrentSong);
 		ADD_METHOD(ReloadCurrentSong);
 		ADD_METHOD(ReloadCurrentPack);

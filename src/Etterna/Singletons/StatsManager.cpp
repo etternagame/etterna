@@ -120,7 +120,7 @@ StatsManager::CommitStatsToProfiles(const StageStats* pSS)
 	PROFILEMAN->AddStepTotals(PLAYER_1,
 							  iNumTapsAndHolds,
 							  iNumJumps,
-							  iNumHolds,
+							  iNumHolds + iNumRolls,
 							  iNumRolls,
 							  iNumMines,
 							  iNumHands,

@@ -6,7 +6,7 @@
 #                            | (__| |_| |  _ <| |___
 #                             \___|\___/|_| \_\_____|
 #
-# Copyright (C) 2011 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+# Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
 #
 # This software is licensed as described in the file COPYING, which
 # you should have received as part of this distribution. The terms
@@ -19,12 +19,14 @@
 # This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
 # KIND, either express or implied.
 #
+# SPDX-License-Identifier: curl
+#
 ###########################################################################
 #
-# Experience has shown that the symbols-in-versions file is very useful to
-# applications that want to build with a wide range of libcurl versions.
-# It is however easy to get it wrong and the source gets a bit messy with all
-# the fixed numerical comparisons.
+# Experience has shown that the symbols-in-versions file is useful to
+# applications that want to build with a wide range of libcurl versions.  It
+# is however easy to get it wrong and the source gets a bit messy with all the
+# fixed numerical comparisons.
 #
 # The point of this script is to provide an easy-to-use macro for libcurl-
 # using applications to do preprocessor checks for specific libcurl defines,
@@ -42,12 +44,15 @@
 # #endif
 #
 #
+use strict;
+use warnings;
+
 open F, "<symbols-in-versions";
 
 sub str2num {
-    my ($str)=@_;
-    if($str =~ /([0-9]*)\.([0-9]*)\.*([0-9]*)/) {
-        return sprintf("0x%06x", $1<<16 | $2 << 8 | $3);
+    my ($str) = @_;
+    if($str && $str =~ /([0-9]*)\.([0-9]*)\.*([0-9]*)/) {
+        return sprintf("0x%06x", $1 << 16 | $2 << 8 | ($3 || '0'));
     }
 }
 
@@ -64,7 +69,7 @@ EOS
 
 while(<F>) {
     if(/^(CURL[^ ]*)[ \t]*(.*)/) {
-        my ($sym, $vers)=($1, $2);
+        my ($sym, $vers) = ($1, $2);
 
         my $intr;
         my $rm;
@@ -72,11 +77,11 @@ while(<F>) {
 
         # is there removed info?
         if($vers =~ /([\d.]+)[ \t-]+([\d.-]+)[ \t]+([\d.]+)/) {
-            ($intr, $dep, $rm)=($1, $2, $3);
+            ($intr, $dep, $rm) = ($1, $2, $3);
         }
         # is it a dep-only line?
         elsif($vers =~ /([\d.]+)[ \t-]+([\d.]+)/) {
-            ($intr, $dep)=($1, $2);
+            ($intr, $dep) = ($1, $2);
         }
         else {
             $intr = $vers;
@@ -95,6 +100,5 @@ EOS
 EOS
 ;
         }
-
     }
 }

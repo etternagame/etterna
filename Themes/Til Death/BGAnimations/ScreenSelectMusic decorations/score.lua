@@ -323,6 +323,7 @@ local t = Def.ActorFrame {
 		if getTabIndex() == 2 then
 			self:playcommand("On")
 			if rtTable == nil or #rtTable == 0 or rates == nil or #rates == 0 or rates[rateIndex] == nil or rtTable[rates[rateIndex]] == nil then
+				hasReplayData = false
 				return
 			end
 			self:playcommand("Display")

@@ -3,12 +3,10 @@
 *.obj
 *.lib
 *.exp
+*.pdb
 *.dll
 *.exe
 *.manifest
 *.dmp
 *.swp
 .tags
-
-#cmake
-/build/

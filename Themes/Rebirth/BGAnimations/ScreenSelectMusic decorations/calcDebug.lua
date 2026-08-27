@@ -23,6 +23,12 @@ local tt = Def.ActorFrame {
             end
         end
 
+        if params.steps ~= nil then
+            self.stepspreview = params.steps:GetPreviewMusicPath()
+        else
+            self.stepspreview = nil
+        end
+
         -- cascade visual update to everything
         self:playcommand("Set", {song = params.song, group = params.group, hovered = params.hovered, steps = params.steps})
     end,
@@ -30,7 +36,32 @@ local tt = Def.ActorFrame {
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = GAMESTATE:GetCurrentSteps()})
     end,
     ChangedStepsMessageCommand = function(self, params)
+        if focused then
+            if lastusedsong == GAMESTATE:GetCurrentSong() then
+                -- only changed steps, so see if the preview music must restart
+                -- because ssc music can differ across difficulties
+                if params.steps ~= nil then
+                    if params.steps:GetPreviewMusicPath() ~= self.stepspreview then
+                        if lastusedsong ~= nil and SCUFF.preview.active then
+                            local top = SCREENMAN:GetTopScreen()
+                            if top.PlayCurrentSongSampleMusic then
+                                -- reset music, force start, force full length
+                                SCUFF.preview.resetmusic = true
+                                SOUND:StopMusic()
+                                top:PlayCurrentSongSampleMusic(true, true)
+                            end
+                        end
+                    end
+                end
+            end
+        end
         lastusedsong = GAMESTATE:GetCurrentSong()
+
+        if params.steps ~= nil then
+            self.stepspreview = params.steps:GetPreviewMusicPath()
+        else
+            self.stepspreview = nil
+        end
         self:playcommand("Set", {song = GAMESTATE:GetCurrentSong(), hovered = lastHovered, steps = params.steps})
     end,
     OpenCalcDebugMessageCommand = function(self)
@@ -543,6 +574,9 @@ local debugGroups = {
     {   -- Group 20
         GenericBracketing = true,
     },
+    {   -- Group 9+10
+        HandSwitch = true
+    }
 }
 
 -- specify enum names here
@@ -962,6 +996,7 @@ local modnames = {
     "gstrea",
     "gchstr",
     "gbrack",
+    "hsw",
 
     -- CalcPatternMods above this line
     -- CalcDebugMisc mods meant for only the top graph:
@@ -1034,6 +1069,7 @@ local modColors = {
     color("1,1,1"), -- genericstream
     color("1,1,1"), -- genericchordstream
     color("1,1,1"), -- genericbracketing
+    color("0.2,0.9,0.7"), -- handswitch
 
     -- place CalcPatternMod Colors above this line
     -- MISC MODS START HERE (same order as miscToUpperMods)

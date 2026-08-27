@@ -1,5 +1,7 @@
 /* RageFileBasic - simple file interface. */
 
+#include <cstdint>
+
 #ifndef RAGE_FILE_BASIC_H
 #define RAGE_FILE_BASIC_H
 

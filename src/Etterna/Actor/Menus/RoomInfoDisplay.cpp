@@ -148,7 +148,7 @@ RoomInfoDisplay::Update(float fDeltaTime)
 void
 RoomInfoDisplay::RequestRoomInfo(const std::string& name)
 {
-	NSMAN->RequestRoomInfo(name);
+	// ask the network about room info
 }
 
 void

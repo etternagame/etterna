@@ -38,6 +38,6 @@ ReloadScreenDimensions();
  * This is referenced in ArrowEffects, GameManager, NoteField, and SnapDisplay.
  * XXX: doesn't always have to be 64. -aj
  */
-#define ARROW_SIZE (64)
+constexpr int ARROW_SIZE = 64;
 
 #endif

@@ -30,6 +30,11 @@
 #include "Etterna/Screen/Others/Screen.h"
 #include "Etterna/Globals/GameLoop.h"
 
+#if defined(WITH_VULKAN)
+#include "RageUtil/Graphics/Display/Display.h"
+#include "RageUtil/Graphics/RendererVK/RendererVK.h"
+#endif
+
 #if !defined(SUPPORT_OPENGL) && !defined(SUPPORT_D3D)
 #define SUPPORT_OPENGL
 #endif
@@ -52,11 +57,9 @@
 #include "RageUtil/File/RageFileManager.h"
 #include "Etterna/Actor/Base/ModelManager.h"
 #include "Etterna/Singletons/CryptManager.h"
-#include "GameLoop.h"
 #include "Etterna/Singletons/MessageManager.h"
 #include "Etterna/Singletons/NetworkSyncManager.h"
 #include "Etterna/Singletons/StatsManager.h"
-#include "discord_rpc.h"
 
 #include <ctime>
 
@@ -319,7 +322,6 @@ ShutdownGame()
 	DLMAN.reset();
 	SAFE_DELETE(FILEMAN);
 	SAFE_DELETE(LUA);
-	Discord_Shutdown();
 }
 
 static void
@@ -418,10 +420,6 @@ AdjustForChangedSystemCapabilities()
 
 #if defined(SUPPORT_OPENGL)
 #include "RageUtil/Graphics/RageDisplay_OGL.h"
-#endif
-
-#if defined(SUPPORT_GLES2)
-#include "RageUtil/Graphics/RageDisplay_GLES2.h"
 #endif
 
 #include "RageUtil/Graphics/RageDisplay_Null.h"
@@ -646,7 +644,7 @@ struct VideoCardDefaults
 	  // Default graphics settings used for all cards that don't match above.
 	  // This must be the very last entry!
 	  "",
-	  "opengl,d3d",
+	  "opengl,d3d,vulkan",
 	  640,
 	  480,
 	  32,
@@ -810,16 +808,21 @@ CreateDisplay()
 #if defined(SUPPORT_OPENGL)
 				pRet = new RageDisplay_Legacy;
 #endif
-			} else if (CompareNoCase(sRenderer, "gles2") == 0) {
-#if defined(SUPPORT_GLES2)
-				pRet = new RageDisplay_GLES2;
-#endif
 			} else if (CompareNoCase(sRenderer, "d3d") == 0) {
 // TODO: ANGLE/RageDisplay_Modern
 #if defined(SUPPORT_D3D)
 				pRet = new RageDisplay_D3D;
 #endif
-			} else if (CompareNoCase(sRenderer, "null") == 0) {
+			}
+#if defined(WITH_VULKAN)
+#if !defined(__APPLE__)
+			else if (CompareNoCase(sRenderer, "vulkan") == 0) {
+				pRet =
+				  new DisplayAdapter::Display(std::make_unique<RendererVK>());
+			}
+#endif
+#endif
+			else if (CompareNoCase(sRenderer, "null") == 0) {
 				return new RageDisplay_Null;
 			} else {
 				RageException::Throw(
@@ -1159,7 +1162,7 @@ sm_main(int argc, char* argv[])
 	StartDisplay();
 
 	StoreActualGraphicOptions();
-	Locator::getLogger()->info(GetActualGraphicOptionsString().c_str());
+	Locator::getLogger()->info("{}", GetActualGraphicOptionsString());
 
 	/* Input handlers can have dependences on the video system so
 	 * INPUTMAN must be initialized after DISPLAY. */
@@ -1236,7 +1239,6 @@ StepMania::SaveScreenshot(const std::string& Dir,
 	return FileName;
 }
 
-
 /* Returns true if the key has been handled and should be discarded, false if
  * the key should be sent on to screens. */
 static LocalizedString SERVICE_SWITCH_PRESSED("Etterna",
@@ -1300,6 +1302,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			// Shift+F2: refresh metrics,noteskin cache and CodeDetector cache
 			// only
 			THEME->ReloadMetrics();
+			DISPLAY->ReloadPipelines();
 			NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 			CodeDetector::RefreshCacheItems();
 			SCREENMAN->SystemMessage(RELOADED_METRICS);
@@ -1307,12 +1310,14 @@ HandleGlobalInputs(const InputEventPlus& input)
 		} else if (bIsCtrlHeld && !bIsShiftHeld) {
 			// Ctrl+F2: reload scripts only
 			THEME->UpdateLuaGlobals();
+			DISPLAY->ReloadPipelines();
 			SCREENMAN->SystemMessage(RELOADED_SCRIPTS);
 			MESSAGEMAN->Broadcast(Message_ReloadedScripts);
 		} else if (bIsCtrlHeld && bIsShiftHeld) {
 			// Shift+Ctrl+F2: reload overlay screens (and metrics, since themers
 			// are likely going to do this after changing metrics.)
 			THEME->ReloadMetrics();
+			DISPLAY->ReloadPipelines();
 			SCREENMAN->ReloadOverlayScreens();
 			SCREENMAN->SystemMessage(RELOADED_OVERLAY_SCREENS);
 			MESSAGEMAN->Broadcast(Message_ReloadedMetrics);
@@ -1321,6 +1326,7 @@ HandleGlobalInputs(const InputEventPlus& input)
 			// F2 alone: refresh metrics, textures, noteskins, codedetector
 			// cache
 			THEME->ReloadMetrics();
+			DISPLAY->ReloadPipelines();
 			TEXTUREMAN->ReloadAll();
 			NOTESKIN->RefreshNoteSkinData(GAMESTATE->m_pCurGame);
 			CodeDetector::RefreshCacheItems();

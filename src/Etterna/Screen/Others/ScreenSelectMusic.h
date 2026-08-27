@@ -74,6 +74,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	void PlayCurrentSongSampleMusic(bool bForcePlay,
 									bool bForceAccurate = false,
 									bool bExtended = false);
+	void PlayLoopMusic();
 
 	void ChangeSteps(PlayerNumber pn, int dir);
 	// Lua
@@ -163,6 +164,7 @@ class ScreenSelectMusic : public ScreenWithMenuElements
 	bool m_bGoToOptions;
 	std::string m_sSampleMusicToPlay;
 	TimingData* m_pSampleMusicTimingData;
+	bool m_bSampleMusicIsBGM = false;
 	float m_fSampleStartSeconds, m_fSampleLengthSeconds;
 	bool m_bAllowOptionsMenu, m_bAllowOptionsMenuRepeat;
 	bool m_bSelectIsDown;

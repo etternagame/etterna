@@ -75,6 +75,7 @@
 #include "Etterna/Singletons/SongManager.h"
 #include "Etterna/Singletons/ThemeManager.h"
 #include "Etterna/Singletons/PrefsManager.h"
+#include "Etterna/Singletons/GameState.h"
 
 #include <set>
 #include <map>
@@ -348,6 +349,12 @@ ScreenManager::GetScreen(int iPosition)
 	if (iPosition >= (int)g_ScreenStack.size())
 		return nullptr;
 	return g_ScreenStack[iPosition].m_pScreen;
+}
+
+std::vector<Screen*>
+ScreenManager::GetOverlayScreens()
+{
+	return g_OverlayScreens;
 }
 
 bool
@@ -794,6 +801,7 @@ ScreenManager::LoadDelayedScreen()
 		AfterDeleteScreen();
 	}
 
+	GAMESTATE->updateDiscordPresenceMenu();
 	MESSAGEMAN->Broadcast(Message_ScreenChanged);
 
 	SendMessageToTopScreen(SM);
@@ -1028,6 +1036,11 @@ class LunaScreenManager : public Luna<ScreenManager>
 		p->ReloadOverlayScreens();
 		COMMON_RETURN_SELF;
 	}
+	static int GetOverlayScreens(T* p, lua_State* L)
+	{
+		LuaHelpers::CreateTableFromArray(p->GetOverlayScreens(), L);
+		return 1;
+	}
 
 	static int get_input_redirected(T* p, lua_State* L)
 	{
@@ -1065,6 +1078,7 @@ class LunaScreenManager : public Luna<ScreenManager>
 		ADD_METHOD(AddNewScreenToTop);
 		// ADD_METHOD( GetScreenStackSize );
 		ADD_METHOD(ReloadOverlayScreens);
+		ADD_METHOD(GetOverlayScreens);
 		ADD_METHOD(PlayInvalidSound);
 		ADD_METHOD(PlayStartSound);
 		ADD_METHOD(PlayCoinSound);

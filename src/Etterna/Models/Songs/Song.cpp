@@ -745,7 +745,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 				m_fMusicSampleStartSeconds + m_fMusicSampleLengthSeconds >
 				  this->m_fMusicLengthSeconds) {
 				const auto& timing = this->m_SongTiming;
-				m_fMusicSampleStartSeconds = timing.WhereUAtBro(100);
+				m_fMusicSampleStartSeconds = timing.GetTimeFromBeatFast(100);
 
 				if (m_fMusicSampleStartSeconds + m_fMusicSampleLengthSeconds >
 					this->m_fMusicLengthSeconds) {
@@ -756,7 +756,7 @@ Song::TidyUpData(bool from_cache, bool /* duringCache */, Calc* calc)
 					  2);
 					iBeat -= iBeat % 4;
 					m_fMusicSampleStartSeconds =
-					  timing.WhereUAtBro(static_cast<float>(iBeat));
+					  timing.GetTimeFromBeatFast(static_cast<float>(iBeat));
 				}
 			}
 
@@ -2061,6 +2061,32 @@ Song::PlaySampleMusicExtended()
 	SOUND->SetPlayingMusicParams(p);
 }
 
+bool
+Song::HasLua() const
+{
+	FOREACH_BackgroundLayer(l) {
+		for (auto& x : GetBackgroundChanges(l)) {
+			if (x.m_def.m_sFile1.ends_with(".lua") ||
+				x.m_def.m_sFile2.ends_with(".lua") ||
+				x.m_def.m_sFile1.ends_with(".xml") ||
+				x.m_def.m_sFile2.ends_with(".xml")) {
+				return true;
+			}
+		}
+	}
+
+	for (auto& x : GetForegroundChanges()) {
+		if (x.m_def.m_sFile1.ends_with(".lua") ||
+			x.m_def.m_sFile2.ends_with(".lua") ||
+			x.m_def.m_sFile1.ends_with(".xml") ||
+			x.m_def.m_sFile2.ends_with(".xml")) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
 
@@ -2522,6 +2548,11 @@ class LunaSong : public Luna<Song>
 		lua_pushboolean(L, SONGMAN->OpenSongFolder(p));
 		return 1;
 	}
+	static auto HasLua(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->HasLua());
+		return 1;
+	}
 	LunaSong()
 	{
 		ADD_METHOD(GetDisplayFullTitle);
@@ -2594,6 +2625,7 @@ class LunaSong : public Luna<Song>
 		ADD_METHOD(GetDateTimeAdded);
 		ADD_METHOD(GetDateAdded);
 		ADD_METHOD(OpenSongFolder);
+		ADD_METHOD(HasLua);
 	}
 };
 

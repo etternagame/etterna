@@ -79,3 +79,62 @@ ScreenSaveSync::PromptSaveSync(const ScreenMessage& sm)
 						 RevertSyncChanges,
 						 nullptr);
 }
+
+#include "Etterna/Models/Lua/LuaBinding.h"
+#include "Etterna/Singletons/LuaManager.h"
+class LunaScreenSaveSync : public Luna<ScreenSaveSync>
+{
+  public:
+	static int GetSyncChangeTextGlobal(T* p, lua_State* L)
+	{
+
+		std::vector<std::string> v{};
+		AdjustSync::GetSyncChangeTextGlobal(v);
+
+		lua_pushstring(L, join("\n", v).c_str());
+
+		return 1;
+	}
+	static int GetSyncChangeTextSong(T* p, lua_State* L)
+	{
+
+		std::vector<std::string> v{};
+		AdjustSync::GetSyncChangeTextSong(v);
+
+		lua_pushstring(L, join("\n", v).c_str());
+
+		return 1;
+	}
+	static int IsSyncDataChanged(T* p, lua_State* L)
+	{
+		lua_pushboolean(L, AdjustSync::IsSyncDataChanged());
+		return 1;
+	}
+	static int GetSyncChangeGlobalValues(T* p, lua_State* L)
+	{
+		std::vector<float> v{};
+		// old, new, delta
+		AdjustSync::GetSyncChangeGlobalValues(v);
+		LuaHelpers::CreateTableFromArray(v, L);
+		return 1;
+	}
+	static int GetSyncChangeSongValues(T* p, lua_State* L)
+	{
+		std::vector<float> v{};
+		// old, new, delta
+		AdjustSync::GetSyncChangeSongValues(v);
+		LuaHelpers::CreateTableFromArray(v, L);
+		return 1;
+	}
+
+	LunaScreenSaveSync() {
+		// strictly informational only access for lua
+		ADD_METHOD(GetSyncChangeTextGlobal);
+		ADD_METHOD(GetSyncChangeTextSong);
+		ADD_METHOD(IsSyncDataChanged);
+		ADD_METHOD(GetSyncChangeGlobalValues);
+		ADD_METHOD(GetSyncChangeSongValues);
+	}
+};
+
+LUA_REGISTER_DERIVED_CLASS(ScreenSaveSync, ScreenPrompt)

@@ -101,6 +101,11 @@ class Sprite : public Actor
 	void ScaleToClipped(float fWidth, float fHeight);
 	void CropTo(float fWidth, float fHeight);
 
+	bool UsingCustomTexCoords() const { return m_bUsingCustomTexCoords; }
+	bool UsingCustomPosCoords() const { return m_bUsingCustomPosCoords; }
+	void EnableCustomTexCoords() { m_bUsingCustomTexCoords = true; }
+	void EnableCustomPosCoords() { m_bUsingCustomPosCoords = true; }
+
 	// Commands
 	void PushSelf(lua_State* L) override;
 

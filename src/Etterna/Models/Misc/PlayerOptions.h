@@ -262,6 +262,7 @@ class PlayerOptions
 
 	bool m_bTurns[NUM_TURNS]{};
 	bool m_bTransforms[NUM_TRANSFORMS]{};
+	bool m_bForceHoldReleases{ false };
 	bool m_bMuteOnError{ false };
 	bool m_bPractice{ false };
 	/** @brief The method for which a player can fail a song. */

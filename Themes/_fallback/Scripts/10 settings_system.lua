@@ -153,8 +153,32 @@ function write_str_to_file(str, fname, str_name)
 	end
 end
 
+local z_banned_keywords = {
+	["and"] = true,
+	["break"] = true,
+	["do"] = true,
+	["else"] = true,
+	["elseif"] = true,
+	["end"] = true,
+	["false"] = true,
+	["for"] = true,
+	["function"] = true,
+	["goto"] = true,
+	["if"] = true,
+	["in"] = true,
+	["local"] = true,
+	["nil"] = true,
+	["not"] = true,
+	["or"] = true,
+	["repeat"] = true,
+	["return"] = true,
+	["then"] = true,
+	["true"] = true,
+	["until"] = true,
+	["while"] = true,
+}
 function string_needs_escape(str)
-	if str:match("^[a-zA-Z_][a-zA-Z_0-9]*$") then
+	if str:match("^[a-zA-Z_][a-zA-Z_0-9]*$") and z_banned_keywords[str] == nil then
 		return false
 	else
 		return true

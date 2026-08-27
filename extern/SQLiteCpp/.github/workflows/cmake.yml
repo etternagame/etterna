@@ -27,8 +27,16 @@ jobs:
             extra_path: "C:\\ProgramData\\chocolatey\\lib\\mingw\\tools\\install\\mingw64\\bin",
           }
         - {
-            name: "Ubuntu Latest GCC",
-            os: ubuntu-latest,
+            name: "Ubuntu 24.04 GCC",
+            os: ubuntu-24.04,
+            generator: "Unix Makefiles",
+            build_type: "Debug",
+            cc: "gcc", cxx: "g++",
+            extra_path: "",
+          }
+        - {
+            name: "Ubuntu 22.04 GCC",
+            os: ubuntu-22.04,
             generator: "Unix Makefiles",
             build_type: "Debug",
             cc: "gcc", cxx: "g++",
@@ -45,7 +53,7 @@ jobs:
 
     steps:
     - name: Checkout ${{ github.ref_name }}
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - run: git submodule update --init --recursive
     - name: set extra GITHUB_PATH ${{ matrix.config.extra_path }} (for MinGW)
       shell: bash

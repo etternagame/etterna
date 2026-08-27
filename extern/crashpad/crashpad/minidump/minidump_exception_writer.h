@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -50,12 +50,17 @@ class MinidumpExceptionWriter final : public internal::MinidumpStreamWriter {
   //! \param[in] thread_id_map A MinidumpThreadIDMap to be consulted to
   //!     determine the 32-bit minidump thread ID to use for the thread
   //!     identified by \a exception_snapshot.
+  //! \param[in] allow_missing_thread_id_from_map Whether it is valid
+  //!     for \a exception_snapshot->ThreadID() to be absent from the
+  //!     \a thread_id_map, such as in an incomplete iOS intermediate dump. When
+  //!     false a missing thread id is considered invalid and will DCHECK.
   //!
   //! \note Valid in #kStateMutable. No mutator methods may be called before
   //!     this method, and it is not normally necessary to call any mutator
   //!     methods after this method.
   void InitializeFromSnapshot(const ExceptionSnapshot* exception_snapshot,
-                              const MinidumpThreadIDMap& thread_id_map);
+                              const MinidumpThreadIDMap& thread_id_map,
+                              bool allow_missing_thread_id_from_map);
 
   //! \brief Arranges for MINIDUMP_EXCEPTION_STREAM::ThreadContext to point to
   //!     the CPU context to be written by \a context.

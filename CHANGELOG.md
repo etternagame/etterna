@@ -1,6 +1,47 @@
 # Changelog
 All releases of Etterna are listed in this file as well as links to files detailing all of the changes for each. All changes for each version apply in supplement to the ones below it. Changes are not in chronological order, only versions are.
 
+## [0.75.0] - 2026-08-26 - Etterna 10th Anniversary
+
+Windows x64 and Mac installer release. Linux binary.
+- New BGM, Multiplayer Spectating, wide range of small improvements. Vulkan Renderer.
+- [Notes](.changelog/Release_0-75-0.md)
+
+## [0.74.4] - 2025-04-01 - Hotfix
+
+Windows x64 and Mac installer release. Linux binary.
+- 32bit Windows support dropped. Minor updates
+- [Notes](.changelog/Release_0-74-4.md)
+
+## [0.74.3] - 2025-01-11 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- New default popn noteskin. More crash fixes.
+- [Notes](.changelog/Release_0-74-3.md)
+
+## [0.74.2] - 2024-12-27 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Fix for a crash
+- [Notes](.changelog/Release_0-74-2.md)
+
+## [0.74.1] - 2024-12-26 - Hotfix
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Fixes for crashes
+- [Notes](.changelog/Release_0-74-1.md)
+
+## [0.74.0] - 2024-12-25 - EtternaOnline Rewrite
+
+Windows x64, Windows i386, and Mac installer release. Linux binary.
+- Rewrote the API integration with the website as it was rereleased. Various other improvements.
+- [Notes](.changelog/Release_0-74-0.md)
+
+## [0.73.0] - 2024-xx-xx - EtternaOnline Rewrite
+
+This version did not get officially released and was mostly in public testing.
+- [Notes](.changelog/Release_0-73-0.md)
+
 ## [0.72.3] - 2023-03-21 - Hotfix
 
 Windows x64, Windows i386, and Mac installer release. Linux binary.

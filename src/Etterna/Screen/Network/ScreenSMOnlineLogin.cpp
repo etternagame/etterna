@@ -38,8 +38,6 @@ ScreenSMOnlineLogin::Init()
 	ScreenWithMenuElements::Init();
 	m_iPlayer = 0;
 
-	SOUND->PlayMusic(THEME->GetPathS("ScreenOptionsServiceChild", "music"));
-
 	PostScreenMessage(SM_GoToNextScreen, 0);
 }
 

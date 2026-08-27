@@ -1,6 +1,6 @@
 /*
 ** Low-overhead profiling.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #define lj_profile_c
@@ -118,6 +118,23 @@ void LJ_FASTCALL lj_profile_hook_leave(global_State *g)
     hook_leave(g);
   }
 }
+
+int lj_profile_lock(void)
+{
+  ProfileState *ps = &profile_state;
+  if (ps->g) {
+    profile_lock(ps);
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+void lj_profile_unlock(void)
+{
+  ProfileState *ps = &profile_state;
+  profile_unlock(ps);
+}
 #endif
 
 /* -- Profile callbacks --------------------------------------------------- */
@@ -134,14 +151,14 @@ void LJ_FASTCALL lj_profile_interpreter(lua_State *L)
     int samples = ps->samples;
     ps->samples = 0;
     g->hookmask = HOOK_VMEVENT;
-    lj_dispatch_update(g);
+    lj_dispatch_update(g, 1);
     profile_unlock(ps);
     ps->cb(ps->data, L, samples, ps->vmstate);  /* Invoke user callback. */
     profile_lock(ps);
     mask |= (g->hookmask & HOOK_PROFILE);
   }
   g->hookmask = mask;
-  lj_dispatch_update(g);
+  lj_dispatch_update(g, 1);
   profile_unlock(ps);
 }
 
@@ -160,7 +177,7 @@ static void profile_trigger(ProfileState *ps)
 		  st == ~LJ_VMST_C ? 'C' :
 		  st == ~LJ_VMST_GC ? 'G' : 'J';
     g->hookmask = (mask | HOOK_PROFILE);
-    lj_dispatch_update(g);
+    lj_dispatch_update(g, 1);
   }
   profile_unlock(ps);
 }
@@ -185,7 +202,11 @@ static void profile_timer_start(ProfileState *ps)
   tm.it_value.tv_sec = tm.it_interval.tv_sec = interval / 1000;
   tm.it_value.tv_usec = tm.it_interval.tv_usec = (interval % 1000) * 1000;
   setitimer(ITIMER_PROF, &tm, NULL);
+#if LJ_TARGET_QNX
+  sa.sa_flags = 0;
+#else
   sa.sa_flags = SA_RESTART;
+#endif
   sa.sa_handler = profile_signal;
   sigemptyset(&sa.sa_mask);
   sigaction(SIGPROF, &sa, &ps->oldsa);
@@ -338,16 +359,16 @@ LUA_API void luaJIT_profile_stop(lua_State *L)
   ProfileState *ps = &profile_state;
   global_State *g = ps->g;
   if (G(L) == g) {  /* Only stop profiler if started by this VM. */
+    ps->g = NULL;
     profile_timer_stop(ps);
     g->hookmask &= ~HOOK_PROFILE;
-    lj_dispatch_update(g);
+    lj_dispatch_update(g, 0);
 #if LJ_HASJIT
     G2J(g)->prof_mode = 0;
     lj_trace_flushall(L);
 #endif
     lj_buf_free(g, &ps->sb);
     ps->sb.w = ps->sb.e = NULL;
-    ps->g = NULL;
   }
 }
 

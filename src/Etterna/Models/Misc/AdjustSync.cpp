@@ -236,6 +236,49 @@ AdjustSync::GetSyncChangeTextGlobal(std::vector<std::string>& vsAddTo)
 }
 
 void
+AdjustSync::GetSyncChangeGlobalValues(std::vector<float>& floatvec)
+{
+	auto fOld = Quantize(AdjustSync::s_fGlobalOffsetSecondsOriginal, 0.001f);
+	auto fNew = Quantize(PREFSMAN->m_fGlobalOffsetSeconds, 0.001f);
+	auto fDelta = fNew - fOld;
+
+	floatvec.push_back(fOld);
+	floatvec.push_back(fNew);
+	floatvec.push_back(fDelta);
+}
+
+void
+AdjustSync::GetSyncChangeSongValues(std::vector<float>& floatvec)
+{
+	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {
+		auto& original = s_vpTimingDataOriginal[0];
+		auto& testing = GAMESTATE->m_pCurSong->m_SongTiming;
+
+		// the files should match. typically this is the case but sometimes that
+		// just isnt true and we really dont want to let it happen
+		if (original.m_sFile != testing.m_sFile) {
+			floatvec.push_back(0.0f);
+			floatvec.push_back(0.0f);
+			floatvec.push_back(0.0f);
+		} else {
+			auto fOld = Quantize(original.m_fBeat0OffsetInSeconds, 0.001f);
+			auto fNew = Quantize(testing.m_fBeat0OffsetInSeconds, 0.001f);
+			auto fDelta = fNew - fOld;
+
+			floatvec.push_back(fOld);
+			floatvec.push_back(fNew);
+			floatvec.push_back(fDelta);
+		}
+	} else {
+		floatvec.push_back(0.0f);
+		floatvec.push_back(0.0f);
+		floatvec.push_back(0.0f);
+	}
+}
+
+
+
+void
 AdjustSync::GetSyncChangeTextSong(std::vector<std::string>& vsAddTo)
 {
 	if (!GAMESTATE->isplaylistcourse && GAMESTATE->m_pCurSong.Get()) {

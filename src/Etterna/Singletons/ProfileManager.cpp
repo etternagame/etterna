@@ -156,7 +156,7 @@ ProfileManager::LoadProfile(PlayerNumber pn, const std::string& sProfileDir)
 		}
 	}
 
-	Locator::getLogger()->info("Done loading profile - result {}", lr);
+	Locator::getLogger()->info("Done loading profile - result {}", static_cast<int>(lr));
 
 	return lr;
 }

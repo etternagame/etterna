@@ -6,6 +6,7 @@
 #include "RageSoundReader.h"
 
 #include <map>
+#include <vector>
 
 class RageSoundReader_Chain : public RageSoundReader
 {

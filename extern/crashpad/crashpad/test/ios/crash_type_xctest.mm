@@ -1,4 +1,4 @@
-// Copyright 2020 The Crashpad Authors. All rights reserved.
+// Copyright 2020 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,39 +13,59 @@
 // limitations under the License.
 
 #import <XCTest/XCTest.h>
-
 #include <objc/runtime.h>
-#import "Service/Sources/EDOClientService.h"
-#import "test/ios/host/cptest_shared_object.h"
+#include <sys/sysctl.h>
 
-#if !defined(__has_feature) || !__has_feature(objc_arc)
-#error "This file requires ARC support."
+#include <vector>
+
+#import "Service/Sources/EDOClientService.h"
+#include "build/build_config.h"
+#include "client/length_delimited_ring_buffer.h"
+#import "test/ios/host/cptest_shared_object.h"
+#include "util/mac/sysctl.h"
+#include "util/mach/exception_types.h"
+#include "util/mach/mach_extensions.h"
+
+namespace crashpad {
+namespace {
+
+#if TARGET_OS_SIMULATOR
+// macOS 14.0 is 23A344, macOS 13.6.5 is 22G621, so if the first two characters
+// in the kern.osversion are > 22, this build will reproduce the simulator bug
+// in crbug.com/328282286
+// macOS 14.0 is 23A344, macOS 13.6.5 is 22G621, so if the first two
+// characters in the kern.osversion are > 22, this build will reproduce the
+// simulator bug in crbug.com/328282286
+// This now reproduces on macOS 15.4 24E248 as well for iOS17 simulators.
+bool HasMacOSBrokeDYLDTaskInfo() {
+  if (__builtin_available(iOS 18, *)) {
+    return false;
+  }
+  std::string build = crashpad::ReadStringSysctlByName("kern.osversion", false);
+  if (std::stoi(build.substr(0, 2)) >= 24) {
+    return true;
+  }
+  if (__builtin_available(iOS 17, *)) {
+    return false;
+  }
+  return std::stoi(build.substr(0, 2)) > 22;
+}
 #endif
 
-@interface CPTestTestCase : XCTestCase {
-  XCUIApplication* _app;
-}
+}  // namespace
+}  // namespace crashpad
 
+@interface CPTestTestCase : XCTestCase {
+  XCUIApplication* app_;
+  CPTestSharedObject* rootObject_;
+}
 @end
 
 @implementation CPTestTestCase
 
-- (void)handleCrashUnderSymbol:(id)arg1 {
-  // For now, do nothing.  In the future this can be something testable.
-}
-
 + (void)setUp {
-  // Swizzle away the handleCrashUnderSymbol callback.  Without this, any time
-  // the host app is intentionally crashed, the test is immediately failed.
-  SEL originalSelector = NSSelectorFromString(@"handleCrashUnderSymbol:");
-  SEL swizzledSelector = @selector(handleCrashUnderSymbol:);
-
-  Method originalMethod = class_getInstanceMethod(
-      objc_getClass("XCUIApplicationImpl"), originalSelector);
-  Method swizzledMethod =
-      class_getInstanceMethod([self class], swizzledSelector);
-
-  method_exchangeImplementations(originalMethod, swizzledMethod);
+  [CPTestTestCase swizzleHandleCrashUnderSymbol];
+  [CPTestTestCase swizleMayTerminateOutOfBandWithoutCrashReport];
 
   // Override EDO default error handler.  Without this, the default EDO error
   // handler will throw an error and fail the test.
@@ -54,188 +74,505 @@
   });
 }
 
+// Swizzle away the -[XCUIApplicationImpl handleCrashUnderSymbol:] callback.
+// Without this, any time the host app is intentionally crashed, the test is
+// immediately failed.
++ (void)swizzleHandleCrashUnderSymbol {
+  SEL originalSelector = NSSelectorFromString(@"handleCrashUnderSymbol:");
+  SEL swizzledSelector = @selector(handleCrashUnderSymbol:);
+  Method originalMethod = class_getInstanceMethod(
+      objc_getClass("XCUIApplicationImpl"), originalSelector);
+  Method swizzledMethod =
+      class_getInstanceMethod([self class], swizzledSelector);
+  method_exchangeImplementations(originalMethod, swizzledMethod);
+}
+
+// Swizzle away the time consuming 'Checking for crash reports corresponding to'
+// from -[XCUIApplicationProcess swizleMayTerminateOutOfBandWithoutCrashReport]
+// that is unnecessary for these tests.
++ (void)swizleMayTerminateOutOfBandWithoutCrashReport {
+  SEL originalSelector =
+      NSSelectorFromString(@"mayTerminateOutOfBandWithoutCrashReport");
+  SEL swizzledSelector = @selector(mayTerminateOutOfBandWithoutCrashReport);
+  Method originalMethod = class_getInstanceMethod(
+      objc_getClass("XCUIApplicationProcess"), originalSelector);
+  Method swizzledMethod =
+      class_getInstanceMethod([self class], swizzledSelector);
+  method_exchangeImplementations(originalMethod, swizzledMethod);
+}
+
+// This gets called after tearDown, so there's no straightforward way to
+// test that this is called. However, not swizzling this out will cause every
+// crashing test to fail.
+- (void)handleCrashUnderSymbol:(id)arg1 {
+}
+
+- (BOOL)mayTerminateOutOfBandWithoutCrashReport {
+  return YES;
+}
+
 - (void)setUp {
-  _app = [[XCUIApplication alloc] init];
-  [_app launch];
+  app_ = [[XCUIApplication alloc] init];
+  if ([self.name isEqualToString:@"-[CPTestTestCase testExtensionStreams]"]) {
+    app_.launchArguments = @[ @"--test-extension-streams" ];
+  } else if ([self.name isEqualToString:
+                            @"-[CPTestTestCase testCrashWithExtraMemory]"]) {
+    app_.launchArguments = @[ @"--test-extra_memory" ];
+  }
+  [app_ launch];
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+  [rootObject_ clearPendingReports];
+  XCTAssertEqual([rootObject_ pendingReportCount], 0);
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+}
+
+- (void)verifyCrashReportException:(uint32_t)exception {
+  // Confirm the app is not running.
+  XCTAssertTrue([app_ waitForState:XCUIApplicationStateNotRunning timeout:15]);
+  XCTAssertTrue(app_.state == XCUIApplicationStateNotRunning);
+
+  // Restart app to get the report signal.
+  [app_ launch];
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+  XCTAssertEqual([rootObject_ pendingReportCount], 1);
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportException:&report_exception]);
+  XCTAssertEqual(report_exception.unsignedIntValue, exception);
+
+  NSString* rawLogContents = [rootObject_ rawLogContents];
+  XCTAssertFalse([rawLogContents containsString:@"allocator used in handler."]);
 }
 
 - (void)testEDO {
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  NSString* result = [rootObject testEDO];
+  NSString* result = [rootObject_ testEDO];
   XCTAssertEqualObjects(result, @"crashpad");
 }
 
-- (void)testSegv {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashSegv];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-}
-
 - (void)testKillAbort {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashKillAbort];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [rootObject_ crashKillAbort];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
 }
 
 - (void)testTrap {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashTrap];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [rootObject_ crashTrap];
+#if !BUILDFLAG(IS_IOS_TVOS)
+#if defined(ARCH_CPU_X86_64)
+  [self verifyCrashReportException:EXC_BAD_INSTRUCTION];
+#elif defined(ARCH_CPU_ARM64)
+  [self verifyCrashReportException:EXC_BREAKPOINT];
+#else
+#error Port to your CPU architecture
+#endif
+#else  // !BUILDFLAG(IS_IOS_TVOS)
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGTRAP);
+#endif
 }
 
 - (void)testAbort {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashAbort];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [rootObject_ crashAbort];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
 }
 
 - (void)testBadAccess {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashBadAccess];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [rootObject_ crashBadAccess];
+#if !BUILDFLAG(IS_IOS_TVOS)
+  [self verifyCrashReportException:EXC_BAD_ACCESS];
+#else
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGSEGV);
+#endif
 }
 
 - (void)testException {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashException];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [rootObject_ crashException];
+  // After https://reviews.llvm.org/D141222 exceptions call
+  // __libcpp_verbose_abort, which Chromium sets to `brk 0` in release.
+  // After https://crrev.com/c/5375084, Chromium does not set `brk 0` for local
+  // release builds and official DCHECK builds.
+#if defined(CRASHPAD_IS_IN_CHROMIUM) && defined(NDEBUG) && \
+    defined(OFFICIAL_BUILD) && !defined(DCHECK_ALWAYS_ON)
+  [self verifyCrashReportException:SIGABRT];
+#else
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
+#endif
 }
 
-- (void)testNSException {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashNSException];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+// TODO(crbug.com/478240087): Fails on intel. Investigate and re-enable.
+#if defined(__x86_64__)
+#define MAYBE_testNSException DISABLED_testNSException
+#else
+#define MAYBE_testNSException testNSException
+#endif
+- (void)MAYBE_testNSException {
+  [rootObject_ crashNSException];
+  [self verifyCrashReportException:crashpad::kMachExceptionFromNSException];
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  NSString* userInfo =
+      [dict[@"objects"][0] valueForKeyPath:@"exceptionUserInfo"];
+  XCTAssertTrue([userInfo containsString:@"Error Object=<CPTestSharedObject"]);
+  XCTAssertTrue([[dict[@"objects"][1] valueForKeyPath:@"exceptionReason"]
+      isEqualToString:@"Intentionally throwing error."]);
+  XCTAssertTrue([[dict[@"objects"][2] valueForKeyPath:@"exceptionName"]
+      isEqualToString:@"NSInternalInconsistencyException"]);
 }
 
-- (void)testCrashUnreocgnizedSelectorAfterDelay {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+// TODO(crbug.com/478240087): Fails on intel. Investigate and re-enable.
+#if defined(__x86_64__)
+#define MAYBE_testNotAnNSException DISABLED_testNotAnNSException
+#else
+#define MAYBE_testNotAnNSException testNotAnNSException
+#endif
+- (void)MAYBE_testNotAnNSException {
+  [rootObject_ crashNotAnNSException];
+  // When @throwing something other than an NSException the
+  // UncaughtExceptionHandler is not called, so the application SIGABRTs.
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
+}
 
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashUnreocgnizedSelectorAfterDelay];
+- (void)testUnhandledNSException {
+  [rootObject_ crashUnhandledNSException];
+  [self verifyCrashReportException:crashpad::kMachExceptionFromNSException];
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  NSString* uncaught_flag =
+      [dict[@"objects"][0] valueForKeyPath:@"UncaughtNSException"];
+  XCTAssertTrue([uncaught_flag containsString:@"true"]);
+  NSString* userInfo =
+      [dict[@"objects"][1] valueForKeyPath:@"exceptionUserInfo"];
+  XCTAssertTrue([userInfo containsString:@"Error Object=<CPTestSharedObject"]);
+  XCTAssertTrue([[dict[@"objects"][2] valueForKeyPath:@"exceptionReason"]
+      isEqualToString:@"Intentionally throwing error."]);
+  XCTAssertTrue([[dict[@"objects"][3] valueForKeyPath:@"exceptionName"]
+      isEqualToString:@"NSInternalInconsistencyException"]);
+}
 
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+- (void)testcrashUnrecognizedSelectorAfterDelay {
+  [rootObject_ crashUnrecognizedSelectorAfterDelay];
+  [self verifyCrashReportException:crashpad::kMachExceptionFromNSException];
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  XCTAssertTrue([[dict[@"objects"][0] valueForKeyPath:@"exceptionReason"]
+      containsString:
+          @"CPTestSharedObject does_not_exist]: unrecognized selector"]);
+  XCTAssertTrue([[dict[@"objects"][1] valueForKeyPath:@"exceptionName"]
+      isEqualToString:@"NSInvalidArgumentException"]);
 }
 
 - (void)testCatchUIGestureEnvironmentNSException {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
-
   // Tap the button with the string UIGestureEnvironmentException.
-  [_app.buttons[@"UIGestureEnvironmentException"] tap];
-
-  // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
-
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+#if !BUILDFLAG(IS_IOS_TVOS)
+  [app_.buttons[@"UIGestureEnvironmentException"] tap];
+#else
+  // tvOS does not have [XCUIElement tap]. This version assumes there is just
+  // one big button with "UIGestureEnvironmentException" as title, so we can
+  // just press Select on the remote to activate it.
+  [XCUIRemote.sharedRemote pressButton:XCUIRemoteButtonSelect];
+#endif
+  [self verifyCrashReportException:crashpad::kMachExceptionFromNSException];
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  XCTAssertTrue([[dict[@"objects"][0] valueForKeyPath:@"exceptionReason"]
+      containsString:@"NSArray0 objectAtIndex:]: index 42 beyond bounds"]);
+  XCTAssertTrue([[dict[@"objects"][1] valueForKeyPath:@"exceptionName"]
+      isEqualToString:@"NSRangeException"]);
 }
 
 - (void)testCatchNSException {
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [rootObject_ catchNSException];
 
   // The app should not crash
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject catchNSException];
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
 
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  // No report should be generated.
+  [rootObject_ processIntermediateDumps];
+  XCTAssertEqual([rootObject_ pendingReportCount], 0);
 }
 
+// TODO(crbug.com/478240087): Fails on intel. Investigate and re-enable.
+#if defined(__x86_64__)
+#define MAYBE_testCrashCoreAutoLayoutSinkhole \
+  DISABLED_testCrashCoreAutoLayoutSinkhole
+#else
+#define MAYBE_testCrashCoreAutoLayoutSinkhole testCrashCoreAutoLayoutSinkhole
+#endif
+- (void)MAYBE_testCrashCoreAutoLayoutSinkhole {
+  [rootObject_ crashCoreAutoLayoutSinkhole];
+  [self verifyCrashReportException:crashpad::kMachExceptionFromNSException];
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  XCTAssertTrue([[dict[@"objects"][0] valueForKeyPath:@"exceptionReason"]
+      containsString:@"Unable to activate constraint with anchors"]);
+  XCTAssertTrue([[dict[@"objects"][1] valueForKeyPath:@"exceptionName"]
+      isEqualToString:@"NSGenericException"]);
+}
+
+// This test cannot run correctly on tvOS: it is impossible to catch this stack
+// overflow as a Mach exception (like we do on iOS), and sigaltstack() is also
+// forbidden so we cannot detect it with POSIX signals either.
+// Per xnu-11215.81.4/bsd/uxkern/ux_exception.c's handle_ux_exception(), when a
+// stack overflow is detected but no alternate stack is specified, the kernel
+// will reset SIGSEGV to SIG_DFL before delivering the signal, so we are never
+// able to capture this crash. Even if we do pass SA_ONSTACK to sigaction(), we
+// will just crash a bit later, as we are still using the same stack that has
+// already overflown.
+#if !BUILDFLAG(IS_IOS_TVOS)
 - (void)testRecursion {
-  // TODO(justincohen): Crashpad iOS does not currently support stack type
-  // crashes.
-  return;
+  [rootObject_ crashRecursion];
+  [self verifyCrashReportException:EXC_BAD_ACCESS];
+}
+#endif
 
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+- (void)testClientAnnotations {
+  [rootObject_ crashKillAbort];
 
-  // Crash the app.
-  CPTestSharedObject* rootObject = [EDOClientService rootObjectWithPort:12345];
-  [rootObject crashRecursion];
+  // Set app launch args to trigger different client annotations.
+  NSArray<NSString*>* old_args = app_.launchArguments;
+  app_.launchArguments = @[ @"--alternate-client-annotations" ];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
+
+  app_.launchArguments = old_args;
+
+  // Confirm the initial crash took the standard annotations.
+  NSDictionary* dict = [rootObject_ getProcessAnnotations];
+  XCTAssertTrue([dict[@"crashpad"] isEqualToString:@"yes"]);
+  XCTAssertTrue([dict[@"plat"] isEqualToString:@"iOS"]);
+  XCTAssertTrue([dict[@"prod"] isEqualToString:@"xcuitest"]);
+  XCTAssertTrue([dict[@"ver"] isEqualToString:@"1"]);
+
+  // Confirm passing alternate client annotation args works.
+  [rootObject_ clearPendingReports];
+  [rootObject_ crashKillAbort];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
+
+  dict = [rootObject_ getProcessAnnotations];
+  XCTAssertTrue([dict[@"crashpad"] isEqualToString:@"no"]);
+  XCTAssertTrue([dict[@"plat"] isEqualToString:@"macOS"]);
+  XCTAssertTrue([dict[@"prod"] isEqualToString:@"some_app"]);
+  XCTAssertTrue([dict[@"ver"] isEqualToString:@"42"]);
+}
+
+#if TARGET_OS_SIMULATOR
+- (void)testCrashWithCrashInfoMessage {
+  if (@available(iOS 15.0, *)) {
+    // Figure out how to test this on iOS15.
+    return;
+  }
+  [rootObject_ crashWithCrashInfoMessage];
+  [self verifyCrashReportException:EXC_BAD_ACCESS];
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  NSString* dyldMessage = dict[@"vector"][0];
+  XCTAssertTrue([dyldMessage isEqualToString:@"dyld: in dlsym()"]);
+}
+#endif
+
+// TODO(justincohen): Codesign crashy_initializer.so so it can run on devices.
+#if TARGET_OS_SIMULATOR
+- (void)testCrashWithDyldErrorString {
+  if (@available(iOS 15.0, *)) {
+    // iOS 15 uses dyld4, which doesn't use CRSetCrashLogMessage2
+    return;
+  }
+  [rootObject_ crashWithDyldErrorString];
+#if defined(ARCH_CPU_X86_64)
+  [self verifyCrashReportException:EXC_BAD_INSTRUCTION];
+#elif defined(ARCH_CPU_ARM64)
+  [self verifyCrashReportException:EXC_BREAKPOINT];
+#else
+#error Port to your CPU architecture
+#endif
+  NSArray* vector = [rootObject_ getAnnotations][@"vector"];
+  // This message is set by dyld-353.2.1/src/ImageLoaderMachO.cpp
+  // ImageLoaderMachO::doInitialization().
+  NSString* module = @"crashpad_snapshot_test_module_crashy_initializer.so";
+  XCTAssertTrue([vector[0] hasSuffix:module]);
+}
+#endif
+
+- (void)testCrashWithAnnotations {
+#if TARGET_OS_SIMULATOR
+  // This test will fail on <iOS17 simulators when running on macOS >=14.3 or
+  // <iOS18 simulators when running on macOS >=15.4 due to a bug in Simulator.
+  // crbug.com/328282286
+  if (crashpad::HasMacOSBrokeDYLDTaskInfo()) {
+    return;
+  }
+#endif
+
+  [rootObject_ crashWithAnnotations];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  NSNumber* report_exception;
+  XCTAssertTrue([rootObject_ pendingReportExceptionInfo:&report_exception]);
+  XCTAssertEqual(report_exception.intValue, SIGABRT);
+
+  NSDictionary* dict = [rootObject_ getAnnotations];
+  NSDictionary* simpleMap = dict[@"simplemap"];
+  XCTAssertTrue([simpleMap[@"#TEST# empty_value"] isEqualToString:@""]);
+  XCTAssertTrue([simpleMap[@"#TEST# key"] isEqualToString:@"value"]);
+  XCTAssertTrue([simpleMap[@"#TEST# longer"] isEqualToString:@"shorter"]);
+  XCTAssertTrue([simpleMap[@"#TEST# pad"] isEqualToString:@"crash"]);
+  XCTAssertTrue([simpleMap[@"#TEST# x"] isEqualToString:@"y"]);
+
+  XCTAssertTrue([[dict[@"objects"][0] valueForKeyPath:@"#TEST# same-name"]
+      isEqualToString:@"same-name 4"]);
+  XCTAssertTrue([[dict[@"objects"][1] valueForKeyPath:@"#TEST# same-name"]
+      isEqualToString:@"same-name 3"]);
+  XCTAssertTrue([[dict[@"objects"][2] valueForKeyPath:@"#TEST# one"]
+      isEqualToString:@"moocow"]);
+  // Ensure `ring_buffer` is present but not `busy_ring_buffer`.
+  XCTAssertEqual(1u, [dict[@"ringbuffers"] count]);
+  NSData* ringBufferNSData =
+      [dict[@"ringbuffers"][0] valueForKeyPath:@"#TEST# ring_buffer"];
+  crashpad::RingBufferData ringBufferData;
+  XCTAssertTrue(ringBufferData.DeserializeFromBuffer(ringBufferNSData.bytes,
+                                                     ringBufferNSData.length));
+  crashpad::LengthDelimitedRingBufferReader reader(ringBufferData);
+
+  std::vector<uint8_t> ringBufferEntry;
+  XCTAssertTrue(reader.Pop(ringBufferEntry));
+  NSString* firstEntry = [[NSString alloc] initWithBytes:ringBufferEntry.data()
+                                                  length:ringBufferEntry.size()
+                                                encoding:NSUTF8StringEncoding];
+  XCTAssertEqualObjects(firstEntry, @"hello");
+  ringBufferEntry.clear();
+
+  XCTAssertTrue(reader.Pop(ringBufferEntry));
+  NSString* secondEntry = [[NSString alloc] initWithBytes:ringBufferEntry.data()
+                                                   length:ringBufferEntry.size()
+                                                 encoding:NSUTF8StringEncoding];
+  XCTAssertEqualObjects(secondEntry, @"goodbye");
+  ringBufferEntry.clear();
+
+  XCTAssertFalse(reader.Pop(ringBufferEntry));
+}
+
+- (void)testCrashWithExtraMemory {
+#if TARGET_OS_SIMULATOR
+  // This test will fail on <iOS17 simulators when running on macOS >=14.3 or
+  // <iOS18 simulators when running on macOS >=15.4 due to a bug in Simulator.
+  // crbug.com/328282286
+  if (crashpad::HasMacOSBrokeDYLDTaskInfo()) {
+    return;
+  }
+#endif
+
+  [rootObject_ crashKillAbort];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+
+  NSDictionary* dict = [rootObject_ getExtraMemory];
+  BOOL found = NO;
+  for (NSString* key in dict) {
+    if ([dict[key] isEqualToString:@"hello world"]) {
+      found = YES;
+      break;
+    }
+  }
+  XCTAssertTrue(found);
+}
+
+- (void)testExtensionStreams {
+#if TARGET_OS_SIMULATOR
+  // This test will fail on <iOS17 simulators when running on macOS >=14.3 or
+  // <iOS18 simulators when running on macOS >=15.4 due to a bug in Simulator.
+  // crbug.com/328282286
+  if (crashpad::HasMacOSBrokeDYLDTaskInfo()) {
+    return;
+  }
+#endif
+  [rootObject_ crashKillAbort];
+  [self verifyCrashReportException:EXC_SOFT_SIGNAL];
+  XCTAssertTrue([rootObject_ hasExtensionStream]);
+}
+
+- (void)testDumpWithoutCrash {
+  [rootObject_ generateDumpWithoutCrash:10 threads:3];
+
+  // The app should not crash
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  XCTAssertEqual([rootObject_ pendingReportCount], 30);
+}
+
+- (void)testSimultaneousCrash {
+  [rootObject_ crashConcurrentSignalAndMach];
 
   // Confirm the app is not running.
-  XCTAssertTrue([_app waitForState:XCUIApplicationStateNotRunning timeout:15]);
-  XCTAssertTrue(_app.state == XCUIApplicationStateNotRunning);
+  XCTAssertTrue([app_ waitForState:XCUIApplicationStateNotRunning timeout:15]);
+  XCTAssertTrue(app_.state == XCUIApplicationStateNotRunning);
 
-  // TODO: Query the app for crash data
-  [_app launch];
-  XCTAssertTrue(_app.state == XCUIApplicationStateRunningForeground);
+  [app_ launch];
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+  XCTAssertEqual([rootObject_ pendingReportCount], 1);
+}
+
+- (void)testSimultaneousNSException {
+  [rootObject_ catchConcurrentNSException];
+
+  // The app should not crash
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+
+  // No report should be generated.
+  [rootObject_ processIntermediateDumps];
+  XCTAssertEqual([rootObject_ pendingReportCount], 0);
+}
+
+- (void)testCrashInHandlerReentrant {
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+
+  [rootObject_ crashInHandlerReentrant];
+
+  // Confirm the app is not running.
+  XCTAssertTrue([app_ waitForState:XCUIApplicationStateNotRunning timeout:15]);
+  XCTAssertTrue(app_.state == XCUIApplicationStateNotRunning);
+
+  [app_ launch];
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+
+  XCTAssertEqual([rootObject_ pendingReportCount], 0);
+
+  NSString* rawLogContents = [rootObject_ rawLogContents];
+  NSString* errmsg = @"Cannot DumpExceptionFromSignal without writer";
+  XCTAssertTrue([rawLogContents containsString:errmsg]);
+}
+
+- (void)testFailureWhenHandlerAllocates {
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+
+  [rootObject_ allocateWithForbiddenAllocators];
+
+  // Confirm the app is not running.
+  XCTAssertTrue([app_ waitForState:XCUIApplicationStateNotRunning timeout:15]);
+  XCTAssertTrue(app_.state == XCUIApplicationStateNotRunning);
+
+  [app_ launch];
+  XCTAssertTrue(app_.state == XCUIApplicationStateRunningForeground);
+  rootObject_ = [EDOClientService rootObjectWithPort:12345];
+
+  XCTAssertEqual([rootObject_ pendingReportCount], 0);
+
+  NSString* rawLogContents = [rootObject_ rawLogContents];
+  XCTAssertTrue([rawLogContents containsString:@"allocator used in handler."]);
 }
 
 @end

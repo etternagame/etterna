@@ -133,6 +133,7 @@ local o = Def.ActorFrame {
 				if score ~= nil then
 					if score:HasReplayData() then
 						local replay = score:GetReplay()
+						replay:LoadAllData()
 						dvt = replay:GetOffsetVector()
 						nrt = replay:GetNoteRowVector()
 						ctt = replay:GetTrackVector()
@@ -175,6 +176,7 @@ local o = Def.ActorFrame {
 
 			if score:HasReplayData() then
 				local replay = score:GetReplay()
+				replay:LoadAllData()
 				dvt = replay:GetOffsetVector()
 				nrt = replay:GetNoteRowVector()
 				ctt = replay:GetTrackVector()
@@ -193,6 +195,10 @@ local o = Def.ActorFrame {
 
 			MESSAGEMAN:Broadcast("JudgeDisplayChanged")
 		end
+	end,
+	LoadScoreInOffsetPlotMessageCommand = function(self, params)
+		if params.score == nil then return end
+		self:playcommand("SetFromScore", params)
 	end,
 	LoadedCustomWindowMessageCommand = function(self)
 		usingCustomWindows = true
@@ -263,6 +269,7 @@ local o = Def.ActorFrame {
 		if s then
 			score = s
 			local replay = score:GetReplay()
+			replay:LoadAllData()
 			dvt = replay:GetOffsetVector()
 			nrt = replay:GetNoteRowVector()
 			ctt = replay:GetTrackVector()

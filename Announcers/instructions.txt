@@ -23,28 +23,26 @@ ScreenSelectMusic
 * select music comment hard
 * select music comment new
 * select music comment repeat
-* select course comment general
 
 ScreenGameplay
 * gameplay intro
 * gameplay ready
 * gameplay here we go normal
-* gameplay here we go final
-* gameplay here we go extra
 * gameplay comment hot
 * gameplay comment danger
 * gameplay comment good
-* gameplay comment oni
 * gameplay (100-1000) combo
 * gameplay combo stopped
 * gameplay combo overflow
-* gameplay battle trick level(1-3)
-* gameplay battle damage level(1-3)
 * gameplay extra
 * gameplay cleared
 * gameplay failed
-* gameplay oni failed
-* gameplay oni failed halfway
+
+ScreenEvaluation
+* evaluation new record
+* evaluation full combo (W1-W4)
+* evaluation (aaaaa-f)
+* evaluation cheer
 
 MenuTimer
 * hurry up

@@ -1,0 +1,1957 @@
+#include "Etterna/Globals/global.h"
+#include "ETTProtocol.h"
+#include "Etterna/Singletons/NetworkSyncManager.h"
+#include "Core/Services/Locator.hpp"
+#include "Etterna/Singletons/ScreenManager.h"
+#include "Etterna/Singletons/SongManager.h"
+#include "Etterna/Models/Songs/Song.h"
+#include "Etterna/Screen/Others/ScreenMessage.h"
+#include "Etterna/Singletons/GameState.h"
+#include "Etterna/Singletons/StatsManager.h"
+#include "Etterna/Models/Misc/PlayerState.h"
+#include "Etterna/Screen/Network/ScreenNetRoom.h"
+#include "Etterna/Models/Misc/LocalizedString.h"
+#include "Etterna/Singletons/ReplayManager.h"
+
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+#include <curl/curl.h>
+
+#include <cerrno>
+#include <chrono>
+#include <cmath>
+#include <array>
+#ifndef _WIN32
+#include <arpa/inet.h>
+#endif
+
+AutoScreenMessage(SM_AddToChat);
+AutoScreenMessage(SM_GotEval);
+AutoScreenMessage(SM_FriendsUpdate);
+
+AutoScreenMessage(ETTP_Disconnect);
+AutoScreenMessage(ETTP_LoginResponse);
+AutoScreenMessage(ETTP_IncomingChat);
+AutoScreenMessage(ETTP_RoomsChange);
+AutoScreenMessage(ETTP_SelectChart);
+AutoScreenMessage(ETTP_StartChart);
+
+static LocalizedString LOGIN_TIMEOUT("NetworkSyncManager", "LoginTimeout");
+
+// need it to be reasonably large
+// but if too big it can blow the stack
+// or some other dumb consequence
+static constexpr long INCOMING_BUFFER_SIZE = 128000;
+
+static RoomData
+jsonToRoom(rapidjson::Value& room)
+{
+	RoomData tmp;
+	std::string s = room.HasMember("name") && room["name"].IsString()
+					  ? room["name"].GetString()
+					  : "";
+	tmp.SetName(s);
+	s = room.HasMember("desc") && room["desc"].IsString()
+		  ? room["desc"].GetString()
+		  : "";
+	tmp.SetDescription(s);
+	unsigned int state = room.HasMember("state") && room["state"].IsUint()
+						   ? room["state"].GetUint()
+						   : 0;
+	tmp.SetState(state);
+	tmp.SetHasPassword(room.HasMember("pass") && room["pass"].IsBool()
+						 ? room["pass"].GetBool()
+						 : false);
+	for (auto& player : room["players"].GetArray())
+		if (player.IsString())
+			tmp.players.push_back(player.GetString());
+	return tmp;
+}
+
+// Utility function (Since json needs to be valid utf8)
+static std::string
+correct_non_utf_8(std::string* str)
+{
+	int i, f_size = str->size();
+	unsigned char c = 0, c2 = 0, c3 = 0, c4 = 0;
+	std::string to;
+	to.reserve(f_size);
+
+	for (i = 0; i < f_size; i++) {
+		c = static_cast<unsigned char>((*str)[i]);
+		if (c < 32) {							// control char
+			if (c == 9 || c == 10 || c == 13) { // allow only \t \n \r
+				to.append(1, c);
+			}
+			continue;
+		}
+		if (c < 127) { // normal ASCII
+			to.append(1, c);
+			continue;
+		}
+		if (c < 160) {		 // control char (nothing should be defined here
+							 // either ASCI, ISO_8859-1 or UTF8, so skipping)
+			if (c2 == 128) { // fix microsoft mess, add euro
+				to.append(1, static_cast<unsigned char>(226));
+				to.append(1, static_cast<unsigned char>(130));
+				to.append(1, static_cast<unsigned char>(172));
+			}
+			if (c2 == 133) { // fix IBM mess, add NEL = \n\r
+				to.append(1, 10);
+				to.append(1, 13);
+			}
+			continue;
+		}
+		if (c < 192) { // invalid for UTF8, converting ASCII
+			to.append(1, static_cast<unsigned char>(194));
+			to.append(1, c);
+			continue;
+		}
+		if (c < 194) { // invalid for UTF8, converting ASCII
+			to.append(1, static_cast<unsigned char>(195));
+			to.append(1, c - 64);
+			continue;
+		}
+
+		if (c < 224 && i + 1 < f_size) { // possibly 2byte UTF8
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			if (c2 > 127 && c2 < 192) {		// valid 2byte UTF8
+				if (c == 194 && c2 < 160) { // control char, skipping
+				} else {
+					to.append(1, c);
+					to.append(1, c2);
+				}
+				i++;
+				continue;
+			}
+		} else if (c < 240 && i + 2 < f_size) { // possibly 3byte UTF8
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			c3 = static_cast<unsigned char>((*str)[i + 2]);
+			if (c2 > 127 && c2 < 192 && c3 > 127 &&
+				c3 < 192) { // valid 3byte UTF8
+				to.append(1, c);
+				to.append(1, c2);
+				to.append(1, c3);
+				i += 2;
+				continue;
+			}
+		} else if (c < 245 && i + 3 < f_size) { // possibly 4byte UTF8
+			c2 = static_cast<unsigned char>((*str)[i + 1]);
+			c3 = static_cast<unsigned char>((*str)[i + 2]);
+			c4 = static_cast<unsigned char>((*str)[i + 3]);
+			if (c2 > 127 && c2 < 192 && c3 > 127 && c3 < 192 && c4 > 127 &&
+				c4 < 192) { // valid 4byte UTF8
+				to.append(1, c);
+				to.append(1, c2);
+				to.append(1, c3);
+				to.append(1, c4);
+				i += 3;
+				continue;
+			}
+		}
+		// invalid UTF8, converting ASCII (c>245 || string too short for
+		// multi-byte))
+		to.append(1, static_cast<unsigned char>(195));
+		to.append(1, c - 64);
+	}
+	return to;
+}
+
+static std::string
+correct_non_utf_8(const std::string& str)
+{
+	std::string stdStr = str.c_str();
+	auto utf8ValidStr = correct_non_utf_8(&stdStr);
+	return utf8ValidStr;
+}
+
+static inline rapidjson::Value
+stringToVal(const std::string& str,
+			rapidjson::Document::AllocatorType& allocator,
+			std::string defaultVal = "")
+{
+	rapidjson::Value v;
+	if (str.empty()) {
+		v.SetString(defaultVal.c_str(), allocator);
+	} else {
+		v.SetString(str.c_str(), allocator);
+	}
+	return v;
+}
+
+static inline void
+addStringMember(rapidjson::Value& doc,
+				rapidjson::GenericStringRef<char> name,
+				const std::string& str,
+				rapidjson::Document::AllocatorType& allocator)
+{
+	doc.AddMember(name, stringToVal(str, allocator), allocator);
+}
+
+ETTProtocol::~ETTProtocol()
+{
+	close();
+	if (curl != nullptr) {
+		curl_easy_cleanup(curl);
+	}
+}
+
+bool
+ETTProtocol::Connect(NetworkSyncManager* n,
+					 unsigned short port,
+					 std::string address)
+{
+	close();
+	n->isSMOnline = false;
+	msgId = 0;
+	bool finished_connecting = false;
+
+	try {
+
+		curl = curl_easy_init();
+		if (curl == nullptr) {
+			throw std::runtime_error("failed to initialize curl");
+		}
+
+		std::string url = fmt::format("{}{}:{}",
+									  address.starts_with("wss://")	  ? ""
+									  : address.starts_with("ws://") ? ""
+																	  : "ws://",
+									  address,
+									  port);
+		auto res = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		if (res != CURLE_OK) {
+			throw std::runtime_error(
+			  fmt::format("curlopt_url failed: {}", curl_easy_strerror(res)));
+		}
+
+		res = curl_easy_setopt(curl, CURLOPT_BUFFERSIZE, INCOMING_BUFFER_SIZE);
+		if (res != CURLE_OK) {
+			throw std::runtime_error(fmt::format(
+			  "curlopt_buffersize failed: {}", curl_easy_strerror(res)));
+		}
+
+		res = curl_easy_setopt(curl, CURLOPT_CONNECT_ONLY, 2L);
+		if (res != CURLE_OK) {
+			throw std::runtime_error(fmt::format(
+			  "curlopt_connect_only failed: {}", curl_easy_strerror(res)));
+		}
+
+		res = curl_easy_perform(curl);
+		if (res != CURLE_OK) {
+			throw std::runtime_error(fmt::format("curl_easy_perform failed: {}",
+												 curl_easy_strerror(res)));
+		}
+	} catch (std::runtime_error& e) {
+		Locator::getLogger()->error(
+		  "There was a problem connecting to multiplayer:: {}", e.what());
+		return false;
+	}
+
+	finished_connecting = true;
+	n->isSMOnline = true;
+	Locator::getLogger()->info("Connected to ett server: {}", address.c_str());
+
+	LaunchPollingThread();
+	LaunchSendingThread();
+
+	return n->isSMOnline;
+}
+
+void
+ETTProtocol::FindJsonChart(NetworkSyncManager* n, rapidjson::Value& ch)
+{
+	n->song = nullptr;
+	n->steps = nullptr;
+	n->rate =
+	  ch.HasMember("rate") && ch["rate"].IsInt() ? ch["rate"].GetInt() : 0;
+	n->chartkey = ch.HasMember("chartkey") && ch["chartkey"].IsString()
+					? ch["chartkey"].GetString()
+					: "";
+	n->m_sFileHash = ch.HasMember("filehash") && ch["filehash"].IsString()
+					   ? ch["filehash"].GetString()
+					   : "";
+	n->m_sMainTitle = ch.HasMember("title") && ch["title"].IsString()
+						? ch["title"].GetString()
+						: "";
+	n->m_sSubTitle = ch.HasMember("subtitle") && ch["subtitle"].IsString()
+					   ? ch["subtitle"].GetString()
+					   : "";
+	n->m_sArtist = ch.HasMember("artist") && ch["artist"].IsString()
+					 ? ch["artist"].GetString()
+					 : "";
+	n->difficulty = StringToDifficulty(ch.HasMember("difficulty") &&
+										   ch["difficulty"].IsString()
+										 ? ch["difficulty"].GetString()
+										 : "Invalid");
+	n->meter =
+	  ch.HasMember("meter") && ch["meter"].IsInt() ? ch["meter"].GetInt() : -1;
+
+	if (!n->chartkey.empty()) {
+		auto song = SONGMAN->GetSongByChartkey(n->chartkey);
+		if (song == nullptr)
+			return;
+		if ((n->m_sArtist.empty() ||
+			 n->m_sArtist == song->GetTranslitArtist()) &&
+			(n->m_sMainTitle.empty() ||
+			 n->m_sMainTitle == song->GetTranslitMainTitle()) &&
+			(n->m_sSubTitle.empty() ||
+			 n->m_sSubTitle == song->GetTranslitSubTitle()) &&
+			(n->m_sFileHash.empty() || n->m_sFileHash == song->GetFileHash())) {
+			for (auto& steps : song->GetAllSteps()) {
+				if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+					(n->difficulty == Difficulty_Invalid ||
+					 n->difficulty == steps->GetDifficulty()) &&
+					(n->chartkey == steps->GetChartKey())) {
+					n->song = song;
+					n->steps = steps;
+					break;
+				}
+			}
+		}
+	} else {
+		std::vector<Song*> AllSongs = SONGMAN->GetAllSongs();
+		for (size_t i = 0; i < AllSongs.size(); i++) {
+			auto& m_cSong = AllSongs[i];
+			if ((n->m_sArtist.empty() ||
+				 n->m_sArtist == m_cSong->GetTranslitArtist()) &&
+				(n->m_sMainTitle.empty() ||
+				 n->m_sMainTitle == m_cSong->GetTranslitMainTitle()) &&
+				(n->m_sSubTitle.empty() ||
+				 n->m_sSubTitle == m_cSong->GetTranslitSubTitle()) &&
+				(n->m_sFileHash.empty() ||
+				 n->m_sFileHash == m_cSong->GetFileHash())) {
+				if (n->meter > 0 || n->difficulty != Difficulty_Invalid)
+					for (auto& steps : m_cSong->GetAllSteps()) {
+						if ((n->meter == -1 || n->meter == steps->GetMeter()) &&
+							(n->difficulty == Difficulty_Invalid ||
+							 n->difficulty == steps->GetDifficulty())) {
+							n->song = m_cSong;
+							n->steps = steps;
+							break;
+						}
+					}
+				if (n->song != nullptr)
+					break;
+				n->song = m_cSong;
+				break;
+			}
+		}
+	}
+}
+
+void
+ETTProtocol::Send(const std::string& str)
+{
+	if (curl == nullptr) {
+		Locator::getLogger()->warn(
+		  "ETTProtocol curl handle is null, so message is not sent");
+		return;
+	}
+
+	std::scoped_lock<std::mutex> lock(sendBufferMutex);
+	messagesToSend.push_back(str);
+}
+
+void
+ETTProtocol::LaunchSendingThread()
+{
+	if (sendingThread != nullptr) {
+		stopSending = true;
+		if (sendingThread->joinable()) {
+			sendingThread->join();
+		}
+		stopSending = false;
+	}
+
+	auto loop = [&]() {
+
+		auto send = [&](std::string str) {
+			CURLcode result = CURLE_OK;
+			size_t offset = 0;
+			auto buffer = str.c_str();
+
+			while (!result) {
+				size_t sent = 0;
+				result = curl_ws_send(curl,
+									  buffer + offset,
+									  strlen(buffer) - offset,
+									  &sent,
+									  0,
+									  CURLWS_TEXT);
+
+				offset += sent;
+				switch (result) {
+					case CURLE_OK: {
+						if (offset == strlen(buffer))
+							// success, exit
+							return;
+						else
+							Locator::getLogger()->info(
+							  "ETTProtocol is sending a large WS "
+							  "message");
+						break;
+					}
+					case CURLE_AGAIN: {
+						// wait and maybe it works later
+						Locator::getLogger()->warn(
+						  "ETTProtocol returned CURLE_AGAIN. Waiting "
+						  "10ms");
+						std::this_thread::sleep_for(
+						  std::chrono::milliseconds(10));
+						result = CURLE_OK;
+						break;
+					}
+					default: {
+						Locator::getLogger()->warn(
+						  "ETTProtocol got unexpected CURLE: {}",
+						  static_cast<size_t>(result));
+						return;
+					}
+				}
+			}
+		};
+
+		std::vector<std::string> bufferedSendMessages{};
+
+		while (!stopSending) {
+			if (NSMAN == nullptr)
+				return;
+			{
+				std::scoped_lock<std::mutex> lock(sendBufferMutex);
+
+				bufferedSendMessages = messagesToSend;
+				messagesToSend.clear();
+			}
+
+			if (curl != nullptr) {
+				std::scoped_lock<std::mutex> lock(curlMutex);
+
+				for (auto& str : bufferedSendMessages) {
+					send(str);
+				}
+			}
+			bufferedSendMessages.clear();
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	};
+
+	stopSending = false;
+	sendingThread = std::make_unique<std::thread>(loop);
+}
+
+void
+ETTProtocol::LaunchPollingThread()
+{
+	if (receivingThread != nullptr) {
+		stopPolling = true;
+		if (receivingThread->joinable()) {
+			receivingThread->join();
+		}
+		stopPolling = false;
+	}
+
+	auto loop = [&]() {
+		std::string message;
+		std::vector<char> buffer(INCOMING_BUFFER_SIZE, '\0');
+
+		while (!stopPolling) {
+			if (NSMAN == nullptr)
+				return;
+			{
+				std::scoped_lock<std::mutex> lock(curlMutex);
+				size_t rlen = 0;
+				const struct curl_ws_frame* meta = nullptr;
+				do {
+					CURLcode result = curl_ws_recv(
+					  curl, buffer.data(), INCOMING_BUFFER_SIZE, &rlen, &meta);
+					if (result == CURLE_AGAIN) {
+						// almost always means nothing to us
+						// just move on so that the lock can be released
+					} else if (result != CURLE_OK) {
+						// a lot of these mean that connection is lost
+						// so kill it
+						Locator::getLogger()->error(
+						  "CURL request from ETTP failed (FORCING A "
+						  "DISCONNECT!): {}",
+						  curl_easy_strerror(result));
+						stopPolling = true;
+						NSMAN->need_to_disconnect = true;
+						SCREENMAN->SystemMessage(
+						  "Disconnecting due to network error.");
+						break;
+					} else {
+						buffer[rlen] = '\0';
+						message += buffer.data();
+					}
+				} while (meta != nullptr && meta->bytesleft > 0);
+			}
+
+			if (message.empty()) {
+				continue;
+			}
+
+			std::unique_ptr<rapidjson::Document> d(new rapidjson::Document);
+			if (d->Parse(message.c_str()).HasParseError()) {
+				// ideally, this just means
+				// we got a huge chunk and it isnt parseable
+				// until we get the whole thing
+				// so hide the message unless someone cares
+				Locator::getLogger()->debug(
+				  "Error while processing ettprotocol json (message: {} )",
+				  message.data());
+			} else {
+				std::scoped_lock<std::mutex> l(this->messageBufferMutex);
+				this->newMessages.push_back(std::move(d));
+				message.clear();
+			}
+			std::fill(buffer.begin(), buffer.end(), '\0');
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+		}
+	};
+
+	stopPolling = false;
+	receivingThread = std::make_unique<std::thread>(loop);
+}
+
+rapidjson::Document
+ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
+{
+	rapidjson::Document d;
+	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
+
+	const auto& typeStr = NetworkConstants::ettClientMessageMap[msgType];
+	Locator::getLogger()->info("NSMAN Sending ETTP message type '{}'",
+								typeStr);
+
+	d.SetObject();
+	d.AddMember("id", msgId++, allocator);
+	addStringMember(d, "type", typeStr, allocator);
+	//d.AddMember("userid", NSMAN->loggedInUsername, allocator);
+
+	return d;
+}
+void
+ETTProtocol::completeAndSend(rapidjson::Document& doc)
+{
+	rapidjson::StringBuffer buffer;
+	rapidjson::Writer<rapidjson::StringBuffer> w(buffer);
+	doc.Accept(w);
+
+	Send(buffer.GetString());
+}
+
+void
+ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
+{
+	if (this->curl == nullptr) {
+		Locator::getLogger()->info("Disconnected from ett server {}",
+								   serverName.c_str());
+		n->isSMOnline = false;
+		n->CloseConnection();
+		SCREENMAN->SendMessageToTopScreen(ETTP_Disconnect);
+	}
+	if (waitingForTimeout) {
+		clock_t now = clock();
+		double elapsed_secs =
+		  static_cast<double>(now - timeoutStart) / CLOCKS_PER_SEC;
+		if (elapsed_secs > timeout) {
+			onTimeout();
+			waitingForTimeout = false;
+		}
+	}
+	std::lock_guard<std::mutex> l(this->messageBufferMutex);
+	for (auto iterator = newMessages.begin(); iterator != newMessages.end();
+		 iterator++) {
+		try {
+			rapidjson::Document& d = **iterator;
+			if (!d.HasMember("type") || !d["type"].IsString()) {
+				rapidjson::StringBuffer buffer;
+				rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+				d.Accept(writer);
+				Locator::getLogger()->warn(
+				  "Recieved ETTP message with no type: {}", buffer.GetString());
+				continue;
+			}
+			if (d.HasMember("error") && d["error"].IsString()) {
+				Locator::getLogger()->error("Error on ETTP message {}: {}",
+											d["type"].GetString(),
+											d["error"].GetString());
+				continue;
+			}
+
+			auto type = NetworkConstants::ettServerMessageMap.find(d["type"].GetString());
+			if (NetworkConstants::ettServerMessageMap.end() == type) {
+				Locator::getLogger()->warn("Unknown ETTP message type {}",
+										   d["type"].GetString());
+				continue;
+			} else {
+				Locator::getLogger()->info(
+				  "NSMAN Received ETTP message type '{}'", type->first);
+			}
+
+			switch (type->second) {
+				case ettps_loginresponse: {
+					auto& payload = d["payload"];
+					handleLogin(payload);
+
+				} break;
+				case ettps_hello: {
+					auto& payload = d["payload"];
+					handleHello(payload);
+
+				} break;
+				case ettps_recievescore: {
+					auto& payload = d["payload"];
+					handleReceiveScore(payload);
+					
+				} break;
+				case ettps_ping: {
+					handlePing();
+
+				} break;
+				case ettps_selectchart: {
+					auto& payload = d["payload"];
+					handleSelectChart(payload);
+
+				} break;
+				case ettps_startchart: {
+					auto& payload = d["payload"];
+					handleStartChart(payload);
+
+				} break;
+				case ettps_recievechat: {
+					auto& payload = d["payload"];
+					handleReceiveChat(payload);
+
+				} break;
+				case ettps_mpleaderboardupdate: {
+					auto& payload = d["payload"];
+					handleMPLeaderboardUpdate(payload);
+
+				} break;
+				case ettps_createroomresponse: {
+					auto& payload = d["payload"];
+					handleCreateRoomResponse(payload);
+
+				} break;
+				case ettps_chartrequest: {
+					auto& payload = d["payload"];
+					handleChartRequest(payload);
+
+				} break;
+				case ettps_enterroomresponse: {
+					auto& payload = d["payload"];
+					handleEnterRoomResponse(payload);
+
+				} break;
+				case ettps_newroom: {
+					auto& payload = d["payload"];
+					handleNewRoom(payload);
+
+				} break;
+				case ettps_deleteroom: {
+					auto& payload = d["payload"];
+					handleDeleteRoom(payload);
+
+				} break;
+				case ettps_updateroom: {
+					auto& payload = d["payload"];
+					handleUpdateRoom(payload);
+
+				} break;
+				case ettps_lobbyuserlist: {
+					auto& payload = d["payload"];
+					handleLobbyUserlist(payload);
+
+				} break;
+				case ettps_lobbyuserlistupdate: {
+					auto& payload = d["payload"];
+					handleLobbyUserlistUpdate(payload);
+
+				} break;
+				case ettps_roomlist: {
+					auto& payload = d["payload"];
+					handleRoomlist(payload);
+
+				} break;
+				case ettps_roompacklist: {
+					auto& payload = d["payload"];
+					handleRoomPacklist(payload);
+
+				} break;
+				case ettps_roomuserlist: {
+					auto& payload = d["payload"];
+					handleRoomUserlist(payload);
+
+				} break;
+				case ettps_gameplay_replay_update: {
+					auto& payload = d["payload"];
+					handleGameplayReplayUpdate(payload);
+
+				} break;
+				case ettps_spectating_update: {
+					auto& payload = d["payload"];
+					handleSpectatingUpdate(payload);
+
+				} break;
+				case ettps_end:
+				default:
+					break;
+			}
+		} catch (std::exception& e) {
+			Locator::getLogger()->error(
+			  "Error while parsing ettp json message: {}", e.what());
+		}
+	}
+	newMessages.clear();
+}
+
+void
+ETTProtocol::handleLogin(rapidjson::Value& payload) {
+	waitingForTimeout = false;
+	if (!(NSMAN->loggedIn = payload.HasMember("logged") &&
+						payload["logged"].IsBool() &&
+							payload["logged"].GetBool())) {
+		if (payload.HasMember("msg") && payload["msg"].IsString())
+			NSMAN->loginResponse = payload["msg"].GetString();
+		else
+			NSMAN->loginResponse = "";
+		NSMAN->loggedInUsername.clear();
+	} else {
+		NSMAN->loginResponse = "";
+	}
+	SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
+}
+
+void
+ETTProtocol::handleHello(rapidjson::Value& payload) {
+	if (payload.HasMember("name") && payload["name"].IsString())
+		serverName = payload["name"].GetString();
+	else
+		serverName = "";
+
+	if (payload.HasMember("version") && payload["version"].IsInt())
+		serverVersion = payload["version"].GetInt();
+	else
+		serverVersion = 1;
+
+	Locator::getLogger()->info("Ettp server identified: {} (Version: {})",
+							   serverName.c_str(),
+							   serverVersion);
+	NSMAN->DisplayStartupStatus();
+
+	if (curl != nullptr) {
+		auto doc = newMsg(ettpc_hello);
+		auto& allocator = doc.GetAllocator();
+
+		rapidjson::Value sendPayload(rapidjson::Type::kObjectType);
+		{
+			sendPayload.AddMember("version", ETTPCVERSION, allocator);
+			addStringMember(
+			  sendPayload, "client", GAMESTATE->GetEtternaVersion(), allocator);
+
+			rapidjson::Value packArr(rapidjson::Type::kArrayType);
+			auto& packs = SONGMAN->GetSongGroupNames();
+			for (auto& pack : packs) {
+				packArr.PushBack(
+				  stringToVal(correct_non_utf_8(pack), allocator), allocator);
+			}
+			sendPayload.AddMember("packs", packArr, allocator);
+		}
+		doc.AddMember("payload", sendPayload, allocator);
+
+		completeAndSend(doc);
+	}
+}
+
+void
+ETTProtocol::handleReceiveScore(rapidjson::Value& payload)
+{
+	auto& score = payload["score"];
+	HighScore hs;
+	EndOfGame_PlayerData result;
+
+	hs.SetScoreKey(score.HasMember("scorekey") && score["scorekey"].IsString()
+					 ? score["scorekey"].GetString()
+					 : "");
+	hs.SetSSRNormPercent(score.HasMember("ssr_norm") &&
+							 score["ssr_norm"].IsNumber()
+						   ? score["ssr_norm"].GetFloat()
+						   : 0);
+	hs.SetEtternaValid(score.HasMember("valid") && score["valid"].IsInt()
+						 ? score["valid"].GetInt() != 0
+						 : true);
+	hs.SetModifiers(score.HasMember("mods") && score["mods"].IsString()
+					  ? score["mods"].GetString()
+					  : "");
+	if (score.HasMember("wifever") && score["wifever"].IsInt())
+		hs.SetWifeVersion(score["wifever"].GetInt());
+	RadarValues rv;
+	FOREACH_ENUM(RadarCategory, rc)
+	{
+		auto rcs = RadarCategoryToString(rc).c_str();
+		if (score.HasMember(rcs) && score[rcs].IsInt()) {
+			rv[rc] = score[rcs].GetInt();
+		}
+	}
+	hs.SetRadarValues(rv);
+
+	FOREACH_ENUM(Skillset, ss)
+	{
+		auto str = SkillsetToString(ss);
+		hs.SetSkillsetSSR(ss,
+						  score.HasMember(str.c_str()) &&
+							  score[str.c_str()].IsNumber()
+							? score[str.c_str()].GetFloat()
+							: 0);
+	}
+	auto wife_score = score.HasMember("score") && score["score"].IsNumber()
+						? score["score"].GetFloat()
+						: 0.0f;
+	hs.SetSSRNormPercent(wife_score);
+	hs.SetWifeScore(wife_score);
+	auto marv = score.HasMember("marv") && score["marv"].IsInt()
+				  ? score["marv"].GetInt()
+				  : 0;
+	result.tapScores[0] = marv;
+	hs.SetTapNoteScore(TNS_W1, marv);
+	auto perfect = score.HasMember("perfect") && score["perfect"].IsInt()
+					 ? score["perfect"].GetInt()
+					 : 0;
+	result.tapScores[1] = perfect;
+	hs.SetTapNoteScore(TNS_W2, perfect);
+	auto great = score.HasMember("great") && score["great"].IsInt()
+				   ? score["great"].GetInt()
+				   : 0;
+	result.tapScores[2] = great;
+	hs.SetTapNoteScore(TNS_W3, great);
+	auto good = score.HasMember("good") && score["good"].IsInt()
+				  ? score["good"].GetInt()
+				  : 0;
+	result.tapScores[3] = good;
+	hs.SetTapNoteScore(TNS_W4, good);
+	auto bad = score.HasMember("bad") && score["bad"].IsInt()
+				 ? score["bad"].GetInt()
+				 : 0;
+	result.tapScores[4] = bad;
+	hs.SetTapNoteScore(TNS_W5, bad);
+	auto miss = score.HasMember("miss") && score["miss"].IsInt()
+				  ? score["miss"].GetInt()
+				  : 0;
+	result.tapScores[5] = miss;
+	hs.SetTapNoteScore(TNS_Miss, miss);
+	result.tapScores[6] = 0;
+	auto max_combo = score.HasMember("max_combo") && score["max_combo"].IsInt()
+					   ? score["max_combo"].GetInt()
+					   : 0;
+	result.tapScores[7] = max_combo;
+	hs.SetMaxCombo(max_combo);
+	hs.SetGrade(PlayerStageStats::GetGrade(hs.GetSSRNormPercent()));
+	hs.SetDateTime(DateTime());
+	hs.SetTapNoteScore(TNS_HitMine,
+					   score.HasMember("hitmine") && score["hitmine"].IsInt()
+						 ? score["hitmine"].GetInt()
+						 : 0);
+	hs.SetHoldNoteScore(HNS_Held,
+						score.HasMember("held") && score["held"].IsInt()
+						  ? score["held"].GetInt()
+						  : 0);
+	hs.SetChartKey(score.HasMember("chartkey") && score["chartkey"].IsString()
+					 ? score["chartkey"].GetString()
+					 : "");
+	hs.SetHoldNoteScore(HNS_LetGo,
+						score.HasMember("letgo") && score["letgo"].IsInt()
+						  ? score["letgo"].GetInt()
+						  : 0);
+	hs.SetHoldNoteScore(
+	  HNS_Missed,
+	  score.HasMember("ng") && score["ng"].IsInt() ? score["ng"].GetInt() : 0);
+	hs.SetChordCohesion(!(score.HasMember("nocc") && score["nocc"].IsBool() &&
+						  score["nocc"].GetBool()));
+	hs.SetMusicRate(score.HasMember("rate") && score["rate"].IsNumber()
+					  ? score["rate"].GetFloat()
+					  : 0.1f);
+	if (score.HasMember("replay") && score["replay"].IsObject() &&
+		score["replay"].HasMember("offsets") &&
+		score["replay"]["offsets"].IsArray() &&
+		score["replay"].HasMember("noterows") &&
+		score["replay"]["noterows"].IsArray() &&
+		score["replay"].HasMember("tracks") &&
+		score["replay"]["tracks"].IsArray()) {
+		auto& replay = score["replay"];
+		auto& offsets = replay["offsets"];
+		auto& noterows = replay["noterows"];
+		auto& tracks = replay["tracks"];
+		std::vector<float> v_offsets;
+		std::vector<int> v_noterows;
+		std::vector<int> v_tracks;
+		for (auto& offset : offsets.GetArray())
+			if (offset.IsNumber())
+				v_offsets.push_back(offset.GetFloat());
+		for (auto& noterow : noterows.GetArray())
+			if (noterow.IsInt())
+				v_noterows.push_back(noterow.GetInt());
+		for (auto& track : tracks.GetArray())
+			if (track.IsInt())
+				v_tracks.push_back(track.GetInt());
+		hs.SetOffsetVector(v_offsets);
+		hs.SetNoteRowVector(v_noterows);
+		hs.SetTrackVector(v_tracks);
+
+		// add some backwards compatibility with pre 0.71
+		// multi users
+		if (replay.HasMember("notetypes") && replay["notetypes"].IsArray()) {
+			auto& notetypes = replay["notetypes"];
+			std::vector<TapNoteType> v_types;
+			for (auto& type : notetypes.GetArray())
+				if (type.IsInt())
+					v_types.push_back(static_cast<TapNoteType>(type.GetInt()));
+			hs.SetTapNoteTypeVector(v_types);
+		}
+	}
+	result.nameStr = payload["name"].GetString();
+	result.hs = hs;
+	result.playerOptions =
+	  payload.HasMember("options") && payload["options"].IsString()
+		? payload["options"].GetString()
+		: "";
+
+	NSMAN->m_EvalPlayerData.push_back(result);
+	NSMAN->m_ActivePlayers = NSMAN->m_EvalPlayerData.size();
+	MESSAGEMAN->Broadcast("NewMultiScore");
+}
+
+void
+ETTProtocol::handlePing()
+{
+	auto doc = newMsg(ettpc_ping);
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::handleSelectChart(rapidjson::Value& payload)
+{
+	NSMAN->mpleaderboard.clear();
+
+	if (!payload.HasMember("chart") || !payload["chart"].IsObject())
+		return;
+
+	auto& ch = payload["chart"];
+	FindJsonChart(NSMAN, ch);
+
+	const auto type =
+	  NSMAN->song != nullptr ? ettpc_haschart : ettpc_missingchart;
+	auto doc = newMsg(type);
+
+	if (type == ettpc_haschart) {
+		SCREENMAN->SendMessageToTopScreen(ETTP_SelectChart);
+	}
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::handleStartChart(rapidjson::Value& payload)
+{
+	NSMAN->mpleaderboard.clear();
+	NSMAN->m_EvalPlayerData.clear();
+
+	if (!payload.HasMember("chart") || !payload["chart"].IsObject())
+		return;
+
+	auto& ch = payload["chart"];
+	FindJsonChart(NSMAN, ch);
+
+	std::string whom = payload["userid"].GetString();
+	std::string ck = ch["chartkey"].GetString();
+	float rate = ch["rate"].GetInt() / 1000.F;
+	float songoffset = ch["songoffset"].GetInt() / 1000.F;
+	float globaloffset = ch["globaloffset"].GetInt() / 1000.F;
+	int rng = payload["rng"].GetInt();
+	std::string mods = payload["mods"].GetString();
+
+	REPLAYS->InitReplayPlaybackForSpectate(
+	  whom, ck, rate, songoffset, globaloffset, rng, mods);
+
+	const auto type = NSMAN->song != nullptr && state == 0
+						? ettpc_startingchart
+						: ettpc_notstartingchart;
+	auto doc = newMsg(type);
+
+	if (type == ettpc_startingchart) {
+		SCREENMAN->SendMessageToTopScreen(ETTP_StartChart);
+	}
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::handleReceiveChat(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("msgtype") || !payload["msgtype"].IsInt() ||
+		!payload.HasMember("tab") || !payload["tab"].IsString() ||
+		!payload.HasMember("msg") || !payload["msg"].IsString())
+		return;
+
+	// chat[tabname, tabtype] = msg
+	int type = payload["msgtype"].GetInt();
+	const char* tab = payload["tab"].GetString();
+
+	NSMAN->chat[{ tab, type }].push_back(payload["msg"].GetString());
+
+	SCREENMAN->SendMessageToTopScreen(ETTP_IncomingChat);
+
+	Message msg("Chat");
+	msg.SetParam("tab", std::string(tab));
+	msg.SetParam("msg", std::string(payload["msg"].GetString()));
+	msg.SetParam("type", type);
+
+	MESSAGEMAN->Broadcast(msg);
+}
+
+void
+ETTProtocol::handleMPLeaderboardUpdate(rapidjson::Value& payload)
+{
+	if (!PREFSMAN->m_bEnableScoreboard) {
+		return;
+	}
+
+	auto& scores = payload["scores"];
+	for (auto& score : scores.GetArray()) {
+		if (!score.HasMember("wife") || !score["wife"].IsNumber() ||
+			!score.HasMember("jdgstr") || !score["jdgstr"].IsString() ||
+			!score.HasMember("user") || !score["user"].IsString())
+			continue;
+
+		float wife = score["wife"].GetFloat();
+		std::string jdgstr = score["jdgstr"].GetString();
+		std::string user = score["user"].GetString();
+
+		NSMAN->mpleaderboard[user].wife = wife;
+		NSMAN->mpleaderboard[user].jdgstr = jdgstr;
+	}
+
+	Message msg("MPLeaderboardUpdate");
+	MESSAGEMAN->Broadcast(msg);
+}
+
+void
+ETTProtocol::handleCreateRoomResponse(rapidjson::Value& payload)
+{
+	bool created = payload.HasMember("created") &&
+				   payload["created"].IsBool() && payload["created"].GetBool();
+	inRoom = created;
+
+	if (created) {
+		Message msg(MessageIDToString(Message_UpdateScreenHeader));
+		msg.SetParam("Header", roomName);
+		msg.SetParam("Subheader", roomDesc);
+
+		MESSAGEMAN->Broadcast(msg);
+
+		std::string SMOnlineSelectScreen =
+		  THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+		SCREENMAN->SendMessageToTopScreen(SM_GoToNextScreen);
+	}
+}
+
+void
+ETTProtocol::handleChartRequest(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("rate") || !payload["rate"].IsInt() ||
+		!payload.HasMember("chartkey") || !payload["chartkey"].IsString() ||
+		!payload.HasMember("requester") || !payload["requester"].IsString())
+		return;
+
+	NSMAN->requests.push_back(new ChartRequest(payload["chartkey"].GetString(),
+											   payload["requester"].GetString(),
+											   payload["rate"].GetInt()));
+
+	Message msg("ChartRequest");
+	MESSAGEMAN->Broadcast(msg);
+}
+
+void
+ETTProtocol::handleEnterRoomResponse(rapidjson::Value& payload)
+{
+	bool entered = payload["entered"].GetBool();
+	inRoom = false;
+
+	if (entered) {
+		try {
+			Message msg(MessageIDToString(Message_UpdateScreenHeader));
+			msg.SetParam("Header", roomName);
+			msg.SetParam("Subheader", roomDesc);
+			MESSAGEMAN->Broadcast(msg);
+
+			inRoom = true;
+
+			std::string SMOnlineSelectScreen =
+			  THEME->GetMetric("ScreenNetRoom", "MusicSelectScreen");
+			SCREENMAN->SetNewScreen(SMOnlineSelectScreen);
+		} catch (std::exception& e) {
+			Locator::getLogger()->error("Error while parsing ettp json enter "
+										"room response: {}",
+										e.what());
+		}
+	} else {
+		roomDesc = "";
+		roomName = "";
+	}
+}
+
+void
+ETTProtocol::handleNewRoom(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("room") || !payload["room"].IsObject())
+		return;
+
+	auto tmp = jsonToRoom(payload["room"]);
+	NSMAN->m_Rooms.push_back(tmp);
+	SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+}
+
+void
+ETTProtocol::handleDeleteRoom(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("room") || !payload["room"].IsObject() ||
+		!payload["room"].HasMember("name") ||
+		!payload["room"]["name"].IsString()) {
+		Locator::getLogger()->warn("Invalid ETTP deleteroom room message");
+		return;
+	}
+
+	std::string name = payload["room"]["name"].GetString();
+	NSMAN->m_Rooms.erase(
+	  std::remove_if(NSMAN->m_Rooms.begin(),
+					 NSMAN->m_Rooms.end(),
+					 [&](RoomData const& room) { return room.Name() == name; }),
+	  NSMAN->m_Rooms.end());
+
+	SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+}
+
+void
+ETTProtocol::handleUpdateRoom(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("room") || !payload["room"].IsObject())
+		return;
+
+	auto updated = jsonToRoom(payload["room"]);
+
+	auto roomIt = std::find_if(
+	  NSMAN->m_Rooms.begin(), NSMAN->m_Rooms.end(), [&](RoomData const& room) {
+		  return room.Name() == updated.Name();
+	  });
+
+	if (roomIt != NSMAN->m_Rooms.end()) {
+		roomIt->SetDescription(updated.Description());
+		roomIt->SetState(updated.State());
+		roomIt->players = updated.players;
+		SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+	}
+}
+
+void
+ETTProtocol::handleLobbyUserlist(rapidjson::Value& payload)
+{
+	NSMAN->lobbyuserlist.clear();
+
+	if (!payload.HasMember("users") || !payload["users"].IsArray())
+		return;
+
+	auto& users = payload["users"];
+	for (auto& user : users.GetArray()) {
+		if (!user.IsString())
+			continue;
+
+		NSMAN->lobbyuserlist.insert(user.GetString());
+	}
+}
+
+void
+ETTProtocol::handleLobbyUserlistUpdate(rapidjson::Value& payload)
+{
+	if (payload.HasMember("on") && payload["on"].IsArray()) {
+		auto& newUsers = payload["on"];
+		for (auto& user : newUsers.GetArray()) {
+			if (!user.IsString())
+				continue;
+
+			NSMAN->lobbyuserlist.insert(user.GetString());
+		}
+	}
+
+	if (payload.HasMember("off") && payload["off"].IsArray()) {
+		auto& removedUsers = payload["off"];
+		for (auto& user : removedUsers.GetArray()) {
+			if (!user.IsString())
+				continue;
+
+			NSMAN->lobbyuserlist.erase(user.GetString());
+		}
+	}
+
+	MESSAGEMAN->Broadcast("UsersUpdate");
+}
+
+void
+ETTProtocol::handleRoomlist(rapidjson::Value& payload)
+{
+	RoomData tmp;
+	NSMAN->m_Rooms.clear();
+
+	if (!payload.HasMember("rooms") || !payload["rooms"].IsArray())
+		return;
+
+	auto& rooms = payload["rooms"];
+	for (auto& room : rooms.GetArray()) {
+		if (room.IsObject())
+			NSMAN->m_Rooms.push_back(jsonToRoom(room));
+	}
+
+	SCREENMAN->SendMessageToTopScreen(ETTP_RoomsChange);
+}
+
+void
+ETTProtocol::handleRoomPacklist(rapidjson::Value& payload)
+{
+	if (!payload.HasMember("commonpacks"))
+		return;
+
+	auto& packlist = payload["commonpacks"];
+	NSMAN->commonpacks.clear();
+	if (packlist.IsArray()) {
+		for (auto& pack : packlist.GetArray()) {
+			if (!pack.IsString())
+				continue;
+
+			NSMAN->commonpacks.push_back(pack.GetString());
+		}
+	}
+}
+
+void
+ETTProtocol::handleRoomUserlist(rapidjson::Value& payload)
+{
+	NSMAN->m_ActivePlayer.clear();
+	NSMAN->m_PlayerNames.clear();
+	NSMAN->m_PlayerStatus.clear();
+	NSMAN->m_PlayerReady.clear();
+
+	if (!payload.HasMember("players") || !payload["players"].IsArray())
+		return;
+
+	auto& players = payload["players"];
+	int i = 0;
+
+	for (auto& player : players.GetArray()) {
+		if (!player.HasMember("name") || !player["name"].IsString() ||
+			!player.HasMember("status") || !player["status"].IsInt() ||
+			!player.HasMember("ready") || !player["ready"].IsBool())
+			continue;
+
+		NSMAN->m_PlayerNames.push_back(player["name"].GetString());
+		NSMAN->m_PlayerStatus.push_back(player["status"].GetInt());
+		NSMAN->m_PlayerReady.push_back(player["ready"].GetBool());
+		NSMAN->m_ActivePlayer.push_back(i++);
+	}
+
+	MESSAGEMAN->Broadcast("UsersUpdate");
+}
+
+void
+ETTProtocol::handleGameplayReplayUpdate(rapidjson::Value& payload) {
+
+	if (!payload.HasMember("subType") || !payload.HasMember("data")) {
+		return;
+	}
+
+	auto& data = payload["data"];
+	std::string subtype = payload["subType"].GetString();
+	std::string replayUserID = payload["userid"].GetString();
+
+	if (replayUserID.empty() || replayUserID == NSMAN->loggedInUsername) {
+		// we cant safely do anything with this
+		return;
+	}
+
+	auto* spectateReplay = REPLAYS->GetSpectateReplay(replayUserID);
+	if (spectateReplay == nullptr) {
+		// this replay isnt initialized
+		// it isnt safe to retroactively initialize
+		return;
+	}
+
+	if (subtype == "input") {
+		auto is_press = data["is_press"].GetBool();
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto musicsecs = data["music_seconds"].GetFloat();
+		auto offset = data["offset"].GetFloat();
+		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
+		auto tnst =
+		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
+		spectateReplay->IngestInputData(
+		  is_press, col, row, musicsecs, offset, tnt, tnst);
+
+		Message msg(Message_SpectatorInputUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
+	}
+	else if (subtype == "holddrop") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto subtype = static_cast<TapNoteSubType>(data["subtype"].GetInt());
+		spectateReplay->IngestHoldDrop(col, row, subtype);
+
+		Message msg(Message_SpectatorHoldUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
+	}
+	else if (subtype == "minehit") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		spectateReplay->IngestMineHit(col, row);
+
+		Message msg(Message_SpectatorMineUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
+	}
+	else if (subtype == "miss") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
+		auto tnst =
+		  static_cast<TapNoteSubType>(data["tapnote_subtype"].GetInt());
+		spectateReplay->IngestMissData(col, row, tnt, tnst);
+
+		Message msg(Message_SpectatorMissUpdate);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
+	}
+	else if (subtype == "v2") {
+		auto col = data["col"].GetInt();
+		auto row = data["row"].GetInt();
+		auto offset = data["offset"].GetFloat();
+		auto tnt = static_cast<TapNoteType>(data["tapnote_type"].GetInt());
+		spectateReplay->IngestV2Data(col, row, offset, tnt);
+
+		Message msg(Message_SpectatorV2Update);
+		msg.SetParam("playerID", replayUserID);
+		MESSAGEMAN->Broadcast(msg);
+	}
+}
+
+void
+ETTProtocol::handleSpectatingUpdate(rapidjson::Value& payload)
+{
+
+	if (!payload.HasMember("state") || !payload["state"].IsBool()) {
+		// required
+		return;
+	}
+
+	if (!payload.HasMember("who") || !payload["who"].IsString()) {
+		// required
+		return;
+	}
+
+	auto isSpectating = payload["state"].GetBool();
+	std::string whom = payload["who"].GetString();
+
+	// not much we can do with this without knowing that it is yourself
+
+	if (NSMAN->loggedInUsername == whom) {
+		Locator::getLogger()->info(
+		  "We got notice that you are now spectating=={} from the server",
+		  isSpectating);
+
+		if (payload.HasMember("spectatingWho") &&
+			payload["spectatingWho"].IsString()) {
+			std::string recipient = payload["spectatingWho"].GetString();
+
+			
+			if (isSpectating) {
+				Locator::getLogger()->info("You are spectating player '{}'",
+										   recipient);
+				NSMAN->spectatingWho = recipient;
+			}
+		}
+
+		NSMAN->spectating = isSpectating;
+		MESSAGEMAN->Broadcast("SpectatingUpdate");
+	}
+	else {
+		Locator::getLogger()->info(
+		  "We got notice that {} is now spectating set to {} but didn't care",
+		  whom,
+		  isSpectating);
+	}
+}
+
+void
+ETTProtocol::Logout()
+{
+	auto doc = newMsg(ettpc_logout);
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::SendChat(const std::string& message, std::string tab, int type)
+{
+	auto doc = newMsg(ettpc_sendchat);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		if (message.length() > 500) {
+			addStringMember(payload, "msg", message.substr(0, 500), allocator);
+		} else {
+			addStringMember(payload, "msg", message, allocator);
+		}
+		addStringMember(payload, "tab", tab, allocator);
+		payload.AddMember("msgtype", type, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::SendMPLeaderboardUpdate(float wife, std::string& jdgstr)
+{
+	auto doc = newMsg(ettpc_mpleaderboardupdate);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		if (std::isfinite(wife)) {
+			payload.AddMember("wife", wife, allocator);
+		}
+		else {
+			rapidjson::Value nullVal;
+			nullVal.SetNull();
+			payload.AddMember("wife", nullVal, allocator);
+		}
+		addStringMember(payload, "jdgstr", jdgstr, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::CreateNewRoom(std::string name,
+						   std::string desc,
+						   std::string password)
+{
+	if (creatingRoom)
+		return;
+
+	creatingRoom = true;
+	timeoutStart = clock();
+	waitingForTimeout = true;
+	timeout = 1;
+	onTimeout = [this](void) { this->creatingRoom = false; };
+	roomName = name.c_str();
+	roomDesc = desc.c_str();
+
+	auto doc = newMsg(ettpc_createroom);
+	auto& allocator = doc.GetAllocator();
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "name", name, allocator);
+		addStringMember(payload, "pass", password, allocator);
+		addStringMember(payload, "desc", desc, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::LeaveRoom(NetworkSyncManager* n)
+{
+	n->song = nullptr;
+	n->steps = nullptr;
+	n->rate = 0;
+	n->chartkey = "";
+	n->m_sFileHash = "";
+	n->m_sMainTitle = "";
+	n->m_sSubTitle = "";
+	n->m_sArtist = "";
+	n->difficulty = Difficulty_Invalid;
+	n->meter = -1;
+
+	auto doc = newMsg(ettpc_leaveroom);
+	completeAndSend(doc);
+
+	roomName = "";
+	roomDesc = "";
+	inRoom = false;
+}
+
+void
+ETTProtocol::EnterRoom(std::string name, std::string password)
+{
+	auto it = find_if(NSMAN->m_Rooms.begin(),
+					  NSMAN->m_Rooms.end(),
+					  [&name](const RoomData& r) { return r.Name() == name; });
+	if (it == NSMAN->m_Rooms.end()) {
+		// Unknown room
+		Locator::getLogger()->warn(
+		  "Tried to enter an unknown room named '{}' so nothing happened",
+		  name);
+		return;
+	}
+
+	roomName = name.c_str();
+	roomDesc = it->Description().c_str();
+
+	auto doc = newMsg(ettpc_enterroom);
+	auto& allocator = doc.GetAllocator();
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "name", name, allocator);
+		addStringMember(payload, "pass", password, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::Login(std::string user, std::string pass)
+{
+	auto doc = newMsg(ettpc_login);
+	auto& allocator = doc.GetAllocator();
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "user", user, allocator);
+		addStringMember(payload, "pass", pass, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+
+
+	NSMAN->loggedInUsername = user.c_str();
+	timeoutStart = clock();
+	waitingForTimeout = true;
+	timeout = 5.0;
+	onTimeout = [](void) {
+		NSMAN->loggedInUsername.clear();
+		NSMAN->loginResponse = LOGIN_TIMEOUT.GetValue();
+		SCREENMAN->SendMessageToTopScreen(ETTP_LoginResponse);
+	};
+}
+
+void
+ETTProtocol::ReportHighScore(HighScore* hs, PlayerStageStats& pss)
+{
+	auto doc = newMsg(ettpc_sendscore);
+	auto& allocator = doc.GetAllocator();
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload, "scorekey", hs->GetScoreKey(), allocator);
+		payload.AddMember("ssr_norm", hs->GetSSRNormPercent(), allocator);
+		payload.AddMember("max_combo", hs->GetMaxCombo(), allocator);
+		payload.AddMember(
+		  "valid", static_cast<int>(hs->GetEtternaValid()), allocator);
+		addStringMember(payload, "mods", hs->GetModifiers(), allocator);
+
+		if (hs->IsEmptyNormalized()) {
+			payload.AddMember("miss", hs->GetTapNoteScore(TNS_Miss), allocator);
+			payload.AddMember("bad", hs->GetTapNoteScore(TNS_W5), allocator);
+			payload.AddMember("good", hs->GetTapNoteScore(TNS_W4), allocator);
+			payload.AddMember("great", hs->GetTapNoteScore(TNS_W3), allocator);
+			payload.AddMember(
+			  "perfect", hs->GetTapNoteScore(TNS_W2), allocator);
+			payload.AddMember("marv", hs->GetTapNoteScore(TNS_W1), allocator);
+		}
+		else {
+			payload.AddMember(
+			  "miss", hs->GetTNSNormalized(TNS_Miss), allocator);
+			payload.AddMember("bad", hs->GetTNSNormalized(TNS_W5), allocator);
+			payload.AddMember("good", hs->GetTNSNormalized(TNS_W4), allocator);
+			payload.AddMember("great", hs->GetTNSNormalized(TNS_W3), allocator);
+			payload.AddMember(
+			  "perfect", hs->GetTNSNormalized(TNS_W2), allocator);
+			payload.AddMember("marv", hs->GetTNSNormalized(TNS_W1), allocator);
+		}
+
+		payload.AddMember("score", hs->GetSSRNormPercent(), allocator);
+		payload.AddMember("wifever", hs->GetWifeVersion(), allocator);
+
+		auto& r = hs->GetRadarValues();
+		{
+			payload.AddMember("Notes", r[RadarCategory_Notes], allocator);
+			payload.AddMember(
+			  "TapsAndHolds", r[RadarCategory_TapsAndHolds], allocator);
+			payload.AddMember("Jumps", r[RadarCategory_Jumps], allocator);
+			payload.AddMember("Holds", r[RadarCategory_Holds], allocator);
+			payload.AddMember("Mines", r[RadarCategory_Mines], allocator);
+			payload.AddMember("Hands", r[RadarCategory_Hands], allocator);
+			payload.AddMember("Rolls", r[RadarCategory_Rolls], allocator);
+			payload.AddMember("Lifts", r[RadarCategory_Lifts], allocator);
+			payload.AddMember("Fakes", r[RadarCategory_Fakes], allocator);
+		}
+		{
+			payload.AddMember(
+			  "Overall", hs->GetSkillsetSSR(Skill_Overall), allocator);
+			payload.AddMember(
+			  "Stream", hs->GetSkillsetSSR(Skill_Stream), allocator);
+			payload.AddMember(
+			  "Jumpstream", hs->GetSkillsetSSR(Skill_Jumpstream), allocator);
+			payload.AddMember(
+			  "Handstream", hs->GetSkillsetSSR(Skill_Handstream), allocator);
+			payload.AddMember(
+			  "Stamina", hs->GetSkillsetSSR(Skill_Stamina), allocator);
+			payload.AddMember(
+			  "JackSpeed", hs->GetSkillsetSSR(Skill_JackSpeed), allocator);
+			payload.AddMember(
+			  "Chordjack", hs->GetSkillsetSSR(Skill_Chordjack), allocator);
+			payload.AddMember(
+			  "Technical", hs->GetSkillsetSSR(Skill_Technical), allocator);
+		}
+		addStringMember(
+		  payload, "datetime", hs->GetDateTime().GetString(), allocator);
+		payload.AddMember("hitmine", hs->GetTapNoteScore(TNS_HitMine), allocator);
+		payload.AddMember("held", hs->GetHoldNoteScore(HNS_Held), allocator);
+		payload.AddMember("letgo", hs->GetHoldNoteScore(HNS_LetGo), allocator);
+		payload.AddMember("ng", hs->GetHoldNoteScore(HNS_Missed), allocator);
+		addStringMember(payload, "chartkey", hs->GetChartKey(), allocator);
+		payload.AddMember("rate", hs->GetMusicRate(), allocator);
+		if (GAMESTATE->m_pPlayerState != nullptr) {
+			addStringMember(
+			  payload,
+			  "options",
+			  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent()
+				.GetString(),
+			  allocator);
+		}
+		auto chart = SONGMAN->GetStepsByChartkey(hs->GetChartKey());
+		payload.AddMember(
+		  "negsolo",
+		  static_cast<int>(chart->GetTimingData()->HasWarps() ||
+						   chart->m_StepsType != StepsType_dance_single),
+		  allocator);
+		payload.AddMember(
+		  "nocc", static_cast<int>(!hs->GetChordCohesion()), allocator);
+		payload.AddMember("calc_version", hs->GetSSRCalcVersion(), allocator);
+		payload.AddMember("topscore", hs->GetTopScore(), allocator);
+		addStringMember(payload, "uuid", hs->GetMachineGuid(), allocator);
+		addStringMember(payload,
+						"hash",
+						hs->GetValidationKey(ValidationKey_Brittle),
+						allocator);
+
+		{
+			const auto& offsets = pss.GetOffsetVector();
+			const auto& noterows = pss.GetNoteRowVector();
+			const auto& tracks = pss.GetTrackVector();
+			const auto& types = pss.GetTapNoteTypeVector();
+			if (offsets.size() > 0) {
+
+				rapidjson::Value replay(rapidjson::Type::kObjectType);
+
+				rapidjson::Value nrArr(rapidjson::Type::kArrayType);
+				rapidjson::Value offsetArr(rapidjson::Type::kArrayType);
+				rapidjson::Value trackArr(rapidjson::Type::kArrayType);
+				rapidjson::Value typeArr(rapidjson::Type::kArrayType);
+
+				for (size_t i = 0; i < noterows.size(); i++) {
+					nrArr.PushBack(noterows[i], allocator);
+				}
+				for (size_t i = 0; i < offsets.size(); i++) {
+					offsetArr.PushBack(offsets[i], allocator);
+				}
+				for (size_t i = 0; i < tracks.size(); i++) {
+					trackArr.PushBack(tracks[i], allocator);
+				}
+				for (size_t i = 0; i < types.size(); i++) {
+					typeArr.PushBack(types[i], allocator);
+				}
+
+				replay.AddMember("noterows", nrArr, allocator);
+				replay.AddMember("offsets", offsetArr, allocator);
+				replay.AddMember("tracks", trackArr, allocator);
+				replay.AddMember("notetypes", typeArr, allocator);
+
+				payload.AddMember("replay", replay, allocator);
+			}
+		}
+	}
+	doc.AddMember("payload", payload, allocator);
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::ReportReplayInput(NetworkSyncManager* n,
+							   bool isPress,
+							   int col,
+							   int row,
+							   float fMusicSeconds,
+							   float fNoteOffset,
+							   int tapNoteType,
+							   int tapNoteSubType)
+{
+	auto doc = newMsg(ettpc_replay_input);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("is_press", isPress, allocator);
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("music_seconds", fMusicSeconds, allocator);
+		payload.AddMember("offset", fNoteOffset, allocator);
+		payload.AddMember("tapnote_type", tapNoteType, allocator);
+		payload.AddMember("tapnote_subtype", tapNoteSubType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::ReportReplayMiss(NetworkSyncManager* n,
+							  int col,
+							  int row,
+							  int tapNoteType,
+							  int tapNoteSubType)
+{
+	auto doc = newMsg(ettpc_replay_miss);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("tapnote_type", tapNoteType, allocator);
+		payload.AddMember("tapnote_subtype", tapNoteSubType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::ReportReplayHold(NetworkSyncManager* n,
+							  int col,
+							  int row,
+							  int subType)
+{
+	auto doc = newMsg(ettpc_replay_holddrop);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("subtype", subType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::ReportReplayMine(NetworkSyncManager* n, int row, int col)
+{
+	auto doc = newMsg(ettpc_replay_minehit);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::ReportV2Data(int col, int row, float offset, int tapNoteType)
+{
+	auto doc = newMsg(ettpc_replay_v2data);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		payload.AddMember("col", col, allocator);
+		payload.AddMember("row", row, allocator);
+		payload.AddMember("offset", offset, allocator);
+		payload.AddMember("tapnote_type", tapNoteType, allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	//completeAndSend(doc);
+}
+
+void
+ETTProtocol::ReportSongOver(NetworkSyncManager* n)
+{
+	auto doc = newMsg(ettpc_gameover);
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::OffEval()
+{
+	auto doc = newMsg(ettpc_closeeval);
+	completeAndSend(doc);
+
+	state = 0;
+}
+
+void
+ETTProtocol::OnEval()
+{
+	auto doc = newMsg(ettpc_openeval);
+	completeAndSend(doc);
+
+	state = 2;
+}
+
+void
+ETTProtocol::OnOptions()
+{
+	auto doc = newMsg(ettpc_openoptions);
+	completeAndSend(doc);
+
+	state = 3;
+}
+
+void
+ETTProtocol::OffOptions()
+{
+	auto doc = newMsg(ettpc_closeoptions);
+	completeAndSend(doc);
+
+	state = 0;
+}
+
+void
+ETTProtocol::close()
+{
+	serverVersion = 0;
+	msgId = 0;
+	serverName = "";
+	roomName = "";
+	roomDesc = "";
+	waitingForTimeout = false;
+	inRoom = false;
+
+	stopPolling = true;
+	stopSending = true;
+
+	if (receivingThread != nullptr) {
+		if (receivingThread->joinable()) {
+			receivingThread->join();
+		}
+	}
+	if (sendingThread != nullptr) {
+		if (sendingThread->joinable()) {
+			sendingThread->join();
+		}
+	}
+	receivingThread = nullptr;
+	sendingThread = nullptr;
+	stopSending = false;
+	stopPolling = false;
+}
+
+void
+ETTProtocol::SelectUserSong(NetworkSyncManager* n, Song* song)
+{
+	auto curSteps = GAMESTATE->m_pCurSteps;
+	if (song == nullptr || curSteps == nullptr ||
+		GAMESTATE->m_pPlayerState == nullptr)
+		return;
+
+	const auto type = song == n->song ? ettpc_startchart : ettpc_selectchart;
+	auto doc = newMsg(type);
+	auto& allocator = doc.GetAllocator();
+
+
+	rapidjson::Value payload(rapidjson::Type::kObjectType);
+	{
+		addStringMember(payload,
+		  "title", correct_non_utf_8(song->m_sMainTitle), allocator);
+		addStringMember(payload,
+		  "subtitle", correct_non_utf_8(song->m_sSubTitle), allocator);
+		addStringMember(payload,
+		  "artist", correct_non_utf_8(song->m_sArtist), allocator);
+		addStringMember(payload, "filehash", song->GetFileHash(), allocator);
+		addStringMember(
+		  payload, "pack", correct_non_utf_8(song->m_sGroupName), allocator);
+		addStringMember(
+		  payload, "chartkey", curSteps->GetChartKey(), allocator);
+		addStringMember(payload,
+						"difficulty",
+						DifficultyToString(curSteps->GetDifficulty()),
+						allocator);
+		payload.AddMember("meter", curSteps->GetMeter(), allocator);
+		addStringMember(
+		  payload,
+		  "options",
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetCurrent().GetString(), allocator);
+		payload.AddMember(
+		  "rate",
+		  static_cast<int>(GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
+						   1000),
+		  allocator);
+		payload.AddMember(
+		  "songoffset",
+		  static_cast<int>(curSteps->GetTimingData()->m_fBeat0OffsetInSeconds *
+						   1000),
+		  allocator);
+		payload.AddMember(
+		  "globaloffset",
+		  static_cast<int>(PREFSMAN->m_fGlobalOffsetSeconds.Get() * 1000),
+		  allocator);
+		payload.AddMember("rng", GAMESTATE->m_iStageSeed, allocator);
+		addStringMember(
+		  payload,
+		  "mods",
+		  GAMESTATE->m_pPlayerState->m_PlayerOptions.GetPreferred().GetString(),
+		  allocator);
+	}
+	doc.AddMember("payload", payload, allocator);
+
+
+	completeAndSend(doc);
+}
+
+void
+ETTProtocol::OnMusicSelect()
+{
+	state = 0;
+}

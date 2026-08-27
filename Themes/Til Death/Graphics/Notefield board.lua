@@ -139,7 +139,7 @@ local t =
 	end
 }
 
-local filterColor = color("0,0,0,0")
+local filterColor = getGameplayColor("NoteFieldBG")
 local filterAlphas = playerConfig:get_data(pn_to_profile_slot(PLAYER_1)).ScreenFilter
 if filterAlphas == nil then
 	filterAlphas = 0

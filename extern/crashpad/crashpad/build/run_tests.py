@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-# coding: utf-8
+#!/usr/bin/env python3
 
-# Copyright 2014 The Crashpad Authors. All rights reserved.
+# Copyright 2014 The Crashpad Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,13 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import print_function
-
 import argparse
 import os
-import pipes
 import posixpath
 import re
+import shlex
 import subprocess
 import sys
 import tempfile
@@ -40,7 +37,7 @@ def _FindGNFromBinaryDir(binary_dir):
 
     build_ninja = os.path.join(binary_dir, 'build.ninja')
     if os.path.isfile(build_ninja):
-        with open(build_ninja, 'rb') as f:
+        with open(build_ninja, 'r') as f:
             # Look for the always-generated regeneration rule of the form:
             #
             # rule gn
@@ -64,38 +61,26 @@ def _FindGNFromBinaryDir(binary_dir):
     return None
 
 
-def _BinaryDirTargetOS(binary_dir):
-    """Returns the apparent target OS of binary_dir, or None if none appear to
-    be explicitly specified."""
+def _GetGNArgument(argument_name, binary_dir):
+    """Returns the value of a given GN argument, or None if it is not
+    explicitly specified."""
 
     gn_path = _FindGNFromBinaryDir(binary_dir)
-
     if gn_path:
         # Look for a GN “target_os”.
         popen = subprocess.Popen([
             gn_path, '--root=' + CRASHPAD_DIR, 'args', binary_dir,
-            '--list=target_os', '--short'
+            '--list=%s' % argument_name, '--short'
         ],
                                  shell=IS_WINDOWS_HOST,
                                  stdout=subprocess.PIPE,
-                                 stderr=open(os.devnull))
+                                 stderr=open(os.devnull),
+                                 text=True)
         value = popen.communicate()[0]
         if popen.returncode == 0:
-            match = re.match('target_os = "(.*)"$', value.decode('utf-8'))
+            match = re.match(r'%s = "(.*)"$' % argument_name, value)
             if match:
                 return match.group(1)
-
-    # For GYP with Ninja, look for the appearance of “linux-android” in the path
-    # to ar. This path is configured by gyp_crashpad_android.py.
-    build_ninja_path = os.path.join(binary_dir, 'build.ninja')
-    if os.path.exists(build_ninja_path):
-        with open(build_ninja_path) as build_ninja_file:
-            build_ninja_content = build_ninja_file.read()
-            match = re.search('-linux-android(eabi)?-ar$', build_ninja_content,
-                              re.MULTILINE)
-            if match:
-                return 'android'
-
     return None
 
 
@@ -187,22 +172,23 @@ def _RunOnAndroidTarget(binary_dir, test, android_device, extra_command_line):
         script_commands = []
         for k, v in env.items():
             script_commands.append('export %s=%s' %
-                                   (pipes.quote(k), pipes.quote(v)))
+                                   (shlex.quote(k), shlex.quote(v)))
         script_commands.extend([
-            ' '.join(pipes.quote(x) for x in command_args), 'status=${?}',
+            ' '.join(shlex.quote(x) for x in command_args), 'status=${?}',
             'echo "status=${status}"', 'exit ${status}'
         ])
         adb_command.append('; '.join(script_commands))
         child = subprocess.Popen(adb_command,
                                  shell=IS_WINDOWS_HOST,
                                  stdin=open(os.devnull),
-                                 stdout=subprocess.PIPE)
+                                 stdout=subprocess.PIPE,
+                                 text=True)
 
-        FINAL_LINE_RE = re.compile('status=(\d+)$')
+        FINAL_LINE_RE = re.compile(r'status=(\d+)$')
         final_line = None
         while True:
             # Use readline so that the test output appears “live” when running.
-            data = child.stdout.readline().decode('utf-8')
+            data = child.stdout.readline()
             if data == '':
                 break
             if final_line is not None:
@@ -313,10 +299,33 @@ def _RunOnAndroidTarget(binary_dir, test, android_device, extra_command_line):
         _adb_shell(['rm', '-rf', device_temp_dir])
 
 
-def _RunOnIOSTarget(binary_dir, test, is_xcuitest=False):
-    """Runs the given iOS |test| app on iPhone 8 with the default OS version."""
+def _RunOnIOSTarget(binary_dir,
+                    test,
+                    target_platform,
+                    is_xcuitest=False,
+                    gtest_filter=None):
+    """Runs the given iOS |test| app on a simulator with the default OS version."""
 
-    def xctest(binary_dir, test):
+    target_platform = target_platform or 'iphoneos'
+    if target_platform == 'iphoneos':
+        dyld_insert_libraries = (
+            '__PLATFORMS__/iPhoneSimulator.platform/Developer/usr/lib/'
+            'libXCTestBundleInject.dylib')
+        xcodebuild_platform = 'iOS Simulator'
+        xcodebuild_device_name = 'iPhone 17'
+    elif target_platform == 'tvos':
+        dyld_insert_libraries = (
+            '__PLATFORMS__/AppleTVSimulator.platform/Developer/usr/lib/'
+            'libXCTestBundleInject.dylib')
+        xcodebuild_platform = 'tvOS Simulator'
+        xcodebuild_device_name = 'Apple TV 4K (3rd generation)'
+    else:
+        raise ValueError(f'Unexpected target_platform: {target_platform}')
+
+    # E.g. __TESTROOT__/Debug-iphonesimulator.
+    dyld_framework_path = '__TESTROOT__/%s' % os.path.basename(binary_dir)
+
+    def xctest(binary_dir, test, gtest_filter=None):
         """Returns a dict containing the xctestrun data needed to run an
         XCTest-based test app."""
         test_path = os.path.join(CRASHPAD_DIR, binary_dir)
@@ -324,15 +333,17 @@ def _RunOnIOSTarget(binary_dir, test, is_xcuitest=False):
             'TestBundlePath': os.path.join(test_path, test + '_module.xctest'),
             'TestHostPath': os.path.join(test_path, test + '.app'),
             'TestingEnvironmentVariables': {
-                'DYLD_FRAMEWORK_PATH': '__TESTROOT__/Debug-iphonesimulator:',
-                'DYLD_INSERT_LIBRARIES':
-                    ('__PLATFORMS__/iPhoneSimulator.platform/Developer/'
-                     'usr/lib/libXCTestBundleInject.dylib'),
-                'DYLD_LIBRARY_PATH': '__TESTROOT__/Debug-iphonesimulator',
+                'DYLD_FRAMEWORK_PATH': dyld_framework_path + ':',
+                'DYLD_INSERT_LIBRARIES': dyld_insert_libraries,
+                'DYLD_LIBRARY_PATH': dyld_framework_path,
                 'IDEiPhoneInternalTestBundleName': test + '.app',
                 'XCInjectBundleInto': '__TESTHOST__/' + test,
             }
         }
+        if gtest_filter:
+            module_data['CommandLineArguments'] = [
+                '--gtest_filter=' + gtest_filter
+            ]
         return {test: module_data}
 
     def xcuitest(binary_dir, test):
@@ -346,6 +357,7 @@ def _RunOnIOSTarget(binary_dir, test, is_xcuitest=False):
         target_app_path = os.path.join(test_path, test + '.app')
         module_data = {
             'IsUITestBundle': True,
+            'SystemAttachmentLifetime': 'deleteOnSuccess',
             'IsXCTRunnerHostedTestBundle': True,
             'TestBundlePath': bundle_path,
             'TestHostPath': runner_path,
@@ -354,11 +366,8 @@ def _RunOnIOSTarget(binary_dir, test, is_xcuitest=False):
                 bundle_path, runner_path, target_app_path
             ],
             'TestingEnvironmentVariables': {
-                'DYLD_FRAMEWORK_PATH': '__TESTROOT__/Debug-iphonesimulator:',
-                'DYLD_INSERT_LIBRARIES':
-                    ('__PLATFORMS__/iPhoneSimulator.platform/Developer/'
-                     'usr/lib/libXCTestBundleInject.dylib'),
-                'DYLD_LIBRARY_PATH': '__TESTROOT__/Debug-iphonesimulator',
+                'DYLD_FRAMEWORK_PATH': dyld_framework_path + ':',
+                'DYLD_LIBRARY_PATH': dyld_framework_path,
                 'XCInjectBundleInto': '__TESTHOST__/' + test + '_module-Runner',
             },
         }
@@ -367,17 +376,24 @@ def _RunOnIOSTarget(binary_dir, test, is_xcuitest=False):
     with tempfile.NamedTemporaryFile() as f:
         import plistlib
 
-        xctestrun_path = f.name
+        xctestrun_path = f.name + ".xctestrun"
         print(xctestrun_path)
-        if is_xcuitest:
-            plistlib.writePlist(xcuitest(binary_dir, test), xctestrun_path)
-        else:
-            plistlib.writePlist(xctest(binary_dir, test), xctestrun_path)
-
-        subprocess.check_call([
-            'xcodebuild', 'test-without-building', '-xctestrun', xctestrun_path,
-            '-destination', 'platform=iOS Simulator,name=iPhone 8'
-        ])
+        command = [
+            'xcodebuild',
+            'test-without-building',
+            '-xctestrun',
+            xctestrun_path,
+            '-destination',
+            f'platform={xcodebuild_platform},name={xcodebuild_device_name}',
+        ]
+        with open(xctestrun_path, 'wb') as fp:
+            if is_xcuitest:
+                plistlib.dump(xcuitest(binary_dir, test), fp)
+                if gtest_filter:
+                    command.append('-only-testing:' + test + '/' + gtest_filter)
+            else:
+                plistlib.dump(xctest(binary_dir, test, gtest_filter), fp)
+        subprocess.check_call(command)
 
 
 # This script is primarily used from the waterfall so that the list of tests
@@ -404,9 +420,11 @@ def main(args):
         if os.path.isdir(binary_dir_32):
             os.environ['CRASHPAD_TEST_32_BIT_OUTPUT'] = binary_dir_32
 
-    target_os = _BinaryDirTargetOS(args.binary_dir)
+    target_os = _GetGNArgument('target_os', args.binary_dir)
     is_android = target_os == 'android'
     is_ios = target_os == 'ios'
+    # |target_platform| is only set for iOS-based platforms.
+    target_platform = _GetGNArgument('target_platform', args.binary_dir)
 
     tests = [
         'crashpad_client_test',
@@ -421,12 +439,13 @@ def main(args):
         android_device = os.environ.get('ANDROID_DEVICE')
         if not android_device:
             adb_devices = subprocess.check_output(['adb', 'devices'],
-                                                  shell=IS_WINDOWS_HOST)
+                                                  shell=IS_WINDOWS_HOST,
+                                                  text=True)
             devices = []
             for line in adb_devices.splitlines():
-                line = line.decode('utf-8')
+                line = line
                 if (line == 'List of devices attached' or
-                        re.match('^\* daemon .+ \*$', line) or line == ''):
+                        re.match(r'^\* daemon .+ \*$', line) or line == ''):
                     continue
                 (device, ignore) = line.split('\t')
                 devices.append(device)
@@ -467,7 +486,9 @@ def main(args):
             elif is_ios:
                 _RunOnIOSTarget(args.binary_dir,
                                 test,
-                                is_xcuitest=test.startswith('ios'))
+                                target_platform,
+                                is_xcuitest=test.startswith('ios'),
+                                gtest_filter=args.gtest_filter)
             else:
                 subprocess.check_call([os.path.join(args.binary_dir, test)] +
                                       extra_command_line)

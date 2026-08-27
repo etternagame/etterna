@@ -1,5 +1,6 @@
 #include "MinaCalc.h"
 #include "Ulbu.h"
+#include "UlbuFiveKey.h"
 #include "UlbuSixKey.h"
 #include "UlbuSevenKey.h"
 #include "MinaCalcHelpers.h"
@@ -159,6 +160,8 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		stam_adj_mult = std::clamp(stam_adj_mult, 0.8F, 1.08F);
 		iteration_skillet_values[Skill_Stamina] = highest_stam_adj_ss_value * stam_adj_mult *
 								 basescalers[Skill_Stamina];
+
+		ulbu_in_charge->apply_keymode_multipliers(iteration_skillet_values);
 
 		// sets the 'proper' debug output, doesn't (shouldn't) affect actual
 		// values this is the only time debugoutput arg should be set to true
@@ -453,7 +456,7 @@ CalcInternal(float& gotpoints,
 	  &(stam ? calc.stam_adj_diff : calc.base_adj_diff.at(hand).at(ss));
 	auto pointloss_pow_val = 1.7F;
 	if (ss == Skill_Chordjack) {
-		pointloss_pow_val = 1.7F;
+		pointloss_pow_val = 1.8F;
 	} else if (ss == Skill_Technical) {
 		pointloss_pow_val = 2.F;
 	}
@@ -501,6 +504,11 @@ Calc::InitializeKeycountLogic() -> void
 				  std::make_shared<TheGreatBazoinkazoinkInTheSky>(*this));
 				keycount_defined = true;
 				break;
+			case 5u:
+				ulbu_collective.emplace(
+					keycount,
+					std::make_shared<TheFiveEaredBazoinkazoink>(*this));
+				keycount_defined = true;
 			case 6u:
 				ulbu_collective.emplace(
 				  keycount, std::make_shared<TheSixEyedBazoinkazoink>(*this));
@@ -949,7 +957,7 @@ MinaSDCalcDebug(
 #endif
 }
 
-int mina_calc_version = 515;
+int mina_calc_version = 527;
 auto
 GetCalcVersion() -> int
 {

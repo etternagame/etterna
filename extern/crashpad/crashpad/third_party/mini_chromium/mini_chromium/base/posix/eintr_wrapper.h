@@ -1,4 +1,4 @@
-// Copyright 2009 The Chromium Authors. All rights reserved.
+// Copyright 2009 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -13,7 +13,7 @@
 #include "build/build_config.h"
 
 // On Fuchsia, these wrapper macros do nothing because there are no signals.
-#if defined(OS_POSIX) && !defined(OS_FUCHSIA)
+#if BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_FUCHSIA)
 
 #include <errno.h>
 
@@ -41,6 +41,6 @@
 #define HANDLE_EINTR(x) (x)
 #define IGNORE_EINTR(x) (x)
 
-#endif  // OS_POSIX && !OS_FUCHSIA
+#endif  // BUILDFLAG(IS_POSIX) && !BUILDFLAG(IS_FUCHSIA)
 
 #endif  // MINI_CHROMIUM_BASE_POSIX_EINTR_WRAPPER_H_

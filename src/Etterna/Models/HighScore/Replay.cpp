@@ -72,6 +72,17 @@ RetriedRemove(const std::string& path)
 	}
 }
 
+inline static std::string
+getRealFSPath(const std::string& path) {
+	auto resolvedPath = FILEMAN->ResolvePath(path);
+	// on windows, remove the beginning / to give an absolute path
+#ifdef _WIN32
+	if (resolvedPath.length() > 0)
+		resolvedPath.erase(0, 1);
+#endif
+	return resolvedPath;
+}
+
 Replay::Replay() {
 
 }
@@ -87,25 +98,39 @@ Replay::Replay(const HighScore* hs)
 	// load from disk or when highscore is saving
 }
 
+Replay::Replay(std::string chartKey,
+			   float musicRate,
+			   float songOffset,
+			   float globalOffset,
+			   int rngSeed)
+{
+	this->scoreKey = "SPECTATOR_REPLAY";
+	this->chartKey = chartKey;
+	this->fMusicRate = musicRate;
+	this->fSongOffset = songOffset;
+	this->fGlobalOffset = globalOffset;
+	this->rngSeed = rngSeed;
+}
+
 Replay::~Replay() {
 	Unload();
 }
 
-auto
-Replay::HasReplayData() -> bool
+bool
+Replay::HasReplayData() const
 {
 	return HasWrittenReplayData() || GetReplayType() != ReplayType_Invalid;
 }
 
-auto
-Replay::HasWrittenReplayData() -> bool
+bool
+Replay::HasWrittenReplayData() const
 {
 	return DoesFileExist(GetInputPath()) || DoesFileExist(GetFullPath()) ||
 		   DoesFileExist(GetBasicPath()) || DoesFileExist(GetOnlinePath());
 }
 
-auto
-Replay::GetHighScore() -> HighScore*
+HighScore*
+Replay::GetHighScore() const
 {
 	HighScore* o = nullptr;
 
@@ -135,14 +160,14 @@ Replay::GetHighScore() -> HighScore*
 	return o;
 }
 
-auto
-Replay::GetSteps() -> Steps*
+Steps*
+Replay::GetSteps() const
 {
 	return SONGMAN->GetStepsByChartkey(chartKey);
 }
 
-auto
-Replay::GetStyle() -> const Style*
+const Style*
+Replay::GetStyle() const
 {
 	auto* steps = GetSteps();
 	if (steps == nullptr) {
@@ -152,8 +177,8 @@ Replay::GetStyle() -> const Style*
 	return GAMEMAN->GetStyleForStepsType(st);
 }
 
-auto
-Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
+NoteData
+Replay::GetNoteData(Steps* pSteps, bool bTransform)
 {
 	if (pSteps == nullptr) {
 		pSteps = GetSteps();	
@@ -209,8 +234,8 @@ Replay::GetNoteData(Steps* pSteps, bool bTransform) -> NoteData
 	return tmp;
 }
 
-auto
-Replay::GetTimingData() -> TimingData*
+TimingData*
+Replay::GetTimingData() const
 {
 	auto* steps = GetSteps();
 	if (steps == nullptr) {
@@ -219,8 +244,8 @@ Replay::GetTimingData() -> TimingData*
 	return steps->GetTimingData();
 }
 
-auto
-Replay::SetHighScoreMods() -> void
+void
+Replay::SetHighScoreMods()
 {
 	if (!mods.empty())
 		return;
@@ -240,8 +265,8 @@ Replay::SetHighScoreMods() -> void
 	}
 }
 
-auto
-Replay::CanSafelyTransformNoteData() -> bool
+bool
+Replay::CanSafelyTransformNoteData()
 {
 	if (mods.empty()) {
 		SetHighScoreMods();
@@ -262,8 +287,8 @@ Replay::CanSafelyTransformNoteData() -> bool
 	}
 }
 
-auto
-Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
+std::shared_ptr<ReplaySnapshot>
+Replay::GetReplaySnapshotForNoterow(int row)
 {
 	if (m_ReplaySnapshotMap.empty()) {
 		return std::shared_ptr<ReplaySnapshot>{ new ReplaySnapshot };
@@ -308,8 +333,8 @@ Replay::GetReplaySnapshotForNoterow(int row) -> std::shared_ptr<ReplaySnapshot>
 											[](ReplaySnapshot*) {} };
 }
 
-auto
-Replay::LoadReplayData() -> bool
+bool
+Replay::LoadReplayData()
 {
 	return LoadedInputData(LoadInputData()) ||
 		   LoadedReplayV2(LoadReplayDataFull()) ||
@@ -317,8 +342,8 @@ Replay::LoadReplayData() -> bool
 		   LoadOnlineDataFromDisk();
 }
 
-auto
-Replay::LoadStoredOnlineData() -> bool
+bool
+Replay::LoadStoredOnlineData()
 {
 	if (vOnlineNoteRowVector.empty() || vOnlineOffsetVector.empty() ||
 		vOnlineTapNoteTypeVector.empty() || vOnlineTrackVector.empty()) {
@@ -331,8 +356,8 @@ Replay::LoadStoredOnlineData() -> bool
 	return true;
 }
 
-auto
-Replay::WriteReplayData() -> bool
+bool
+Replay::WriteReplayData()
 {
 	Locator::getLogger()->info("Writing out replay data to disk");
 	std::string append;
@@ -346,8 +371,8 @@ Replay::WriteReplayData() -> bool
 
 	const auto path = FULL_REPLAY_DIR + scoreKey;
 
-	std::ofstream fileStream(path, std::ios::binary);
-	if (!fileStream) {
+	RageFile fileStream;
+	if (!fileStream.Open(path, RageFile::WRITE)) {
 		Locator::getLogger()->warn("Failed to create replay file at {}", path);
 		return false;
 	}
@@ -366,7 +391,7 @@ Replay::WriteReplayData() -> bool
 						? " " + std::to_string(vTapNoteTypeVector.at(i))
 						: "") +
 					 "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 		// output:
 		// H n n	- noterow, column
@@ -379,15 +404,16 @@ Replay::WriteReplayData() -> bool
 						? " " + std::to_string(hold.subType)
 						: "") +
 					 "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
-		fileStream.close();
+		fileStream.Flush();
+		fileStream.Close();
 	} catch (std::exception& e) {
 		Locator::getLogger()->warn(
 		  "Failed to write replay data at {} due to exception: {}",
 		  path,
 		  e.what());
-		fileStream.close();
+		fileStream.Close();
 		return false;
 	}
 
@@ -395,8 +421,8 @@ Replay::WriteReplayData() -> bool
 	return true;
 }
 
-auto
-Replay::WriteInputData() -> bool
+bool
+Replay::WriteInputData()
 {
 	Locator::getLogger()->info("Writing out input data to disk");
 	std::string append;
@@ -415,8 +441,9 @@ Replay::WriteInputData() -> bool
 	const auto path = INPUT_DATA_DIR + scoreKey;
 	const auto path_z = path + "z";
 
-	std::ofstream fileStream(path, std::ios::binary);
-	if (!fileStream) {
+	RageFile fileStream;
+
+	if (!fileStream.Open(path, RageFile::WRITE)) {
 		Locator::getLogger()->warn("Failed to create input data file at {}",
 								   path);
 		return false;
@@ -434,7 +461,7 @@ Replay::WriteInputData() -> bool
 		  std::to_string(fSongOffset) + " " + std::to_string(fGlobalOffset) +
 		  " " + modStr + " " + std::to_string(rngSeed) + " " +
 		  std::to_string(INPUT_DATA_VERSION) + "\n";
-		fileStream.write(headerLine1.c_str(), headerLine1.size());
+		fileStream.Write(headerLine1.c_str(), headerLine1.size());
 
 		// input data:
 		// column press/lift time nearest_tap tap_offset
@@ -448,7 +475,7 @@ Replay::WriteInputData() -> bool
 					 std::to_string(data.offsetFromNearest) + " " +
 					 std::to_string(data.nearestTapNoteType) + " " +
 					 std::to_string(data.nearestTapNoteSubType) + "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
 		// dropped hold data:
@@ -462,7 +489,7 @@ Replay::WriteInputData() -> bool
 						? " " + std::to_string(hold.subType)
 						: "") +
 					 "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
 		// hit mine data:
@@ -470,7 +497,7 @@ Replay::WriteInputData() -> bool
 		for (auto& mine : vMineReplayDataVector) {
 			append = "M " + std::to_string(mine.row) + " " +
 					 std::to_string(mine.track) + "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
 		// miss data:
@@ -480,20 +507,23 @@ Replay::WriteInputData() -> bool
 					 std::to_string(miss.row) + " " +
 					 std::to_string(miss.tapNoteType) + " " +
 					 std::to_string(miss.tapNoteSubType) + "\n";
-			fileStream.write(append.c_str(), append.size());
+			fileStream.Write(append.c_str(), append.size());
 		}
 
-		fileStream.close();
+		fileStream.Flush();
+		fileStream.Close();
+		const auto real_fs_path = getRealFSPath(path);
+		const auto real_fs_pathz = getRealFSPath(path_z);
 
 		/// compression
-		FILE* infile = fopen(path.c_str(), "rb");
+		FILE* infile = fopen(real_fs_path.c_str(), "rb");
 		if (infile == nullptr) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
 									   path);
 			return false;
 		}
-		gzFile outfile = gzopen(path_z.c_str(), "wb");
+		gzFile outfile = gzopen(real_fs_pathz.c_str(), "wb");
 		if (outfile == Z_NULL) {
 			Locator::getLogger()->warn("Failed to compress new input data "
 									   "because {} could not be opened",
@@ -528,7 +558,7 @@ Replay::WriteInputData() -> bool
 		  "Failed to write input data at {} due to exception: {}",
 		  path,
 		  e.what());
-		fileStream.close();
+		fileStream.Close();
 		return false;
 	}
 
@@ -555,8 +585,8 @@ Replay::WriteInputData() -> bool
 	*/
 }
 
-auto
-Replay::LoadInputData(const std::string& replayDir) -> bool
+bool
+Replay::LoadInputData(const std::string& replayDir)
 {
 	if (!InputData.empty())
 		return true;
@@ -605,9 +635,12 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		}
 	};
 
+	const auto real_fs_path = getRealFSPath(path);
+	const auto real_fs_pathz = getRealFSPath(path_z);
+
 	// human readable compression read-in
 	try {
-		gzFile infile = gzopen(path_z.c_str(), "rb");
+		gzFile infile = gzopen(real_fs_pathz.c_str(), "rb");
 		if (infile == Z_NULL) {
 			Locator::getLogger()->warn(
 			  "Failed to load input data at {} (probably doesnt exist)",
@@ -616,7 +649,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		}
 
 		// hope nothing already exists here
-		FILE* outfile = fopen(path.c_str(), "wb");
+		FILE* outfile = fopen(real_fs_path.c_str(), "wb");
 		if (outfile == nullptr) {
 			Locator::getLogger()->warn(
 			  "Failed to create tmp output file for input data at {}", path);
@@ -632,7 +665,7 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 		gzclose(infile);
 		fclose(outfile);
 
-		std::ifstream inputStream(path, std::ios::binary);
+		std::ifstream inputStream(real_fs_path, std::ios::binary);
 		if (!inputStream) {
 			Locator::getLogger()->debug(
 			  "Failed to load input data at {} (can't read tmp file?)", path);
@@ -811,8 +844,8 @@ Replay::LoadInputData(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
+bool
+Replay::LoadReplayDataBasic(const std::string& replayDir)
 {
 	// already exists
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4) {
@@ -828,8 +861,9 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	std::vector<int> vNoteRowVector;
 	std::vector<float> vOffsetVector;
 	const auto path = replayDir + scoreKey;
+	const auto real_fs_path = getRealFSPath(path);
 
-	std::ifstream fileStream(path, std::ios::binary);
+	std::ifstream fileStream(real_fs_path, std::ios::binary);
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
@@ -898,8 +932,8 @@ Replay::LoadReplayDataBasic(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
+bool
+Replay::LoadReplayDataFull(const std::string& replayDir)
 {
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
@@ -918,8 +952,9 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	std::vector<TapNoteType> vTapNoteTypeVector;
 	std::vector<HoldReplayResult> vHoldReplayDataVector;
 	const auto path = replayDir + scoreKey;
+	const auto real_fs_path = getRealFSPath(path);
 
-	std::ifstream fileStream(path, std::ios::binary);
+	std::ifstream fileStream(real_fs_path, std::ios::binary);
 	std::string line;
 	std::string buffer;
 	std::vector<std::string> tokens;
@@ -1037,8 +1072,8 @@ Replay::LoadReplayDataFull(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
+bool
+Replay::LoadOnlineDataFromDisk(const std::string& replayDir)
 {
 	if (vNoteRowVector.size() > 4 && vOffsetVector.size() > 4 &&
 		vTrackVector.size() > 4) {
@@ -1051,8 +1086,9 @@ Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
 	std::vector<int> rows;
 	std::vector<TapNoteType> types;
 	const auto path = replayDir + scoreKey;
+	const auto real_fs_path = getRealFSPath(path);
 
-	std::ifstream fileStream(path, std::ios::binary);
+	std::ifstream fileStream(real_fs_path, std::ios::binary);
 
 	// check file
 	if (!fileStream) {
@@ -1139,8 +1175,8 @@ Replay::LoadOnlineDataFromDisk(const std::string& replayDir) -> bool
 	return true;
 }
 
-auto
-Replay::FillInBlanksForInputData() -> bool
+bool
+Replay::FillInBlanksForInputData()
 {
 	if (!LoadInputData()) {
 		Locator::getLogger()->warn("Failed to correct InputData fields for "
@@ -1195,7 +1231,7 @@ Replay::FillInBlanksForInputData() -> bool
 	auto notedata = GetNoteData(chart);
 	if (notedata.IsEmpty()) {
 		Locator::getLogger()->warn("Failed to correct InputData fields for "
-								   "score {} because chartkey [} is empty",
+								   "score {} because chartkey {} is empty",
 								   scoreKey,
 								   chartKey);
 		return false;
@@ -1310,8 +1346,8 @@ Replay::FillInBlanksForInputData() -> bool
 	return true;
 }
 
-auto
-Replay::GenerateReplayV2DataPresumptively() -> bool
+bool
+Replay::GenerateReplayV2DataPresumptively()
 {
 	if (!LoadReplayDataBasic()) {
 		// shouldnt get here
@@ -1389,8 +1425,8 @@ Replay::GenerateReplayV2DataPresumptively() -> bool
 	return true;
 }
 
-auto
-Replay::GeneratePrimitiveVectors() -> bool
+bool
+Replay::GeneratePrimitiveVectors()
 {
 	// when reprioritizing noterows, temporarily overwrite the saved data
 	if (!useReprioritizedNoterows) {
@@ -1514,8 +1550,8 @@ Replay::GeneratePrimitiveVectors() -> bool
 			  BeatToNoteRow(td->GetBeatFromElapsedTimeNoOffset(time));
 		} else {
 			// galaxy brain (only used for holds anyways)
-			time = td->GetElapsedTimeFromBeatNoOffset(NoteRowToBeat(noterow)) +
-				   (offset * fMusicRate);
+			time =
+			  td->GetTimeFromRowFastNoOffset(noterow) + (offset * fMusicRate);
 		}
 
 
@@ -1611,8 +1647,7 @@ Replay::GeneratePrimitiveVectors() -> bool
 			auto nextRow = headRow;
 			nd.GetNextTapNoteRowForTrack(track, nextRow, true);
 			auto offsetFromNextNote =
-			  (td->GetElapsedTimeFromBeat(NoteRowToBeat(nextRow)) -
-			   d.songPositionSeconds) /
+			  (td->GetTimeFromRowFast(nextRow) - d.songPositionSeconds) /
 			  fMusicRate;
 
 			// if the hold is alive,
@@ -1750,8 +1785,8 @@ Replay::GeneratePrimitiveVectors() -> bool
 	return true;
 }
 
-auto
-Replay::GenerateNoterowsFromTimestamps() -> bool
+bool
+Replay::GenerateNoterowsFromTimestamps()
 {
 	if (!vNoteRowVector.empty()) {
 		return true;
@@ -1858,8 +1893,9 @@ Replay::ValidateOffsets()
 	}
 }
 
-auto
-Replay::ValidateInputDataNoterows() -> bool {
+bool
+Replay::ValidateInputDataNoterows()
+{
 
 	if (!CanSafelyTransformNoteData()) {
 		Locator::getLogger()->warn("Failed to validate InputData Noterows "
@@ -2602,8 +2638,8 @@ Replay::VerifyInputDataAndReplayData()
 	Unload();
 }
 
-auto
-Replay::ReprioritizeInputData() -> bool
+bool
+Replay::ReprioritizeInputData()
 {
 	if (!LoadInputData()) {
 		Locator::getLogger()->warn(
@@ -2653,10 +2689,10 @@ Replay::ReprioritizeInputData() -> bool
 	auto getClosestNote = [&nd, &td, &judgedNotes, this](const int column,
 												   const float songPosition) {
 		const auto maxSec = REPLAYS->CustomMissWindowFunction() * fMusicRate;
-		const auto iStartRow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition - maxSec));
-		const auto iEndRow =
-		  BeatToNoteRow(td->GetBeatFromElapsedTime(songPosition + maxSec));
+		const auto iStartRow = BeatToNoteRow(
+		  td->GetBeatFromElapsedTimeNoOffset(songPosition - maxSec));
+		const auto iEndRow = BeatToNoteRow(
+		  td->GetBeatFromElapsedTimeNoOffset(songPosition + maxSec));
 
 		NoteData::const_iterator begin;
 		NoteData::const_iterator end;
@@ -2702,6 +2738,11 @@ Replay::ReprioritizeInputData() -> bool
 	}
 
 	for (auto& d : InputData) {
+		const auto adjustedSongPositionSeconds =
+		  d.songPositionSeconds + GetGlobalOffset() -
+		  td->m_fBeat0OffsetInSeconds + GetSongOffset();
+
+		// not sure if this songposition needs to be adjusted
 		const auto foundRow = getClosestNote(d.column, d.songPositionSeconds);
 		if (foundRow != -1) {
 			auto& tn = nd.GetTapNote(d.column, foundRow);
@@ -2728,10 +2769,9 @@ Replay::ReprioritizeInputData() -> bool
 			} else {
 				judgedNotes.at(foundRow).insert(d.column);
 
-				const auto offset =
-				  (d.songPositionSeconds -
-				   td->GetElapsedTimeFromBeat(NoteRowToBeat(foundRow))) /
-				  fMusicRate;
+				const auto offset = (adjustedSongPositionSeconds -
+									 td->GetTimeFromRowFastNoOffset(foundRow)) /
+									fMusicRate;
 
 				d.reprioritizedNearestNoterow = foundRow;
 				d.reprioritizedOffsetFromNearest = offset;
@@ -2846,8 +2886,8 @@ Replay::ReprioritizeInputData() -> bool
 	return true;
 }
 
-auto
-Replay::GenerateInputData() -> bool
+bool
+Replay::GenerateInputData()
 {
 	if (LoadInputData()) {
 		return true;
@@ -2890,8 +2930,7 @@ Replay::GenerateInputData() -> bool
 			}
 
 			const auto positionSeconds =
-			  td->GetElapsedTimeFromBeat(NoteRowToBeat(noterow)) +
-			  offset * fMusicRate;
+			  td->GetTimeFromRowFast(noterow) + offset * fMusicRate;
 
 			InputDataEvent evt;
 			evt.column = vTrackVector.at(i);
@@ -2965,8 +3004,7 @@ Replay::GenerateInputData() -> bool
 			}
 
 			const auto positionSeconds =
-			  td->GetElapsedTimeFromBeat(NoteRowToBeat(noterow)) +
-			  offset * fMusicRate;
+			  td->GetTimeFromRowFast(noterow) + offset * fMusicRate;
 
 			InputDataEvent evt;
 			evt.column = columnToUse;
@@ -2994,8 +3032,8 @@ Replay::GenerateInputData() -> bool
 	return true;
 }
 
-auto
-Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<PlaybackEvent>>
+std::map<int, std::vector<PlaybackEvent>>
+Replay::GeneratePlaybackEvents(int startRow)
 {
 	std::map<int, std::vector<PlaybackEvent>> out;
 
@@ -3054,8 +3092,44 @@ Replay::GeneratePlaybackEvents(int startRow) -> std::map<int, std::vector<Playba
 	return out;
 }
 
-auto
-Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::set<int>>
+std::map<int, std::vector<PlaybackEvent>>
+Replay::GeneratePlaybackEventForInputDataHead()
+{
+	std::map<int, std::vector<PlaybackEvent>> out;
+
+	if (InputData.empty()) {
+		return out;
+	}
+
+	const auto& evt = InputData.back();
+
+	const auto* td = SONGMAN->GetStepsByChartkey(chartKey)->GetTimingData();
+	const auto& evtPositionSeconds = evt.songPositionSeconds;
+	const auto& column = evt.column;
+	const auto& isPress = evt.is_press;
+
+	const auto noterow =
+	  BeatToNoteRow(td->GetBeatFromElapsedTime(evtPositionSeconds));
+	if (evt.nearestTapNoterow == -1) {
+		// for ghost taps, only remove them if they are truly too early
+		if (noterow < 0) {
+			return out;
+		}
+	}
+
+	PlaybackEvent playback(noterow, evtPositionSeconds, column, isPress);
+	playback.noterowJudged = evt.nearestTapNoterow;
+	playback.offset = evt.offsetFromNearest;
+	if (!out.count(noterow)) {
+		out.emplace(noterow, std::vector<PlaybackEvent>());
+	}
+	out.at(noterow).push_back(playback);
+
+	return out;
+}
+
+std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow)
 {
 	std::map<int, std::set<int>> mapping;
 
@@ -3073,8 +3147,25 @@ Replay::GenerateDroppedHoldColumnsToRowsMap(int startRow) -> std::map<int, std::
 	return mapping;
 }
 
-auto
-Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow) -> std::map<int, std::set<int>>
+std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldColumnsToRowsMapFromHead()
+{
+	std::map<int, std::set<int>> mapping;
+
+	if (vHoldReplayDataVector.empty()) {
+		return mapping;
+	}
+
+	const auto& h = vHoldReplayDataVector.back();
+
+	mapping.emplace(h.track, std::set<int>());
+	mapping.at(h.track).insert(h.row);
+
+	return mapping;
+}
+
+std::map<int, std::set<int>>
+Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow)
 {
 	std::map<int, std::set<int>> mapping;
 
@@ -3092,8 +3183,8 @@ Replay::GenerateDroppedHoldRowsToColumnsMap(int startRow) -> std::map<int, std::
 	return mapping;
 }
 
-auto
-Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) -> bool
+bool
+Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale)
 {
 	{
 		// force regenerate...
@@ -3607,7 +3698,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// For every row in the replay data...
 	for (auto& row : m_ReplayTapMap) {
 		// Get the current time and go over all taps on this row...
-		const auto rowTime = pReplayTiming->WhereUAtBro(row.first);
+		const auto rowTime = pReplayTiming->GetTimeFromRowFast(row.first);
 		for (auto& trr : row.second) {
 			// Find the time adjusted for offset
 			auto tapTime = rowTime + trr.offset;
@@ -3626,7 +3717,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 	// Go over all of the elements, you know the deal.
 	// We can avoid getting offset rows here since drops don't do that
 	for (auto& row : m_ReplayHoldMap) {
-		auto dropTime = pReplayTiming->WhereUAtBro(row.first);
+		auto dropTime = pReplayTiming->GetTimeFromRowFast(row.first);
 		for (auto& hrr : row.second) {
 			if (m_ReplayHoldMapByElapsedTime.count(dropTime) != 0) {
 				m_ReplayHoldMapByElapsedTime[dropTime].push_back(hrr);
@@ -3657,7 +3748,7 @@ Replay::GenerateJudgeInfoAndReplaySnapshots(int startingRow, float timingScale) 
 				// the game should usually count something as a miss. we dont
 				// use this time for anything other than chronologically parsing
 				// replay data for combo/life stuff so this is okay (i hope)
-				auto tapTime = pReplayTiming->WhereUAtBro(row) +
+				auto tapTime = pReplayTiming->GetTimeFromRowFast(row) +
 							   REPLAYS->CustomMissWindowFunction();
 				for (auto i = 0; i < missDiff; i++) {
 					// we dont really care about anything other than the offset
@@ -3713,6 +3804,16 @@ class LunaReplay : public Luna<Replay>
 	static auto IsLoaded(T* p, lua_State* L) -> int
 	{
 		lua_pushboolean(L, p->GetReplayType() != ReplayType_Invalid);
+		return 1;
+	}
+	static auto IsForOnlineScore(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->IsOnlineScore());
+		return 1;
+	}
+	static auto IsForSpectateScore(T* p, lua_State* L) -> int
+	{
+		lua_pushboolean(L, p->IsSpectateScore());
 		return 1;
 	}
 
@@ -3956,6 +4057,8 @@ class LunaReplay : public Luna<Replay>
 	LunaReplay() {
 		ADD_METHOD(LoadAllData);
 		ADD_METHOD(IsLoaded);
+		ADD_METHOD(IsForOnlineScore);
+		ADD_METHOD(IsForSpectateScore);
 
 		ADD_METHOD(HasReplayData);
 		ADD_METHOD(GetChartKey);

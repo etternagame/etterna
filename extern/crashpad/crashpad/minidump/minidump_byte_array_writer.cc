@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 #include "minidump/minidump_byte_array_writer.h"
 
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "util/file/file_writer.h"
 #include "util/numeric/safe_assignment.h"

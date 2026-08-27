@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@
 #include <algorithm>
 #include <utility>
 
+#include "base/apple/mach_logging.h"
+#include "base/apple/scoped_mach_port.h"
+#include "base/apple/scoped_mach_vm.h"
+#include "base/check_op.h"
 #include "base/logging.h"
-#include "base/mac/mach_logging.h"
-#include "base/mac/scoped_mach_port.h"
-#include "base/mac/scoped_mach_vm.h"
 #include "base/strings/stringprintf.h"
 #include "snapshot/mac/mach_o_image_reader.h"
 #include "snapshot/mac/process_types.h"
@@ -75,6 +76,7 @@ ProcessReaderMac::Thread::Thread()
     : thread_context(),
       float_context(),
       debug_context(),
+      name(),
       id(0),
       stack_region_address(0),
       stack_region_size(0),
@@ -264,7 +266,7 @@ void ProcessReaderMac::InitializeThreads() {
   // loop below will leak thread port send rights.
   ScopedForbidReturn threads_need_owners;
 
-  base::mac::ScopedMachVM threads_vm(
+  base::apple::ScopedMachVM threads_vm(
       reinterpret_cast<vm_address_t>(threads),
       mach_vm_round_page(thread_count * sizeof(*threads)));
 
@@ -363,6 +365,20 @@ void ProcessReaderMac::InitializeThreads() {
       // This address is the internal pthread’s _pthread::tsd[], an array of
       // void* values that can be indexed by pthread_key_t values.
       thread.thread_specific_data_address = identifier_info.thread_handle;
+    }
+
+    thread_extended_info extended_info;
+    count = THREAD_EXTENDED_INFO_COUNT;
+    kr = thread_info(thread.port,
+                     THREAD_EXTENDED_INFO,
+                     reinterpret_cast<thread_info_t>(&extended_info),
+                     &count);
+    if (kr != KERN_SUCCESS) {
+      MACH_LOG(WARNING, kr) << "thread_info(THREAD_EXTENDED_INFO)";
+    } else {
+      thread.name.assign(
+          extended_info.pth_name,
+          strnlen(extended_info.pth_name, sizeof(extended_info.pth_name)));
     }
 
     thread_precedence_policy precedence;
@@ -494,26 +510,27 @@ void ProcessReaderMac::InitializeModules() {
     }
 
     if (file_type == MH_EXECUTE) {
-      // On Mac OS X 10.6, the main executable does not normally show up at
-      // index 0. This is because of how 10.6.8 dyld-132.13/src/dyld.cpp
-      // notifyGDB(), the function resposible for causing
-      // dyld_all_image_infos::infoArray to be updated, is called. It is
-      // registered to be called when all dependents of an image have been
-      // mapped (dyld_image_state_dependents_mapped), meaning that the main
-      // executable won’t be added to the list until all of the libraries it
-      // depends on are, even though dyld begins looking at the main executable
-      // first. This changed in later versions of dyld, including those present
-      // in 10.7. 10.9.4 dyld-239.4/src/dyld.cpp updateAllImages() (renamed from
-      // notifyGDB()) is registered to be called when an image itself has been
-      // mapped (dyld_image_state_mapped), regardless of the libraries that it
-      // depends on.
+      // On macOS 14, the main executable does not normally show up at
+      // index 0. In previous versions of dyld, each loaded image was
+      // appended to the all image info vector as it was loaded.
+      // (For example, see RuntimeState::notifyDebuggerLoad in dyld-1066.8).
+      // Starting from dyld-1122.1, notifyDebuggerLoad calls
+      // ExternallyViewableState::addImages for all but the main executable
+      // (which has already been added). ExternallyViewableState::addImages
+      // inserts all new image infos at the front of the vector, leaving the
+      // main executable as the last item.
       //
       // The interface requires that the main executable be first in the list,
       // so swap it into the right position.
       size_t index = modules_.size() - 1;
-      if (main_executable_count == 0) {
-        std::swap(modules_[0], modules_[index]);
-      } else {
+      if (index > 0) {
+        CHECK_EQ(index, image_info_vector.size() - 1);
+        if (main_executable_count == 0) {
+          std::rotate(
+              modules_.rbegin(), modules_.rbegin() + 1, modules_.rend());
+        }
+      }
+      if (main_executable_count > 0) {
         LOG(WARNING) << base::StringPrintf(
             "multiple MH_EXECUTE modules (%s, %s)",
             modules_[0].name.c_str(),

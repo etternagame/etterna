@@ -118,6 +118,11 @@ class Steps
 							 const std::vector<float>& etaner,
 							 const std::vector<int>& nerv,
 							 float rate) -> std::vector<int>;
+	static auto GetNPSVectorForType(const NoteData& nd,
+									const std::vector<float>& etaner,
+									const std::vector<int>& nerv,
+									float rate,
+									const TapNoteType tnt) -> std::vector<int>;
 
 	auto GetNPSPerMeasure(const NoteData& nd,
 						  const std::vector<float>& etaner,
@@ -233,6 +238,7 @@ class Steps
 	auto GetMusicFile() const
 	  -> const std::string&; // Returns the filename for the simfile.
 	void SetMusicFile(const std::string& file);
+	auto GetPreviewMusicPath() const -> const std::string;
 
 	// Lua
 	void PushSelf(lua_State* L);

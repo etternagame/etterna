@@ -45,7 +45,7 @@ MSSmooth(std::vector<float>& input,
 
 static const std::vector<CalcPatternMod> agnostic_mods = {
 	Stream,	 JS,	   HS,		  CJ,	   CJDensity,	 HSDensity,
-	FlamJam, TheThing, TheThing2, GChordStream,
+	FlamJam, TheThing, TheThing2, GChordStream, OldJumpScaler, HandBalance
 };
 
 static const std::vector<CalcPatternMod> dependent_mods = {
@@ -56,7 +56,9 @@ static const std::vector<CalcPatternMod> dependent_mods = {
 	WideRangeRoll, WideRangeJumptrill,
 	WideRangeJJ,   WideRangeAnchor,
 	RanMan,		   Minijack,
-	CJOHJump, GStream, GBracketing,
+	CJOHJump,	   GStream,
+	GBracketing,   HandSwitch,
+	OldAnchorScaler, OldOHJScaler, OldRollScaler
 };
 
 struct PatternMods
@@ -170,7 +172,9 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 	if (ignore_middle_column) {
 		all_columns_without_middle = mask_to_remove_middle_column(calc.keycount);
 	}
-	auto left_hand_mask = left_mask(calc.keycount) & all_columns_without_middle;
+	// assign all middle taps to the left hand for now (FIND SOMETHING BETTER)
+	auto middle_note_mask = middle_mask(calc.keycount) & max_keycount_notes;
+	auto left_hand_mask = left_mask(calc.keycount) | middle_note_mask & max_keycount_notes;
 	auto right_hand_mask = right_mask(calc.keycount) & all_columns_without_middle;
 
 	// left, right

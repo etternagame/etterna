@@ -36,7 +36,6 @@ local t = Def.ActorFrame {
                 end
             end
         end)
-        updateDiscordStatus(true)
     end,
     OnCommand = function(self)
         local score = SCOREMAN:GetMostRecentScore()
@@ -175,36 +174,36 @@ local t = Def.ActorFrame {
 }
 
 local ratios = {
-    LeftGap = 78 / 1920,
-    UpperGap = 135 / 1080, -- from top edge of screen to edge of bg
-    Width = 1765 / 1920,
-    Height = 863 / 1080,
-    LipLeftGap = 800 / 1920, -- the lip starts at the end of the banner
-    LipHeight = 50 / 1080,
-    LipLength = 965 / 1920, -- runs to the right end of the frame
+    LeftGap = 94 / 1920,
+    UpperGap = 127 / 1080, -- from top edge of screen to edge of bg
+    Width = 1732 / 1920,
+    Height = 885 / 1080,
+    LipLeftGap = 775 / 1920, -- the lip starts at the end of the banner
+    LipHeight = 68 / 1080,
+    LipLength = 957 / 1920, -- runs to the right end of the frame
 
     GraphLeftGap = 18 / 1920,
     GraphWidth = 739 / 1920, -- this must be the same as in metrics [GraphDisplay/ComboGraph]
-    GraphBannerGap = 9 / 1080, -- from bottom of banner to top of graph
+    GraphBannerGap = 6 / 1080, -- from bottom of banner to top of graph
     BannerLeftGap = 18 / 1920,
-    BannerUpperGap = 7 / 1080,
-    BannerHeight = 228 / 1080,
+    BannerUpperGap = 18 / 1080,
+    BannerHeight = 231 / 1080,
     BannerWidth = 739 / 1920,
-    LifeGraphHeight = 71 / 1080, -- this must be the same as in metrics [GraphDisplay]
+    LifeGraphHeight = 80 / 1080, -- this must be the same as in metrics [GraphDisplay]
     ComboGraphHeight = 16 / 1080, -- this must be the same as in metrics [ComboGraph]
 
     DividerThickness = 2 / 1080,
     LeftDividerLeftGap = 18 / 1920,
     LeftDividerLength = 739 / 1920,
 
-    LeftDivider1UpperGap = 338 / 1080,
-    LeftDivider2UpperGap = 399 / 1080,
+    LeftDivider1UpperGap = 358 / 1080,
+    LeftDivider2UpperGap = 419 / 1080,
 
-    ModTextLeftGap = 19 / 1920,
+    ModTextLeftGap = 18 / 1920,
     -- modtext Y pos is half between the 2 dividers.
 
     JudgmentBarLeftGap = 18 / 1920, -- edge of frame to left of bar
-    JudgmentBarUpperGap = 408 / 1080, -- top edge of from to top edge of top bar
+    JudgmentBarUpperGap = 428 / 1080, -- top edge of from to top edge of top bar
     JudgmentBarHeight = 44 / 1080,
     JudgmentBarAllottedSpace = 264 / 1080, -- top of top bar to top of bottom bar (valign 0)
     JudgmentBarLength = 739 / 1920,
@@ -212,7 +211,7 @@ local ratios = {
     JudgmentNameLeftGap = 25 / 1920, -- from left edge of bar to left edge of text
     JudgmentCountRightGap = 95 / 1920, -- from right edge of bar to left edge of percentage, right edge of count
 
-    BottomTextUpperGap = 733 / 1080, -- top edge of frame to top edge of the text at the bottom left of the screen
+    BottomTextUpperGap = 744 / 1080, -- top edge of frame to top edge of the text at the bottom left of the screen
     BottomTextHeight = 16 / 1080, -- fudge
     BottomTextSpacing = 10 / 1080, -- mix with the immediately above value
     SubTypeTextLeftGap = 18 / 1920, -- edge of frame to left of text
@@ -224,15 +223,15 @@ local ratios = {
     StatCountTotalRightGap = 0 / 1920, -- this is a base line, probably 0, here for consistency
     StatTextAllottedSpace = 105 / 1080, -- top of top text to top of bottom text (valign 0)
 
-    RightHalfLeftGap = 803 / 1920, -- left edge of frame to left edge of everything on the right side
+    RightHalfLeftGap = 775 / 1920, -- left edge of frame to left edge of everything on the right side
     RightHalfRightAlignLeftGap = 936 / 1920, -- basically the same length as the divider, right end of rightest right text
     RightHorizontalDividerLength = 936 / 1920,
-    RightHorizontalDivider1UpperGap = 244 / 1080, -- top of frame to top of divider
+    RightHorizontalDivider1UpperGap = 254 / 1080, -- top of frame to top of divider
     RightHorizontalDivider2UpperGap = 544 / 1080, -- same
 
-    SongTitleLowerGap = 147 / 1080, -- top of divider to bottom of text
-    SongArtistLowerGap = 103 / 1080, -- same
-    SongPackLowerGap = 59 / 1080, -- ...
+    SongTitleLowerGap = 146 / 1080, -- top of divider to bottom of text
+    SongArtistLowerGap = 104 / 1080, -- same
+    SongPackLowerGap = 62 / 1080, -- ...
     SongRateLowerGap = 15 / 1080,
     GradeLowerGap = 141 / 1080,
     WifePercentLowerGap = 77 / 1080,
@@ -240,8 +239,8 @@ local ratios = {
 
     ScoreBoardHeight = 298 / 1080, -- inner edge of divider to inner edge of divider
 
-    OffsetPlotUpperGap = 559 / 1080, -- from top of frame to top of plot
-    OffsetPlotHeight = 295 / 1080,
+    OffsetPlotUpperGap = 564 / 1080, -- from top of frame to top of plot
+    OffsetPlotHeight = 304 / 1080,
     OffsetPlotWidth = 936 / 1920,
 }
 
@@ -389,13 +388,39 @@ local function gatherRescoreTableFromScore(score)
     -- tap offsets
     local replay = score:GetReplay()
     replay:LoadAllData()
-    o["dvt"] = replay:GetOffsetVector()
+
+    local types = replay:GetTapNoteTypeVector()
+    if #types > 0 then
+        local dvt = {}
+        local offsets = replay:GetOffsetVector()
+        for i,v in ipairs(offsets) do
+            if types[i] ~= nil and (types[i] == "TapNoteType_Tap" or types[i] == "TapNoteType_HoldHead" or types[i] == "TapNoteType_Lift") then
+                dvt[#dvt+1] = v
+            end
+        end
+        o["dvt"] = dvt
+    else
+        -- this can have unintended 0s or 1000s hidden within
+        o["dvt"] = replay:GetOffsetVector()
+    end
+
     -- holds
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
     o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
+    if o["totalHolds"] < o["holdsHit"] then
+		-- dunno
+		o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	end
     o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
+
     -- mines
-    o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
+    local mineV = replay:GetMineHitVector()
+    if #mineV > 0 then
+        o["minesHit"] = #mineV
+    else
+        o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
+    end
+    
     -- taps
     o["totalTaps"] = 0
     for _, j in ipairs(tapJudgments) do
@@ -600,9 +625,9 @@ local function accuracyStats()
 
         if output[4] == validTaps then
             output[rfcStatIndex] = longestRFC
-            statTypes[rfcStatIndex] = rfcStatType 
+            statTypes[rfcStatIndex] = rfcStatType
         else
-            statTypes[rfcStatIndex] = pfcStatType 
+            statTypes[rfcStatIndex] = pfcStatType
         end
 
         -- prevent division by 0 here
@@ -1006,7 +1031,7 @@ local function customScoringDisplay()
         end,
         SetCommand = function(self, params)
             if params.score ~= nil then
-                
+
                 self:visible(usingCustomWindows)
                 if not usingCustomWindows then return end
 
@@ -1134,6 +1159,11 @@ t[#t+1] = Def.ActorFrame {
                     self:visible(true)
                 end
                 self:LoadBackground(bnpath)
+                if self:GetNumStates() > 1 then
+                    self:StopUsingCustomTexCoords()
+                else
+                    self:EnableCustomTexCoords()
+                end
             else
                 self:visible(false)
             end

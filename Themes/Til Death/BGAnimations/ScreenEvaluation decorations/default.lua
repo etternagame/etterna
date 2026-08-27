@@ -139,6 +139,10 @@ local function getRescoreElements(score)
 	o["dvt"] = dvt
     o["totalHolds"] = pss:GetRadarPossible():GetValue("RadarCategory_Holds") + pss:GetRadarPossible():GetValue("RadarCategory_Rolls")
 	o["holdsHit"] = gatherRadarValue("RadarCategory_Holds", score) + gatherRadarValue("RadarCategory_Rolls", score)
+	if o["totalHolds"] < o["holdsHit"] then
+		-- dunno
+		o["totalHolds"] = score:GetRadarPossible():GetValue("RadarCategory_Holds") + score:GetRadarPossible():GetValue("RadarCategory_Rolls")
+	end
 	o["holdsMissed"] = o["totalHolds"] - o["holdsHit"]
     o["minesHit"] = pss:GetRadarPossible():GetValue("RadarCategory_Mines") - gatherRadarValue("RadarCategory_Mines", score)
 	o["totalTaps"] = totalTaps
@@ -198,12 +202,14 @@ local function scoreBoard(pn, position)
 				aboutToForceWindowSettings = true
 				MESSAGEMAN:Broadcast("ForceWindow", {judge=4})
 				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=4})
+				MESSAGEMAN:Broadcast("LoadScoreInOffsetPlot", {score = score})
 			else
 				judge = scaleToJudge(SCREENMAN:GetTopScreen():GetReplayJudge())
 				clampJudge()
 				judge2 = judge
 				MESSAGEMAN:Broadcast("ForceWindow", {judge=judge})
 				MESSAGEMAN:Broadcast("RecalculateGraphs", {judge=judge})
+				MESSAGEMAN:Broadcast("LoadScoreInOffsetPlot", {score = score})
 			end
 		end,
 		ChangeScoreCommand = function(self, params)
@@ -1384,6 +1390,5 @@ if GAMESTATE:IsPlayerEnabled() then
 end
 
 t[#t + 1] = LoadActor("../offsetplot")
-updateDiscordStatus(true)
 
 return t

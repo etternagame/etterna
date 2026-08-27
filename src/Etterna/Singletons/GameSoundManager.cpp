@@ -98,7 +98,8 @@ struct MusicToPlay
 	bool bForceLoop = false;
 	float fStartSecond = 0, fLengthSeconds = 0, fFadeInLengthSeconds = 0,
 		  fFadeOutLengthSeconds = 0;
-	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false;
+	bool bAlignBeat = false, bApplyMusicRate = false, bAccurateSync = false,
+		 bIsBGM = false;
 	MusicToPlay() { HasTiming = false; }
 };
 std::vector<MusicToPlay> g_MusicsToPlay;
@@ -173,11 +174,11 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		Song song;
 		SSCLoader loaderSSC;
 		SMLoader loaderSM;
-		if (GetExtension(ToPlay.m_sTimingFile) == ".ssc" &&
+		if (GetExtension(ToPlay.m_sTimingFile) == "ssc" &&
 			loaderSSC.LoadFromSimfile(ToPlay.m_sTimingFile, song)) {
 			ToPlay.HasTiming = true;
 			ToPlay.m_TimingData = song.m_SongTiming;
-		} else if (GetExtension(ToPlay.m_sTimingFile) == ".sm" &&
+		} else if (GetExtension(ToPlay.m_sTimingFile) == "sm" &&
 				   loaderSM.LoadFromSimfile(ToPlay.m_sTimingFile, song)) {
 			ToPlay.HasTiming = true;
 			ToPlay.m_TimingData = song.m_SongTiming;
@@ -194,10 +195,14 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		 * fractional beat.  That is, if it starts on beat 1.5, and ends on
 		 * beat 10.2, extend it to end on beat 10.5.  This way, effects always
 		 * loop cleanly. */
+
+		// Note:
+		// the function usage for time->beat is wrong
+		// but it was already doing this for a long time
 		float fStartBeat =
-		  NewMusic->m_NewTiming.WhereUAtBroNoOffset(ToPlay.fStartSecond);
+		  NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(ToPlay.fStartSecond);
 		float fEndSec = ToPlay.fStartSecond + ToPlay.fLengthSeconds;
-		float fEndBeat = NewMusic->m_NewTiming.WhereUAtBroNoOffset(fEndSec);
+		float fEndBeat = NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(fEndSec);
 
 		const float fStartBeatFraction = fmodfp(fStartBeat, 1);
 		const float fEndBeatFraction = fmodfp(fEndBeat, 1);
@@ -209,7 +214,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		fEndBeat += fBeatDifference;
 
 		const float fRealEndSec =
-		  NewMusic->m_NewTiming.WhereUAtBroNoOffset(fEndBeat);
+		  NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(fEndBeat);
 		const float fNewLengthSec = fRealEndSec - ToPlay.fStartSecond;
 
 		/* Extend fFadeOutLengthSeconds, so the added time is faded out. */
@@ -224,7 +229,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		 * delay. */
 		float fDestBeat = fmodfp(GAMESTATE->m_Position.m_fSongBeatNoOffset, 1);
 		float fTime =
-		  NewMusic->m_NewTiming.GetElapsedTimeFromBeatNoOffset(fDestBeat);
+		  NewMusic->m_NewTiming.GetTimeFromBeatFastNoOffset(fDestBeat);
 
 		NewMusic->m_NewTiming.m_fBeat0OffsetInSeconds = fTime;
 
@@ -260,7 +265,7 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 			fCurBeatToStartOn += 1.0f;
 
 		const float fSecondToStartOn =
-		  g_Playing->m_Timing.WhereUAtBroNoOffset(fCurBeatToStartOn);
+		  g_Playing->m_Timing.GetTimeFromBeatFastNoOffset(fCurBeatToStartOn);
 		const float fMaximumDistance = 2;
 		const float fDistance =
 		  std::min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,
@@ -287,12 +292,18 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		p.m_fFadeOutSeconds = ToPlay.fFadeOutLengthSeconds;
 		p.m_StartTime = when;
 		p.m_bAccurateSync = ToPlay.bAccurateSync;
+		p.m_bIsBGM = ToPlay.bIsBGM;
 		if (ToPlay.bApplyMusicRate)
 			p.m_fSpeed = GAMESTATE->m_SongOptions.GetPreferred().m_fMusicRate;
 		if (ToPlay.bForceLoop)
 			p.StopMode = RageSoundParams::M_LOOP;
 		NewMusic->m_Music->SetParams(p);
 		NewMusic->m_Music->StartPlaying();
+		if (MESSAGEMAN) {
+			Message msg("PlayingMusic");
+			msg.SetParam("file", ToPlay.m_sFile);
+			MESSAGEMAN->Broadcast(msg);
+		}
 	}
 
 	LockMut(*g_Mutex);
@@ -793,6 +804,7 @@ GameSoundManager::PlayMusic(PlayMusicParams params,
 	ToPlay.bAlignBeat = params.bAlignBeat;
 	ToPlay.bApplyMusicRate = params.bApplyMusicRate;
 	ToPlay.bAccurateSync = params.bAccurateSync;
+	ToPlay.bIsBGM = params.bIsBGM;
 
 	/* Add the MusicToPlay to the g_MusicsToPlay queue. */
 	g_Mutex->Lock();
@@ -810,6 +822,10 @@ GameSoundManager::DimMusic(float fVolume, float fDurationSeconds)
 		g_fOriginalVolume = g_Playing->m_Music->GetParams().m_Volume;
 	// otherwise, g_fOriginalVolume is already set and m_Volume will be the
 	// current state, not the original state
+	Locator::getLogger()->info("Dimming music from {} to {} over {} seconds",
+							   g_fOriginalVolume,
+							   fVolume,
+							   fDurationSeconds);
 
 	g_fDimDurationRemaining = fDurationSeconds;
 	g_fDimVolume = fVolume;
@@ -826,6 +842,7 @@ GameSoundManager::HandleSongTimer(bool on)
 void
 GameSoundManager::PlayOnce(const std::string& sPath)
 {
+	Locator::getLogger()->info("Tried to queue PlayOnce: '{}'", sPath);
 	/* Add the sound to the g_SoundsToPlayOnce queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnce.push_back(sPath);
@@ -836,6 +853,7 @@ GameSoundManager::PlayOnce(const std::string& sPath)
 void
 GameSoundManager::PlayOnceFromDir(const std::string& sPath)
 {
+	Locator::getLogger()->info("Tried to queue PlayOnceFromDir: '{}'", sPath);
 	/* Add the path to the g_SoundsToPlayOnceFromDir queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnceFromDir.push_back(sPath);
@@ -846,6 +864,7 @@ GameSoundManager::PlayOnceFromDir(const std::string& sPath)
 void
 GameSoundManager::PlayOnceFromAnnouncer(const std::string& sPath)
 {
+	Locator::getLogger()->info("Tried to queue PlayOnceFromAnnouncer: '{}'", sPath);
 	/* Add the path to the g_SoundsToPlayOnceFromAnnouncer queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnceFromAnnouncer.push_back(sPath);
@@ -892,7 +911,27 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 	static int SetVolume(T* p, lua_State* L)
 	{
 		Preference<float>* pRet =
-		  Preference<float>::GetPreferenceByName("SoundVolume");
+		  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
+		float fVol = FArg(1);
+		CLAMP(fVol, 0.0f, 1.0f);
+		pRet->Set(fVol);
+		SOUNDMAN->SetMixVolume();
+		return 0;
+	}
+	static int SetBGMVolume(T* p, lua_State* L)
+	{
+		Preference<float>* pRet =
+		  Preference<float>::GetPreferenceByName("SoundVolumeBGM");
+		float fVol = FArg(1);
+		CLAMP(fVol, 0.0f, 1.0f);
+		pRet->Set(fVol);
+		SOUNDMAN->SetMixVolume();
+		return 0;
+	}
+	static int SetActionsVolume(T* p, lua_State* L)
+	{
+		Preference<float>* pRet =
+		  Preference<float>::GetPreferenceByName("SoundVolumeActions");
 		float fVol = FArg(1);
 		CLAMP(fVol, 0.0f, 1.0f);
 		pRet->Set(fVol);
@@ -995,6 +1034,11 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		p->ResyncMusicPlaying();
 		COMMON_RETURN_SELF;
 	}
+	static int GetMusicPath(T* p, lua_State* L)
+	{
+		lua_pushstring(L, p->GetMusicPath().c_str());
+		return 1;
+	}
 
 	LunaGameSoundManager()
 	{
@@ -1008,7 +1052,10 @@ class LunaGameSoundManager : public Luna<GameSoundManager>
 		ADD_METHOD(StopMusic);
 		ADD_METHOD(IsTimingDelayed);
 		ADD_METHOD(SetVolume);
+		ADD_METHOD(SetActionsVolume);
+		ADD_METHOD(SetBGMVolume);
 		ADD_METHOD(ResyncMusicPlaying);
+		ADD_METHOD(GetMusicPath);
 	}
 };
 

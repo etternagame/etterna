@@ -28,9 +28,12 @@
 REGISTER_SCREEN_CLASS(ScreenGameplayReplay);
 
 void
-ScreenGameplayReplay::FillPlayerInfo(PlayerInfo* playerInfoOut)
+ScreenGameplayReplay::FillPlayerInfo(std::vector<PlayerInfo>& playerInfoOut)
 {
-	playerInfoOut->Load(PLAYER_1,
+	playerInfoOut.clear();
+
+	playerInfoOut.push_back(PlayerInfo());
+	playerInfoOut[0].Load(PLAYER_1,
 						MultiPlayer_Invalid,
 						true,
 						Difficulty_Invalid,
@@ -124,7 +127,7 @@ ScreenGameplayReplay::LoadPlayer()
 	if (settings.replayRngSeed != 0) {
 		GAMESTATE->m_iStageSeed = settings.replayRngSeed;
 	}
-	m_vPlayerInfo.m_pPlayer->Load();
+	GetPlayerInfo()->m_pPlayer->Load();
 }
 
 void
@@ -134,7 +137,7 @@ ScreenGameplayReplay::ReloadPlayer()
 	if (settings.replayRngSeed != 0) {
 		GAMESTATE->m_iStageSeed = settings.replayRngSeed;
 	}
-	m_vPlayerInfo.m_pPlayer->Reload();
+	GetPlayerInfo()->m_pPlayer->Reload();
 }
 
 void
@@ -144,9 +147,9 @@ ScreenGameplayReplay::LoadScoreKeeper()
 	if (settings.replayRngSeed != 0) {
 		GAMESTATE->m_iStageSeed = settings.replayRngSeed;
 	}
-	if (m_vPlayerInfo.m_pPrimaryScoreKeeper != nullptr) {
-		m_vPlayerInfo.m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
-												  m_vPlayerInfo.m_vpStepsQueue);
+	if (GetPlayerInfo()->m_pPrimaryScoreKeeper != nullptr) {
+		GetPlayerInfo()->m_pPrimaryScoreKeeper->Load(m_apSongsQueue,
+												  GetPlayerInfo()->m_vpStepsQueue);
 	}
 }
 
@@ -237,7 +240,7 @@ ScreenGameplayReplay::Update(const float fDeltaTime)
 
 	m_AutoKeysounds.Update(fDeltaTime);
 
-	m_vPlayerInfo.m_SoundEffectControl.Update(fDeltaTime);
+	GetPlayerInfo()->m_SoundEffectControl.Update(fDeltaTime);
 
 	{
 		const auto fSpeed = GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
@@ -366,7 +369,7 @@ ScreenGameplayReplay::StageFinished(bool bBackedOut)
 		return;
 	}
 
-	auto* const pss = m_vPlayerInfo.GetPlayerStageStats();
+	auto* const pss = GetPlayerInfo()->GetPlayerStageStats();
 	// Makes sure all PlayerStageStats discrepancies are corrected forcibly.
 	REPLAYS->RescoreReplay(*REPLAYS->GetActiveReplay(), pss);
 
@@ -455,7 +458,7 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	const auto paused = GAMESTATE->GetPaused();
 	m_pSoundMusic->Pause(paused);
 
-	m_vPlayerInfo.m_pPlayer->RenderAllNotesIgnoreScores();
+	GetPlayerInfo()->m_pPlayer->RenderAllNotesIgnoreScores();
 
 	// Lightly reset some stats in case someone wants them
 	// Precalculated values are put in their place.
@@ -467,7 +470,7 @@ ScreenGameplayReplay::SetSongPosition(float newPositionSeconds)
 	const auto fSongBeat = GAMESTATE->m_Position.m_fSongBeat;
 	const auto rowNow = BeatToNoteRow(fSongBeat);
 	// This breaks some oop standard in some book
-	auto* pss = m_vPlayerInfo.GetPlayerStageStats();
+	auto* pss = GetPlayerInfo()->GetPlayerStageStats();
 	auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(rowNow);
 	FOREACH_ENUM(TapNoteScore, tns)
 	{
@@ -505,7 +508,7 @@ ScreenGameplayReplay::TogglePause()
 		SetupNoteDataFromRow(pSteps, rowNow);
 		STATSMAN->m_CurStageStats.m_player.InternalInit();
 
-		auto* pss = m_vPlayerInfo.GetPlayerStageStats();
+		auto* pss = GetPlayerInfo()->GetPlayerStageStats();
 		auto rs = REPLAYS->GetActiveReplay()->GetReplaySnapshotForNoterow(rowNow);
 		FOREACH_ENUM(TapNoteScore, tns)
 		{
@@ -515,9 +518,9 @@ ScreenGameplayReplay::TogglePause()
 		{
 			pss->m_iHoldNoteScores[hns] = rs->hns[hns];
 		}
-		auto* ps = m_vPlayerInfo.GetPlayerState();
-		m_vPlayerInfo.m_pPlayer->curwifescore = rs->curwifescore;
-		m_vPlayerInfo.m_pPlayer->maxwifescore = rs->maxwifescore;
+		auto* ps = GetPlayerInfo()->GetPlayerState();
+		GetPlayerInfo()->m_pPlayer->curwifescore = rs->curwifescore;
+		GetPlayerInfo()->m_pPlayer->maxwifescore = rs->maxwifescore;
 
 		// Reset the wife/judge counter related visible stuff
 		FOREACH_ENUM(TapNoteScore, tns)
@@ -540,7 +543,7 @@ ScreenGameplayReplay::TogglePause()
 						   rs->maxwifescore * ps->playertargetgoal);
 			msg.SetParam("TotalPercent",
 						 100 * rs->curwifescore /
-						   m_vPlayerInfo.m_pPlayer->totalwifescore);
+						   GetPlayerInfo()->m_pPlayer->totalwifescore);
 			msg.SetParam("Type", std::string("Tap"));
 			msg.SetParam("Val", pss->m_iTapNoteScores[tns]);
 			MESSAGEMAN->Broadcast(msg);
@@ -566,12 +569,12 @@ ScreenGameplayReplay::TogglePause()
 						   rs->maxwifescore * ps->playertargetgoal);
 			msg.SetParam("TotalPercent",
 						 100 * rs->curwifescore /
-						   m_vPlayerInfo.m_pPlayer->totalwifescore);
+						   GetPlayerInfo()->m_pPlayer->totalwifescore);
 			msg.SetParam("FirstTrack", 0);
 			msg.SetParam(
 			  "NumTracks",
 			  static_cast<int>(
-				m_vPlayerInfo.m_pPlayer->GetNoteData().GetNumTracks()));
+				GetPlayerInfo()->m_pPlayer->GetNoteData().GetNumTracks()));
 			msg.SetParam("TapNoteScore", TapNoteScore_Invalid);
 			msg.SetParam("HoldNoteScore", HoldNoteScore_Invalid);
 			msg.SetParam("Judgment", hns);

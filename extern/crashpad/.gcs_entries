@@ -1,0 +1,21 @@
+{
+  "crashpad": {
+    "crashpad/third_party/windows/clang/win-amd64": [
+      "Win/clang-llvmorg-20-init-17108-g29ed6000-2.tar.xz"
+    ]
+  },
+  "buildtools": {
+    "buildtools/win/format": [
+      "49458d4c1e884a38308f8dc6a2c7eb55fc478755"
+    ],
+    "buildtools/mac/format": [
+      "0b4bd257a1f4cd27d27d6919b0f9e52ecdfa8f1e"
+    ],
+    "buildtools/mac_arm64/format": [
+      "96c34e77259c4cc1fc7bdf067fc058bfd341ab85"
+    ],
+    "buildtools/linux64/format": [
+      "b42097ca924d1f1736a5a7806068fed9d7345eb4"
+    ]
+  }
+}

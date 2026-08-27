@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,106 +18,110 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
-#include "test.h"
-
-#include "memdebug.h"
+#include "first.h"
 
 /* Test CURLINFO_SCHEME */
 
-int test(char *URL)
+static CURLcode test_lib1536(const char *URL)
 {
   CURL *curl, *dupe = NULL;
-  char *scheme;
-  int res = CURLE_OK;
+  const char *scheme;
+  CURLcode result = CURLE_OK;
 
   global_init(CURL_GLOBAL_ALL);
 
   easy_init(curl);
 
   /* Test that scheme is properly initialized on curl_easy_init.
-  */
+   */
 
-  res = curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
-  if(res) {
-    fprintf(stderr, "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
-            __FILE__, __LINE__, res, curl_easy_strerror(res));
+  result = curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
+  if(result) {
+    curl_mfprintf(stderr,
+                  "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
+                  __FILE__, __LINE__, (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
   if(scheme) {
-    fprintf(stderr, "%s:%d scheme init failed; expected NULL\n",
-            __FILE__, __LINE__);
-    res = CURLE_FAILED_INIT;
+    curl_mfprintf(stderr,
+                  "%s:%d scheme init failed; expected NULL\n",
+                  __FILE__, __LINE__);
+    result = CURLE_FAILED_INIT;
     goto test_cleanup;
   }
 
   easy_setopt(curl, CURLOPT_URL, URL);
 
-  res = curl_easy_perform(curl);
-  if(res) {
-    fprintf(stderr, "%s:%d curl_easy_perform() failed with code %d (%s)\n",
-            __FILE__, __LINE__, res, curl_easy_strerror(res));
+  result = curl_easy_perform(curl);
+  if(result) {
+    curl_mfprintf(stderr,
+                  "%s:%d curl_easy_perform() failed with code %d (%s)\n",
+                  __FILE__, __LINE__, (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
 
   /* Test that a scheme is properly set after receiving an HTTP resource.
-  */
+   */
 
-  res = curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
-  if(res) {
-    fprintf(stderr, "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
-            __FILE__, __LINE__, res, curl_easy_strerror(res));
+  result = curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
+  if(result) {
+    curl_mfprintf(stderr,
+                  "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
+                  __FILE__, __LINE__, (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
-  if(!scheme || memcmp(scheme, "HTTP", 5) != 0) {
-    fprintf(stderr, "%s:%d scheme of http resource is incorrect; "
-            "expected 'HTTP' but is %s\n",
-            __FILE__, __LINE__,
-            (scheme == NULL ? "NULL" : "invalid"));
-    res = CURLE_HTTP_RETURNED_ERROR;
+  if(!scheme || memcmp(scheme, "http", 5)) {
+    curl_mfprintf(stderr, "%s:%d scheme of http resource is incorrect; "
+                  "expected 'http' but is %s\n",
+                  __FILE__, __LINE__, scheme ? "invalid" : "NULL");
+    result = CURLE_HTTP_RETURNED_ERROR;
     goto test_cleanup;
   }
 
   /* Test that a scheme is properly initialized on curl_easy_duphandle.
-  */
+   */
 
   dupe = curl_easy_duphandle(curl);
   if(!dupe) {
-    fprintf(stderr, "%s:%d curl_easy_duphandle() failed\n",
-            __FILE__, __LINE__);
-    res = CURLE_FAILED_INIT;
+    curl_mfprintf(stderr, "%s:%d curl_easy_duphandle() failed\n",
+                  __FILE__, __LINE__);
+    result = CURLE_FAILED_INIT;
     goto test_cleanup;
   }
 
-  res = curl_easy_getinfo(dupe, CURLINFO_SCHEME, &scheme);
-  if(res) {
-    fprintf(stderr, "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
-            __FILE__, __LINE__, res, curl_easy_strerror(res));
+  result = curl_easy_getinfo(dupe, CURLINFO_SCHEME, &scheme);
+  if(result) {
+    curl_mfprintf(stderr,
+                  "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
+                  __FILE__, __LINE__, (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
   if(scheme) {
-    fprintf(stderr, "%s:%d scheme init failed; expected NULL\n",
-            __FILE__, __LINE__);
-    res = CURLE_FAILED_INIT;
+    curl_mfprintf(stderr, "%s:%d scheme init failed; expected NULL\n",
+                  __FILE__, __LINE__);
+    result = CURLE_FAILED_INIT;
     goto test_cleanup;
   }
 
-
   /* Test that a scheme is properly initialized on curl_easy_reset.
-  */
+   */
 
   curl_easy_reset(curl);
 
-  res = curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
-  if(res) {
-    fprintf(stderr, "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
-            __FILE__, __LINE__, res, curl_easy_strerror(res));
+  result = curl_easy_getinfo(curl, CURLINFO_SCHEME, &scheme);
+  if(result) {
+    curl_mfprintf(stderr,
+                  "%s:%d curl_easy_getinfo() failed with code %d (%s)\n",
+                  __FILE__, __LINE__, (int)result, curl_easy_strerror(result));
     goto test_cleanup;
   }
   if(scheme) {
-    fprintf(stderr, "%s:%d scheme init failed; expected NULL\n",
-            __FILE__, __LINE__);
-    res = CURLE_FAILED_INIT;
+    curl_mfprintf(stderr, "%s:%d scheme init failed; expected NULL\n",
+                  __FILE__, __LINE__);
+    result = CURLE_FAILED_INIT;
     goto test_cleanup;
   }
 
@@ -125,5 +129,5 @@ test_cleanup:
   curl_easy_cleanup(curl);
   curl_easy_cleanup(dupe);
   curl_global_cleanup();
-  return res;
+  return result;
 }

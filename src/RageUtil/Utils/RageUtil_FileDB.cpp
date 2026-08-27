@@ -199,14 +199,27 @@ FilenameDB::ResolvePath(std::string& sPath)
 		if (iBegin == (int)sPath.size())
 			break;
 
+		std::string p = sPath.substr(iBegin, iSize);
+		if (p.size() == 1 && p[0] == '.') [[unlikely]] {
+			Locator::getLogger()->error(
+			  "Can't refer to current directory in FileDB .. not allowed to "
+			  "have '.' - sPath = '{}'",
+			  sPath);
+			return false;
+		}
+		if (p.size() == 2 && p[0] == '.' && p[1] == '.') [[unlikely]] {
+			Locator::getLogger()->error(
+			  "Can't traverse file directories upwards in FileDB .. not "
+			  "allowed to have '..' - sPath = '{}'",
+			  sPath);
+			return false;
+		}
+
 		if (fs == nullptr)
 			fs = GetFileSet(ret);
 		else
 			m_Mutex.Lock(); /* for access to fs */
 
-		std::string p = sPath.substr(iBegin, iSize);
-		ASSERT_M(p.size() != 1 || p[0] != '.', sPath);				  // no .
-		ASSERT_M(p.size() != 2 || p[0] != '.' || p[1] != '.', sPath); // no ..
 		set<File>::const_iterator it = fs->files.find(File(p));
 
 		/* If there were no matches, the path isn't found. */

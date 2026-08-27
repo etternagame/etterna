@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include <lib/zx/process.h>
 #include <zircon/processargs.h>
 
+#include "base/check_op.h"
 #include "base/fuchsia/fuchsia_logging.h"
 #include "base/logging.h"
 #include "client/client_argv_handling.h"

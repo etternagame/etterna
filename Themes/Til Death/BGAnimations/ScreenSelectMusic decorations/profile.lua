@@ -1,6 +1,7 @@
 local update = false
 local showOnline = false
 local recentactive = false
+local percentactive = false
 local function BroadcastIfActive(msg)
 	if update then
 		MESSAGEMAN:Broadcast(msg)
@@ -13,6 +14,7 @@ local translated_info = {
 	Online = THEME:GetString("TabProfile", "Online"),
 	Local = THEME:GetString("TabProfile", "Local"),
 	Recent = THEME:GetString("TabProfile", "Recent"),
+	Percent = THEME:GetString("TabProfile", "Percent"),
 	NextPage = THEME:GetString("TabProfile", "NextPage"),
 	PrevPage = THEME:GetString("TabProfile", "PreviousPage"),
 	Save = THEME:GetString("TabProfile", "SaveProfile"),
@@ -268,7 +270,12 @@ local function rankingLabel(i)
 			DisplayProfileRankingLabelsMessageCommand = function(self)
 				if not showOnline then
 					if ths then
-						self:settextf("%5.2f%%", ths:GetWifeScore() * 100)
+						local wifeval = ths:GetWifeScore() * 100
+						if wifeval > 99.9 then
+							self:settextf("%5.4f%%", wifeval)
+						else
+							self:settextf("%5.2f%%", wifeval)
+						end
 						if not ths:GetEtternaValid() then
 							self:diffuse(byJudgment("TapNoteScore_Miss"))
 						else
@@ -382,7 +389,11 @@ local function rankingButton(i)
 					recentactive = false
 					rankingSkillset = i
 					rankingPage = 1
-					SCOREMAN:SortSSRsForGame(ms.SkillSets[rankingSkillset])
+					if not percentactive then
+						SCOREMAN:SortSSRsForGame(ms.SkillSets[rankingSkillset])
+					else
+						SCOREMAN:SortSSRsByPercentForGame()
+					end
 					BroadcastIfActive("UpdateRanking")
 				end
 			end,
@@ -511,7 +522,12 @@ local function recentLabel(i)
 			end,
 			DisplayProfileRankingLabelsMessageCommand = function(self)
 				if ths then
-					self:settextf("%5.2f%%", ths:GetWifeScore() * 100)
+					local wifeval = ths:GetWifeScore() * 100
+					if wifeval > 99.9 then
+						self:settextf("%5.4f%%", wifeval)
+					else
+						self:settextf("%5.2f%%", wifeval)
+					end
 					if not ths:GetEtternaValid() then
 						self:diffuse(byJudgment("TapNoteScore_Miss"))
 					else
@@ -548,9 +564,9 @@ local function recentLabel(i)
 			DisplayProfileRankingLabelsMessageCommand = function(self)
 				if ths then
 					if not IsUsingWideScreen() then
-						self:settext(ths:GetDate():sub(1,10)):x(318)
+						self:settext(getScoreDate(ths):sub(1,10)):x(318)
 					else
-						self:settext(ths:GetDate())
+						self:settext(getScoreDate(ths))
 					end
 				else
 					self:settext("")
@@ -618,6 +634,7 @@ local function recentButton()
 			MouseDownCommand = function(self, params)
 				if params.event == "DeviceButton_left mouse button" and update then
 					recentactive = true
+					percentactive = false
 					rankingPage = 1
 					SCOREMAN:SortRecentScoresForGame()
 					BroadcastIfActive("UpdateRanking")
@@ -642,6 +659,65 @@ local function recentButton()
 			end,
 			BeginCommand = function(self)
 				self:settext(translated_info["Recent"])
+			end
+		}
+	}
+	return t
+end
+
+local function percentButton()
+	local t = Def.ActorFrame {
+		InitCommand = function(self)
+			self:xy(rankingX + (2.5) * rankingTitleSpacing, 24 * 0.75):valign(1)
+		end,
+		UIElements.QuadButton(1, 1) .. {
+			InitCommand = function(self)
+				self:zoomto(rankingTitleSpacing, 26):diffuse(getMainColor("frames")):diffusealpha(0.2)
+			end,
+			SetCommand = function(self)
+				if percentactive then
+					self:diffusealpha(1)
+				else
+					self:diffusealpha(0.2)
+				end
+			end,
+			MouseDownCommand = function(self, params)
+				if params.event == "DeviceButton_left mouse button" and update then
+					percentactive = not percentactive
+					showOnline = false
+					recentactive = false
+					rankingPage = 1
+					if rankingSkillset == 1 then
+						rankingSkillset = 2
+					end
+
+					if not percentactive then
+						SCOREMAN:SortSSRsForGame(ms.SkillSets[rankingSkillset])
+					else
+						SCOREMAN:SortSSRsByPercentForGame()
+					end
+					BroadcastIfActive("UpdateRanking")
+				end
+			end,
+			UpdateRankingMessageCommand = function(self)
+				self:queuecommand("Set")
+			end,
+			MouseOverCommand = function(self)
+				local alpha = 0.7
+				self:GetParent():GetChild("PercentButtonTxt"):diffusealpha(alpha)
+			end,
+			MouseOutCommand = function(self)
+				local alpha = 1
+				self:GetParent():GetChild("PercentButtonTxt"):diffusealpha(alpha)
+			end,
+		},
+		LoadFont("Common Large") .. {
+			Name = "PercentButtonTxt",
+			InitCommand = function(self)
+				self:addy(-1):diffuse(getMainColor("positive")):maxwidth(rankingTitleSpacing * 2):zoom(0.42)
+			end,
+			BeginCommand = function(self)
+				self:settext(translated_info["Percent"])
 			end
 		}
 	}
@@ -810,7 +886,7 @@ r[#r + 1] = Def.ActorFrame {
 			local alpha = 1
 			self:GetParent():GetChild("NextP"):diffusealpha(alpha)
 		end,
-		
+
 	},
 	LoadFont("Common Large") .. {
 		Name = "NextP",
@@ -864,6 +940,7 @@ for i = 1, #ms.SkillSets do
 end
 
 r[#r + 1] = recentButton()
+r[#r + 1] = percentButton()
 
 local function littlebits(i)
 	local t = Def.ActorFrame {

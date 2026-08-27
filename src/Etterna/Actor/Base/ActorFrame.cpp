@@ -5,6 +5,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 #include "Etterna/Models/Misc/ScreenDimensions.h"
 #include "Etterna/FileTypes/XmlFile.h"
+#include "Etterna/FileTypes/XmlFileUtil.h"
 
 #include <algorithm>
 
@@ -830,6 +831,27 @@ class LunaActorFrame : public Luna<ActorFrame>
 		pActor->PushSelf(L);
 		return 1;
 	}
+	static int AddChild(T* p, lua_State* L)
+	{
+		if (!lua_istable(L, 1)) {
+			luaL_error(L, "Argument must be a table, such as Def.Actor.");
+			lua_pushnil(L);
+		} else {
+			XNode* xn = XmlFileUtil::XNodeFromTable(L);
+			if (xn == nullptr) {
+				lua_pushnil(L);
+			} else {
+				auto* pActor = ActorUtil::LoadFromNode(xn, p);
+				if (pActor != nullptr) {
+					p->AddChild(pActor);
+					pActor->PushSelf(L);
+				} else {
+					lua_pushnil(L);
+				}
+			}
+		}
+		return 1;
+	}
 
 	static int RemoveChild(T* p, lua_State* L)
 	{
@@ -872,6 +894,7 @@ class LunaActorFrame : public Luna<ActorFrame>
 		ADD_METHOD(SetDiffuseLightColor);
 		ADD_METHOD(SetSpecularLightColor);
 		ADD_METHOD(SetLightDirection);
+		ADD_METHOD(AddChild);
 		ADD_METHOD(AddChildFromPath);
 		ADD_METHOD(RemoveChild);
 		ADD_METHOD(RemoveAllChildren);

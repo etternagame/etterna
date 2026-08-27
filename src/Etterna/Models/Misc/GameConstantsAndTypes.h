@@ -52,6 +52,7 @@ enum GameplayMode
 	GameplayMode_Normal,
 	GameplayMode_Practice,
 	GameplayMode_Replay,
+	GameplayMode_Spectate,
 	NUM_GameplayMode,
 	GameplayMode_Invalid
 };
@@ -378,6 +379,7 @@ enum PlayerController
 	PC_AUTOPLAY,
 	PC_CPU,
 	PC_REPLAY,
+	PC_SPECTATE,
 	NUM_PlayerController,
 	PlayerController_Invalid
 };

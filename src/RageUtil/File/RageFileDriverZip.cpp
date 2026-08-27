@@ -257,7 +257,7 @@ RageFileDriverZip::ProcessCdirFileHdr(FileInfo& info)
 		Locator::getLogger()->warn("File \"{}\" in \"{}\" uses unsupported compression method {}",
 		  info.m_sName.c_str(),
 		  m_sPath.c_str(),
-		  info.m_iCompressionMethod);
+		  static_cast<int>(info.m_iCompressionMethod));
 
 		return 0;
 	}

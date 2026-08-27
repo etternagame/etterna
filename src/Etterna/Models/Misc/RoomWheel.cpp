@@ -7,6 +7,7 @@
 #include "RoomWheel.h"
 #include "Etterna/Singletons/ScreenManager.h"
 #include "Etterna/Screen/Others/ScreenTextEntry.h"
+#include <algorithm>
 
 static LocalizedString EMPTY_STRING("RoomWheel", "Empty");
 

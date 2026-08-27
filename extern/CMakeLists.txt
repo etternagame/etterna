@@ -17,7 +17,8 @@ set(CURL_USE_LIBSSH2 OFF CACHE BOOL "" FORCE) # Disable curl libssh2
 set(BUILD_CURL_EXE OFF CACHE BOOL "" FORCE)    # Tell curl not to build standalone binary
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)     # Disable curl testing
 set(CURL_USE_OPENSSL ON CACHE BOOL "" FORCE)  # Require OpenSSL
-set(HTTP_ONLY ON CACHE BOOL "" FORCE)          # Disable all protocols except HTTP/S
+set(CURL_USE_LIBPSL OFF CACHE BOOL "" FORCE)
+set(HTTP_ONLY OFF CACHE BOOL "" FORCE)
 add_subdirectory(curl)
 
 ## SQLiteCpp
@@ -25,18 +26,13 @@ set(SQLITECPP_RUN_CPPCHECK OFF CACHE BOOL "" FORCE) # Disable SQLiteCpp static a
 set(SQLITECPP_RUN_CPPLINT OFF CACHE BOOL "" FORCE)  # Disable SQLiteCpp lintiPng
 add_subdirectory(SQLiteCpp)
 
-## websocketpp
-add_subdirectory(asio) # Only required for websocketpp
-add_subdirectory(websocketpp)
-add_library(websocketpp INTERFACE)
-target_include_directories(websocketpp INTERFACE websocketpp)
-target_link_libraries(websocketpp INTERFACE asio)
-
 ## discord-rpc
-set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
-add_subdirectory(discord-rpc)
-
+if(SUPPORT_DISCORD_SDK)
+    set(CLANG_FORMAT_CMD OFF CACHE BOOL "" FORCE)   # Disable discord clang-format
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)     # Disable discord examples
+    add_subdirectory(discord)
+    list(APPEND EXT_TARGETS discord)
+endif()
 ## plog
 set(PLOG_BUILD_SAMPLES OFF)
 add_subdirectory(plog)
@@ -48,11 +44,11 @@ add_subdirectory(rapidjson)
 add_subdirectory(stb)
 add_subdirectory(miniz)
 
-if(CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" _proc)
+if(_proc MATCHES "^(arm64|aarch64)$")
     # Used for providing ARM's NEON equivalents of x86_64 SSE SIMD instructions
     add_subdirectory(sse2neon)
 endif()
-
 
 set(JWT_SSL_LIBRARY OpenSSL)
 add_subdirectory(jwt-cpp-0.6.0)
@@ -73,22 +69,32 @@ add_subdirectory(newogg)
 add_subdirectory(newvorbis)
 target_link_libraries(vorbis ogg)
 
+if(WITH_VULKAN)
+    add_subdirectory(vk-bootstrap)
+    add_subdirectory(VulkanMemoryAllocator)
+    list(APPEND EXT_TARGETS vk-bootstrap VulkanMemoryAllocator)
+endif()
+
 # Only enable crashpad if the user wants it.
 if(WITH_CRASHPAD)
     add_subdirectory(crashpad)
 endif()
 
-if(MSVC) # Only required on Windows
+if(MSVC)
+    add_subdirectory(ffmpeg)
+endif()
+
+if(_proc STREQUAL "x86_64" AND UNIX AND NOT APPLE)
     add_subdirectory(ffmpeg)
 endif()
 
 ## IDE Folder Organization
 list(APPEND EXT_TARGETS
     SQLiteCpp sqlite3
-    discord-rpc muFFT
+    muFFT
     zlib libmad pcre
     ogg vorbis glfw
-    libcurl fmt)
+    fmt)
 
 list(APPEND LUA_TARGETS luajit libluajit minilua buildvm)
 

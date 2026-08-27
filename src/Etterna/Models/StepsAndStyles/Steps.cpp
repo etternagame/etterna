@@ -441,9 +441,9 @@ Steps::CalcEtternaMetadata(Calc* calc)
 	// set first and last second for this steps object
 	if (!cereal.empty() || !m_pNoteData->IsEmpty()) {
 		firstsecond =
-		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetFirstBeat());
+		  GetTimingData()->GetTimeFromBeatFast(m_pNoteData->GetFirstBeat());
 		lastsecond =
-		  GetTimingData()->GetElapsedTimeFromBeat(m_pNoteData->GetLastBeat());
+		  GetTimingData()->GetTimeFromBeatFast(m_pNoteData->GetLastBeat());
 	}
 
 	m_pNoteData->UnsetNerv();
@@ -703,6 +703,15 @@ Steps::GetMusicFile() const -> const std::string&
 	return m_MusicFile;
 }
 
+auto
+Steps::GetPreviewMusicPath() const -> const std::string
+{
+	if (m_MusicFile.empty()) {
+		return m_pSong->GetPreviewMusicPath();
+	}
+	return GetMusicPath();
+}
+
 void
 Steps::SetMusicFile(const std::string& file)
 {
@@ -753,6 +762,45 @@ Steps::GetNPSVector(const NoteData& nd,
 	return doot;
 }
 
+
+auto
+Steps::GetNPSVectorForType(const NoteData& nd,
+						   const std::vector<float>& etaner,
+						   const std::vector<int>& nerv,
+						   const float rate,
+						   const TapNoteType tnt) -> std::vector<int>
+{
+	std::map<int, int> intervals_to_counts{};
+	for (auto i = 0; i < static_cast<int>(nerv.size()); i++) {
+		const auto curinterval = static_cast<int>(etaner[i] / rate);
+		for (auto t = 0; t < nd.GetNumTracks(); ++t) {
+			const auto& tn = nd.GetTapNote(t, nerv[i]);
+			if (tn.type == tnt) {
+				intervals_to_counts[curinterval]++;
+			}
+		}
+	}
+
+	auto sz = 0;
+	if (intervals_to_counts.size() > 0) {
+		sz = std::max(static_cast<int>(etaner.back() / rate),
+					  intervals_to_counts.rbegin()->first);
+	} else {
+		sz = static_cast<int>(etaner.back() / rate);
+	}
+	std::vector<int> doot(sz + 1);
+	for (const auto& p : intervals_to_counts) {
+		if (p.first < 0) {
+			Locator::getLogger()->error(
+			  "BAD FILE PRODUCED NEGATIVE ETANER itv {}", p.first);
+			continue;
+		}
+		doot[p.first] = p.second;
+	}
+
+	return doot;
+}
+
 // YEAH THIS IS LIKE, REALLY INEFFICIENT
 auto
 Steps::GetNPSPerMeasure(const NoteData& nd,
@@ -767,9 +815,9 @@ Steps::GetNPSPerMeasure(const NoteData& nd,
 	const auto lastmeasure = std::ceil(lastbeat / 4.F);
 
 	for (auto i = 0; i < lastmeasure; ++i) {
-		const auto m_start = td->GetElapsedTimeFromBeat(i * 4.F);
+		const auto m_start = td->GetTimeFromBeatFast(i * 4.F);
 		const auto m_end =
-		  td->GetElapsedTimeFromBeat(static_cast<float>(i + 1) * 4.F);
+		  td->GetTimeFromBeatFast(static_cast<float>(i + 1) * 4.F);
 		const auto m_time = m_end - m_start;
 
 		auto m_counter = 0;
@@ -1002,32 +1050,69 @@ class LunaSteps : public Luna<Steps>
 		auto nd = p->GetNoteData();
 		auto loot = nd.BuildAndGetNerv(p->GetTimingData());
 
-		LuaHelpers::CreateTableFromArray(
-		  loot, L); // row (we need timestamps technically)
+		// row (we need timestamps technically)
+		LuaHelpers::CreateTableFromArray(loot, L);
 		lua_rawseti(L, -2, 1);
 
-		for (auto i = 0; i < nd.GetNumTracks(); ++i) { // tap or not
+		// output:
+		// { [column] = { [rownum] = tap, ... }, [column2] = { ... }, ... }
+		// in other words, t[col][row] = tap type
+		for (auto i = 0; i < nd.GetNumTracks(); ++i) {
 			std::vector<int> doot;
-			for (auto r : loot) {
-				const auto tn = nd.GetTapNote(i, r);
+			for (auto& r : loot) {
+				const auto& tn = nd.GetTapNote(i, r);
 				if (tn.type == TapNoteType_Empty) {
 					doot.push_back(0);
 				} else if (tn.type == TapNoteType_Tap) {
 					doot.push_back(1);
+				} else if (tn.type == TapNoteType_HoldHead) {
+					doot.push_back(2);
+				} else if (tn.type == TapNoteType_Mine) {
+					doot.push_back(4);
+				} else if (tn.type == TapNoteType_Fake) {
+					doot.push_back(5);
+				} else {
+					// ????
+					// just to make sure the output is square
+					doot.push_back(-1);
 				}
 			}
 			LuaHelpers::CreateTableFromArray(doot, L);
 			lua_rawseti(L, -2, i + 2);
 		}
 
-		std::vector<int> doot;
-		for (auto r : loot) {
-			doot.push_back(static_cast<int>(GetNoteType(r)) + 1); // note denom
-			LuaHelpers::CreateTableFromArray(doot, L);
-			lua_rawseti(L, -2, 6);
+		nd.UnsetNerv();
+		return 1;
+	}
+	static auto GetETANER(T* p, lua_State* L) -> int
+	{
+		auto nd = p->GetNoteData();
+		auto& nerv = nd.BuildAndGetNerv(p->GetTimingData());
+		auto etaner = p->GetTimingData()->BuildAndGetEtaner(nerv);
+
+		lua_newtable(L);
+
+		// nerv and etaner should be the same size
+		// if not, just give up but basically
+		// it isnt important, no bpm or 1 bpm or no notedata
+		if (nerv.size() != etaner.size()) {
+			return 1;
 		}
 
-		nd.UnsetNerv();
+		// output: [n] = {row = r, time = t}
+		// in other words, array of rows and timestamps
+		for (size_t i = 0; i < nerv.size(); i++) {
+			lua_createtable(L, 0, 2);
+
+			lua_pushnumber(L, nerv.at(i));
+			lua_setfield(L, -2, "row");
+
+			lua_pushnumber(L, etaner.at(i));
+			lua_setfield(L, -2, "time");
+
+			lua_rawseti(L, -2, i + 1);
+		}
+
 		return 1;
 	}
 	static auto GetCDGraphVectors(T* p, lua_State* L) -> int
@@ -1043,20 +1128,29 @@ class LunaSteps : public Luna<Steps>
 		}
 		const auto& etaner = p->GetTimingData()->BuildAndGetEtaner(nerv);
 
-		// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
-		// etaner), L) produced tables full of 0 values for ???? reason -mina
-		lua_newtable(L);
-		LuaHelpers::CreateTableFromArray(
-		  p->GetNPSVector(nd, etaner, nerv, rate), L);
-		lua_rawseti(L, -2, 1);
-
-		for (auto i = 1; i < nd.GetNumTracks(); ++i) {
-			// sort of confusing: the luatable pos/chordsize are i + 1
-			// but we're iterating over tracks which are 0 indexed
-			// so jumps are position 2 and 2 notes each when i = 1 -mina
+		// old functionality when passing no extra param
+		if (lua_isnoneornil(L, 2)) {
+			// directly using CreateTableFromArray(p->GetNPSVector(nd, nerv,
+			// etaner), L) produced tables full of 0 values for ???? reason
+			// -mina
+			lua_newtable(L);
 			LuaHelpers::CreateTableFromArray(
-			  p->GetCNPSVector(nd, nerv, etaner, i + 1, rate), L);
-			lua_rawseti(L, -2, i + 1);
+			  p->GetNPSVector(nd, etaner, nerv, rate), L);
+			lua_rawseti(L, -2, 1);
+
+			for (auto i = 1; i < nd.GetNumTracks(); ++i) {
+				// sort of confusing: the luatable pos/chordsize are i + 1
+				// but we're iterating over tracks which are 0 indexed
+				// so jumps are position 2 and 2 notes each when i = 1 -mina
+				LuaHelpers::CreateTableFromArray(
+				  p->GetCNPSVector(nd, nerv, etaner, i + 1, rate), L);
+				lua_rawseti(L, -2, i + 1);
+			}
+		} else {
+			// just an array of the values
+			TapNoteType tnt = Enum::Check<TapNoteType>(L, 2);
+			auto arr = p->GetNPSVectorForType(nd, etaner, nerv, rate, tnt);
+			LuaHelpers::CreateTableFromArray(arr, L);
 		}
 		nd.UnsetNerv();
 		p->GetTimingData()->UnsetEtaner();
@@ -1305,6 +1399,12 @@ class LunaSteps : public Luna<Steps>
 		LuaHelpers::CreateTableFromArray(ee, L);
 		return 1;
 	}
+	static auto GetPreviewMusicPath(T* p, lua_State* L) -> int
+	{
+		auto x = p->GetPreviewMusicPath();
+		lua_pushstring(L, x.c_str());
+		return 1;
+	}
 	LunaSteps()
 	{
 		ADD_METHOD(GetAuthorCredit);
@@ -1319,12 +1419,12 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetRelevantRadars);
 		ADD_METHOD(GetTimingData);
 		ADD_METHOD(GetChartName);
-		// ADD_METHOD( GetSMNoteData );
 		ADD_METHOD(GetStepsType);
 		ADD_METHOD(GetChartKey);
 		ADD_METHOD(GetMSD);
 		ADD_METHOD(GetSSRs);
 		ADD_METHOD(GetDisplayBpms);
+		ADD_METHOD(GetPreviewMusicPath);
 		ADD_METHOD(IsDisplayBpmSecret);
 		ADD_METHOD(IsDisplayBpmConstant);
 		ADD_METHOD(IsDisplayBpmRandom);
@@ -1333,6 +1433,7 @@ class LunaSteps : public Luna<Steps>
 		ADD_METHOD(GetCDGraphVectors);
 		ADD_METHOD(GetNumColumns);
 		ADD_METHOD(GetNonEmptyNoteData);
+		ADD_METHOD(GetETANER);
 		ADD_METHOD(GetCalcDebugJack);
 		ADD_METHOD(GetCalcDebugExt);
 		ADD_METHOD(GetCalcDebugOutput);

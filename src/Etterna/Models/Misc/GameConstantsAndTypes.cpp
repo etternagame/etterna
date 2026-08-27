@@ -58,10 +58,7 @@ ToString<StepsType>(const StepsType& value)
 LuaXType(StepsType);
 
 static const char* PlayerControllerNames[] = {
-	"Human",
-	"Autoplay",
-	"Cpu",
-	"Replay",
+	"Human", "Autoplay", "Cpu", "Replay", "Spectate",
 };
 XToString(PlayerController);
 StringToX(PlayerController);
@@ -81,6 +78,7 @@ static const char* GameplayModeNames[] = {
 	"Normal",
 	"Practice",
 	"Replay",
+	"Spectate",
 };
 XToString(GameplayMode);
 LuaXType(GameplayMode);
@@ -242,6 +240,7 @@ static const char* CalcPatternModNames[] = {
 	"WideRangeJJ",
 	"WideRangeBalance",
 	"WideRangeAnchor",
+	"WideRangeCJAnchor",
 	"TheThing",
 	"TheThing2",
 	"RanMan",
@@ -261,6 +260,12 @@ static const char* CalcPatternModNames[] = {
 	"GenericStream",
 	"GenericChordstream",
 	"GenericBracketing",
+	"HandSwitch",
+	"OldAnchorScaler",
+	"OldJumpScaler",
+	"OldOHJScaler",
+	"OldRollScaler",
+	"HandBalance",
 };
 XToString(CalcPatternMod);
 LuaXType(CalcPatternMod);

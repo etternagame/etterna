@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,18 +20,22 @@
 #include <errno.h>
 #include <mach-o/dyld.h>
 #include <mach-o/dyld_images.h>
+#include <mach-o/loader.h>
 #include <mach/mach.h>
+#include <pthread.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <iterator>
 #include <map>
+#include <unordered_set>
 #include <utility>
 
+#include "base/apple/mach_logging.h"
 #include "base/check_op.h"
-#include "base/cxx17_backports.h"
+#include "base/files/file_path.h"
 #include "base/logging.h"
-#include "base/mac/mach_logging.h"
 #include "base/posix/eintr_wrapper.h"
 #include "base/strings/stringprintf.h"
 #include "build/build_config.h"
@@ -42,6 +46,7 @@
 #include "test/mac/dyld.h"
 #include "test/mac/mach_errors.h"
 #include "test/mac/mach_multiprocess.h"
+#include "test/scoped_set_thread_name.h"
 #include "util/file/file_io.h"
 #include "util/mac/mac_util.h"
 #include "util/mach/mach_extensions.h"
@@ -51,6 +56,21 @@
 namespace crashpad {
 namespace test {
 namespace {
+
+#if !defined(ARCH_CPU_64_BITS)
+using MachHeader = mach_header;
+#else
+using MachHeader = mach_header_64;
+#endif
+
+using ModulePathAndAddress = std::pair<std::string, mach_vm_address_t>;
+struct PathAndAddressHash {
+  std::size_t operator()(const ModulePathAndAddress& pair) const {
+    return std::hash<std::string>()(pair.first) ^
+           std::hash<mach_vm_address_t>()(pair.second);
+  }
+};
+using ModuleSet = std::unordered_set<ModulePathAndAddress, PathAndAddressHash>;
 
 constexpr char kDyldPath[] = "/usr/lib/dyld";
 
@@ -68,7 +88,7 @@ TEST(ProcessReaderMac, SelfBasic) {
   EXPECT_EQ(process_reader.ParentProcessID(), getppid());
 
   static constexpr char kTestMemory[] = "Some test memory";
-  char buffer[base::size(kTestMemory)];
+  char buffer[std::size(kTestMemory)];
   ASSERT_TRUE(process_reader.Memory()->Read(
       FromPointerCast<mach_vm_address_t>(kTestMemory),
       sizeof(kTestMemory),
@@ -139,6 +159,9 @@ uint64_t PthreadToThreadID(pthread_t pthread) {
 }
 
 TEST(ProcessReaderMac, SelfOneThread) {
+  const ScopedSetThreadName scoped_set_thread_name(
+      "ProcessReaderMac/SelfOneThread");
+
   ProcessReaderMac process_reader;
   ASSERT_TRUE(process_reader.Initialize(mach_task_self()));
 
@@ -151,6 +174,7 @@ TEST(ProcessReaderMac, SelfOneThread) {
   ASSERT_GE(threads.size(), 1u);
 
   EXPECT_EQ(threads[0].id, PthreadToThreadID(pthread_self()));
+  EXPECT_EQ(threads[0].name, "ProcessReaderMac/SelfOneThread");
 
   thread_t thread_self = MachThreadSelf();
   EXPECT_EQ(threads[0].port, thread_self);
@@ -161,11 +185,18 @@ TEST(ProcessReaderMac, SelfOneThread) {
 class TestThreadPool {
  public:
   struct ThreadExpectation {
-    mach_vm_address_t stack_address;
+    // The stack's base (highest) address.
+    mach_vm_address_t stack_base;
+
+    // The stack's maximum size.
+    mach_vm_size_t stack_size;
+
     int suspend_count;
+    std::string thread_name;
   };
 
-  TestThreadPool() : thread_infos_() {}
+  TestThreadPool(const std::string& thread_name_prefix)
+      : thread_infos_(), thread_name_prefix_(thread_name_prefix) {}
 
   TestThreadPool(const TestThreadPool&) = delete;
   TestThreadPool& operator=(const TestThreadPool&) = delete;
@@ -199,7 +230,10 @@ class TestThreadPool {
     ASSERT_TRUE(thread_infos_.empty());
 
     for (size_t thread_index = 0; thread_index < thread_count; ++thread_index) {
-      thread_infos_.push_back(std::make_unique<ThreadInfo>());
+      std::string thread_name = base::StringPrintf(
+          "%s-%zu", thread_name_prefix_.c_str(), thread_index);
+      thread_infos_.push_back(
+          std::make_unique<ThreadInfo>(std::move(thread_name)));
       ThreadInfo* thread_info = thread_infos_.back().get();
 
       int rv = pthread_create(
@@ -233,29 +267,36 @@ class TestThreadPool {
     CHECK_LT(thread_index, thread_infos_.size());
 
     const auto& thread_info = thread_infos_[thread_index];
-    expectation->stack_address = thread_info->stack_address;
+    expectation->stack_base = thread_info->stack_base;
+    expectation->stack_size = thread_info->stack_size;
     expectation->suspend_count = thread_info->suspend_count;
+    expectation->thread_name = thread_info->thread_name;
 
     return PthreadToThreadID(thread_info->pthread);
   }
 
  private:
   struct ThreadInfo {
-    ThreadInfo()
+    ThreadInfo(const std::string& thread_name)
         : pthread(nullptr),
-          stack_address(0),
+          stack_base(0),
+          stack_size(0),
           ready_semaphore(0),
           exit_semaphore(0),
-          suspend_count(0) {}
+          suspend_count(0),
+          thread_name(thread_name) {}
 
     ~ThreadInfo() {}
 
     // The thread’s ID, set at the time the thread is created.
     pthread_t pthread;
 
-    // An address somewhere within the thread’s stack. The thread sets this in
+    // The base address of thread’s stack. The thread sets this in
     // its ThreadMain().
-    mach_vm_address_t stack_address;
+    mach_vm_address_t stack_base;
+
+    // The stack's maximum size. The thread sets this in its ThreadMain().
+    mach_vm_size_t stack_size;
 
     // The worker thread signals ready_semaphore to indicate that it’s done
     // setting up its ThreadInfo structure. The main thread waits on this
@@ -270,13 +311,19 @@ class TestThreadPool {
 
     // The thread’s suspend count.
     int suspend_count;
+
+    // The thread's name.
+    const std::string thread_name;
   };
 
   static void* ThreadMain(void* argument) {
     ThreadInfo* thread_info = static_cast<ThreadInfo*>(argument);
+    const ScopedSetThreadName scoped_set_thread_name(thread_info->thread_name);
 
-    thread_info->stack_address =
-        FromPointerCast<mach_vm_address_t>(&thread_info);
+    pthread_t thread = pthread_self();
+    thread_info->stack_base =
+        FromPointerCast<mach_vm_address_t>(pthread_get_stackaddr_np(thread));
+    thread_info->stack_size = pthread_get_stacksize_np(thread);
 
     thread_info->ready_semaphore.Signal();
     thread_info->exit_semaphore.Wait();
@@ -293,6 +340,9 @@ class TestThreadPool {
   // This is a vector of pointers because the address of a ThreadInfo object is
   // passed to each thread’s ThreadMain(), so they cannot move around in memory.
   std::vector<std::unique_ptr<ThreadInfo>> thread_infos_;
+
+  // Prefix to use for each thread's name, suffixed with "-$threadindex".
+  const std::string thread_name_prefix_;
 };
 
 using ThreadMap = std::map<uint64_t, TestThreadPool::ThreadExpectation>;
@@ -324,10 +374,25 @@ void ExpectSeveralThreads(ThreadMap* thread_map,
     }
 
     if (iterator != thread_map->end()) {
-      EXPECT_GE(iterator->second.stack_address, thread.stack_region_address);
-      EXPECT_LT(iterator->second.stack_address, thread_stack_region_end);
+      mach_vm_address_t expected_stack_region_end = iterator->second.stack_base;
+      if (thread_index > 0) {
+        // Non-main threads use the stack region to store thread data. See
+        // macOS 12 libpthread-486.100.11 src/pthread.c _pthread_allocate().
+#if defined(ARCH_CPU_ARM64)
+        // arm64 has an additional offset for alignment. See macOS 12
+        // libpthread-486.100.11 src/pthread.c _pthread_allocate() and
+        // PTHREAD_T_OFFSET (defined in src/types_internal.h).
+        expected_stack_region_end += sizeof(_opaque_pthread_t) + 0x3000;
+#else
+        expected_stack_region_end += sizeof(_opaque_pthread_t);
+#endif
+      }
+      EXPECT_LT(iterator->second.stack_base - iterator->second.stack_size,
+                thread.stack_region_address);
+      EXPECT_EQ(expected_stack_region_end, thread_stack_region_end);
 
       EXPECT_EQ(thread.suspend_count, iterator->second.suspend_count);
+      EXPECT_EQ(thread.name, iterator->second.thread_name);
 
       // Remove the thread from the expectation map since it’s already been
       // found. This makes it easy to check for duplicate thread IDs, and makes
@@ -374,7 +439,7 @@ TEST(ProcessReaderMac, SelfSeveralThreads) {
   ProcessReaderMac process_reader;
   ASSERT_TRUE(process_reader.Initialize(mach_task_self()));
 
-  TestThreadPool thread_pool;
+  TestThreadPool thread_pool("SelfSeveralThreads");
   constexpr size_t kChildThreads = 16;
   ASSERT_NO_FATAL_FAILURE(thread_pool.StartThreads(kChildThreads));
 
@@ -383,7 +448,9 @@ TEST(ProcessReaderMac, SelfSeveralThreads) {
   ThreadMap thread_map;
   const uint64_t self_thread_id = PthreadToThreadID(pthread_self());
   TestThreadPool::ThreadExpectation expectation;
-  expectation.stack_address = FromPointerCast<mach_vm_address_t>(&thread_map);
+  expectation.stack_base = FromPointerCast<mach_vm_address_t>(
+      pthread_get_stackaddr_np(pthread_self()));
+  expectation.stack_size = pthread_get_stacksize_np(pthread_self());
   expectation.suspend_count = 0;
   thread_map[self_thread_id] = expectation;
   for (size_t thread_index = 0; thread_index < kChildThreads; ++thread_index) {
@@ -392,6 +459,8 @@ TEST(ProcessReaderMac, SelfSeveralThreads) {
     // There can’t be any duplicate thread IDs.
     EXPECT_EQ(thread_map.count(thread_id), 0u);
 
+    expectation.thread_name =
+        base::StringPrintf("SelfSeveralThreads-%zu", thread_index);
     thread_map[thread_id] = expectation;
   }
 
@@ -431,8 +500,11 @@ uint64_t GetThreadID() {
 
 class ProcessReaderThreadedChild final : public MachMultiprocess {
  public:
-  explicit ProcessReaderThreadedChild(size_t thread_count)
-      : MachMultiprocess(), thread_count_(thread_count) {}
+  explicit ProcessReaderThreadedChild(const std::string thread_name_prefix,
+                                      size_t thread_count)
+      : MachMultiprocess(),
+        thread_name_prefix_(thread_name_prefix),
+        thread_count_(thread_count) {}
 
   ProcessReaderThreadedChild(const ProcessReaderThreadedChild&) = delete;
   ProcessReaderThreadedChild& operator=(const ProcessReaderThreadedChild&) =
@@ -457,12 +529,22 @@ class ProcessReaderThreadedChild final : public MachMultiprocess {
       CheckedReadFileExactly(read_handle, &thread_id, sizeof(thread_id));
 
       TestThreadPool::ThreadExpectation expectation;
-      CheckedReadFileExactly(read_handle,
-                             &expectation.stack_address,
-                             sizeof(expectation.stack_address));
+      CheckedReadFileExactly(
+          read_handle, &expectation.stack_base, sizeof(expectation.stack_base));
+      CheckedReadFileExactly(
+          read_handle, &expectation.stack_size, sizeof(expectation.stack_size));
       CheckedReadFileExactly(read_handle,
                              &expectation.suspend_count,
                              sizeof(expectation.suspend_count));
+      std::string::size_type expected_thread_name_length;
+      CheckedReadFileExactly(read_handle,
+                             &expected_thread_name_length,
+                             sizeof(expected_thread_name_length));
+      std::string expected_thread_name(expected_thread_name_length, '\0');
+      CheckedReadFileExactly(read_handle,
+                             expected_thread_name.data(),
+                             expected_thread_name_length);
+      expectation.thread_name = expected_thread_name;
 
       // There can’t be any duplicate thread IDs.
       EXPECT_EQ(thread_map.count(thread_id), 0u);
@@ -479,8 +561,12 @@ class ProcessReaderThreadedChild final : public MachMultiprocess {
   }
 
   void MachMultiprocessChild() override {
-    TestThreadPool thread_pool;
+    TestThreadPool thread_pool(thread_name_prefix_);
     ASSERT_NO_FATAL_FAILURE(thread_pool.StartThreads(thread_count_));
+
+    const std::string current_thread_name(base::StringPrintf(
+        "%s-MachMultiprocessChild", thread_name_prefix_.c_str()));
+    const ScopedSetThreadName scoped_set_thread_name(current_thread_name);
 
     FileHandle write_handle = WritePipeHandle();
 
@@ -491,29 +577,52 @@ class ProcessReaderThreadedChild final : public MachMultiprocess {
     CheckedWriteFile(write_handle, &thread_id, sizeof(thread_id));
 
     TestThreadPool::ThreadExpectation expectation;
-    expectation.stack_address = FromPointerCast<mach_vm_address_t>(&thread_id);
+    pthread_t thread = pthread_self();
+    expectation.stack_base =
+        FromPointerCast<mach_vm_address_t>(pthread_get_stackaddr_np(thread));
+    expectation.stack_size = pthread_get_stacksize_np(thread);
     expectation.suspend_count = 0;
 
-    CheckedWriteFile(write_handle,
-                     &expectation.stack_address,
-                     sizeof(expectation.stack_address));
+    CheckedWriteFile(
+        write_handle, &expectation.stack_base, sizeof(expectation.stack_base));
+    CheckedWriteFile(
+        write_handle, &expectation.stack_size, sizeof(expectation.stack_size));
     CheckedWriteFile(write_handle,
                      &expectation.suspend_count,
                      sizeof(expectation.suspend_count));
+    const std::string::size_type current_thread_name_length =
+        current_thread_name.length();
+    CheckedWriteFile(write_handle,
+                     &current_thread_name_length,
+                     sizeof(current_thread_name_length));
+    CheckedWriteFile(
+        write_handle, current_thread_name.data(), current_thread_name_length);
 
     // Write an entry for everything in the thread pool.
     for (size_t thread_index = 0; thread_index < thread_count_;
          ++thread_index) {
-      uint64_t thread_id =
-          thread_pool.GetThreadInfo(thread_index, &expectation);
+      thread_id = thread_pool.GetThreadInfo(thread_index, &expectation);
 
       CheckedWriteFile(write_handle, &thread_id, sizeof(thread_id));
       CheckedWriteFile(write_handle,
-                       &expectation.stack_address,
-                       sizeof(expectation.stack_address));
+                       &expectation.stack_base,
+                       sizeof(expectation.stack_base));
+      CheckedWriteFile(write_handle,
+                       &expectation.stack_size,
+                       sizeof(expectation.stack_size));
       CheckedWriteFile(write_handle,
                        &expectation.suspend_count,
                        sizeof(expectation.suspend_count));
+      const std::string thread_pool_thread_name = base::StringPrintf(
+          "%s-%zu", thread_name_prefix_.c_str(), thread_index);
+      const std::string::size_type thread_pool_thread_name_length =
+          thread_pool_thread_name.length();
+      CheckedWriteFile(write_handle,
+                       &thread_pool_thread_name_length,
+                       sizeof(thread_pool_thread_name_length));
+      CheckedWriteFile(write_handle,
+                       thread_pool_thread_name.data(),
+                       thread_pool_thread_name_length);
     }
 
     // Wait for the parent to signal that it’s OK to exit by closing its end of
@@ -521,19 +630,22 @@ class ProcessReaderThreadedChild final : public MachMultiprocess {
     CheckedReadFileAtEOF(ReadPipeHandle());
   }
 
+  const std::string thread_name_prefix_;
   size_t thread_count_;
 };
 
 TEST(ProcessReaderMac, ChildOneThread) {
   // The main thread plus zero child threads equals one thread.
   constexpr size_t kChildThreads = 0;
-  ProcessReaderThreadedChild process_reader_threaded_child(kChildThreads);
+  ProcessReaderThreadedChild process_reader_threaded_child("ChildOneThread",
+                                                           kChildThreads);
   process_reader_threaded_child.Run();
 }
 
 TEST(ProcessReaderMac, ChildSeveralThreads) {
   constexpr size_t kChildThreads = 64;
-  ProcessReaderThreadedChild process_reader_threaded_child(kChildThreads);
+  ProcessReaderThreadedChild process_reader_threaded_child(
+      "ChildSeveralThreads", kChildThreads);
   process_reader_threaded_child.Run();
 }
 
@@ -560,9 +672,8 @@ T GetDyldFunction(const char* symbol) {
   return reinterpret_cast<T>(dlsym(dl_handle, symbol));
 }
 
-void VerifyImageExistenceAndTimestamp(const char* path, time_t timestamp) {
+void VerifyImageExistence(const char* path) {
   const char* stat_path;
-  bool timestamp_may_be_0;
 
 #if __MAC_OS_X_VERSION_MAX_ALLOWED < __MAC_10_16
   static auto _dyld_shared_cache_contains_path =
@@ -572,7 +683,7 @@ void VerifyImageExistenceAndTimestamp(const char* path, time_t timestamp) {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunguarded-availability"
-  if (_dyld_shared_cache_contains_path &&
+  if (&_dyld_shared_cache_contains_path &&
       _dyld_shared_cache_contains_path(path)) {
 #pragma clang diagnostic pop
     // The timestamp will either match the timestamp of the dyld_shared_cache
@@ -592,18 +703,13 @@ void VerifyImageExistenceAndTimestamp(const char* path, time_t timestamp) {
     }();
 
     stat_path = dyld_shared_cache_file_path;
-    timestamp_may_be_0 = true;
   } else {
     stat_path = path;
-    timestamp_may_be_0 = false;
   }
 
   struct stat stat_buf;
   int rv = stat(stat_path, &stat_buf);
   EXPECT_EQ(rv, 0) << ErrnoMessage("stat");
-  if (rv == 0 && (!timestamp_may_be_0 || timestamp != 0)) {
-    EXPECT_EQ(timestamp, stat_buf.st_mtime);
-  }
 }
 
 // cl_kernels images (OpenCL kernels) are weird. They’re not ld output and don’t
@@ -703,11 +809,11 @@ class ScopedOpenCLNoOpKernel {
     const size_t source_lengths[] = {
         strlen(sources[0]),
     };
-    static_assert(base::size(sources) == base::size(source_lengths),
+    static_assert(std::size(sources) == std::size(source_lengths),
                   "arrays must be parallel");
 
     program_ = clCreateProgramWithSource(
-        context_, base::size(sources), sources, source_lengths, &rv);
+        context_, std::size(sources), sources, source_lengths, &rv);
     ASSERT_EQ(rv, CL_SUCCESS) << "clCreateProgramWithSource";
 
     rv = clBuildProgram(
@@ -737,6 +843,19 @@ bool ExpectCLKernels() {
          MacOSVersionNumber() >= 10'07'00;
 }
 
+// Starting in dyld-1284.13 (macOS 15.4), _dyld_get_image_name (in
+// dyld4::PrebuiltLoader::path) returns an absolute path for a main executable,
+// even when the image was not loaded from an absolute path. This can break test
+// expectations when the test executable is not invoked from an absolute path.
+// As a workaround, just use the main executable’s basename for comparison
+// purposes.
+std::string ComparableModuleName(const std::string& module_name,
+                                 uint32_t file_type) {
+  return file_type == MH_EXECUTE
+             ? base::FilePath(module_name).BaseName().value()
+             : module_name;
+}
+
 TEST(ProcessReaderMac, SelfModules) {
   ScopedOpenCLNoOpKernel ensure_cl_kernels;
   ASSERT_NO_FATAL_FAILURE(ensure_cl_kernels.SetUp());
@@ -745,67 +864,62 @@ TEST(ProcessReaderMac, SelfModules) {
   ASSERT_TRUE(process_reader.Initialize(mach_task_self()));
 
   uint32_t dyld_image_count = _dyld_image_count();
-  const std::vector<ProcessReaderMac::Module>& modules =
-      process_reader.Modules();
 
-  // There needs to be at least an entry for the main executable, for a dylib,
-  // and for dyld.
-  ASSERT_GE(modules.size(), 3u);
-
-  // dyld_image_count doesn’t include an entry for dyld itself, but |modules|
-  // does.
-  ASSERT_EQ(modules.size(), dyld_image_count + 1);
-
-  bool found_cl_kernels = false;
-  for (uint32_t index = 0; index < dyld_image_count; ++index) {
-    SCOPED_TRACE(base::StringPrintf(
-        "index %u, name %s", index, modules[index].name.c_str()));
-
-    const char* dyld_image_name = _dyld_get_image_name(index);
-    EXPECT_EQ(modules[index].name, dyld_image_name);
-    ASSERT_TRUE(modules[index].reader);
-    EXPECT_EQ(
-        modules[index].reader->Address(),
-        FromPointerCast<mach_vm_address_t>(_dyld_get_image_header(index)));
-
-    bool expect_timestamp;
-    if (index == 0) {
-      // dyld didn’t load the main executable, so it couldn’t record its
-      // timestamp, and it is reported as 0.
-      EXPECT_EQ(modules[index].timestamp, 0);
-    } else if (IsMalformedCLKernelsModule(modules[index].reader->FileType(),
-                                          modules[index].name,
-                                          &expect_timestamp)) {
-      // cl_kernels doesn’t exist as a file, but may still have a timestamp.
-      if (!expect_timestamp) {
-        EXPECT_EQ(modules[index].timestamp, 0);
-      } else {
-        EXPECT_NE(modules[index].timestamp, 0);
+  std::set<std::string> cl_kernel_names;
+  auto modules = process_reader.Modules();
+  ModuleSet actual_modules;
+  for (size_t i = 0; i < modules.size(); ++i) {
+    auto& module = modules[i];
+    ASSERT_TRUE(module.reader);
+    if (i == modules.size() - 1) {
+      EXPECT_EQ(module.name, kDyldPath);
+      const dyld_all_image_infos* dyld_image_infos = DyldGetAllImageInfos();
+      if (dyld_image_infos->version >= 2) {
+        EXPECT_EQ(module.reader->Address(),
+                  FromPointerCast<mach_vm_address_t>(
+                      dyld_image_infos->dyldImageLoadAddress));
       }
-      found_cl_kernels = true;
+      // Don't include dyld, since dyld image APIs will not have an entry for
+      // dyld itself.
+      continue;
+    }
+    // Ensure executable is first, and that there's only one.
+    uint32_t file_type = module.reader->FileType();
+    if (i == 0) {
+      EXPECT_EQ(file_type, static_cast<uint32_t>(MH_EXECUTE));
     } else {
-      // Hope that the module didn’t change on disk.
-      VerifyImageExistenceAndTimestamp(dyld_image_name,
-                                       modules[index].timestamp);
+      EXPECT_NE(file_type, static_cast<uint32_t>(MH_EXECUTE));
+      EXPECT_NE(file_type, static_cast<uint32_t>(MH_DYLINKER));
+    }
+    if (IsMalformedCLKernelsModule(module.reader->FileType(), module.name)) {
+      cl_kernel_names.insert(module.name);
+    }
+    actual_modules.insert(
+        std::make_pair(ComparableModuleName(module.name, file_type),
+                       module.reader->Address()));
+  }
+  EXPECT_EQ(cl_kernel_names.size() > 0,
+            ExpectCLKernels() && ensure_cl_kernels.success());
+
+  // There needs to be at least an entry for the main executable and a dylib.
+  ASSERT_GE(actual_modules.size(), 2u);
+  ASSERT_EQ(actual_modules.size(), dyld_image_count);
+
+  ModuleSet expect_modules;
+  for (uint32_t index = 0; index < dyld_image_count; ++index) {
+    const char* dyld_image_name = _dyld_get_image_name(index);
+    mach_vm_address_t dyld_image_address =
+        FromPointerCast<mach_vm_address_t>(_dyld_get_image_header(index));
+    const MachHeader* image_header =
+        reinterpret_cast<const MachHeader*>(dyld_image_address);
+    expect_modules.insert(std::make_pair(
+        ComparableModuleName(dyld_image_name, image_header->filetype),
+        dyld_image_address));
+    if (cl_kernel_names.find(dyld_image_name) == cl_kernel_names.end()) {
+      VerifyImageExistence(dyld_image_name);
     }
   }
-
-  EXPECT_EQ(found_cl_kernels, ExpectCLKernels() && ensure_cl_kernels.success());
-
-  size_t index = modules.size() - 1;
-  EXPECT_EQ(modules[index].name, kDyldPath);
-
-  // dyld didn’t load itself either, so it couldn’t record its timestamp, and it
-  // is also reported as 0.
-  EXPECT_EQ(modules[index].timestamp, 0);
-
-  const dyld_all_image_infos* dyld_image_infos = DyldGetAllImageInfos();
-  if (dyld_image_infos->version >= 2) {
-    ASSERT_TRUE(modules[index].reader);
-    EXPECT_EQ(modules[index].reader->Address(),
-              FromPointerCast<mach_vm_address_t>(
-                  dyld_image_infos->dyldImageLoadAddress));
-  }
+  EXPECT_EQ(actual_modules, expect_modules);
 }
 
 class ProcessReaderModulesChild final : public MachMultiprocess {
@@ -824,27 +938,45 @@ class ProcessReaderModulesChild final : public MachMultiprocess {
   void MachMultiprocessParent() override {
     ProcessReaderMac process_reader;
     ASSERT_TRUE(process_reader.Initialize(ChildTask()));
-
     const std::vector<ProcessReaderMac::Module>& modules =
         process_reader.Modules();
 
+    ModuleSet actual_modules;
+    std::set<std::string> cl_kernel_names;
+    for (size_t i = 0; i < modules.size(); ++i) {
+      auto& module = modules[i];
+      ASSERT_TRUE(module.reader);
+      uint32_t file_type = module.reader->FileType();
+      if (i == 0) {
+        EXPECT_EQ(file_type, static_cast<uint32_t>(MH_EXECUTE));
+      } else if (i == modules.size() - 1) {
+        EXPECT_EQ(file_type, static_cast<uint32_t>(MH_DYLINKER));
+      } else {
+        EXPECT_NE(file_type, static_cast<uint32_t>(MH_EXECUTE));
+        EXPECT_NE(file_type, static_cast<uint32_t>(MH_DYLINKER));
+      }
+      if (IsMalformedCLKernelsModule(module.reader->FileType(), module.name)) {
+        cl_kernel_names.insert(module.name);
+      }
+      actual_modules.insert(
+          std::make_pair(ComparableModuleName(module.name, file_type),
+                         module.reader->Address()));
+    }
+
     // There needs to be at least an entry for the main executable, for a dylib,
     // and for dyld.
-    ASSERT_GE(modules.size(), 3u);
+    ASSERT_GE(actual_modules.size(), 3u);
 
     FileHandle read_handle = ReadPipeHandle();
 
-    uint32_t expect_modules;
+    uint32_t expect_modules_size;
     CheckedReadFileExactly(
-        read_handle, &expect_modules, sizeof(expect_modules));
+        read_handle, &expect_modules_size, sizeof(expect_modules_size));
 
-    ASSERT_EQ(modules.size(), expect_modules);
+    ASSERT_EQ(actual_modules.size(), expect_modules_size);
+    ModuleSet expect_modules;
 
-    bool found_cl_kernels = false;
-    for (size_t index = 0; index < modules.size(); ++index) {
-      SCOPED_TRACE(base::StringPrintf(
-          "index %zu, name %s", index, modules[index].name.c_str()));
-
+    for (size_t index = 0; index < expect_modules_size; ++index) {
       uint32_t expect_name_length;
       CheckedReadFileExactly(
           read_handle, &expect_name_length, sizeof(expect_name_length));
@@ -852,38 +984,24 @@ class ProcessReaderModulesChild final : public MachMultiprocess {
       // The NUL terminator is not read.
       std::string expect_name(expect_name_length, '\0');
       CheckedReadFileExactly(read_handle, &expect_name[0], expect_name_length);
-      EXPECT_EQ(modules[index].name, expect_name);
 
       mach_vm_address_t expect_address;
       CheckedReadFileExactly(
           read_handle, &expect_address, sizeof(expect_address));
-      ASSERT_TRUE(modules[index].reader);
-      EXPECT_EQ(modules[index].reader->Address(), expect_address);
 
-      bool expect_timestamp;
-      if (index == 0 || index == modules.size() - 1) {
-        // dyld didn’t load the main executable or itself, so it couldn’t record
-        // these timestamps, and they are reported as 0.
-        EXPECT_EQ(modules[index].timestamp, 0);
-      } else if (IsMalformedCLKernelsModule(modules[index].reader->FileType(),
-                                            modules[index].name,
-                                            &expect_timestamp)) {
-        // cl_kernels doesn’t exist as a file, but may still have a timestamp.
-        if (!expect_timestamp) {
-          EXPECT_EQ(modules[index].timestamp, 0);
-        } else {
-          EXPECT_NE(modules[index].timestamp, 0);
-        }
-        found_cl_kernels = true;
-      } else {
-        // Hope that the module didn’t change on disk.
-        VerifyImageExistenceAndTimestamp(expect_name.c_str(),
-                                         modules[index].timestamp);
+      uint32_t file_type;
+      CheckedReadFileExactly(read_handle, &file_type, sizeof(file_type));
+
+      if (cl_kernel_names.find(expect_name) == cl_kernel_names.end()) {
+        VerifyImageExistence(expect_name.c_str());
       }
-    }
 
-    EXPECT_EQ(found_cl_kernels,
+      expect_modules.insert(std::make_pair(
+          ComparableModuleName(expect_name, file_type), expect_address));
+    }
+    EXPECT_EQ(cl_kernel_names.size() > 0,
               ExpectCLKernels() && ensure_cl_kernels_success_);
+    EXPECT_EQ(expect_modules, actual_modules);
   }
 
   void MachMultiprocessChild() override {
@@ -916,6 +1034,10 @@ class ProcessReaderModulesChild final : public MachMultiprocess {
             dyld_image_infos->dyldImageLoadAddress);
       }
 
+      const MachHeader* image_header =
+          reinterpret_cast<const MachHeader*>(dyld_image_address);
+      uint32_t file_type = image_header->filetype;
+
       uint32_t dyld_image_name_length = strlen(dyld_image_name);
       CheckedWriteFile(write_handle,
                        &dyld_image_name_length,
@@ -926,6 +1048,7 @@ class ProcessReaderModulesChild final : public MachMultiprocess {
 
       CheckedWriteFile(
           write_handle, &dyld_image_address, sizeof(dyld_image_address));
+      CheckedWriteFile(write_handle, &file_type, sizeof(file_type));
     }
 
     // Wait for the parent to signal that it’s OK to exit by closing its end of

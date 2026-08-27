@@ -38,6 +38,7 @@ ScreenNetRoom::ScreenNetRoom()
 {
 	m_Rooms = nullptr;
 	m_iRoomPlace = 0;
+	ScreenTextEntry::s_sLastAnswer.clear();
 }
 
 void
@@ -64,7 +65,6 @@ ScreenNetRoom::Init()
 
 	this->SortByDrawOrder();
 	UpdateRoomsList();
-	NSMAN->OnRoomSelect();
 }
 
 bool
@@ -135,7 +135,7 @@ ScreenNetRoom::HandleScreenMessage(const ScreenMessage& SM)
 void
 ScreenNetRoom::TweenOffScreen()
 {
-	NSMAN->OffRoomSelect();
+	
 }
 
 bool
@@ -167,7 +167,7 @@ ScreenNetRoom::SelectRoom(std::string name)
 void
 ScreenNetRoom::SelectCurrent()
 {
-	if (NSMAN->IsETTP() && ((ETTProtocol*)NSMAN->curProtocol)->creatingRoom) {
+	if (NSMAN->CreatingRoom()) {
 		SCREENMAN->SystemMessage("Error: Already trying to create a room");
 		return;
 	}

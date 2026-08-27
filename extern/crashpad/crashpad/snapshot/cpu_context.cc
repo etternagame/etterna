@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,8 +17,10 @@
 #include <stddef.h>
 #include <string.h>
 
-#include "base/cxx17_backports.h"
+#include <iterator>
+
 #include "base/notreached.h"
+#include "cpu_architecture.h"
 #include "util/misc/arraysize.h"
 #include "util/misc/implicit_cast.h"
 
@@ -58,7 +60,7 @@ void CPUContextX86::FxsaveToFsave(const Fxsave& fxsave, Fsave* fsave) {
   fsave->reserved_4 = 0;
   static_assert(ArraySize(fsave->st) == ArraySize(fxsave.st_mm),
                 "FPU stack registers must be equivalent");
-  for (size_t index = 0; index < base::size(fsave->st); ++index) {
+  for (size_t index = 0; index < std::size(fsave->st); ++index) {
     memcpy(fsave->st[index], fxsave.st_mm[index].st, sizeof(fsave->st[index]));
   }
 }
@@ -80,7 +82,7 @@ void CPUContextX86::FsaveToFxsave(const Fsave& fsave, Fxsave* fxsave) {
   fxsave->mxcsr_mask = 0;
   static_assert(ArraySize(fxsave->st_mm) == ArraySize(fsave.st),
                 "FPU stack registers must be equivalent");
-  for (size_t index = 0; index < base::size(fsave.st); ++index) {
+  for (size_t index = 0; index < std::size(fsave.st); ++index) {
     memcpy(fxsave->st_mm[index].st, fsave.st[index], sizeof(fsave.st[index]));
     memset(fxsave->st_mm[index].st_reserved,
            0,
@@ -169,9 +171,10 @@ uint64_t CPUContext::InstructionPointer() const {
       return arm->pc;
     case kCPUArchitectureARM64:
       return arm64->pc;
+    case kCPUArchitectureRISCV64:
+      return riscv64->pc;
     default:
       NOTREACHED();
-      return ~0ull;
   }
 }
 
@@ -185,9 +188,36 @@ uint64_t CPUContext::StackPointer() const {
       return arm->sp;
     case kCPUArchitectureARM64:
       return arm64->sp;
+    case kCPUArchitectureRISCV64:
+      return riscv64->regs[1];
     default:
       NOTREACHED();
-      return ~0ull;
+  }
+}
+
+uint64_t CPUContext::ShadowStackPointer() const {
+  switch (architecture) {
+    case kCPUArchitectureX86:
+    case kCPUArchitectureARM:
+    case kCPUArchitectureARM64:
+      NOTREACHED();
+    case kCPUArchitectureX86_64:
+      return x86_64->xstate.cet_u.ssp;
+    default:
+      NOTREACHED();
+  }
+}
+
+bool CPUContext::HasShadowStack() const {
+  switch (architecture) {
+    case kCPUArchitectureX86:
+    case kCPUArchitectureARM:
+    case kCPUArchitectureARM64:
+      return false;
+    case kCPUArchitectureX86_64:
+      return x86_64->xstate.cet_u.cetmsr != 0;
+    default:
+      NOTREACHED();
   }
 }
 
@@ -196,6 +226,7 @@ bool CPUContext::Is64Bit() const {
     case kCPUArchitectureX86_64:
     case kCPUArchitectureARM64:
     case kCPUArchitectureMIPS64EL:
+    case kCPUArchitectureRISCV64:
       return true;
     case kCPUArchitectureX86:
     case kCPUArchitectureARM:
@@ -203,7 +234,6 @@ bool CPUContext::Is64Bit() const {
       return false;
     default:
       NOTREACHED();
-      return false;
   }
 }
 

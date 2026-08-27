@@ -53,6 +53,7 @@ class ScreenWithMenuElements : public Screen
 	Transition m_Cancel;
 
 	ThemeMetric<bool> PLAY_MUSIC;
+	ThemeMetric<bool> DONT_RESTART_MUSIC_IF_SAME;
 	ThemeMetric<bool> MUSIC_ALIGN_BEAT;
 	ThemeMetric<float> DELAY_MUSIC_SECONDS;
 	ThemeMetric<bool> CANCEL_TRANSITIONS_OUT;

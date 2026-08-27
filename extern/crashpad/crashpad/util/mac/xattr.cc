@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
 #include <sys/types.h>
 #include <sys/xattr.h>
 
+#include <string_view>
+
+#include "base/check_op.h"
 #include "base/logging.h"
 #include "base/numerics/safe_conversions.h"
 #include "base/strings/string_number_conversions.h"
@@ -27,7 +30,7 @@
 namespace crashpad {
 
 XattrStatus ReadXattr(const base::FilePath& file,
-                      const base::StringPiece& name,
+                      std::string_view name,
                       std::string* value) {
   // First get the size of the attribute value.
   ssize_t buffer_size = getxattr(file.value().c_str(), name.data(), nullptr,
@@ -56,7 +59,7 @@ XattrStatus ReadXattr(const base::FilePath& file,
 }
 
 bool WriteXattr(const base::FilePath& file,
-                const base::StringPiece& name,
+                std::string_view name,
                 const std::string& value) {
   int rv = setxattr(file.value().c_str(), name.data(), value.c_str(),
       value.length(), 0, 0);
@@ -66,7 +69,7 @@ bool WriteXattr(const base::FilePath& file,
 }
 
 XattrStatus ReadXattrBool(const base::FilePath& file,
-                          const base::StringPiece& name,
+                          std::string_view name,
                           bool* value) {
   std::string tmp;
   XattrStatus status;
@@ -86,13 +89,13 @@ XattrStatus ReadXattrBool(const base::FilePath& file,
 }
 
 bool WriteXattrBool(const base::FilePath& file,
-                    const base::StringPiece& name,
+                    std::string_view name,
                     bool value) {
   return WriteXattr(file, name, (value ? "1" : "0"));
 }
 
 XattrStatus ReadXattrInt(const base::FilePath& file,
-                         const base::StringPiece& name,
+                         std::string_view name,
                          int* value) {
   std::string tmp;
   XattrStatus status;
@@ -107,14 +110,14 @@ XattrStatus ReadXattrInt(const base::FilePath& file,
 }
 
 bool WriteXattrInt(const base::FilePath& file,
-                   const base::StringPiece& name,
+                   std::string_view name,
                    int value) {
   std::string tmp = base::StringPrintf("%d", value);
   return WriteXattr(file, name, tmp);
 }
 
 XattrStatus ReadXattrTimeT(const base::FilePath& file,
-                           const base::StringPiece& name,
+                           std::string_view name,
                            time_t* value) {
   // time_t on macOS is defined as a long, but it will be read into an int64_t
   // here, since there is no string conversion method for long.
@@ -141,14 +144,13 @@ XattrStatus ReadXattrTimeT(const base::FilePath& file,
 }
 
 bool WriteXattrTimeT(const base::FilePath& file,
-                     const base::StringPiece& name,
+                     std::string_view name,
                      time_t value) {
   std::string tmp = base::StringPrintf("%ld", value);
   return WriteXattr(file, name, tmp);
 }
 
-XattrStatus RemoveXattr(const base::FilePath& file,
-                        const base::StringPiece& name) {
+XattrStatus RemoveXattr(const base::FilePath& file, std::string_view name) {
   int rv = removexattr(file.value().c_str(), name.data(), 0);
   if (rv != 0) {
     if (errno == ENOATTR)

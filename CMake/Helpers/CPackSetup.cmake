@@ -10,6 +10,12 @@ set(INSTALL_DIR "Etterna" CACHE STRING "Output directory for built game")
 set(ASSET_DIR "${INSTALL_DIR}" CACHE STRING "Output directory for game assets")
 
 if(UNIX)
+    set_target_properties(Etterna PROPERTIES
+        INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib:\$ORIGIN/ffmpeg"
+        INSTALL_RPATH_USE_LINK_PATH TRUE
+        SKIP_INSTALL_RPATH OFF
+    )
+
     set(CPACK_GENERATOR TGZ)
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
     set(CPACK_PACKAGE_CONTACT https://github.com/etternagame/etterna)
@@ -23,6 +29,14 @@ if(UNIX)
                             GROUP_READ GROUP_EXECUTE
                             WORLD_READ WORLD_EXECUTE)
     endif()
+
+	install(DIRECTORY "${PROJECT_SOURCE_DIR}/extern/ffmpeg/linux-lib/"
+		COMPONENT Etterna
+		DESTINATION ${INSTALL_DIR}/ffmpeg)
+
+    install(FILES "${PROJECT_SOURCE_DIR}/extern/discord/lib/release/libdiscord_partner_sdk.so"
+        COMPONENT Etterna
+        DESTINATION ${INSTALL_DIR})
 endif()
 
 # Windows Specific CPack
@@ -52,7 +66,8 @@ if(WIN32)
 
     # List every DLL etterna needs.
     list(APPEND WIN_DLLS "${PROJECT_SOURCE_DIR}/Program/avcodec-55.dll" "${PROJECT_SOURCE_DIR}/Program/avformat-55.dll"
-                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll")
+                         "${PROJECT_SOURCE_DIR}/Program/avutil-52.dll" "${PROJECT_SOURCE_DIR}/Program/swscale-2.dll"
+                         "${PROJECT_SOURCE_DIR}/Program/discord_partner_sdk.dll")
     if(WITH_CRASHPAD AND TARGET crashpad)
         list(APPEND WIN_DLLS ${PROJECT_BINARY_DIR}/gn_crashpad/crashpad_handler.exe)
     endif()

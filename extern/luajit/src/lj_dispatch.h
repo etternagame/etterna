@@ -1,6 +1,6 @@
 /*
 ** Instruction dispatch handling.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 #ifndef _LJ_DISPATCH_H
@@ -89,7 +89,7 @@ typedef uint16_t HotCount;
 typedef struct GG_State {
   lua_State L;				/* Main thread. */
   global_State g;			/* Global state. */
-#if LJ_TARGET_ARM
+#if LJ_TARGET_ARM && !LJ_TARGET_NX
   /* Make g reachable via K12 encoded DISPATCH-relative addressing. */
   uint8_t align1[(16-sizeof(global_State))&15];
 #endif
@@ -99,7 +99,7 @@ typedef struct GG_State {
 #if LJ_HASJIT
   jit_State J;				/* JIT state. */
   HotCount hotcount[HOTCOUNT_SIZE];	/* Hot counters. */
-#if LJ_TARGET_ARM
+#if LJ_TARGET_ARM && !LJ_TARGET_NX
   /* Ditto for J. */
   uint8_t align2[(16-sizeof(jit_State)-sizeof(HotCount)*HOTCOUNT_SIZE)&15];
 #endif
@@ -132,7 +132,7 @@ LJ_FUNC void lj_dispatch_init(GG_State *GG);
 #if LJ_HASJIT
 LJ_FUNC void lj_dispatch_init_hotcount(global_State *g);
 #endif
-LJ_FUNC void lj_dispatch_update(global_State *g);
+LJ_FUNC void LJ_FASTCALL lj_dispatch_update(global_State *g, int nolock);
 
 /* Instruction dispatch callback for hooks or when recording. */
 LJ_FUNCA void LJ_FASTCALL lj_dispatch_ins(lua_State *L, const BCIns *pc);

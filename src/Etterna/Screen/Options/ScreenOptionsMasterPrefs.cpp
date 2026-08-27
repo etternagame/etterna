@@ -718,6 +718,7 @@ InitializeConfOptions()
 	ADD(ConfOption("NoGlow", MovePref<bool>, "On", "Off"));
 	ADD(ConfOption("FullTapExplosions", MovePref<bool>, "Short", "Full"));
 	ADD(ConfOption("ReplaysUseScoreMods", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("ReplaysShowOffsets", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EnablePitchRates", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("LiftsOnOsuHolds", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("AllowStartToGiveUp", MovePref<bool>, "Off", "On"));
@@ -843,6 +844,7 @@ InitializeConfOptions()
 
 	ADD(ConfOption("Center1Player", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("EasterEggs", MovePref<bool>, "Off", "On"));
+	ADD(ConfOption("MultiToasty", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("SortBySSRNormPercent", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("UseMidGrades", MovePref<bool>, "Off", "On"));
 	ADD(ConfOption("PackProgressInWheel", MovePref<bool>, "Off", "On"));
@@ -961,7 +963,35 @@ InitializeConfOptions()
 				   "3 Times",
 				   "4 Times",
 				   "5 Times"));
-	ADD(ConfOption("SoundVolume",
+	ADD(ConfOption("SoundVolumeMaster",
+				   SoundVolume,
+				   "Silent",
+				   "|10%",
+				   "|20%",
+				   "|30%",
+				   "|40%",
+				   "|50%",
+				   "|60%",
+				   "|70%",
+				   "|80%",
+				   "|90%",
+				   "|100%"));
+	g_ConfOptions.back().m_iEffects = OPT_APPLY_SOUND;
+	ADD(ConfOption("SoundVolumeBGM",
+				   SoundVolume,
+				   "Silent",
+				   "|10%",
+				   "|20%",
+				   "|30%",
+				   "|40%",
+				   "|50%",
+				   "|60%",
+				   "|70%",
+				   "|80%",
+				   "|90%",
+				   "|100%"));
+	g_ConfOptions.back().m_iEffects = OPT_APPLY_SOUND;
+	ADD(ConfOption("SoundVolumeActions",
 				   SoundVolume,
 				   "Silent",
 				   "|10%",

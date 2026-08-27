@@ -226,7 +226,7 @@ local function createVertices(vt, x, y, c)
     vt[#vt + 1] = {{x, y, 0}, c}
 end
 
--- generate the vertices to put into the ActorFrameTexture for the MiscPage graph
+-- generate the vertices to put into the ActorMultiVertex for the MiscPage graph
 local function generateRecentWifeScoreGraph()
     local v = {}
     -- update color if it happened to update before now
@@ -471,6 +471,11 @@ local function songBannerSetter(self, song, isCurrentItem)
         end
         if self.bnpath ~= bnpath then
             self:Load(bnpath)
+            if self:GetNumStates() > 1 then
+                self:StopUsingCustomTexCoords()
+            else
+                self:EnableCustomTexCoords()
+            end
         end
         self.bnpath = bnpath
     end
@@ -501,6 +506,11 @@ local function groupBannerSetter(self, group, isCurrentItem)
     end
     if self.bnpath ~= bnpath then
         self:Load(bnpath)
+        if self:GetNumStates() > 1 then
+			self:StopUsingCustomTexCoords()
+		else
+			self:EnableCustomTexCoords()
+		end
     end
     self.bnpath = bnpath
 end
@@ -1303,7 +1313,7 @@ t[#t+1] = Def.ActorFrame {
             self:halign(0)
             self:y(-(actuals.HeaderHeight + actuals.ItemHeight) / 2)
             self:playcommand("SetPosition")
-            self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.45)
+            self:zoomto(actuals.GeneralBoxLeftGap, actuals.Height + actuals.HeaderHeight * 2.55)
         end,
         SetPositionCommand = function(self)
             if getWheelPosition() then
@@ -1456,7 +1466,7 @@ t[#t+1] = Def.ActorFrame {
             if params.event == "DeviceButton_left mouse button" then
                 if not self:GetParent():GetChild("GroupPage"):IsInvisible() then
                     -- left clicking the group header gives a random song in the group
-                    local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
+                    local song = WHEELDATA:GetRandomSongInFolderReversible(openedGroup, INPUTFILTER:IsShiftPressed())
                     self:GetParent():GetParent():GetChild("WheelContainer"):playcommand("FindSong", {song = song, group = openedGroup})
                 elseif not self:GetParent():GetChild("MiscPage"):IsInvisible() then
                     -- left clicking the normal header gives a random group (???)
@@ -1509,6 +1519,11 @@ t[#t+1] = Def.ActorFrame {
                     self:visible(true)
                 end
                 self:Load(bnpath)
+                if self:GetNumStates() > 1 then
+                    self:StopUsingCustomTexCoords()
+                else
+                    self:EnableCustomTexCoords()
+                end
             end,
             OptionUpdatedMessageCommand = function(self, params)
                 if params and params.name == "Video Banners" then

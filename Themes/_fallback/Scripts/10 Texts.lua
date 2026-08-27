@@ -74,8 +74,8 @@ local judgeString = { -- Text strings for each Judgment types
 	TapNoteScore_W4	= THEME:GetString("TapNoteScore", "W4"),
 	TapNoteScore_W5	= THEME:GetString("TapNoteScore", "W5"),
 	TapNoteScore_Miss = THEME:GetString("TapNoteScore", "Miss"),
-	HoldNoteScore_Held = 'OK',
-	HoldNoteScore_LetGo = 'NG',	
+	HoldNoteScore_Held = THEME:GetString("HoldNoteScore", "Held"),
+	HoldNoteScore_LetGo = THEME:GetString("HoldNoteScore", "LetGo"),
 }
 
 function getShortDifficulty(diff)

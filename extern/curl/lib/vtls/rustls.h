@@ -1,3 +1,5 @@
+#ifndef HEADER_CURL_RUSTLS_H
+#define HEADER_CURL_RUSTLS_H
 /***************************************************************************
  *                                  _   _ ____  _
  *  Project                     ___| | | |  _ \| |
@@ -5,8 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 2020 - 2021, Jacob Hoffman-Andrews,
- * <github@hoffman-andrews.com>
+ * Copyright (C) Jacob Hoffman-Andrews, <github@hoffman-andrews.com>
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -19,10 +20,9 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
-#ifndef HEADER_CURL_RUSTLS_H
-#define HEADER_CURL_RUSTLS_H
-
 #include "curl_setup.h"
 
 #ifdef USE_RUSTLS

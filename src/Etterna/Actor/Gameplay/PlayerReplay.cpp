@@ -316,7 +316,7 @@ PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
 		auto noterow = p.first;
 		auto& evts = p.second;
 
-		auto rowpos = m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(noterow));
+		auto rowpos = m_Timing->GetTimeFromRowFast(noterow);
 		for (auto& evt : evts) {
 			auto supposedTime = evt.songPositionSeconds;
 
@@ -329,9 +329,9 @@ PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
 			// must update row and time to match current chart
 			if (fabsf(rowpos - supposedTime) > 0.01F) {
 				// haha oh my god
-				auto tapPosition = m_Timing->GetElapsedTimeFromBeat(
-									 NoteRowToBeat(evt.noterowJudged)) +
-								   (evt.offset * musicRate);
+				auto tapPosition =
+				  m_Timing->GetTimeFromRowFast(evt.noterowJudged) +
+				  (evt.offset * musicRate);
 				noterow =
 				  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(tapPosition));
 				evt.songPositionSeconds = tapPosition;
@@ -347,8 +347,7 @@ PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
 
 	// handle ghost taps last because we didnt have enough data to fix gaps
 	for (auto& evt : ghostTaps) {
-		auto time =
-		  m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(evt.noterow));
+		auto time = m_Timing->GetTimeFromRowFast(evt.noterow);
 		auto newrow =
 		  BeatToNoteRow(m_Timing->GetBeatFromElapsedTime(time - gapError));
 		if (playbackEvents.count(newrow) == 0u) {
@@ -654,10 +653,9 @@ PlayerReplay::Step(int col,
 {
 	const std::chrono::duration<float> stepDelta =
 	  std::chrono::steady_clock::now() - tm;
-	const auto fPositionSeconds =
-	  forcedSongPositionSeconds != 0.F
-		? forcedSongPositionSeconds
-		: m_Timing->GetElapsedTimeFromBeat(NoteRowToBeat(steppedRow));
+	const auto fPositionSeconds = forcedSongPositionSeconds != 0.F
+									? forcedSongPositionSeconds
+									: m_Timing->GetTimeFromRowFast(steppedRow);
 	const auto fSongBeat =
 	  forcedSongPositionSeconds != 0.F
 		? m_Timing->GetBeatFromElapsedTime(forcedSongPositionSeconds)
@@ -760,8 +758,7 @@ PlayerReplay::Step(int col,
 		// compute the score for this hit
 		auto fNoteOffset = 0.f;
 
-		const auto fStepBeat = NoteRowToBeat(rowBeingJudged);
-		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
+		const auto fStepSeconds = m_Timing->GetTimeFromRowFast(rowBeingJudged);
 
 		// The offset from the actual step in seconds:
 		fNoteOffset = (fStepSeconds - fPositionSeconds) /

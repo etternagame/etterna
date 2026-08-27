@@ -29,14 +29,12 @@ local Tips = {
     "To put an avatar into the game, put any image into Assets/Avatars and click your avatar ingame.",
     "To customize your judgment, put a new judgment image into Assets/Judgments and click your avatar ingame to switch.",
     "After a 250 perfect combo, a toasty will pop up to congratulate you.",
-    "DDReam is useful for syncing over ArrowVortex due to its ability to let you drag beats with your mouse among other things.",
     "When manually installing songs, make sure to keep song folders inside of pack folders. Things go very bad otherwise.",
     "To update a song from disk manually, try Ctrl + Shift + R.",
     "To update a whole pack from disk manually, try Ctrl + Shift + P.",
-    "The game framerate can be limited to something other than VSync or 1000 by modifying FrameLimit in Preferences.ini.",
+    "Sometimes, poor game framerate consistency and stuttering can be fixed by setting a lower frame limit in the options.",
     "Score uploading has no progress indicator... Just trust in the process.",
     "Pack downloading can be rate limited by ISP sometimes. It's not always your fault or our fault.",
-    "Download speed is limited by framerate sometimes.",
     "Song search resets when you enter a song, but filtering does not.",
     "Song search, filtering, and pack tags can all be mixed together.",
     "Some song sortmodes may offer a better experience for you. Check them out in the Up-Down-Up-Down menu.",
@@ -342,7 +340,7 @@ local Phrases = {
 	"why does every charter save for me have to be painfully incompetent", -- Sklitterbeer in a twitch chat 
 	"watch your mouth steplet the D8 editor readers are listening", -- DourGent in response to foxfire talking about playtesting
 	"I have a friend from singapore, I'm basically japanese", -- DourGent, referring to Sheenoboo
-	"Acerola Revengance Rising Attack Trubo Reload all-nighter REMIX edition game of the year XTREME", -- DourGent trying to think of names for a potential Acerola sequel
+	"Acerola Revengance Rising Attack Turbo Reload all-nighter REMIX edition game of the year XTREME", -- DourGent trying to think of names for a potential Acerola sequel
 	"This files got about as much back end as Niki Minaj", -- Freemind2pointo, about PAM!!
 	"Wanna smell my feet right now?", -- Kraezymann on stream
 	"Mina-san!", -- Foxfire
@@ -354,21 +352,76 @@ local Phrases = {
 	"when bahamut unleashes 79 terashits per exafart", -- Timothy, yet again
 	"Holy shit, you're cheating better than me", -- Thaor during Anmao's cheated client stream 
 	"sorry im a charter i just preview charts for 30 minutes and then close the game", -- Void
-    "yo mate this beat dropped so hard I drop kicked me nan down 7 sets of stairs. REPPIN THE MAKIN SCENE LIKE! rest in peace mc mental the legend", -- Dour, listening to MC mental
-    "damn bitch this beat has a fat ass", -- Chat in foxfire's stream
-    "i was making a sandwiche", -- Dour while someone attempted to break into their home
-    "Requires poop transfusion", -- Poco, in response to Celebelian dsicussing poop transplants reviving mice
-    "my Charts/Files/Levels/Maps are not built to survive hydraulic presses", -- April
-    "i dont really play breakcore files because they all play the same", -- void
-    "you've placed your last arrow, partner", -- Jole
-    "grug make simfile have one very hard part that ruin aaa, make it exciting", -- ilikexd
-    "BORN TO STEP | ETTERNA ONLINE IS A FUCK | 木 restep them all 2001 | I am trash chartographer | 2,147,483,647 REJECTED FILES", -- Tim
-    "why improve as a charter when your 3 split personalities tell you you're doing good", -- Tim
-    "anyone want to ghost write stepmania charts for me", -- Caliber
-    "anyone know how to disable motion blur in etterna", -- random person in edg
-    "good job tim you are highly intelligent among the gorillas in your enclosure", -- Tim discussing the mental ability of leftovers members
-    "send me a cute anime girl in a suit and i will collab with you on something", -- Dour negotiating giving Tim BLISS 2K to collab on
-    "I'll inhale you", -- Zeta to tim.
+    "yo mate this beat dropped so hard I drop kicked me nan down 7 sets of stairs. REPPIN THE MAKINA SCENE LIKE! rest in peace mc mental the legend", -- Dour, listening to North East Makina
+	"damn bitch this beat has a fat ass", -- Chat in foxfire's stream 
+	"i was making a sandwiche", -- Dour while someone attempted to break into their home (Really)
+	"Requires poop transfusion", -- Poco, in response to Celebelian dsicussing poop transplants reviving mice
+	"my Charts/Files/Levels/Maps are not built to survive hydraulic presses", -- April
+	"i dont really play breakcore files because they all play the same", -- void
+	"you've placed your last arrow, partner", -- Jole
+	"grug make simfile have one very hard part that ruin aaa, make it exciting", -- ilikexd
+	"BORN TO STEP | ETTERNA ONLINE IS A FUCK | 木 restep them all 2001 | I am trash chartographer | 2,147,483,647 REJECTED FILES", -- Tim
+	"why improve as a charter when your 3 split personalities tell you you're doing good", -- Tim
+	"anyone want to ghost write stepmania charts for me", -- Caliber
+	"anyone know how to disable motion blur in etterna", -- random person in edg
+	"good job tim you are highly intelligent among the gorillas in your enclosure", -- Tim discussing the mental ability of leftovers members
+	"send me a cute anime girl in a suit and i will collab with you on something", -- Dour negotiating giving Tim BLISS 2K to collab on
+	"I'll inhale you", -- Zeta to tim.
+	"Im thinking of getting a bucket and filling it with rice so i can bulletproof my hands", -- RICOCHET in EO during a hand injury discussion
+	"a little aaah close the chart out and load up a smartstream file", -- Tim in response to a Dour minedodge screenshot
+	"I am Scintill", -- Scintill, every conversation
+	"im shitting champine", -- Xingren, submitting to Funstep Paradise
+	"quadradactylkinetic representations", -- Zeta, discussing what to call charts
+	"II-L is ironically pretty easy to chart, it's so straight forward, like unbelievably straight forward", -- sjplus in response to a new charter asking what is easy to chart
+	"thats it. im turning on the cyanide for you", -- Tim, witnessing Sexy dynamite's Funstep Paradise submission
+	"Escaped test subject from MK Ultra learns the pure essence of jumpstream charting. What happens next is horrifying", -- Tim, also after witnessing sexy dynamite's funstep paradise chart
+	"Hello! 知道不 Not Sure 华讲语 Haha", -- Sexy Dynamite 
+	"dytrs,rt [;su yjr ftr|aslivce madwe that day", -- Dour, trying to say "streamer play the dream alice made that day" in james may's chat
+	"i thought 7 people lived in the phillipines", -- Waffles, when learning y3llow pretended to be from phillipines
+	"You've never made me cry James but there's a first for everything", -- Tim while looking at Black page
+	"give a small victorian osu boy a remi file and he will explode into a billion pieces", -- Novo, after playing remi charts
+	"is 100% acc on j5 on easy song harder than 95% j9 on same easy song?", -- cateatschips in EO 
+	"sorry for the manip i got super nervous", -- Leviano in EO after a scorepost
+	"Streams are more stamina than stamina", -- Over in EO 
+	"do you do the skwid method when you shit", -- sjplus, after foxfire spelled works as work's
+	"sir we are experiencing some polling", -- Dour in EO in response to Entity's meatgrinder scorepost
+	"wont nerve damage just make it easier to play", -- fischl in EO after learning many people suffer from it in etterna 
+	"like chewing the diarrhea before swallowing", -- Poco describing leftovers packs 
+	"Hey Vsauce! Michael here. Your finger control is great. Or is it?", -- some1somewhere in EO
+	"That looks like a lot... you need 2 hands to play that.. and 3 fingers", -- Mimi, upon seeing VGMP-S
+	"When will they add running women", -- Richochet in EO
+	"I want LUMPS of FECES in my CHARTS. if they aren't CHEWEY and HARD TO SWALLOW then I will be DISSATISFIED with the service and leave a 1 STAR REVIEW. Give me my CHUNKY LOGS", -- Dour, after playing a smooth dump chart.
+	"i'm the fucking Idea Guy man my brain is so large i'm so smaret", -- Tim after organising yet another successful pack concept
+	"please keep the mpreg discussion happening instead of switching to fps gamig k thank you thanks bye", -- dash- in EO after people were told to go into off topic to talk about fps games 
+	"anime feet does not hit the same as real feet", -- Poco, in EO.
+	"this shit is so funny to play when drones and rockets flying over your appartment", -- artyom, after playing future dominators during a russian air raid of ukraine.
+	"you should play air raid", -- Dour, for some reason, after artyom mentioned they're playing during a real life air raid
+	"i put more effort into this than i did to get my degree", -- Zeta, talking about World of Corruption
+	"Experience music on it's terms. Not yours", -- WoC Catchphrase
+	"if u want to read it u can turn the pc screen upside down to make it upscroll", -- someone in EO after dour said they can't read the downscroll chart WIP videos. 
+	"im about to slime tf out of my whole setup", -- Sen, in EO, without context
+	"the visual delay setting in game is a litmus test for sociopathy", -- Caliber, discussing offset in EO 
+	"she nibblin but that pizza look good too but why is the ice cream next to the taco next to tyhe burger its gonna MELT.jpg", -- An image in The Etterna Touhou Project release that stopped the pack from extracting properly on release
+	"DYNAMITE", -- Sam and James, after anyone complains about extracting 12,000 copies of the same url during The Etterna Touhou Pack's releasei 
+	"I'd like to have a funny explanation from your side about what happened here. Be creative. If I like it, I'll pretend I have seen nothing", -- LegendaryHawk attempting to critique DourGent for using 192nds to accentuate sounds
+	"can a cj acc boy and a dump push girl fall in love?", -- Luckinferno in EO
+	"i think there should be an uefi computer bricking virus included in every computer  that gets activated if you try to make a chart with rollwalls", -- velaachlorine in eo
+	"playing mizuki charts outside of mizuki is like going to the louvre and seeing that guy you knew from highschool there and he is setting up a gallery display", -- LuckInferno in EO
+	"reading this chat is making me feel like i have chickenpox and a 40°c fever", -- Velaa after entering EO and seeing a 100-message long discussion about what in etterna is kiki or bouba
+	"Well fuck sorry I'm such a fat fucking chud waddles away", -- Tim upon being told "No" after suggesting we play etterna for fun instead of rating.
+	"Me and Dourgent are the '抜け忍' of the Etterna community village.", -- Stepdwi on twitter (https://x.com/mukuchi_dwi/status/1213303318316896257?s=19)
+	"When did this game stop being about rhythm? Secret Santa 2023 is straight up bad.", -- Nerjinzul in EO, unprompted.
+	"i need you guys please for the love of fuck be normal", -- Poco in EO after chat derailed into european/arabic banter
+	"danmaku minipack is cardiac arrest in pack form", -- Zeta, during the first Etterna Score Attack
+	"As I played this five-minute file, I could hear the evolutionary process from Homo sapiens to Australopithecus and the process of man creating language, all of these things. 10/10", -- Sanplatina in EO after playing Tim and Zeta in VC
+	"I'm not entering a dick measuring contest with a bird they'll just regurgitate the last dick they swallowed", -- Dour, unprompted, for some reason, when Lurker mentioned their downrate scores.
+	"camellia mosh pit sounds like one of those icebreaker social games at a kids summer camp", -- Caliber.
+	"watashi wa fat chud desu", -- Tim, 2 days after landing in japan.
+	"are skwid packs all just tech", -- Demi, in EO.
+	"some packs have icyworld and I dont remember icyworld making packs", -- Cateatschips in EO, after asking how packs are made
+	"Mania isn't lenient to the point where mashing will get you above a 90 lol", -- 'Hanged King of Algadda' in EO, complaining about people calling scores mashed.
+	"every time i play wish i had an angel i get mad and hope the dead nerves in mina's shoulder reawaken to cause him distress", -- Tim, in EO.
+	"when jesus invented chordjack in AD 22 he said there shalt not be any chordjack below 110 bpm", -- Poco in EO
 }
 
 function getRandomQuote(tipType)

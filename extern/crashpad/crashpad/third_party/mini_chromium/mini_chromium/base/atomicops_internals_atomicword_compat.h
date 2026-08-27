@@ -1,4 +1,4 @@
-// Copyright (c) 2011 The Chromium Authors. All rights reserved.
+// Copyright 2011 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -39,12 +39,6 @@ inline AtomicWord NoBarrier_AtomicExchange(volatile AtomicWord* ptr,
 inline AtomicWord NoBarrier_AtomicIncrement(volatile AtomicWord* ptr,
                                             AtomicWord increment) {
   return NoBarrier_AtomicIncrement(
-      reinterpret_cast<volatile Atomic32*>(ptr), increment);
-}
-
-inline AtomicWord Barrier_AtomicIncrement(volatile AtomicWord* ptr,
-                                          AtomicWord increment) {
-  return Barrier_AtomicIncrement(
       reinterpret_cast<volatile Atomic32*>(ptr), increment);
 }
 

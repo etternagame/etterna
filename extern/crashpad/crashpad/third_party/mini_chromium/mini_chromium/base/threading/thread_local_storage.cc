@@ -1,4 +1,4 @@
-// Copyright 2013 The Chromium Authors. All rights reserved.
+// Copyright 2013 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,8 +6,9 @@
 
 #include <string.h>
 
+#include "base/check_op.h"
+#include "base/notreached.h"
 #include "base/atomicops.h"
-#include "base/logging.h"
 
 using base::internal::PlatformThreadLocalStorage;
 
@@ -159,10 +160,8 @@ void OnThreadExitInternal(void* value) {
       // the whole vector again.  This is a pthread standard.
       need_to_scan_destructors = true;
     }
-    if (--remaining_attempts <= 0) {
-      NOTREACHED();  // Destructors might not have been called.
-      break;
-    }
+    // Destructors might not have been called.
+    CHECK_GT(--remaining_attempts, 0);
   }
 
   // Remove our stack allocated vector.
@@ -175,7 +174,7 @@ namespace base {
 
 namespace internal {
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 void PlatformThreadLocalStorage::OnThreadExit() {
   PlatformThreadLocalStorage::TLSKey key =
       base::subtle::NoBarrier_Load(&g_native_tls_key);
@@ -187,11 +186,11 @@ void PlatformThreadLocalStorage::OnThreadExit() {
     return;
   OnThreadExitInternal(tls_data);
 }
-#elif defined(OS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
 void PlatformThreadLocalStorage::OnThreadExit(void* value) {
   OnThreadExitInternal(value);
 }
-#endif  // defined(OS_WIN)
+#endif  // BUILDFLAG(IS_WIN)
 
 }  // namespace internal
 

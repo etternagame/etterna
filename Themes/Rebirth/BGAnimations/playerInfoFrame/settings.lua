@@ -278,6 +278,8 @@ local translations = {
     BGBrightnessExplanation = THEME:GetString("Settings", "BGBrightnessExplanation"),
     ReplayModEmulation = THEME:GetString("Settings", "ReplayModEmulation"),
     ReplayModEmulationExplanation = THEME:GetString("Settings", "ReplayModEmulationExplanation"),
+    ReplayOffsetDisplay = THEME:GetString("Settings", "ReplayOffsetDisplay"),
+    ReplayOffsetDisplayExplanation = THEME:GetString("Settings", "ReplayOffsetDisplayExplanation"),
     ExtraScrollMods = THEME:GetString("Settings", "ExtraScrollMods"),
     ExtraScrollModsExplanation = THEME:GetString("Settings", "ExtraScrollModsExplanation"),
     FunEffects = THEME:GetString("Settings", "FunEffects"),
@@ -296,6 +298,8 @@ local translations = {
     RemoveModsExplanation = THEME:GetString("Settings", "RemoveModsExplanation"),
     InsertMods = THEME:GetString("Settings", "InsertMods"),
     InsertModsExplanation = THEME:GetString("Settings", "InsertModsExplanation"),
+    HoldReleases = THEME:GetString("Settings", "HoldReleases"),
+    HoldReleasesExplanation = THEME:GetString("Settings", "HoldReleasesExplanation"),
     BPMDisplay = THEME:GetString("Settings", "BPMDisplay"),
     BPMDisplayExplanation = THEME:GetString("Settings", "BPMDisplayExplanation"),
     RateDisplay = THEME:GetString("Settings", "RateDisplay"),
@@ -400,6 +404,8 @@ local translations = {
     AllowBGChangesExplanation = THEME:GetString("Settings", "AllowBGChangesExplanation"),
     EasterEggs = THEME:GetString("Settings", "EasterEggs"),
     EasterEggsExplanation = THEME:GetString("Settings", "EasterEggsExplanation"),
+    MultiToasty = THEME:GetString("Settings", "MultiToasty"),
+    MultiToastyExplanation = THEME:GetString("Settings", "MultiToastyExplanation"),
     Visualizer = THEME:GetString("Settings", "Visualizer"),
     VisualizerExplanation = THEME:GetString("Settings", "VisualizerExplanation"),
     MidGrades = THEME:GetString("Settings", "MidGrades"),
@@ -420,14 +426,22 @@ local translations = {
     AssetSettings = THEME:GetString("Settings", "AssetSettings"),
     AssetSettingsExplanation = THEME:GetString("Settings", "AssetSettingsExplanation"),
     AssetSettingsButton = THEME:GetString("Settings", "AssetSettingsButton"),
-    Volume = THEME:GetString("Settings", "Volume"),
-    VolumeExplanation = THEME:GetString("Settings", "VolumeExplanation"),
+    VolumeMaster = THEME:GetString("Settings", "VolumeMaster"),
+    VolumeMasterExplanation = THEME:GetString("Settings", "VolumeMasterExplanation"),
+    VolumeActions = THEME:GetString("Settings", "VolumeActions"),
+    VolumeActionsExplanation = THEME:GetString("Settings", "VolumeActionsExplanation"),
+    VolumeBGM = THEME:GetString("Settings", "VolumeBGM"),
+    VolumeBGMExplanation = THEME:GetString("Settings", "VolumeBGMExplanation"),
     MenuSounds = THEME:GetString("Settings", "MenuSounds"),
     MenuSoundsExplanation = THEME:GetString("Settings", "MenuSoundsExplanation"),
     MineSounds = THEME:GetString("Settings", "MineSounds"),
     MineSoundsExplanation = THEME:GetString("Settings", "MineSoundsExplanation"),
     PitchRates = THEME:GetString("Settings", "PitchRates"),
     PitchRatesExplanation = THEME:GetString("Settings", "PitchRatesExplanation"),
+    PlayTitleMusic = THEME:GetString("Settings", "PlayTitleMusic"),
+    PlayTitleMusicExplanation = THEME:GetString("Settings", "PlayTitleMusicExplanation"),
+    PlaySongSelectBGM = THEME:GetString("Settings", "PlaySongSelectBGM"),
+    PlaySongSelectBGMExplanation = THEME:GetString("Settings", "PlaySongSelectBGMExplanation"),
     CalibrateAudioSync = THEME:GetString("Settings", "CalibrateAudioSync"),
     CalibrateAudioSyncExplanation = THEME:GetString("Settings", "CalibrateAudioSyncExplanation"),
     CalibrateAudioSyncButton = THEME:GetString("Settings", "CalibrateAudioSyncButton"),
@@ -3420,6 +3434,8 @@ local function rightFrame()
         tipType = themeoption("global", "TipType"),
         allowBGChanges = themeoption("global", "StaticBackgrounds"),
         videoBanners = themeoption("global", "VideoBanners"),
+        playTitleMusic = themeoption("global", "PlayTitleMusic"),
+        playSongSelectBGM = themeoption("global", "PlaySongSelectBGM"),
 
         -- gameplay elements
         bpmDisplay = playeroption("BPMDisplay"),
@@ -3674,8 +3690,7 @@ local function rightFrame()
                             wheel:playcommand("SelectCurrent")
                         else
                             -- select random
-                            local group = WHEELDATA:GetRandomFolder()
-                            local song = WHEELDATA:GetRandomSongInFolder(group)
+                            local song = WHEELDATA:GetRandomSongReversible(false)
                             wheel:playcommand("FindSong", {song = song})
                             wheel:playcommand("SelectCurrent")
                         end
@@ -4142,8 +4157,7 @@ local function rightFrame()
                                 wheel:playcommand("SelectCurrent")
                             else
                                 -- select random
-                                local group = WHEELDATA:GetRandomFolder()
-                                local song = WHEELDATA:GetRandomSongInFolder(group)
+                                local song = WHEELDATA:GetRandomSongReversible(false)
                                 wheel:playcommand("FindSong", {song = song})
                                 wheel:playcommand("SelectCurrent")
                             end
@@ -4573,6 +4587,15 @@ local function rightFrame()
                 ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysUseScoreMods", true),
             },
             {
+                Name = "Replay Offset Display",
+                DisplayName = translations["ReplayOffsetDisplay"],
+                Type = "SingleChoice",
+                Explanation = translations["ReplayOffsetDisplayExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("ReplaysShowOffsets", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("ReplaysShowOffsets", true),
+            },
+            {
                 Name = "Extra Scroll Mods",
                 DisplayName = translations["ExtraScrollMods"],
                 Type = "MultiChoice",
@@ -4826,7 +4849,39 @@ local function rightFrame()
                     if po:Skippy() then o[5] = true end
                     return o
                 end,
-            }
+            },
+            {
+                Name = "HoldReleases",
+                DisplayName = translations["HoldReleases"],
+                Type = "SingleChoice",
+                Explanation = translations["HoldReleasesExplanation"],
+                Choices = {
+                    {
+                        Name = "On",
+                        DisplayName = translations["On"],
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("HoldReleases", true)
+                        end,
+                    },
+                    {
+                        Name = "Off",
+                        DisplayName = translations["Off"],
+                        ChosenFunction = function()
+                            setPlayerOptionsModValueAllLevels("HoldReleases", false)
+                        end,
+                    },
+                },
+                ChoiceIndexGetter = function()
+                    local po = getPlayerOptions()
+                    if po:HoldReleases() then
+                        -- hold releases, invalidating
+                        return 1
+                    else
+                        -- regular holds, not invalidating
+                        return 2
+                    end
+                end,
+            },
         },
         --
         -----
@@ -6105,6 +6160,15 @@ local function rightFrame()
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EasterEggs", true),
             },
             {
+                Name = "MultiToasty",
+                DisplayName = translations["MultiToasty"],
+                Type = "SingleChoice",
+                Explanation = translations["MultiToastyExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = preferenceToggleDirections("MultiToasty", true, false),
+                ChoiceIndexGetter = preferenceToggleIndexGetter("MultiToasty", true),
+            },
+            {
                 Name = "Music Visualizer",
                 DisplayName = translations["Visualizer"],
                 Type = "SingleChoice",
@@ -6307,26 +6371,72 @@ local function rightFrame()
         -- SOUND OPTIONS
         ["Sound Options"] = {
             {
-                Name = "Volume",
-                DisplayName = translations["Volume"],
+                Name = "VolumeMaster",
+                DisplayName = translations["VolumeMaster"],
                 Type = "SingleChoice",
-                Explanation = translations["VolumeExplanation"],
+                Explanation = translations["VolumeMasterExplanation"],
                 Directions = {
                     Left = function()
-                        local x = PREFSMAN:GetPreference("SoundVolume")
+                        local x = PREFSMAN:GetPreference("SoundVolumeMaster")
                         x = notShit.round(x - 0.01, 3)
                         if x < 0 then x = 1 end
                         SOUND:SetVolume(notShit.round(x, 3))
                     end,
                     Right = function()
-                        local x = PREFSMAN:GetPreference("SoundVolume")
+                        local x = PREFSMAN:GetPreference("SoundVolumeMaster")
                         x = notShit.round(x + 0.01, 3)
                         if x > 1 then x = 0 end
                         SOUND:SetVolume(notShit.round(x, 3))
                     end,
                 },
                 ChoiceIndexGetter = function()
-                    return notShit.round(PREFSMAN:GetPreference("SoundVolume") * 100, 0) .. "%"
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolumeMaster") * 100, 0) .. "%"
+                end,
+            },
+            {
+                Name = "VolumeActions",
+                DisplayName = translations["VolumeActions"],
+                Type = "SingleChoice",
+                Explanation = translations["VolumeActionsExplanation"],
+                Directions = {
+                    Left = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeActions")
+                        x = notShit.round(x - 0.01, 3)
+                        if x < 0 then x = 1 end
+                        SOUND:SetActionsVolume(notShit.round(x, 3))
+                    end,
+                    Right = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeActions")
+                        x = notShit.round(x + 0.01, 3)
+                        if x > 1 then x = 0 end
+                        SOUND:SetActionsVolume(notShit.round(x, 3))
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolumeActions") * 100, 0) .. "%"
+                end,
+            },
+            {
+                Name = "VolumeBGM",
+                DisplayName = translations["VolumeBGM"],
+                Type = "SingleChoice",
+                Explanation = translations["VolumeBGMExplanation"],
+                Directions = {
+                    Left = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeBGM")
+                        x = notShit.round(x - 0.01, 3)
+                        if x < 0 then x = 1 end
+                        SOUND:SetBGMVolume(notShit.round(x, 3))
+                    end,
+                    Right = function()
+                        local x = PREFSMAN:GetPreference("SoundVolumeBGM")
+                        x = notShit.round(x + 0.01, 3)
+                        if x > 1 then x = 0 end
+                        SOUND:SetBGMVolume(notShit.round(x, 3))
+                    end,
+                },
+                ChoiceIndexGetter = function()
+                    return notShit.round(PREFSMAN:GetPreference("SoundVolumeBGM") * 100, 0) .. "%"
                 end,
             },
             {
@@ -6355,6 +6465,24 @@ local function rightFrame()
                 Choices = choiceSkeleton("On", "Off"),
                 Directions = preferenceToggleDirections("EnablePitchRates", true, false),
                 ChoiceIndexGetter = preferenceToggleIndexGetter("EnablePitchRates", true),
+            },
+            {
+                Name = "Play Title Music",
+                DisplayName = translations["PlayTitleMusic"],
+                Type = "SingleChoice",
+                Explanation = translations["PlayTitleMusicExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("playTitleMusic", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("playTitleMusic", true),
+            },
+            {
+                Name = "Play Song Select BGM",
+                DisplayName = translations["PlaySongSelectBGM"],
+                Type = "SingleChoice",
+                Explanation = translations["PlaySongSelectBGMExplanation"],
+                Choices = choiceSkeleton("On", "Off"),
+                Directions = optionDataToggleDirectionsFUNC("playSongSelectBGM", true, false),
+                ChoiceIndexGetter = optionDataToggleIndexGetterFUNC("playSongSelectBGM", true),
             },
             {
                 Name = "Calibrate Audio Sync",

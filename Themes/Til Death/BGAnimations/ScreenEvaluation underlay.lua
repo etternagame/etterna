@@ -33,6 +33,11 @@ t[#t + 1] = Def.Sprite {
 			bnpath = THEME:GetPathG("Common", "fallback banner")
 		end
 		self:LoadBackground(bnpath)
+		if self:GetNumStates() > 1 then
+			self:StopUsingCustomTexCoords()
+		else
+			self:EnableCustomTexCoords()
+		end
 	end
 }
 

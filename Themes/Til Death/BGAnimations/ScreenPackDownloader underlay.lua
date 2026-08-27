@@ -178,6 +178,14 @@ o[#o+1] = Def.ActorFrame {
 	},
 }
 
+local function unbundleize(bundlestr)
+	local bundleWord = "Bundle: "
+	if bundlestr:find(bundleWord) ~= nil then
+		bundlestr = bundlestr:sub(#bundleWord+1):lower()
+	end
+	return bundlestr
+end
+
 local function tagframe()
 	local maxtags = 12
 	local curpage = 1
@@ -206,14 +214,6 @@ local function tagframe()
 		orderedTags = table.combine(keycountTags, skillsetTags, otherTags, bundleTags)
 	end
 	loadTags()
-
-	local function unbundleize(bundlestr)
-		local bundleWord = "Bundle: "
-		if bundlestr:find(bundleWord) ~= nil then
-			bundlestr = bundlestr:sub(#bundleWord+1):lower()
-		end
-		return bundlestr
-	end
 
 	local function movePage(n)
 		local newpage = curpage + n

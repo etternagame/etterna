@@ -216,8 +216,6 @@ class Player : public ActorFrame
 	void ChangeLife(HoldNoteScore hns, TapNoteScore tns) const;
 	void ChangeLifeRecord() const;
 
-	void ChangeWifeRecord() const;
-
 	auto GetClosestNoteDirectional(int col,
 								   int iStartRow,
 								   int iEndRow,
@@ -257,6 +255,7 @@ class Player : public ActorFrame
 	float m_fNoteFieldHeight;
 
 	std::vector<float> lastHoldHeadsSeconds;
+	std::vector<TapNote*> activeHoldTaps;
 
 	bool m_bPaused;
 	bool m_bDelay;

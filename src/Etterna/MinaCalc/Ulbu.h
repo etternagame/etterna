@@ -21,6 +21,7 @@
 #include "Agnostic/HA_PatternMods/HSDensity.h"
 #include "Agnostic/HA_PatternMods/FlamJam.h"
 #include "Agnostic/HA_PatternMods/TheThingFinder.h"
+#include "Agnostic/HA_PatternMods/OldJumpScaler.h"
 
 // hand dependent data structures/functions
 #include "Dependent/MetaHandInfo.h"
@@ -41,8 +42,12 @@
 #include "Dependent/HD_PatternMods/WideRangeJumptrill.h"
 #include "Dependent/HD_PatternMods/WideRangeJJ.h"
 #include "Dependent/HD_PatternMods/WideRangeAnchor.h"
+#include "Dependent/HD_PatternMods/WideRangeCJAnchor.h"
 #include "Dependent/HD_PatternMods/Minijack.h"
 #include "Dependent/HD_PatternMods/RunningMan.h"
+#include "Dependent/HD_PatternMods/OldAnchorScaler.h"
+#include "Dependent/HD_PatternMods/OldOHJScaler.h"
+#include "Dependent/HD_PatternMods/OldRollScaler.h"
 
 // they're useful sometimes
 #include "UlbuAcolytes.h"
@@ -87,15 +92,21 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 	WideRangeJumptrillMod _wrjt;
 	WideRangeJJMod _wrjj;
 	WideRangeAnchorMod _wra;
+	WideRangeCJAnchorMod _wrcja;
 	FlamJamMod _fj;
 	TheThingLookerFinderThing _tt;
 	TheThingLookerFinderThing2 _tt2;
+	OldAnchorScalerMod _old_anch;
+	OldJumpScalerMod _old_jump;
+	OldOHJScalerMod _old_ohj;
+	OldRollScalerMod _old_roll;
 
 	// and put them here
 	PatternMods _pmods;
 
 	// so we can apply them here
 	diffz _diffz;
+	propz _propz;
 
 	explicit TheGreatBazoinkazoinkInTheSky(Calc& calc)
 	  : Bazoinkazoink(calc)
@@ -173,15 +184,16 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 
 	  // chordjack
 	  {
+		// OldOHJScaler is applied directly in a adj_diff_func
 		CJ,
-		// CJDensity,
-		// CJOHJump,
-		// CJOHAnchor,
-		// WideRangeAnchor,
-		// WideRangeJJ,
+		OldAnchorScaler,
+		OldJumpScaler,
+		OldRollScaler,
+		CJDensity,
+		WideRangeCJAnchor,
 		WideRangeJumptrill,
 		VOHTrill,
-		FlamJam, // you may say, why? why not?
+		FlamJam,
 	  },
 
 	  // tech, duNNO wat im DOIN
@@ -265,20 +277,13 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 			} break;
 			case Skill_JackSpeed:
 				break;
-			case Skill_Chordjack:
-				/*
-				 *adj_diff =
-				 * calc.init_base_diff_vals.at(hand).at(CJBase).at(i) *
-				 * basescalers.at(Skill_Chordjack) *
-				 * pmod_product_cur_interval[Skill_Chordjack];
-				 // we leave
-				 * stam_base alone here, still based on nps
-				 */
-				*adj_diff =
-				  _calc.init_base_diff_vals.at(hand).at(CJBase).at(itv) *
-				  basescalers.at(Skill_Chordjack) *
-				  pmod_product_cur_interval[Skill_Chordjack];
-				break;
+			case Skill_Chordjack: {
+				// nps based chordjacks (0.57.1 calc 263)
+				auto& pmods = _calc.pmod_vals.at(hand);
+				// (pmod_product_cur_interval is applied before here)
+				*adj_diff *= fastsqrt(pmods.at(OldOHJScaler).at(itv));
+
+			} break;
 			case Skill_Technical:
 				*adj_diff =
 				  _calc.init_base_diff_vals.at(hand).at(TechBase).at(itv) *
@@ -295,6 +300,21 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		}
 	}
 
+	void apply_keymode_multipliers(
+	  std::vector<float>& cur_iteration_skillset_vals) const override
+	{
+		const auto qprop = _propz.get_prop(tap_size::quad);
+		const auto hprop = _propz.get_prop(tap_size::hand);
+		const auto jprop = _propz.get_prop(tap_size::jump);
+		const auto magic_number_awesome = 0.2F;
+		const auto another_magic_number = 1.015F;
+		const auto definitelycj =
+		  std::clamp(qprop + hprop + jprop + magic_number_awesome, 0.5F, 1.F);
+
+		cur_iteration_skillset_vals[Skill_Chordjack] *=
+		  definitelycj * another_magic_number;
+	}
+
 #pragma region hand agnostic pmod loop
 
 	void full_agnostic_reset() override
@@ -303,9 +323,12 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_js.full_reset();
 		_hs.full_reset();
 		_cj.full_reset();
+		_old_jump.full_reset();
+		_hb.full_reset();
 
 		_mri.get()->reset();
 		_last_mri.get()->reset();
+		_propz.full_reset();
 	}
 
 	void setup_agnostic_pmods() override
@@ -321,10 +344,13 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 
 	void advance_agnostic_sequencing() override
 	{
+		_propz.advance_sequencing(_mri->count);
+
 		_s.advance_sequencing(_mri->ms_now, _mri->notes);
 		_fj.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt.advance_sequencing(_mri->ms_now, _mri->notes);
 		_tt2.advance_sequencing(_mri->ms_now, _mri->notes);
+		_hb.advance_sequencing(_mri->notes, _calc);
 	}
 
 	void set_agnostic_pmods(const int& itv) override
@@ -343,6 +369,9 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		PatternMods::set_agnostic(_fj._pmod, _fj(), itv, _calc);
 		PatternMods::set_agnostic(_tt._pmod, _tt(), itv, _calc);
 		PatternMods::set_agnostic(_tt2._pmod, _tt2(), itv, _calc);
+		PatternMods::set_agnostic(
+		  _old_jump._pmod, _old_jump(_mitvi), itv, _calc);
+		PatternMods::set_agnostic(_hb._pmod, _hb(), itv, _calc);
 	}
 
 #pragma endregion
@@ -373,6 +402,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_roll.advance_sequencing(_mhi->_ct, row_time);
 		_rolljs.advance_sequencing(_mhi->_ct, row_time);
 		_mj.advance_sequencing(_mhi->_ct, _seq.get_sc_ms_now(_mhi->_ct));
+		_old_roll.advance_sequencing(_mhi->_ct, _seq._mw_any_ms.get_now());
 	}
 
 	void setup_dependent_mods() override
@@ -387,6 +417,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_wrjj.setup();
 		_wrb.setup();
 		_wra.setup();
+		_wrcja.setup();
 	}
 
 	void set_dependent_pmods(const int& itv) override
@@ -421,7 +452,15 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		PatternMods::set_dependent(
 		  hand, _wra._pmod, _wra(_mitvhi._itvhi, _seq._as), itv, _calc);
 		PatternMods::set_dependent(
+		  hand, _wrcja._pmod, _wrcja(_mitvhi._itvhi, _seq._as), itv, _calc);
+		PatternMods::set_dependent(
 		  hand, _mj._pmod, _mj(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _old_anch._pmod, _old_anch(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _old_ohj._pmod, _old_ohj(_mitvhi._itvhi), itv, _calc);
+		PatternMods::set_dependent(
+		  hand, _old_roll._pmod, _old_roll(_mitvhi._itvhi), itv, _calc);
 	}
 
 	/// reset any moving windows or values when starting the other hand, this
@@ -444,7 +483,11 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		_wrjj.full_reset();
 		_wrb.full_reset();
 		_wra.full_reset();
+		_wrcja.full_reset();
 		_mj.full_reset();
+		_old_anch.full_reset();
+		_old_ohj.full_reset();
+		_old_roll.full_reset();
 
 		_seq.full_reset();
 		_mitvhi.zero();
@@ -696,10 +739,16 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		load_params_for_mod(&params, _wrjt._params, _wrjt.name);
 		load_params_for_mod(&params, _wrjj._params, _wrjj.name);
 		load_params_for_mod(&params, _wra._params, _wra.name);
+		load_params_for_mod(&params, _wrcja._params, _wrcja.name);
 		load_params_for_mod(&params, _mj._params, _mj.name);
 		load_params_for_mod(&params, _fj._params, _fj.name);
 		load_params_for_mod(&params, _tt._params, _tt.name);
 		load_params_for_mod(&params, _tt2._params, _tt2.name);
+		load_params_for_mod(&params, _old_anch._params, _old_anch.name);
+		load_params_for_mod(&params, _old_jump._params, _old_jump.name);
+		load_params_for_mod(&params, _old_ohj._params, _old_ohj.name);
+		load_params_for_mod(&params, _old_roll._params, _old_roll.name);
+		load_params_for_mod(&params, _hb._params, _hb.name);
 	}
 
 	XNode* make_param_node_internal(XNode* calcparams) const override
@@ -734,10 +783,21 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 		calcparams->AppendChild(make_mod_param_node(_wrjt._params, _wrjt.name));
 		calcparams->AppendChild(make_mod_param_node(_wrjj._params, _wrjj.name));
 		calcparams->AppendChild(make_mod_param_node(_wra._params, _wra.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_wrcja._params, _wrcja.name));
 		calcparams->AppendChild(make_mod_param_node(_mj._params, _mj.name));
 		calcparams->AppendChild(make_mod_param_node(_fj._params, _fj.name));
 		calcparams->AppendChild(make_mod_param_node(_tt._params, _tt.name));
 		calcparams->AppendChild(make_mod_param_node(_tt2._params, _tt2.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_old_anch._params, _old_anch.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_old_jump._params, _old_jump.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_old_ohj._params, _old_ohj.name));
+		calcparams->AppendChild(
+		  make_mod_param_node(_old_roll._params, _old_roll.name));
+		calcparams->AppendChild(make_mod_param_node(_hb._params, _hb.name));
 
 		return calcparams;
 	}

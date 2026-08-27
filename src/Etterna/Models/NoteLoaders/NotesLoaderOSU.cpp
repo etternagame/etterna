@@ -9,6 +9,7 @@
 #include "Etterna/Singletons/PrefsManager.h"
 
 #include <cmath>
+#include <limits>
 #include <string>
 #include <map>
 #include <algorithm>
@@ -207,9 +208,9 @@ OsuLoader::SetTimingData(
 	out.m_DisplayBPMType = DISPLAY_BPM_ACTUAL;
 
 	auto general = parsedData["General"];
-	out.m_fMusicSampleStartSeconds = stof(general["AudioLeadIn"]) / 1000.0f;
-	out.m_fMusicSampleLengthSeconds =
-	  stof(general["PreviewTime"]) / 1000.0f; // these probably aren't right
+	out.m_fMusicSampleStartSeconds = stof(general["PreviewTime"]) / 1000.0f;
+	out.m_fMusicSampleLengthSeconds = std::numeric_limits<float>::max();
+	// let Song::TidyUpData() does its job
 }
 
 bool

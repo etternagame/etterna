@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 #include "util/numeric/int128.h"
 #include "util/process/process_memory_linux.h"
 
-#if !defined(OS_ANDROID)
+#if !BUILDFLAG(IS_ANDROID)
 // TODO(jperaza): This symbol isn't defined when building in chromium for
 // Android. There may be another symbol to use.
 extern "C" {
@@ -72,7 +72,7 @@ void TestAgainstCloneOrSelf(pid_t pid) {
   ASSERT_TRUE(aux.GetValue(AT_BASE, &interp_base));
   EXPECT_TRUE(mappings.FindMapping(interp_base));
 
-#if !defined(OS_ANDROID)
+#if !BUILDFLAG(IS_ANDROID)
   LinuxVMAddress entry_addr;
   ASSERT_TRUE(aux.GetValue(AT_ENTRY, &entry_addr));
   EXPECT_EQ(entry_addr, FromPointerCast<LinuxVMAddress>(START_SYMBOL));
@@ -96,10 +96,15 @@ void TestAgainstCloneOrSelf(pid_t pid) {
 
   ProcessMemoryLinux memory(&connection);
 
+// AT_PLATFORM is null for RISC-V:
+// https://elixir.bootlin.com/linux/v6.4-rc4/C/ident/ELF_PLATFORM
+#if !defined(ARCH_CPU_RISCV64)
   LinuxVMAddress platform_addr;
   ASSERT_TRUE(aux.GetValue(AT_PLATFORM, &platform_addr));
   std::string platform;
   ASSERT_TRUE(memory.ReadCStringSizeLimited(platform_addr, 10, &platform));
+#endif  // ARCH_CPU_RISCV64
+
 #if defined(ARCH_CPU_X86)
   EXPECT_STREQ(platform.c_str(), "i686");
 #elif defined(ARCH_CPU_X86_64)
@@ -182,13 +187,13 @@ TEST(AuxiliaryVector, SignedBit) {
   constexpr uint64_t type = 0x0000000012345678;
 
   constexpr int32_t neg1_32 = -1;
-  aux.Insert(type, bit_cast<uint32_t>(neg1_32));
+  aux.Insert(type, base::bit_cast<uint32_t>(neg1_32));
   int32_t outval32s;
   ASSERT_TRUE(aux.GetValue(type, &outval32s));
   EXPECT_EQ(outval32s, neg1_32);
 
   constexpr int32_t int32_max = std::numeric_limits<int32_t>::max();
-  aux.Insert(type, bit_cast<uint32_t>(int32_max));
+  aux.Insert(type, base::bit_cast<uint32_t>(int32_max));
   ASSERT_TRUE(aux.GetValue(type, &outval32s));
   EXPECT_EQ(outval32s, int32_max);
 
@@ -199,13 +204,13 @@ TEST(AuxiliaryVector, SignedBit) {
   EXPECT_EQ(outval32u, uint32_max);
 
   constexpr int64_t neg1_64 = -1;
-  aux.Insert(type, bit_cast<uint64_t>(neg1_64));
+  aux.Insert(type, base::bit_cast<uint64_t>(neg1_64));
   int64_t outval64s;
   ASSERT_TRUE(aux.GetValue(type, &outval64s));
   EXPECT_EQ(outval64s, neg1_64);
 
   constexpr int64_t int64_max = std::numeric_limits<int64_t>::max();
-  aux.Insert(type, bit_cast<uint64_t>(int64_max));
+  aux.Insert(type, base::bit_cast<uint64_t>(int64_max));
   ASSERT_TRUE(aux.GetValue(type, &outval64s));
   EXPECT_EQ(outval64s, int64_max);
 

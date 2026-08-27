@@ -1,3 +1,9 @@
+<!--
+Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
+
+SPDX-License-Identifier: curl
+-->
+
 # Items to be removed from future curl releases
 
 If any of these deprecated features is a cause for concern for you, please
@@ -6,41 +12,74 @@ email the
 as soon as possible and explain to us why this is a problem for you and
 how your use case cannot be satisfied properly using a workaround.
 
-## NSS
+## TLS-SRP Authentication
 
-We remove support for building curl with the NSS TLS library in August 2022.
+Transport Layer Security Secure Remote Password is a TLS feature that does not
+work with TLS 1.3 or QUIC and is virtually unused by curl users and in
+general.
 
-- There are very few users left who use curl+NSS
-- NSS has very few users outside of curl as well (primarily Firefox)
-- NSS is harder than ever to find documentation for
-- NSS was always "best" used with Red Hat Linux when they provided additional
-  features on top of the regular NSS that is not shipped by the vanilla library
+TLS-SRP support gets removed in August 2026.
 
-Starting in 7.82.0, building curl to use NSS configure requires the additional
-flag --with-nss-deprecated in an attempt to highlight these plans.
+## drop SMB support
 
-## NPN
+The SMB protocol has weak security and is rarely used these days.
 
-We make selecting NPN a no-op starting in August 2022.
+SMB support gets removed in September 2026.
 
-**Next Protocol Negotiation** is a TLS extension that was created and used for
-agreeing to use the SPDY protocol (the precursor to HTTP/2) for HTTPS. In the
-early days of HTTP/2, before the spec was finalized and shipped, the protocol
-could be enabled using this extension with some servers.
+## drop NTLM support
 
-curl supports the NPN extension with some TLS backends since then, with a
-command line option `--npn` and in libcurl with `CURLOPT_SSL_ENABLE_NPN`.
+The NTLM authentication method has weak security and is rarely used these
+days. It has been deprecated by Microsoft and does not work over HTTP/2 or
+HTTP/3.
 
-HTTP/2 proper is made to use the ALPN (Application-Layer Protocol Negotiation)
-extension and the NPN extension has no purposes anymore. The HTTP/2 spec was
-published in May 2015.
+NTLM support gets removed in September 2026
 
-Today, use of NPN in the wild should be extremely rare and most likely totally
-extinct. Chrome removed NPN support in Chrome 51, shipped in
-June 2016. Removed in Firefox 53, April 2017.
+## Local crypto implementations
 
-## past removals
+Since the dawn of time, curl bundles code for a few crypto and hash algorithms
+in order to enable functionality for builds without TLS libraries. This list
+includes MD4, MD5, SHA256, SHA256_512 and perhaps something more.
 
- - Pipelining
- - axTLS
- - PolarSSL
+Meanwhile, curl is almost always built to use a TLS/crypto library which for
+sure has better maintained and better performing versions of these algorithms.
+
+Also, the local curl implementations are not as widely tested since curl
+builds without TLS are rare.
+
+Since these implementations are going away, a good idea is to verify ahead of
+time that builds using your preferred TLS library use the crypto functions
+provided by that library and are not bundled by curl.
+
+The removal of local crypto functions subsequently disables some functions in
+future curl versions when built without TLS support. For example Digest.
+
+Local crypto gets removed in October 2026.
+
+## Past removals
+
+- axTLS (removed in 7.63.0)
+- Pipelining (removed in 7.65.0)
+- PolarSSL (removed in 7.69.0)
+- NPN (removed in 7.86.0)
+- Support for systems without 64-bit data types (removed in 8.0.0)
+- NSS (removed in 8.3.0)
+- gskit (removed in 8.3.0)
+- MinGW v1 (removed in 8.4.0)
+- NTLM_WB (removed in 8.8.0)
+- space-separated `NOPROXY` patterns (removed in 8.9.0)
+- hyper (removed in 8.12.0)
+- Support for Visual Studio 2005 and older (removed in 8.13.0)
+- Secure Transport (removed in 8.15.0)
+- BearSSL (removed in 8.15.0)
+- msh3 (removed in 8.16.0)
+- winbuild build system (removed in 8.17.0)
+- Windows CE (removed in 8.18.0)
+- Support for Visual Studio 2008 (removed in 8.18.0)
+- OpenSSL 1.1.1 and older (removed in 8.18.0)
+- Support for Windows XP (removed in 8.19.0)
+- OpenSSL-QUIC (removed in 8.19.0)
+- CMake 3.17 and older (removed in 8.20.0)
+- RTMP (removed in 8.20.0)
+- SMB (became opt-in in 8.20.0)
+- NTLM (became opt-in in 8.20.0)
+- c-ares < 1.16.0 (removed in 8.20.0)

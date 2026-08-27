@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
 #include <mach/mach.h>
 
 #include <string>
+#include <tuple>
 
 #include "base/files/scoped_file.h"
-#include "base/macros.h"
 #include "util/mach/child_port_types.h"
 
 namespace crashpad {
@@ -107,7 +107,7 @@ class ChildPortHandshakeTest;
 //!   server_write_fd.reset();
 //!
 //!   // Make a new Mach receive right.
-//!   base::mac::ScopedMachReceiveRight
+//!   base::apple::ScopedMachReceiveRight
 //!       receive_right(NewMachPort(MACH_PORT_RIGHT_RECEIVE));
 //!
 //!   // Make a send right corresponding to the receive right.
@@ -118,13 +118,13 @@ class ChildPortHandshakeTest;
 //!                           MACH_MSG_TYPE_MAKE_SEND,
 //!                           &send_right,
 //!                           &send_right_type);
-//!   base::mac::ScopedMachSendRight send_right_owner(send_right);
+//!   base::apple::ScopedMachSendRight send_right_owner(send_right);
 //!
 //!   // Send the receive right to the child process, retaining the send right
 //!   // for use in the parent process.
 //!   if (child_port_handshake.RunClient(receive_right.get(),
 //!                                      MACH_MSG_TYPE_MOVE_RECEIVE)) {
-//!     ignore_result(receive_right.release());
+//!     std::ignore = receive_right.release();
 //!   }
 //! \endcode
 //!
@@ -136,7 +136,7 @@ class ChildPortHandshakeTest;
 //!     base::ScopedFD server_write_fd(atoi(argv[1]));
 //!
 //!     // Obtain a receive right from the parent process.
-//!     base::mac::ScopedMachReceiveRight receive_right(
+//!     base::apple::ScopedMachReceiveRight receive_right(
 //!         ChildPortHandshake::RunServerForFD(
 //!             std::move(server_write_fd),
 //!             ChildPortHandshake::PortRightType::kReceiveRight));

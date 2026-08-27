@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
@@ -6,16 +7,15 @@ verbose logs
 </keywords>
 </info>
 
-#
 # Server-side
 <reply>
 </reply>
 
 # Client-side
 <client>
-<server>
-none
-</server>
+<features>
+verbose-strings
+</features>
 <tool>
 lib%TESTNUMBER
 </tool>
@@ -23,12 +23,8 @@ lib%TESTNUMBER
 <name>
 libcurl strerror API call tests
 </name>
-<command>
-nothing
-</command>
 </client>
 
-#
 # Verify data after the test has been "shot"
 <verify>
 <stdout>
@@ -37,9 +33,9 @@ e1: Unsupported protocol
 e2: Failed initialization
 e3: URL using bad/illegal format or missing URL
 e4: A requested feature, protocol or option was not found built-in in this libcurl due to a build-time decision.
-e5: Couldn't resolve proxy name
-e6: Couldn't resolve host name
-e7: Couldn't connect to server
+e5: Could not resolve proxy name
+e6: Could not resolve hostname
+e7: Could not connect to server
 e8: Weird server reply
 e9: Access denied to remote resource
 e10: FTP: The server failed to connect to data port
@@ -47,11 +43,11 @@ e11: FTP: unknown PASS reply
 e12: FTP: Accepting server connect has timed out
 e13: FTP: unknown PASV reply
 e14: FTP: unknown 227 response format
-e15: FTP: can't figure out the host in the PASV response
+e15: FTP: cannot figure out the host in the PASV response
 e16: Error in the HTTP2 framing layer
-e17: FTP: couldn't set file type
+e17: FTP: could not set file type
 e18: Transferred a partial file
-e19: FTP: couldn't retrieve (RETR failed) the specified file
+e19: FTP: could not retrieve (RETR failed) the specified file
 e20: Unknown error
 e21: Quote command returned error
 e22: HTTP response code said error
@@ -66,14 +62,14 @@ e30: FTP: command PORT failed
 e31: FTP: command REST failed
 e32: Unknown error
 e33: Requested range was not delivered by the server
-e34: Internal problem setting up the POST
+e34: Unknown error
 e35: SSL connect error
-e36: Couldn't resume download
-e37: Couldn't read a file:// file
+e36: Could not resume download
+e37: Could not read a file:// file
 e38: LDAP: cannot bind
 e39: LDAP: search failed
 e40: Unknown error
-e41: A required function in the library was not found
+e41: Unknown error
 e42: Operation was aborted by an application callback
 e43: A libcurl function was given a bad argument
 e44: Unknown error
@@ -91,14 +87,14 @@ e55: Failed sending data to the peer
 e56: Failure when receiving data from the peer
 e57: Unknown error
 e58: Problem with the local SSL certificate
-e59: Couldn't use specified SSL cipher
+e59: Could not use specified SSL cipher
 e60: SSL peer certificate or SSH remote key was not OK
 e61: Unrecognized or bad HTTP Content or Transfer-Encoding
 e62: Unknown error
 e63: Maximum file size exceeded
 e64: Requested SSL level failed
 e65: Send failed since rewinding of the data stream failed
-e66: Failed to initialise SSL crypto engine
+e66: Failed to initialize SSL crypto engine
 e67: Login denied
 e68: TFTP: File Not Found
 e69: TFTP: Access Violation
@@ -107,7 +103,7 @@ e71: TFTP: Illegal operation
 e72: TFTP: Unknown transfer ID
 e73: Remote file already exists
 e74: TFTP: No such user
-e75: Conversion failed
+e75: Unknown error
 e76: Unknown error
 e77: Problem with the SSL CA cert (path? access rights?)
 e78: Remote file not found
@@ -131,7 +127,10 @@ e95: HTTP/3 error
 e96: QUIC connection error
 e97: proxy handshake error
 e98: SSL Client Certificate required
-e99: Unknown error
+e99: Unrecoverable error in select/poll
+e100: A value or data field grew larger than allowed
+e101: ECH attempted but failed
+e102: Unknown error
 m-1: Please call curl_multi_perform() soon
 m0: No error
 m1: Invalid multi handle
@@ -145,7 +144,8 @@ m8: API function called from within callback
 m9: Wakeup is unavailable or failed
 m10: A libcurl function was given a bad argument
 m11: Operation was aborted by an application callback
-m12: Unknown error
+m12: Unrecoverable error in select/poll
+m13: Unknown error
 s0: No error
 s1: Unknown share option
 s2: Share currently in use
@@ -158,7 +158,7 @@ u1: An invalid CURLU pointer was passed as argument
 u2: An invalid 'part' argument was passed as argument
 u3: Malformed input to a URL function
 u4: Port number was not a decimal number between 0 and 65535
-u5: This libcurl build doesn't support the given URL scheme
+u5: Unsupported URL scheme
 u6: URL decode error, most likely because of rubbish in the input
 u7: A memory function failed
 u8: Credentials was passed in the URL when prohibited
@@ -181,9 +181,11 @@ u24: Bad password
 u25: Bad path
 u26: Bad query
 u27: Bad scheme
-u28: Unsupported number of slashes
+u28: Unsupported number of slashes following scheme
 u29: Bad user
-u30: CURLUcode unknown
+u30: libcurl lacks IDN support
+u31: A value or data field is larger than allowed
+u32: CURLUcode unknown
 </stdout>
 </verify>
 

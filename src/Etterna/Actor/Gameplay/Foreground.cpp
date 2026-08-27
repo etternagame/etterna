@@ -91,7 +91,7 @@ Foreground::Update(float fDeltaTime)
 			bga.m_bga->PlayCommand("On");
 
 			const auto fStartSecond =
-			  m_pSong->m_SongTiming.WhereUAtBro(bga.m_fStartBeat);
+			  m_pSong->m_SongTiming.GetTimeFromBeatFast(bga.m_fStartBeat);
 			const auto fStopSecond =
 			  fStartSecond + bga.m_bga->GetTweenTimeLeft();
 			bga.m_fStopBeat =

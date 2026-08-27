@@ -1,4 +1,4 @@
-# Copyright 2017 The Crashpad Authors. All rights reserved.
+# Copyright 2017 The Crashpad Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,10 @@ config("zlib_config") {
     defines = [ "CRASHPAD_ZLIB_SOURCE_EXTERNAL_WITH_EMBEDDED_BUILD" ]
     include_dirs = [ "../../../../zlib/src" ]
   }
+}
+
+config("Wno-sign-compare") {
+  cflags = [ "-Wno-sign-compare" ]
 }
 
 if (zlib_source == "external") {
@@ -99,17 +103,16 @@ if (zlib_source == "external") {
         "/wd4324",  # structure was padded due to alignment specifier
         "/wd4702",  # unreachable code
       ]
-      if (current_cpu == "arm64" && !crashpad_is_clang) {
-        # Select code path for clang in zlib to avoid using MSVC x86/x64
-        # intrinsics for Windows ARM64.
-        # TODO: https://crashpad.chromium.org/bug/267
-        defines += [ "__clang__" ]
-      }
     } else {
       defines += [
         "HAVE_HIDDEN",
         "HAVE_UNISTD_H",
       ]
+    }
+
+    if (crashpad_is_fuchsia) {
+      # Fuchsia build's default warnings include -Wsign-compare (indirectly)
+      configs += [ ":Wno-sign-compare" ]
     }
 
     if (crashpad_is_standalone) {
@@ -119,14 +122,11 @@ if (zlib_source == "external") {
     }
 
     if (zlib_source == "embedded") {
-      sources += [ "$zlib_dir/names.h" ]
+      sources += [ "$zlib_dir/chromeconf.h" ]
 
       if (current_cpu == "x86" || current_cpu == "x64") {
         sources += [
           "$zlib_dir/crc_folding.c",
-          "$zlib_dir/fill_window_sse.c",
-          "$zlib_dir/x86.c",
-          "$zlib_dir/x86.h",
         ]
         if (!crashpad_is_win || crashpad_is_clang) {
           cflags += [
@@ -137,8 +137,6 @@ if (zlib_source == "external") {
         if (crashpad_is_clang) {
           cflags += [ "-Wno-incompatible-pointer-types" ]
         }
-      } else {
-        sources += [ "$zlib_dir/simd_stub.c" ]
       }
     }
   }

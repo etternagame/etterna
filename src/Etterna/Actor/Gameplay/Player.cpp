@@ -422,6 +422,9 @@ Player::Init(const std::string& sType,
 	lastHoldHeadsSeconds.resize(
 	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 		->m_iColsPerPlayer);
+	activeHoldTaps.resize(
+	  GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
+		->m_iColsPerPlayer);
 	for (auto i = 0;
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
@@ -432,6 +435,7 @@ Player::Init(const std::string& sType,
 		// and also it gets changed back to a realistic number after a hold is
 		// hit -poco
 		lastHoldHeadsSeconds[i] = -1000.F;
+		activeHoldTaps[i] = nullptr;
 	}
 
 	if (HasVisibleParts()) {
@@ -501,7 +505,8 @@ Player::NeedsHoldJudging(const TapNote& tn) -> bool
 static TapNoteScore
 GetAutoplayTapNoteScore(const PlayerState* pPlayerState)
 {
-	if (pPlayerState->m_PlayerController == PC_REPLAY)
+	if (pPlayerState->m_PlayerController == PC_REPLAY ||
+		pPlayerState->m_PlayerController == PC_SPECTATE)
 		return TNS_Miss;
 	if (pPlayerState->m_PlayerController == PC_AUTOPLAY ||
 		pPlayerState->m_PlayerController == PC_CPU)
@@ -907,7 +912,8 @@ Player::UpdateHoldsAndRolls(float fDeltaTime,
 			// holds.
 			lastHoldHeadsSeconds[iTrack] =
 			  max(lastHoldHeadsSeconds[iTrack],
-				  m_Timing->WhereUAtBro(NoteRowToBeat(iRow + tn.iDuration)));
+				  m_Timing->GetTimeFromRowFast(iRow + tn.iDuration));
+			activeHoldTaps[iTrack] = &tn;
 
 			/* All holds must be of the same subType because fLife is handled
 			 * in different ways depending on the SubType. Handle Rolls one at
@@ -1119,7 +1125,8 @@ Player::UpdateHoldNotes(int iSongRow,
 		/*if( iMaxEndRow-iStartRow <= 4 )
 			bInitiatedNote = true;
 		else*/
-		bInitiatedNote = bSteppedOnHead;
+		bInitiatedNote =
+		  bSteppedOnHead || m_pPlayerState->m_PlayerController == PC_SPECTATE;
 	} else {
 		bInitiatedNote = true;
 		bHeadJudged = true;
@@ -1148,8 +1155,11 @@ Player::UpdateHoldNotes(int iSongRow,
 				GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 				  ->StyleInputToGameInput(iTrack, GameI);
 
+				// spectators are always holding the button
+				// and hold drops are forced by the replay
 				bIsHoldingButton &=
-				  INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp);
+				  INPUTMAPPER->IsBeingPressed(GameI, m_pPlayerState->m_mp) ||
+				  m_pPlayerState->m_PlayerController == PC_SPECTATE;
 			}
 		}
 	}
@@ -1307,7 +1317,7 @@ Player::UpdateHoldNotes(int iSongRow,
 		// holds. At least, that hapened on my Mac. -wolfman2000
 
 		static auto* pVolume =
-		  Preference<float>::GetPreferenceByName("SoundVolume");
+		  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 		if (pVolume != nullptr) {
 			static auto fVol = pVolume->Get();
 
@@ -1554,19 +1564,6 @@ Player::ChangeLifeRecord() const
 	}
 }
 
-void
-Player::ChangeWifeRecord() const
-{
-	// Sets the life ... to the wife....
-	// That's not right.
-	if (m_pPlayerStageStats != nullptr) {
-		m_pPlayerStageStats->SetLifeRecordAt(
-		  curwifescore / maxwifescore,
-		  GAMESTATE->m_Position.m_fMusicSeconds /
-			GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate);
-	}
-}
-
 auto
 Player::GetClosestNoteDirectional(int col,
 								  int iStartRow,
@@ -1643,9 +1640,9 @@ Player::GetClosestNote(int col,
 	// Get the current time, previous time, and next time.
 	const auto fNoteTime = bUseSongTiming
 							 ? GAMESTATE->m_Position.m_fMusicSeconds
-							 : m_Timing->WhereUAtBro(iNoteRow);
-	const auto fNextTime = m_Timing->WhereUAtBro(iNextIndex);
-	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevIndex);
+							 : m_Timing->GetTimeFromRowFast(iNoteRow);
+	const auto fNextTime = m_Timing->GetTimeFromRowFast(iNextIndex);
+	const auto fPrevTime = m_Timing->GetTimeFromRowFast(iPrevIndex);
 
 	// If we passed a mine, we can't hit it anymore. Literally.
 	// So forget about them.
@@ -1730,8 +1727,8 @@ Player::GetClosestNonEmptyRow(int iNoteRow,
 
 	// Get the current time, previous time, and next time.
 	const auto fNoteTime = GAMESTATE->m_Position.m_fMusicSeconds;
-	const auto fNextTime = m_Timing->WhereUAtBro(iNextRow);
-	const auto fPrevTime = m_Timing->WhereUAtBro(iPrevRow);
+	const auto fNextTime = m_Timing->GetTimeFromRowFast(iNextRow);
+	const auto fPrevTime = m_Timing->GetTimeFromRowFast(iPrevRow);
 
 	/* Figure out which row is closer. */
 	if (fabsf(fNoteTime - fNextTime) > fabsf(fNoteTime - fPrevTime)) {
@@ -1830,7 +1827,7 @@ Player::PlayKeysound(const TapNote& tn, TapNoteScore score)
 		}
 		m_vKeysounds[tn.iKeysoundIndex].Play(false);
 		static auto* pVolume =
-		  Preference<float>::GetPreferenceByName("SoundVolume");
+		  Preference<float>::GetPreferenceByName("SoundVolumeMaster");
 		static auto fVol = pVolume->Get();
 		m_vKeysounds[tn.iKeysoundIndex].SetProperty("Volume", fVol);
 	}
@@ -1847,6 +1844,9 @@ Player::AddNoteToReplayData(int col,
 	m_pPlayerStageStats->m_vNoteRowVector.emplace_back(
 	  RowOfOverlappingNoteOrRow);
 	m_pPlayerStageStats->m_vTapNoteTypeVector.emplace_back(pTN->type);
+
+	NSMAN->ReportV2Data(
+	  col, RowOfOverlappingNoteOrRow, pTN->result.fTapNoteOffset, pTN->type);
 }
 
 void
@@ -1862,6 +1862,10 @@ Player::AddHoldToReplayData(int col,
 	hrr.track = col;
 	hrr.subType = pTN->subType;
 	m_pPlayerStageStats->m_vHoldReplayData.emplace_back(hrr);
+
+	if (pTN->HoldResult.hns == HNS_LetGo || pTN->HoldResult.hns == HNS_Missed) {
+		NSMAN->ReportReplayHold(col, RowOfOverlappingNoteOrRow, pTN->subType);
+	}
 }
 
 void
@@ -1871,6 +1875,7 @@ Player::AddMineToReplayData(int col, int row) const
 	mrr.row = row;
 	mrr.track = col;
 	m_pPlayerStageStats->m_vMineReplayData.emplace_back(mrr);
+	NSMAN->ReportReplayMine(row, col);
 }
 
 void
@@ -1892,6 +1897,30 @@ Player::Step(int col,
 							   : GAMESTATE->m_Position.m_fSongBeat;
 
 	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
+
+	// instant-judge holds that are released close enough to the head
+	if (bRelease && col != -1 && lastHoldHeadsSeconds[col] > fMusicSeconds &&
+		m_pPlayerState->m_PlayerOptions.GetCurrent().m_bForceHoldReleases &&
+		activeHoldTaps[col]->subType == TapNoteSubType_Hold &&
+		NeedsHoldJudging(*activeHoldTaps[col])) {
+		const auto offset =
+		  fabsf((lastHoldHeadsSeconds[col] - fMusicSeconds) / fMusicRate);
+		activeHoldTaps[col]->HoldResult.bHeld = false;
+		if (offset <= GetWindowSeconds(TW_W3)) {
+			// safe
+			activeHoldTaps[col]->HoldResult.bActive = false;
+			activeHoldTaps[col]->HoldResult.hns = HNS_Held;
+			activeHoldTaps[col]->HoldResult.fLife = 1.F;
+		}
+		else {
+			// no
+			activeHoldTaps[col]->HoldResult.bActive = false;
+			activeHoldTaps[col]->HoldResult.hns = HNS_LetGo;
+			activeHoldTaps[col]->HoldResult.fLife = 0;
+		}
+		SetHoldJudgment(*activeHoldTaps[col], col, iSongRow);
+		HandleHoldScore(*activeHoldTaps[col]);
+	}
 
 	if (col != -1 && !bRelease) {
 		// Update roll life
@@ -2010,17 +2039,17 @@ Player::Step(int col,
 
 		auto SearchIndexBehind = nervpos;
 		auto SearchIndexAhead = nervpos;
-		auto SearchBeginTime = m_Timing->WhereUAtBro(nerv[nervpos]);
+		auto SearchBeginTime = m_Timing->GetTimeFromRowFast(nerv[nervpos]);
 
 		while (SearchIndexBehind > 1 &&
 			   SearchBeginTime -
-				   m_Timing->WhereUAtBro(nerv[SearchIndexBehind - 1]) <
+				   m_Timing->GetTimeFromRowFast(nerv[SearchIndexBehind - 1]) <
 				 StepSearchDistance) {
 			SearchIndexBehind -= 1;
 		}
 
 		while (SearchIndexAhead > 1 && SearchIndexAhead + 1 > nerv.size() &&
-			   m_Timing->WhereUAtBro(nerv[SearchIndexAhead + 1]) -
+			   m_Timing->GetTimeFromRowFast(nerv[SearchIndexAhead + 1]) -
 				   SearchBeginTime <
 				 StepSearchDistance) {
 			SearchIndexAhead += 1;
@@ -2047,9 +2076,9 @@ Player::Step(int col,
 	if (iRowOfOverlappingNoteOrRow != -1 && col != -1) {
 		// compute the score for this hit
 		auto fNoteOffset = 0.F;
-		// we need this later if we are autosyncing
-		const auto fStepBeat = NoteRowToBeat(iRowOfOverlappingNoteOrRow);
-		const auto fStepSeconds = m_Timing->WhereUAtBro(fStepBeat);
+
+		const auto fStepSeconds =
+		  m_Timing->GetTimeFromRowFast(iRowOfOverlappingNoteOrRow);
 
 		TapNote* pTN = nullptr;
 		auto iter = m_NoteData.FindTapNote(col, iRowOfOverlappingNoteOrRow);
@@ -2068,6 +2097,13 @@ Player::Step(int col,
 			  -fNoteOffset,
 			  pTN->type,
 			  pTN->subType);
+			NSMAN->ReportReplayInput(!bRelease,
+									 col,
+									 iRowOfOverlappingNoteOrRow,
+									 fMusicSeconds,
+									 -fNoteOffset,
+									 pTN->type,
+									 pTN->subType);
 		}
 
 		NOTESKIN->SetLastSeenColor(
@@ -2306,6 +2342,13 @@ Player::Step(int col,
 													0.F,
 													tnt,
 													tnst);
+		NSMAN->ReportReplayInput(!bRelease,
+								 col,
+								 iRowOfOverlappingNoteOrRow,
+								 fMusicSeconds,
+								 0.F,
+								 tnt,
+								 tnst);
 	}
 
 	if (score == TNS_None) {
@@ -3032,7 +3075,8 @@ Player::SetMineJudgment(TapNoteScore tns, int iTrack, int iRow)
 				}
 			}
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
-				m_pPlayerState->m_PlayerController == PC_REPLAY) {
+				m_pPlayerState->m_PlayerController == PC_REPLAY ||
+				m_pPlayerState->m_PlayerController == PC_SPECTATE) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
@@ -3071,6 +3115,7 @@ Player::SetJudgment(int iRow,
 		  GAMESTATE->CountNotesSeparately() ? iTrack : -1,
 		  tn.type,
 		  tn.subType);
+		NSMAN->ReportReplayMiss(iTrack, iRow, tn.type, tn.subType);
 	}
 
 	if (m_bSendJudgmentAndComboMessages) {
@@ -3089,7 +3134,7 @@ Player::SetJudgment(int iRow,
 				Locator::getLogger()->fatal(
 				  "Invalid TNS {} sent to SetJudgment. Ignored 'Val' param in "
 				  "JudgmentMessage",
-				  tns);
+				  static_cast<int>(tns));
 			} else {
 				msg.SetParam("Val",
 							 m_pPlayerStageStats->m_iTapNoteScores[tns] + 1);
@@ -3142,7 +3187,8 @@ Player::SetJudgment(int iRow,
 				}
 			}
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
-				m_pPlayerState->m_PlayerController == PC_REPLAY) {
+				m_pPlayerState->m_PlayerController == PC_REPLAY ||
+				m_pPlayerState->m_PlayerController == PC_SPECTATE) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;
@@ -3263,7 +3309,8 @@ Player::SetHoldJudgment(TapNote& tn, int iTrack, int iRow)
 				}
 			}
 			if (m_pPlayerState->m_PlayerController == PC_HUMAN ||
-				m_pPlayerState->m_PlayerController == PC_REPLAY) {
+				m_pPlayerState->m_PlayerController == PC_REPLAY ||
+				m_pPlayerState->m_PlayerController == PC_SPECTATE) {
 				m_pPlayerStageStats->m_fWifeScore =
 				  curwifescore / totalwifescore;
 				m_pPlayerStageStats->CurWifeScore = curwifescore;

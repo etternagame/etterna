@@ -51,11 +51,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	// Lua
 	void PushSelf(lua_State* L) override;
-	LifeMeter* GetLifeMeter(PlayerNumber pn);
-	PlayerInfo* GetPlayerInfo(PlayerNumber pn);
+	PlayerInfo* GetPlayerInfo();
 
 	void FailFadeRemovePlayer(PlayerInfo* pi);
-	void FailFadeRemovePlayer(PlayerNumber pn);
 	void BeginBackingOutFromGameplay();
 
 	/// This function exists because 
@@ -126,10 +124,8 @@ class ScreenGameplay : public ScreenWithMenuElements
 		STATE_DANCING, /**< The main state where notes have to be pressed. */
 		STATE_OUTRO, /**< The ending state, pressing Back isn't allowed here. */
 		NUM_DANCING_STATES
-	} /** @brief The specific point within ScreenGameplay. */ m_DancingState;
+	} m_DancingState;
 
-  private:
-  protected:
 	/**
 	 * @brief The songs left to play.
 	 *
@@ -138,8 +134,9 @@ class ScreenGameplay : public ScreenWithMenuElements
 	std::vector<float> ratesqueue;
 	std::vector<std::string> playlistscorekeys;
 
-	float m_fTimeSinceLastDancingComment; // this counter is only running while
-										  // STATE_DANCING
+	// this counter is only running while
+	// STATE_DANCING
+	float m_fTimeSinceLastDancingComment;
 
 	LyricDisplay m_LyricDisplay;
 
@@ -149,9 +146,6 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	/** @brief Used between songs in a course to show the next song. */
 	Transition m_NextSong;
-
-	BitmapText m_Scoreboard[NUM_NSScoreBoardColumn]; // for NSMAN, so we can
-													 // have a scoreboard
 
 	bool m_bShowScoreboard;
 
@@ -163,6 +157,10 @@ class ScreenGameplay : public ScreenWithMenuElements
 	void AbortGiveUp(bool bShowText);
 	void ResetGiveUpTimers(bool show_text);
 
+	RageTimer m_DiscordRPCCheckTimer;
+	void CheckDiscordRPCTimer();
+	void TriggerDiscordRPCUpdate();
+
 	Transition m_Ready;
 	Transition m_Go;
 	/** @brief The transition to use when all players have failed. */
@@ -172,22 +170,14 @@ class ScreenGameplay : public ScreenWithMenuElements
 
 	AutoKeysounds m_AutoKeysounds;
 
-	RageSound m_soundBattleTrickLevel1;
-	RageSound m_soundBattleTrickLevel2;
-	RageSound m_soundBattleTrickLevel3;
-
 	bool m_bZeroDeltaOnNextUpdate;
 
 	GameplayAssist m_GameplayAssist;
 	RageSound* m_pSoundMusic;
 
-	PlayerInfo
-	  m_vPlayerInfo; // filled by SGameplay derivatives in FillPlayerInfo
-	virtual void FillPlayerInfo(PlayerInfo* vPlayerInfoOut) = 0;
-	virtual PlayerInfo& GetPlayerInfoForInput(const InputEventPlus& iep)
-	{
-		return m_vPlayerInfo;
-	}
+	// filled by SGameplay derivatives in FillPlayerInfo
+	std::vector<PlayerInfo> m_vPlayerInfo{};
+	virtual void FillPlayerInfo(std::vector<PlayerInfo>& vPlayerInfoOut) = 0;
 
 	RageTimer m_timerGameplaySeconds;
 

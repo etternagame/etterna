@@ -1,4 +1,4 @@
-// Copyright 2014 The Crashpad Authors. All rights reserved.
+// Copyright 2014 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
 
 #include "util/mach/exception_ports.h"
 
+#include "base/apple/mach_logging.h"
 #include "base/logging.h"
-#include "base/mac/mach_logging.h"
 #include "base/notreached.h"
 
 namespace crashpad {
@@ -81,11 +81,6 @@ ExceptionPorts::ExceptionPorts(TargetType target_type, mach_port_t target_port)
 
     default:
       NOTREACHED();
-      get_exception_ports_ = nullptr;
-      set_exception_ports_ = nullptr;
-      target_name_ = nullptr;
-      target_port_ = MACH_PORT_NULL;
-      break;
   }
 }
 

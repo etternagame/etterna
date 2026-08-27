@@ -128,7 +128,8 @@ GetNumJoysticksSlow()
 	HRESULT hr = g_dinput->EnumDevices(
 	  DI8DEVCLASS_GAMECTRL, CountDevicesCallback, &iCount, DIEDFL_ATTACHEDONLY);
 	if (hr != DI_OK) {
-		Locator::getLogger()->warn(hr_ssprintf(hr, "g_dinput->EnumDevices"));
+		Locator::getLogger()->warn("{}",
+								   hr_ssprintf(hr, "g_dinput->EnumDevices"));
 	}
 	return iCount;
 }
@@ -308,7 +309,7 @@ GetDeviceState(LPDIRECTINPUTDEVICE8 dev, int size, void* ptr)
 	if (hr == DIERR_INPUTLOST || hr == DIERR_NOTACQUIRED) {
 		hr = dev->Acquire();
 		if (hr != DI_OK) {
-			Locator::getLogger()->trace(hr_ssprintf(hr, "?"));
+			Locator::getLogger()->trace("{}", hr_ssprintf(hr, "?"));
 			return hr;
 		}
 
@@ -336,7 +337,8 @@ InputHandler_DInput::UpdatePolled(
 				return;
 
 			if (hr != DI_OK) {
-                Locator::getLogger()->debug(hr_ssprintf(hr, "Failures on polled keyboard update"));
+				Locator::getLogger()->debug(
+				  "{}", hr_ssprintf(hr, "Failures on polled keyboard update"));
 				return;
 			}
 

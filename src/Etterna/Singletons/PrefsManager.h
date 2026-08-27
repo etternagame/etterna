@@ -161,6 +161,7 @@ class PrefsManager
 	Preference<bool> m_bFullTapExplosions;
 	Preference<bool> m_bNoGlow;
 	Preference<bool> m_bReplaysUseScoreMods;
+	Preference<bool> m_bReplaysShowOffsets;
 	Preference<int> m_iArcadeOptionsNavigation;
 	Preference<bool> m_ThreeKeyNavigation;
 	Preference<MusicWheelUsesSections> m_MusicWheelUsesSections;
@@ -207,6 +208,7 @@ class PrefsManager
 	Preference<std::string> m_sLastSeenVideoDriver;
 	Preference<std::string> m_sVideoRenderers; // StepMania.cpp sets these on
 											   // first run based on the card
+	Preference<bool> m_bVideoRendererDebugMode;
 	Preference<bool> m_bSmoothLines;
 	Preference<int> m_iSoundWriteAhead;
 	Preference<std::string> m_iSoundDevice;

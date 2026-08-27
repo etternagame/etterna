@@ -125,6 +125,7 @@ local translations = {
     OnlineSlashOffline = THEME:GetString("ScreenSelectMusic Profile", "OnlineSlashOffline"),
     PlayerStats = THEME:GetString("ScreenSelectMusic Profile", "PlayerStats"),
     ViewRecentScores = THEME:GetString("ScreenSelectMusic Profile", "ViewRecentScores"),
+    ViewTopPercentScores = THEME:GetString("ScreenSelectMusic Profile", "ViewTopPercentScores"),
     ShowingLocalScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingLocalScores"),
     ShowingOnlineScores = THEME:GetString("ScreenSelectMusic Profile", "ShowingOnlineScores"),
     SetPlayerName = THEME:GetString("ScreenSelectMusic Profile", "SetPlayerName"),
@@ -301,6 +302,17 @@ local function createList()
                     sortedScore = SCOREMAN:GetRecentScoreForGame(#scores + 1)
                 end
                 return
+            elseif params ~= nil and params.index == -2 then
+                -- index -2 is the top percent index
+                isLocal = true
+                SCOREMAN:SortSSRsByPercentForGame()
+                chosenSkillset = "Stream"
+                scores = {}
+                local sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(1, chosenSkillset)
+                while sortedScore ~= nil and #scores < upperBoundOfScoreCount do
+                    scores[#scores+1] = sortedScore
+                    sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(#scores + 1, chosenSkillset)
+                end
             end
 
             if isLocal then
@@ -411,7 +423,7 @@ local function createList()
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
                     self:x(actuals.ItemSongNameLeftGap)
-                    
+
                     txt:halign(0):valign(0)
                     bg:halign(0):valign(0)
                     bg:y(-scoreitembgbump)
@@ -520,8 +532,8 @@ local function createList()
                     if score ~= nil then
                         if chosenSkillset == "Recent" then
                             self:diffusealpha(1)
-                            local d = score:GetDate()
-                            if d ~= nil then
+                            local d = getScoreDate(score)
+                            if d ~= nil then -- ??
                                 self:settext(d)
                             else
                                 self:settext("")
@@ -554,7 +566,7 @@ local function createList()
                     end
                 end
             },
-            LoadFont("Common Normal") .. { 
+            LoadFont("Common Normal") .. {
                 Name = "WifePercent",
                 InitCommand = function(self)
                     self:halign(1):valign(0)
@@ -610,7 +622,7 @@ local function createList()
                     end
                 end
             }
-            
+
         }
     end
 
@@ -706,7 +718,7 @@ local function createList()
                 -- Upload all scores button
                 function(self)
                     if DLMAN:IsLoggedIn() then
-                        self:settext(translations["UploadAllScores"]) 
+                        self:settext(translations["UploadAllScores"])
                     else
                         self:settext("")
                     end
@@ -1026,6 +1038,11 @@ local function createList()
                 StartupCommand = smallTextInitFunctions.Right[i],
                 MouseOverCommand = cHover,
                 MouseOutCommand = cUnHover,
+                ModifiedGroupsMessageCommand = function(self)
+                    -- update the numbers when sortmode changes
+                    -- because the numbers are based on sortmode sometimes
+                    self:playcommand("Set")
+                end,
             }
         end
 
@@ -1085,6 +1102,7 @@ local function createList()
                 end,
                 MouseOutCommand = function(self)
                     self:diffusealpha(1)
+                    if self:IsInvisible() then return end
                     TOOLTIP:Hide()
                 end,
                 MouseDownCommand = function(self, params)
@@ -1135,14 +1153,14 @@ local function createList()
                     -- this is the ultimate fudge value
                     -- meant to be the approximate size of the text vertically but a lot smaller
                     bg:y(-actuals.NameInfoLargeLineSpacing / 3)
-    
+
                     self.ratings = true
                     self:queuecommand("UpdateToggle")
                 end,
                 UpdateToggleCommand = function(self)
                     local txt = self:GetChild("Text")
                     local bg = self:GetChild("BG")
-        
+
                     if self.ratings then
                         if DLMAN:IsLoggedIn() then
                             txt:settextf("%s (%s):", translations["PlayerRatings"], translations["OnlineSlashOffline"])
@@ -1152,7 +1170,7 @@ local function createList()
                     else
                         txt:settextf("%s:", translations["PlayerStats"])
                     end
-        
+
                     bg:zoomto(txt:GetZoomedWidth(), actuals.NameInfoLargeLineSpacing + textzoomFudge)
                 end,
                 ClickCommand = function(self, params)
@@ -1184,7 +1202,7 @@ local function createList()
                 InitCommand = function(self)
                     self:halign(0):valign(1)
                     self:x(actuals.AvatarLeftGap)
-                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.35)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.4)
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
                     self:playcommand("Set")
@@ -1227,7 +1245,7 @@ local function createList()
                 InitCommand = function(self)
                     self:halign(0):valign(1)
                     self:x(actuals.AvatarLeftGap)
-                    self:y(actuals.Height - actuals.InfoUpperMargin)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 1.05)
                     self:zoom(largelineTextSize)
                     self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
                     self:settext(translations["ViewRecentScores"])
@@ -1246,6 +1264,35 @@ local function createList()
                     if params.event == "DeviceButton_left mouse button" then
                         self:diffusealpha(1)
                         self:GetParent():GetParent():playcommand("UpdateScores", {index = -1})
+                        self:GetParent():GetParent():playcommand("UpdateSelectedIndex")
+                        self:GetParent():GetParent():playcommand("UpdateList")
+                    end
+                end
+            },
+            UIElements.TextToolTip(1, 1, "Common Normal") .. {
+                Name = "TopPercentScores",
+                InitCommand = function(self)
+                    self:halign(0):valign(1)
+                    self:x(actuals.AvatarLeftGap)
+                    self:y(actuals.Height - actuals.InfoUpperMargin * 0.7)
+                    self:zoom(largelineTextSize)
+                    self:maxwidth((actuals.Width - actuals.AvatarLeftGap - actuals.RightTextLeftGap) / largelineTextSize - textzoomFudge)
+                    self:settext(translations["ViewTopPercentScores"])
+                    registerActorToColorConfigElement(self, "main", "PrimaryText")
+                end,
+                MouseOverCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(buttonHoverAlpha)
+                end,
+                MouseOutCommand = function(self)
+                    if self:IsInvisible() then return end
+                    self:diffusealpha(1)
+                end,
+                MouseDownCommand = function(self, params)
+                    if self:IsInvisible() then return end
+                    if params.event == "DeviceButton_left mouse button" then
+                        self:diffusealpha(1)
+                        self:GetParent():GetParent():playcommand("UpdateScores", {index = -2})
                         self:GetParent():GetParent():playcommand("UpdateSelectedIndex")
                         self:GetParent():GetParent():playcommand("UpdateList")
                     end

@@ -12,6 +12,9 @@
 #include <stdio.h>
 #import <dlfcn.h>
 
+//To give us access to `CGRequestListenEventAccess` to let us handle input events
+#include <ApplicationServices/ApplicationServices.h>
+
 
 // Translation Unit Specific Functions
 static std::string getSysctlName(const char* name) {
@@ -66,6 +69,23 @@ namespace Core::Platform {
             // Close this instance
             std::exit(0);
         }
+		
+		
+		if (@available(macOS 10.15, *)){
+			if (! CGPreflightListenEventAccess()){ //If we don't already have permission to monitor user input events...
+				Locator::getLogger()->warn("App does not have permission to listen to HID events,\n\tasking user to grant permission...");
+				CGRequestListenEventAccess(); //... pop up a thingy asking the user to grant permission :)
+				//TODO: Restart the game at this point and/or do some kind of check to make sure access was actually granted?
+			}else{
+				Locator::getLogger()->info("App has permission to listen to HID events :)");
+			}
+		}else{
+			Locator::getLogger()->warn("Unable to check HID input permissions!");
+		}
+		
+	
+		
+		
     }
 
     std::string getSystem(){

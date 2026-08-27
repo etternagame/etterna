@@ -1,10 +1,9 @@
 //
-//  Copyright (c) 2012 Artyom Beilis (Tonkikh)
+// Copyright (c) 2012 Artyom Beilis (Tonkikh)
 //
-//  Distributed under the Boost Software License, Version 1.0. (See
-//  accompanying file LICENSE or copy at
-//  http://www.boost.org/LICENSE_1_0.txt)
-//
+// Distributed under the Boost Software License, Version 1.0.
+// https://www.boost.org/LICENSE_1_0.txt
+
 #ifndef NOWIDE_CSTDLIB_HPP_INCLUDED
 #define NOWIDE_CSTDLIB_HPP_INCLUDED
 
@@ -21,7 +20,12 @@ namespace nowide {
     ///
     /// \brief UTF-8 aware getenv. Returns 0 if the variable is not set.
     ///
-    /// This function is not thread safe or reenterable as defined by the standard library
+    /// The string pointed to shall not be modified by the program.
+    /// This function is thread-safe as long as no other thread modifies the host environment.
+    /// However subsequent calls to this function might overwrite the string pointed to.
+    ///
+    /// Warning: The returned pointer might only be valid for as long as the calling thread is alive.
+    ///          So avoid passing it across thread boundaries.
     ///
     NOWIDE_DECL char* getenv(const char* key);
 

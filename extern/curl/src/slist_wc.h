@@ -7,7 +7,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -20,9 +20,11 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
-
 #include "tool_setup.h"
+
 #ifndef CURL_DISABLE_LIBCURL_OPTION
 
 /* linked-list structure with last node cache for easysrc */
@@ -36,10 +38,10 @@ struct slist_wc {
  *
  * DESCRIPTION
  *
- * Appends a string to a linked list. If no list exists, it will be created
+ * Appends a string to a linked list. If no list exists, it is created
  * first. Returns the new list, after appending.
  */
-struct slist_wc *slist_wc_append(struct slist_wc *, const char *);
+struct slist_wc *slist_wc_append(struct slist_wc *list, const char *data);
 
 /*
  * NAME curl_slist_free_all()
@@ -48,7 +50,7 @@ struct slist_wc *slist_wc_append(struct slist_wc *, const char *);
  *
  * free a previously built curl_slist_wc.
  */
-void slist_wc_free_all(struct slist_wc *);
+void slist_wc_free_all(struct slist_wc *list);
 
 #endif /* CURL_DISABLE_LIBCURL_OPTION */
 

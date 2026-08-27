@@ -6,7 +6,7 @@ local function initbpm(self)
     local r = GAMESTATE:GetSongOptionsObject("ModsLevel_Current"):MusicRate() * 60
     local a = GAMESTATE:GetPlayerState():GetSongPosition()
     local GetBPS = SongPosition.GetCurBPS
-    if #GAMESTATE:GetCurrentSong():GetTimingData():GetBPMs() > 1 then
+    if #GAMESTATE:GetCurrentSteps():GetTimingData():GetBPMs() > 1 then
         self:SetUpdateFunction(function(self)
             local bpm = GetBPS(a) * r
             self:GetChild("BPM"):settext(notShit.round(bpm, 2))

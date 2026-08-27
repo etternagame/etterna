@@ -78,7 +78,7 @@ t[#t+1] = Def.Quad {
         if bn:GetVisible() then
             self:visible(true)
             if avgcolorbg() then
-                local c = bn:GetTexture():GetAverageColor(14)
+                local c = bn:GetTexture():GetAverageColor()
                 self:diffuse(c)
             else
                 self:diffuse(COLORS:getColor("main", "SelectMusicBackground"))

@@ -1,6 +1,6 @@
 /*
 ** x86/x64 instruction emitter.
-** Copyright (C) 2005-2021 Mike Pall. See Copyright Notice in luajit.h
+** Copyright (C) 2005-2026 Mike Pall. See Copyright Notice in luajit.h
 */
 
 /* -- Emit basic instructions --------------------------------------------- */
@@ -69,6 +69,13 @@ static LJ_AINLINE MCode *emit_op(x86Op xo, Reg rr, Reg rb, Reg rx,
 #endif
   return p;
 }
+
+#if LJ_ABI_BRANCH_TRACK
+static void emit_branch_track(ASMState *as)
+{
+  emit_u32(as, XI_ENDBR64);
+}
+#endif
 
 /* op + modrm */
 #define emit_opm(xo, mode, rr, rb, p, delta) \
@@ -471,6 +478,17 @@ static void emit_sfixup(ASMState *as, MCLabel source)
 /* Return label pointing to current PC. */
 #define emit_label(as)		((as)->mcp)
 
+/* Check if two adresses are in relative jump range. */
+static LJ_AINLINE int jmprel_ok(MCode *a, MCode *b)
+{
+#if LJ_64
+  return a - b == (int32_t)(a - b);
+#else
+  UNUSED(a); UNUSED(b);
+  return 1;
+#endif
+}
+
 /* Compute relative 32 bit offset for jump and call instructions. */
 static LJ_AINLINE int32_t jmprel(jit_State *J, MCode *p, MCode *target)
 {
@@ -504,7 +522,7 @@ static void emit_call_(ASMState *as, MCode *target)
 {
   MCode *p = as->mcp;
 #if LJ_64
-  if (target-p != (int32_t)(target-p)) {
+  if (!jmprel_ok(target, p)) {
     /* Assumes RID_RET is never an argument to calls and always clobbered. */
     emit_rr(as, XO_GROUP5, XOg_CALL, RID_RET);
     emit_loadu64(as, RID_RET, (uint64_t)target);

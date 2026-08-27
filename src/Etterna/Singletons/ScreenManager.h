@@ -39,6 +39,7 @@ class ScreenManager
 	void PopAllScreens();
 	auto GetTopScreen() -> Screen*;
 	auto GetScreen(int iPosition) -> Screen*;
+	auto GetOverlayScreens() -> std::vector<Screen*>;
 	auto AllowOperatorMenuButton() const -> bool;
 
 	auto IsScreenNameValid(std::string const& name) const -> bool;

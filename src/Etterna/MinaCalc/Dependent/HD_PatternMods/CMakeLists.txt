@@ -11,11 +11,16 @@ list(APPEND HD_PATTERN_MODS
     "RollJS.h"
     "RunningMan.h"
     "WideRangeAnchor.h"
+    "WideRangeCJAnchor.h"
     "WideRangeBalance.h"
     "WideRangeJumptrill.h"
     "WideRangeJJ.h"
     "WideRangeRoll.h"
     "GenericBracketing.h"
-    "GenericStream.h")
+    "GenericStream.h"
+    "HandSwitch.h"
+    "OldAnchorScaler.h"
+    "OldOHJScaler.h"
+    "OldRollScaler.h")
 
 target_sources(Etterna PUBLIC ${HD_PATTERN_MODS})

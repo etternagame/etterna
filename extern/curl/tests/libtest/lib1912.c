@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2020, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -18,28 +18,26 @@
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
  *
+ * SPDX-License-Identifier: curl
+ *
  ***************************************************************************/
-#include "test.h"
+#include "first.h"
 
-#include "testutil.h"
-#include "warnless.h"
-#include "memdebug.h"
-
-#define print_err(name, exp) \
-  fprintf(stderr, "Type mismatch for CURLOPT_%s (expected %s)\n", name, exp);
-
-int test(char *URL)
+static CURLcode test_lib1912(const char *URL)
 {
-/* Only test if GCC typechecking is available */
+/* Only test if GCC/clang type checking is available */
   int error = 0;
 #ifdef CURLINC_TYPECHECK_GCC_H
   const struct curl_easyoption *o;
-  for(o = curl_easy_option_next(NULL);
-      o;
-      o = curl_easy_option_next(o)) {
+
+#define print_err(name, exp)                                            \
+  curl_mfprintf(stderr, "Type mismatch for CURLOPT_%s (expected %s)\n", \
+                name, exp)
+
+  for(o = curl_easy_option_next(NULL); o; o = curl_easy_option_next(o)) {
     /* Test for mismatch OR missing typecheck macros */
     if(curlcheck_long_option(o->id) !=
-        (o->type == CURLOT_LONG || o->type == CURLOT_VALUES)) {
+       (o->type == CURLOT_LONG || o->type == CURLOT_VALUES)) {
       print_err(o->name, "CURLOT_LONG or CURLOT_VALUES");
       error++;
     }
@@ -72,9 +70,8 @@ int test(char *URL)
       print_err(o->name, "CURLOT_OBJECT");
       error++;
     }
-    /* Todo: no gcc typecheck for CURLOPTTYPE_BLOB types? */
   }
 #endif
   (void)URL;
-  return error;
+  return error == 0 ? CURLE_OK : TEST_ERR_FAILURE;
 }

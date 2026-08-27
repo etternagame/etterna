@@ -5,7 +5,7 @@
  *                            | (__| |_| |  _ <| |___
  *                             \___|\___/|_| \_\_____|
  *
- * Copyright (C) 1998 - 2021, Daniel Stenberg, <daniel@haxx.se>, et al.
+ * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
  *
  * This software is licensed as described in the file COPYING, which
  * you should have received as part of this distribution. The terms
@@ -17,6 +17,8 @@
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
  * KIND, either express or implied.
+ *
+ * SPDX-License-Identifier: curl
  *
  ***************************************************************************/
 /* <DESC>
@@ -32,10 +34,14 @@
  * dd if=/dev/urandom of=file_1M.bin bs=1M count=1
  *
  */
+#ifdef _MSC_VER
+#ifndef _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS  /* for ctime() */
+#endif
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 
 #include <curl/curl.h>
@@ -51,81 +57,91 @@
 
 #define CHKSPEED_VERSION "1.0"
 
-static size_t WriteCallback(void *ptr, size_t size, size_t nmemb, void *data)
+static size_t write_cb(char *ptr, size_t size, size_t nmemb, void *data)
 {
   /* we are not interested in the downloaded bytes itself,
      so we only return the size we would have saved ... */
-  (void)ptr;  /* unused */
-  (void)data; /* unused */
-  return (size_t)(size * nmemb);
+  (void)ptr;
+  (void)data;
+  return size * nmemb;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
-  CURL *curl_handle;
-  CURLcode res;
+  CURL *curl;
+  CURLcode result;
   int prtall = 0, prtsep = 0, prttime = 0;
   const char *url = URL_1M;
-  char *appname = argv[0];
+  const char *appname = argv[0];
 
   if(argc > 1) {
     /* parse input parameters */
     for(argc--, argv++; *argv; argc--, argv++) {
-      if(strncasecmp(*argv, "-", 1) == 0) {
-        if(strncasecmp(*argv, "-H", 2) == 0) {
+      if(argv[0][0] == '-') {
+        switch(argv[0][1]) {
+        case 'h':
+        case 'H':
           fprintf(stderr,
                   "\rUsage: %s [-m=1|2|5|10|20|50|100] [-t] [-x] [url]\n",
                   appname);
-          exit(1);
-        }
-        else if(strncasecmp(*argv, "-V", 2) == 0) {
+          return 1;
+        case 'v':
+        case 'V':
           fprintf(stderr, "\r%s %s - %s\n",
                   appname, CHKSPEED_VERSION, curl_version());
-          exit(1);
-        }
-        else if(strncasecmp(*argv, "-A", 2) == 0) {
+          return 1;
+        case 'a':
+        case 'A':
           prtall = 1;
-        }
-        else if(strncasecmp(*argv, "-X", 2) == 0) {
+          break;
+        case 'x':
+        case 'X':
           prtsep = 1;
-        }
-        else if(strncasecmp(*argv, "-T", 2) == 0) {
+          break;
+        case 't':
+        case 'T':
           prttime = 1;
-        }
-        else if(strncasecmp(*argv, "-M=", 3) == 0) {
-          long m = strtol((*argv) + 3, NULL, 10);
-          switch(m) {
-          case 1:
-            url = URL_1M;
+          break;
+        case 'm':
+        case 'M':
+          if(argv[0][2] == '=') {
+            int m = atoi(*argv + 3);
+            switch(m) {
+            case 1:
+              url = URL_1M;
+              break;
+            case 2:
+              url = URL_2M;
+              break;
+            case 5:
+              url = URL_5M;
+              break;
+            case 10:
+              url = URL_10M;
+              break;
+            case 20:
+              url = URL_20M;
+              break;
+            case 50:
+              url = URL_50M;
+              break;
+            case 100:
+              url = URL_100M;
+              break;
+            default:
+              fprintf(stderr, "\r%s: invalid parameter %s\n",
+                      appname, *argv + 3);
+              return 1;
+            }
             break;
-          case 2:
-            url = URL_2M;
-            break;
-          case 5:
-            url = URL_5M;
-            break;
-          case 10:
-            url = URL_10M;
-            break;
-          case 20:
-            url = URL_20M;
-            break;
-          case 50:
-            url = URL_50M;
-            break;
-          case 100:
-            url = URL_100M;
-            break;
-          default:
-            fprintf(stderr, "\r%s: invalid parameter %s\n",
-                    appname, *argv + 3);
-            exit(1);
           }
-        }
-        else {
           fprintf(stderr, "\r%s: invalid or unknown option %s\n",
                   appname, *argv);
-          exit(1);
+          return 1;
+        default:
+          fprintf(stderr, "\r%s: invalid or unknown option %s\n",
+                  appname, *argv);
+          return 1;
         }
       }
       else {
@@ -145,66 +161,77 @@ int main(int argc, char *argv[])
   }
 
   /* init libcurl */
-  curl_global_init(CURL_GLOBAL_ALL);
+  result = curl_global_init(CURL_GLOBAL_ALL);
+  if(result != CURLE_OK)
+    return (int)result;
 
   /* init the curl session */
-  curl_handle = curl_easy_init();
+  curl = curl_easy_init();
+  if(curl) {
 
-  /* specify URL to get */
-  curl_easy_setopt(curl_handle, CURLOPT_URL, url);
+    /* specify URL to get */
+    curl_easy_setopt(curl, CURLOPT_URL, url);
 
-  /* send all data to this function  */
-  curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteCallback);
+    /* send all data to this function */
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
 
-  /* some servers do not like requests that are made without a user-agent
-     field, so we provide one */
-  curl_easy_setopt(curl_handle, CURLOPT_USERAGENT,
-                   "libcurl-speedchecker/" CHKSPEED_VERSION);
+    /* some servers do not like requests that are made without a user-agent
+       field, so we provide one */
+    curl_easy_setopt(curl, CURLOPT_USERAGENT,
+                     "libcurl-speedchecker/" CHKSPEED_VERSION);
 
-  /* get it! */
-  res = curl_easy_perform(curl_handle);
+    /* get it! */
+    result = curl_easy_perform(curl);
 
-  if(CURLE_OK == res) {
-    curl_off_t val;
+    if(result == CURLE_OK) {
+      curl_off_t val;
 
-    /* check for bytes downloaded */
-    res = curl_easy_getinfo(curl_handle, CURLINFO_SIZE_DOWNLOAD_T, &val);
-    if((CURLE_OK == res) && (val>0))
-      printf("Data downloaded: %lu bytes.\n", (unsigned long)val);
+      /* check for bytes downloaded */
+      result = curl_easy_getinfo(curl, CURLINFO_SIZE_DOWNLOAD_T, &val);
+      if((result == CURLE_OK) && (val > 0))
+        printf("Data downloaded: %" CURL_FORMAT_CURL_OFF_T " bytes.\n", val);
 
-    /* check for total download time */
-    res = curl_easy_getinfo(curl_handle, CURLINFO_TOTAL_TIME_T, &val);
-    if((CURLE_OK == res) && (val>0))
-      printf("Total download time: %lu.%06lu sec.\n",
-             (unsigned long)(val / 1000000), (unsigned long)(val % 1000000));
+      /* check for total download time */
+      result = curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME_T, &val);
+      if((result == CURLE_OK) && (val > 0))
+        printf("Total download time: %" CURL_FORMAT_CURL_OFF_T
+               ".%06" CURL_FORMAT_CURL_OFF_T " sec.\n",
+               val / 1000000,
+               val % 1000000);
 
-    /* check for average download speed */
-    res = curl_easy_getinfo(curl_handle, CURLINFO_SPEED_DOWNLOAD_T, &val);
-    if((CURLE_OK == res) && (val>0))
-      printf("Average download speed: %lu kbyte/sec.\n",
-             (unsigned long)(val / 1024));
+      /* check for average download speed */
+      result = curl_easy_getinfo(curl, CURLINFO_SPEED_DOWNLOAD_T, &val);
+      if((result == CURLE_OK) && (val > 0))
+        printf("Average download speed: "
+               "%" CURL_FORMAT_CURL_OFF_T " kbyte/sec.\n",
+               val / 1024);
 
-    if(prtall) {
-      /* check for name resolution time */
-      res = curl_easy_getinfo(curl_handle, CURLINFO_NAMELOOKUP_TIME_T, &val);
-      if((CURLE_OK == res) && (val>0))
-        printf("Name lookup time: %lu.%06lu sec.\n",
-               (unsigned long)(val / 1000000), (unsigned long)(val % 1000000));
+      if(prtall) {
+        /* check for name resolution time */
+        result = curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME_T, &val);
+        if((result == CURLE_OK) && (val > 0))
+          printf("Name lookup time: %" CURL_FORMAT_CURL_OFF_T
+                 ".%06" CURL_FORMAT_CURL_OFF_T " sec.\n",
+                 val / 1000000,
+                 val % 1000000);
 
-      /* check for connect time */
-      res = curl_easy_getinfo(curl_handle, CURLINFO_CONNECT_TIME_T, &val);
-      if((CURLE_OK == res) && (val>0))
-        printf("Connect time: %lu.%06lu sec.\n",
-               (unsigned long)(val / 1000000), (unsigned long)(val % 1000000));
+        /* check for connect time */
+        result = curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME_T, &val);
+        if((result == CURLE_OK) && (val > 0))
+          printf("Connect time: %" CURL_FORMAT_CURL_OFF_T
+                 ".%06" CURL_FORMAT_CURL_OFF_T " sec.\n",
+                 val / 1000000,
+                 val % 1000000);
+      }
     }
-  }
-  else {
-    fprintf(stderr, "Error while fetching '%s' : %s\n",
-            url, curl_easy_strerror(res));
-  }
+    else {
+      fprintf(stderr, "Error while fetching '%s' : %s\n",
+              url, curl_easy_strerror(result));
+    }
 
-  /* cleanup curl stuff */
-  curl_easy_cleanup(curl_handle);
+    /* cleanup curl stuff */
+    curl_easy_cleanup(curl);
+  }
 
   /* we are done with libcurl, so clean it up */
   curl_global_cleanup();

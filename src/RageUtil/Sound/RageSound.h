@@ -89,9 +89,14 @@ struct RageSoundParams
 		M_AUTO
 	};
 
-	bool m_bIsCriticalSound{
-		false
-	}; // "is a sound that should be played even during attract"
+	// "is a sound that should be played even during attract"
+	bool m_bIsCriticalSound{ false };
+
+	// represents sounds caused by presses
+	bool m_bIsAction{ false };
+
+	// sounds (music) playing in the background
+	bool m_bIsBGM{ false };
 };
 
 struct RageSoundLoadParams
@@ -199,6 +204,7 @@ class RageSound : public RageSoundBase
 	auto SetProperty(const std::string& sProperty, float fValue) -> bool;
 	void SetStopModeFromString(const std::string& sStopMode);
 	void SetPositionSeconds(float fGiven);
+	void SetIsAction(bool b);
 
 	void SetPlayBackCallback(const std::shared_ptr<LuaReference>& f,
 							 unsigned int bufSize = 1024);

@@ -1,21 +1,17 @@
-// Copyright 2006-2008 The Chromium Authors. All rights reserved.
+// Copyright 2006-2008 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
 #ifndef MINI_CHROMIUM_BASE_LOGGING_H_
 #define MINI_CHROMIUM_BASE_LOGGING_H_
 
-#include <stdint.h>
-#include <assert.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include <limits>
 #include <sstream>
 #include <string>
 
-#include "base/check.h"
-#include "base/check_op.h"
-#include "base/notreached.h"
 #include "build/build_config.h"
 
 namespace logging {
@@ -35,11 +31,11 @@ enum : LoggingDestination {
 
   LOG_TO_ALL = LOG_TO_FILE | LOG_TO_SYSTEM_DEBUG_LOG | LOG_TO_STDERR,
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
   LOG_DEFAULT = LOG_TO_FILE,
-#elif defined(OS_FUCHSIA)
+#elif BUILDFLAG(IS_FUCHSIA)
   LOG_DEFAULT = LOG_TO_SYSTEM_DEBUG_LOG,
-#elif defined(OS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
   LOG_DEFAULT = LOG_TO_SYSTEM_DEBUG_LOG | LOG_TO_STDERR,
 #endif
 };
@@ -85,12 +81,12 @@ static inline int GetVlogLevel(const char*) {
   return std::numeric_limits<int>::max();
 }
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 // This is just ::GetLastError, but out-of-line to avoid including windows.h in
 // such a widely used place.
 unsigned long GetLastSystemErrorCode();
 std::string SystemErrorCodeToString(unsigned long error_code);
-#elif defined(OS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
 static inline int GetLastSystemErrorCode() {
   return errno;
 }
@@ -110,9 +106,12 @@ class LogMessage {
   LogMessage(const LogMessage&) = delete;
   LogMessage& operator=(const LogMessage&) = delete;
 
-  ~LogMessage();
+  virtual ~LogMessage();
 
   std::ostream& stream() { return stream_; }
+
+ protected:
+  void Flush();
 
  private:
   void Init(const char* function);
@@ -124,14 +123,13 @@ class LogMessage {
   LogSeverity severity_;
 };
 
-class LogMessageVoidify {
+class LogMessageFatal final : public LogMessage {
  public:
-  LogMessageVoidify() {}
-
-  void operator&(const std::ostream&) const {}
+  using LogMessage::LogMessage;
+  [[noreturn]] ~LogMessageFatal() override;
 };
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 class Win32ErrorLogMessage : public LogMessage {
  public:
   Win32ErrorLogMessage(const char* function,
@@ -145,10 +143,20 @@ class Win32ErrorLogMessage : public LogMessage {
 
   ~Win32ErrorLogMessage();
 
+ protected:
+  void AppendError();
+
  private:
   unsigned long err_;
 };
-#elif defined(OS_POSIX)
+
+class Win32ErrorLogMessageFatal final : public Win32ErrorLogMessage {
+ public:
+  using Win32ErrorLogMessage::Win32ErrorLogMessage;
+  [[noreturn]] ~Win32ErrorLogMessageFatal() override;
+};
+
+#elif BUILDFLAG(IS_POSIX)
 class ErrnoLogMessage : public LogMessage {
  public:
   ErrnoLogMessage(const char* function,
@@ -162,8 +170,17 @@ class ErrnoLogMessage : public LogMessage {
 
   ~ErrnoLogMessage();
 
+ protected:
+  void AppendError();
+
  private:
   int err_;
+};
+
+class ErrnoLogMessageFatal final : public ErrnoLogMessage {
+ public:
+  using ErrnoLogMessage::ErrnoLogMessage;
+  [[noreturn]] ~ErrnoLogMessageFatal() override;
 };
 #endif
 
@@ -188,8 +205,11 @@ class ErrnoLogMessage : public LogMessage {
     logging::ClassName(FUNCTION_SIGNATURE, __FILE__, __LINE__, \
                        logging::LOG_ERROR_REPORT, ## __VA_ARGS__)
 #define COMPACT_GOOGLE_LOG_EX_FATAL(ClassName, ...) \
-    logging::ClassName(FUNCTION_SIGNATURE, __FILE__, __LINE__, \
-                       logging::LOG_FATAL, ## __VA_ARGS__)
+  logging::ClassName##Fatal(FUNCTION_SIGNATURE,     \
+                            __FILE__,               \
+                            __LINE__,               \
+                            logging::LOG_FATAL,     \
+                            ##__VA_ARGS__)
 #define COMPACT_GOOGLE_LOG_EX_DFATAL(ClassName, ...) \
     logging::ClassName(FUNCTION_SIGNATURE, __FILE__, __LINE__, \
                        logging::LOG_DFATAL, ## __VA_ARGS__)
@@ -202,12 +222,15 @@ class ErrnoLogMessage : public LogMessage {
     COMPACT_GOOGLE_LOG_EX_ERROR(LogMessage)
 #define COMPACT_GOOGLE_LOG_ERROR_REPORT \
     COMPACT_GOOGLE_LOG_EX_ERROR_REPORT(LogMessage)
+// TODO(crbug.com/40254046): Make LOG(FATAL) understood as [[noreturn]]. See
+// Chromium or absl implementations for LogMessageFatal subclasses where the
+// destructor is annotated as [[noreturn]].
 #define COMPACT_GOOGLE_LOG_FATAL \
     COMPACT_GOOGLE_LOG_EX_FATAL(LogMessage)
 #define COMPACT_GOOGLE_LOG_DFATAL \
     COMPACT_GOOGLE_LOG_EX_DFATAL(LogMessage)
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 
 // wingdi.h defines ERROR 0. We don't want to include windows.h here, and we
 // want to allow "LOG(ERROR)", which will expand to LOG_0.
@@ -223,13 +246,22 @@ namespace logging {
 const LogSeverity LOG_0 = LOG_ERROR;
 }  // namespace logging
 
-#endif  // OS_WIN
+#endif  // BUILDFLAG(IS_WIN)
 
 #define LAZY_STREAM(stream, condition) \
-    !(condition) ? (void) 0 : ::logging::LogMessageVoidify() & (stream)
+  switch (0)                           \
+  case 0:                              \
+  default:                             \
+    if (!(condition))                  \
+      ;                                \
+    else                               \
+      (stream)
 
-#define LOG_IS_ON(severity) \
-    ((::logging::LOG_ ## severity) >= ::logging::GetMinLogLevel())
+// FATAL is always enabled and required to be resolved in compile time for
+// LOG(FATAL) to be properly understood as [[noreturn]].
+#define LOG_IS_ON(severity)                               \
+  ((::logging::LOG_##severity) == ::logging::LOG_FATAL || \
+   (::logging::LOG_##severity) >= ::logging::GetMinLogLevel())
 #define VLOG_IS_ON(verbose_level) \
     ((verbose_level) <= ::logging::GetVlogLevel(__FILE__))
 
@@ -238,14 +270,14 @@ const LogSeverity LOG_0 = LOG_ERROR;
     logging::LogMessage(FUNCTION_SIGNATURE, __FILE__, __LINE__, \
                         -verbose_level).stream()
 
-#if defined(OS_WIN)
+#if BUILDFLAG(IS_WIN)
 #define PLOG_STREAM(severity) COMPACT_GOOGLE_LOG_EX_ ## severity( \
     Win32ErrorLogMessage, ::logging::GetLastSystemErrorCode()).stream()
 #define VPLOG_STREAM(verbose_level)                                       \
     logging::Win32ErrorLogMessage(FUNCTION_SIGNATURE, __FILE__, __LINE__, \
                                   -verbose_level,                         \
                                   ::logging::GetLastSystemErrorCode()).stream()
-#elif defined(OS_POSIX)
+#elif BUILDFLAG(IS_POSIX)
 #define PLOG_STREAM(severity) COMPACT_GOOGLE_LOG_EX_ ## severity( \
     ErrnoLogMessage, ::logging::GetLastSystemErrorCode()).stream()
 #define VPLOG_STREAM(verbose_level) \
@@ -307,9 +339,6 @@ const LogSeverity LOG_0 = LOG_ERROR;
 #define DVPLOG_IF(verbose_level, condition) \
     LAZY_STREAM(VPLOG_STREAM(verbose_level), \
                 DVLOG_IS_ON(verbose_level) && (condition))
-
-#undef assert
-#define assert(condition) DLOG_ASSERT(condition)
 
 namespace std {
 ostream& operator<<(ostream& out, const u16string& str);

@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <cmath>
+#include <cstdint>
 
 class RageFileDriver;
 
@@ -29,7 +30,7 @@ class RageFileDriver;
 #define ZERO(x) memset(&(x), 0, sizeof(x))
 
 /** @brief Get the length of the array. */
-#define ARRAYLEN(a) (sizeof(a) / sizeof((a)[0]))
+#define ARRAYLEN(a) std::size(a)
 
 /**
  * @brief Scales x so that l1 corresponds to l2 and h1 corresponds to h2.

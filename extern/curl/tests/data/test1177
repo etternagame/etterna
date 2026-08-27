@@ -1,24 +1,21 @@
+<?xml version="1.0" encoding="US-ASCII"?>
 <testcase>
 <info>
 <keywords>
 source analysis
 CURL_VERSION
+documentation
 </keywords>
 </info>
 
-#
 # Client-side
 <client>
-<server>
-none
-</server>
-
- <name>
-Verify that CURL_VERSION_* in headers and docs are in sync
- </name>
+<name>
+Verify that feature names and CURL_VERSION_* in lib and docs are in sync
+</name>
 
 <command type="perl">
-%SRCDIR/version-scan.pl %SRCDIR/../docs/libcurl/curl_version_info.3 %SRCDIR/../include/curl/curl.h
+%SRCDIR/test1177.pl %PWD/../docs/libcurl/curl_version_info.3 %SRCDIR/../include/curl/curl.h %SRCDIR/../lib/version.c
 </command>
 </client>
 

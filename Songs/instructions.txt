@@ -20,6 +20,6 @@ Songs\
 		SubGroup1\
 			Some Song\
 				*.png, *.mp3/*.ogg, *.sm/*.ssc/etc files
-             
+
 [Where to install songs]
-https://www.etternaonline.com/packs has most of the song packs that people play, although as of version 0.60.0 we now have in-game song downloading.
+https://etternaonline.com/packs has most of the song packs that people play, although as of version 0.60.0 we now have in-game song downloading.

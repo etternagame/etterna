@@ -1,4 +1,4 @@
-// Copyright 2017 The Crashpad Authors. All rights reserved.
+// Copyright 2017 The Crashpad Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -60,14 +60,14 @@ class PtraceClient : public PtraceConnection {
   bool GetThreadInfo(pid_t tid, ThreadInfo* info) override;
   bool ReadFileContents(const base::FilePath& path,
                         std::string* contents) override;
-  ProcessMemory* Memory() override;
+  ProcessMemoryLinux* Memory() override;
   bool Threads(std::vector<pid_t>* threads) override;
   ssize_t ReadUpTo(VMAddress address, size_t size, void* buffer) override;
 
  private:
   bool SendFilePath(const char* path, size_t length);
 
-  std::unique_ptr<ProcessMemory> memory_;
+  std::unique_ptr<ProcessMemoryLinux> memory_;
   int sock_;
   pid_t pid_;
   bool is_64_bit_;

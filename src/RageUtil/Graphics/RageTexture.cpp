@@ -104,7 +104,7 @@ RageTexture::GetTextureCoordRect(int iFrameNo) const
 auto
 RageTexture::GetAverageColor(unsigned increment) const -> const RageColor
 {
-	if (m_pSurface == nullptr)
+	if (m_pSurface == nullptr || IsAMovie())
 		return RageColor(0, 0, 0, 1.F);
 	return RageSurfaceUtils::GetAverageRGB(m_pSurface, increment);
 }
@@ -153,14 +153,8 @@ class LunaRageTexture : public Luna<RageTexture>
 	}
 	static int GetAverageColor(T* p, lua_State* L)
 	{
-		// increment cant be negative or 0
-		// but keep in mind an increment of 1 is probably going to be slow
-		int increment = IArg(1);
-		if (increment <= 0)
-			increment = 1;
-		
 		// will return the average color of the texture independent of diffuse
-		p->GetAverageColor(increment).PushTable(L);
+		p->GetAverageColor(1).PushTable(L);
 		return 1;
 	}
 	DEFINE_METHOD(GetSourceWidth, GetSourceWidth());

@@ -1,4 +1,4 @@
-// Copyright 2020 The Chromium Authors. All rights reserved.
+// Copyright 2020 The Chromium Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,7 +6,8 @@
 #define MINI_CHROMIUM_BASE_NOTREACHED_H_
 
 #include "base/check.h"
+#include "base/logging.h"
 
-#define NOTREACHED() DCHECK(false)
+#define NOTREACHED() LOG(FATAL) << "NOTREACHED hit. "
 
 #endif  // MINI_CHROMIUM_BASE_NOTREACHED_H_

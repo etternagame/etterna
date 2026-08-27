@@ -6,7 +6,7 @@
 # *                            | (__| |_| |  _ <| |___
 # *                             \___|\___/|_| \_\_____|
 # *
-# * Copyright (C) 1998 - 2022, Daniel Stenberg, <daniel@haxx.se>, et al.
+# * Copyright (C) Daniel Stenberg, <daniel@haxx.se>, et al.
 # *
 # * This software is licensed as described in the file COPYING, which
 # * you should have received as part of this distribution. The terms
@@ -19,13 +19,25 @@
 # * This software is distributed on an "AS IS" basis, WITHOUT WARRANTY OF ANY
 # * KIND, either express or implied.
 # *
+# * SPDX-License-Identifier: curl
+# *
 # ***************************************************************************
 # This shell script creates a fresh ca-bundle.crt file for use with libcurl.
-# It extracts all ca certs it finds in the local Firefox database and converts
+# It extracts all CA certs it finds in the local Firefox database and converts
 # them all into PEM format.
 #
-db=$(ls -1d $HOME/.mozilla/firefox/*default*)
-out=$1
+# It uses the "certutil" command line tool from the NSS project to perform the
+# conversion. On Debian it comes in the "libnss3-tools" package.
+#
+
+set -eu
+
+if [ -d "$HOME/Library/Application Support"/Firefox/Profiles ]; then
+  db=$(ls -1d "$HOME/Library/Application Support"/Firefox/Profiles/*default*)
+else
+  db=$(ls -1d "$HOME"/.mozilla/firefox/*default*)
+fi
+out="${1:-}"
 
 if test -z "$out"; then
   out="ca-bundle.crt" # use a sensible default
@@ -33,7 +45,7 @@ fi
 
 currentdate=$(date)
 
-cat >$out <<EOF
+cat > "$out" <<EOF
 ##
 ## Bundle of CA Root Certificates
 ##
@@ -42,12 +54,11 @@ cat >$out <<EOF
 ##
 EOF
 
-
 certutil -L -h 'Builtin Object Token' -d "$db" | \
 grep ' *[CcGTPpu]*,[CcGTPpu]*,[CcGTPpu]* *$' | \
 sed -e 's/ *[CcGTPpu]*,[CcGTPpu]*,[CcGTPpu]* *$//' -e 's/\(.*\)/"\1"/' | \
 sort | \
-while read -r nickname; \
- do echo "$nickname" | sed -e "s/Builtin Object Token://g"; \
-eval certutil -d "$db" -L -n "$nickname" -a ; \
-done >> $out
+while read -r nickname; do
+  echo "$nickname" | sed 's/Builtin Object Token://g'
+  echo "$nickname" | xargs -I{} certutil -d "$db" -L -a -n {}
+done >> "$out"

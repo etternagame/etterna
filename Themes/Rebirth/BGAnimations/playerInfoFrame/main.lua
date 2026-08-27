@@ -663,7 +663,7 @@ t[#t+1] = Def.ActorFrame {
                 inputqueue[2] = inputqueue[3]
                 inputqueue[3] = nil
             end
-            -- / / opens the sort menu
+            -- / / opens asset settings
             if inputqueue[1] == "Select" and inputqueue[2] == "Select" then
                 -- open asset settings
                 MESSAGEMAN:Broadcast("PlayerInfoFrameTabSet", {tab = "AssetSettings", prevScreen = "General"})
@@ -1079,13 +1079,12 @@ t[#t+1] = Def.ActorFrame {
                 local scr = SCREENMAN:GetTopScreen()
                 if not params or params and params.event == "DeviceButton_left mouse button" then
                     -- full random
-                    local group = WHEELDATA:GetRandomFolder()
-                    local song = WHEELDATA:GetRandomSongInFolder(group)
+                    local song = WHEELDATA:GetRandomSongReversible(INPUTFILTER:IsShiftPressed())
                     scr:GetChild("WheelFile"):playcommand("FindSong", {song = song})
                 else
                     if openedGroup ~= nil and #openedGroup > 0 then
                         -- random song in group
-                        local song = WHEELDATA:GetRandomSongInFolder(openedGroup)
+                        local song = WHEELDATA:GetRandomSongInFolderReversible(openedGroup, INPUTFILTER:IsShiftPressed())
                         scr:GetChild("WheelFile"):playcommand("FindSong", {song = song, group = openedGroup})
                     else
                         -- when not in any group, get a random group
@@ -1169,13 +1168,12 @@ t[#t+1] = LoadFont("Common Normal") .. {
 -- for fps/compat reasons (this causes random crashes for some people)
 -- but if it is on at first, allow toggling visibility
 if visEnabled then
-    local intervals = {0, 10, 26, 48, 60, 92, 120, 140, 240, 400, 800, 1600, 2600, 3500, 4000}
     t[#t+1] = audioVisualizer:new {
         x = actuals.VisualizerLeftGap,
         y = actuals.Height,
         width = actuals.VisualizerWidth,
-        maxHeight = actuals.Height / 1.8,
-        freqIntervals = audioVisualizer.multiplyIntervals(intervals, 9),
+        maxHeight = actuals.Height / 1.2,
+        barcount = 144,
         color = color("1,1,1,1"),
         onBarUpdate = function(self)
             -- hmm
@@ -1199,6 +1197,29 @@ if visEnabled then
     }
 end
 
+-- a really sneaky way to not actually load any of the subtabs until we need them
+-- this should save a small amount of fps and load time at the cost of a tiny stutter loading them on demand
+local function actorLoader(tabExpected, filename)
+    return Def.Actor {
+        InitCommand = function(self)
+            self.opened = false
+        end,
+        PlayerInfoFrameTabSetMessageCommand = function(self, params)
+            if self.opened then return end
+            if params and params.tab and params.tab == tabExpected then
+                print("Loading PlayerInfoFrameTab for the first time: "..filename)
+                self.opened = true
+                local result = self:GetParent():AddChild(LoadActor(filename))
+                if result ~= nil then
+                    result:playcommand("Begin") -- just in case
+                    result:playcommand("On") -- for buttons
+                    result:playcommand("PlayerInfoFrameTabSet", params)
+                end
+            end
+        end,
+    }
+end
+
 -- below this point we load things that only work on specific screens
 -- buttons that arent meant to function on some screens dont need their intended targets loaded
 -- this saves on load time and fps
@@ -1207,7 +1228,7 @@ if selectable("Exit") then
 end
 
 if selectable("Settings") then
-    t[#t+1] = LoadActor("settings.lua")
+    t[#t+1] = actorLoader("Settings", "settings.lua")
 end
 
 if selectable("Help") then
@@ -1215,7 +1236,7 @@ if selectable("Help") then
 end
 
 if selectable("Downloads") then
-    t[#t+1] = LoadActor("downloads.lua")
+    t[#t+1] = actorLoader("Downloads", "downloads.lua")
 end
 
 if selectable("Random") then
@@ -1223,11 +1244,11 @@ if selectable("Random") then
 end
 
 if selectable("Search") then
-    t[#t+1] = LoadActor("searchfilter.lua")
+    t[#t+1] = actorLoader("Search", "searchfilter.lua")
 end
 
 if selectable("AssetSettings") then
-    t[#t+1] = LoadActor("assetsettings.lua")
+    t[#t+1] = actorLoader("AssetSettings", "assetsettings.lua")
 end
 
 return t

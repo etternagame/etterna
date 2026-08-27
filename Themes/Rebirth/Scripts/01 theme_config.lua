@@ -10,6 +10,8 @@ local defaultConfig = {
         WheelBanners = true, -- true = on, false = off
         WheelSpeed = 15,
         MeasureLines = false,
+        PlayTitleMusic = true,
+        PlaySongSelectBGM = true,
     },
 }
 
@@ -31,4 +33,10 @@ function useVideoBanners()
 end
 function showBanners()
     return themeConfig:get_data().global.ShowBanners
+end
+function playTitleMusic()
+    return themeConfig:get_data().global.PlayTitleMusic
+end
+function playSongSelectBGM()
+    return themeConfig:get_data().global.PlaySongSelectBGM
 end

@@ -31,6 +31,5 @@ if(LINUX)
     # Builder beware: later versions of ffmpeg may break!
     option(WITH_SYSTEM_FFMPEG "Build with the system's FFMPEG, disabled build with bundled's FFMPEG" OFF)
     option(WITH_CRYSTALHD_DISABLED "Build FFMPEG without Crystal HD support." OFF)
-    option(WITH_GLES2 "Build with OpenGL ES 2.0 Support." ON)
     option(WITH_GTK2 "Build with GTK2 Support." ON)
 endif()
