@@ -33,6 +33,7 @@ jobs:
         with:
           repository: etternagame/CrashpadTools
           path: tools
+          ref: 'main'
       
       - name: Install Vulkan SDK
         shell: bash
