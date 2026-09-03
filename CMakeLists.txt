@@ -20,7 +20,7 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
 # PROJECT WIDE SETUP
 project(Etterna
-		VERSION 0.75.0
+		VERSION 0.75.1
         HOMEPAGE_URL https://github.com/etternagame/etterna/
         LANGUAGES C CXX ASM)
 
