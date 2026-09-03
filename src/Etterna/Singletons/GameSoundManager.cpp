@@ -864,7 +864,7 @@ GameSoundManager::PlayOnceFromDir(const std::string& sPath)
 void
 GameSoundManager::PlayOnceFromAnnouncer(const std::string& sPath)
 {
-	Locator::getLogger()->info("Tried to queue PlayOnceFromAnnouncer: '{}'", sPath);
+	Locator::getLogger()->debug("Tried to queue PlayOnceFromAnnouncer: '{}'", sPath);
 	/* Add the path to the g_SoundsToPlayOnceFromAnnouncer queue. */
 	g_Mutex->Lock();
 	g_SoundsToPlayOnceFromAnnouncer.push_back(sPath);
