@@ -535,7 +535,7 @@ ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
 	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 
 	const auto& typeStr = NetworkConstants::ettClientMessageMap[msgType];
-	Locator::getLogger()->info("NSMAN Sending ETTP message type '{}'",
+	Locator::getLogger()->debug("NSMAN Sending ETTP message type '{}'",
 								typeStr);
 
 	d.SetObject();
@@ -600,7 +600,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 										   d["type"].GetString());
 				continue;
 			} else {
-				Locator::getLogger()->info(
+				Locator::getLogger()->debug(
 				  "NSMAN Received ETTP message type '{}'", type->first);
 			}
 
