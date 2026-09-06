@@ -335,6 +335,40 @@ static const Game g_Game_Dance = {
 	TNS_W5, // m_mapW5To
 };
 
+static const Style* g_apGame_Dance4KOnly_Styles[] = { &g_Style_Dance_Single, nullptr };
+
+static const Game g_Game_Dance4KOnly = {
+	"dance-4k-only",              // m_szName
+	g_apGame_Dance4KOnly_Styles,   // m_apStyles
+	false,                         // m_bCountNotesSeparately
+	false,                         // m_bTickHolds
+	false,                         // m_PlayersHaveSeparateStyles
+	{                              // m_InputScheme
+	  "dance",                    // m_szName
+	  NUM_DANCE_BUTTONS,           // m_iButtonsPerController
+	  {
+		// m_szButtonNames
+		{ "Left", GAME_BUTTON_LEFT },
+		{ "Down", GAME_BUTTON_DOWN },
+		{ "Up", GAME_BUTTON_UP },
+		{ "Right", GAME_BUTTON_RIGHT },
+	  },
+	  &g_AutoKeyMappings_Dance },
+	{
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	  { GameButtonType_Step },
+	},
+	TNS_W1, // m_mapW1To
+	TNS_W2, // m_mapW2To
+	TNS_W3, // m_mapW3To
+	TNS_W4, // m_mapW4To
+	TNS_W5, // m_mapW5To
+};
+
 static const Style* g_apGame_Solo_Styles[] = { &g_Style_Solo_Single, nullptr };
 
 static const Game g_Game_Solo = {
@@ -1439,7 +1473,7 @@ static const Game g_Game_Popn = {
 };
 
 static const Game* g_Games[] = {
-	&g_Game_Dance,  &g_Game_Solo, &g_Game_KB7, &g_Game_Pump, &g_Game_Popn,
+	&g_Game_Dance,  &g_Game_Dance4KOnly, &g_Game_Solo, &g_Game_KB7, &g_Game_Pump, &g_Game_Popn,
 	&g_Game_Beat,  &g_Game_Ez2, &g_Game_Maniax, &g_Game_DS3DDX,
 };
 
