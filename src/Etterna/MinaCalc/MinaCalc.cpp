@@ -51,7 +51,8 @@ TotalMaxPoints(const Calc& calc) -> float
 auto
 Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			   const float music_rate,
-			   const float score_goal) -> std::vector<float>
+			   const float score_goal,
+			   const std::string& filename) -> std::vector<float>
 {
 
 	InitializeKeycountLogic();
@@ -66,7 +67,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 ++cur_iteration) {
 
 		const auto skip = InitializeHands(
-		  NoteInfo, music_rate, 0.1F * static_cast<float>(cur_iteration));
+		  NoteInfo, music_rate, 0.1F * static_cast<float>(cur_iteration), filename);
 
 		// if we exceed max_rows_for_single_interval during processing
 		if (skip) {
@@ -537,10 +538,11 @@ Calc::InitializeKeycountLogic() -> void
 auto
 Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
 					  const float music_rate,
-					  const float offset) -> bool
+					  const float offset,
+					  const std::string& filename) -> bool
 {
 	// do we skip this file?
-	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
+	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset, filename))
 		return true;
 
 	// if debug, force params to load and reset pmods and base diffs
@@ -881,7 +883,8 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   const float musicrate,
 		   const float goal,
 		   const unsigned keycount,
-		   Calc* calc) -> std::vector<float>
+		   Calc* calc,
+		   const std::string& filename) -> std::vector<float>
 {
 	if (NoteInfo.size() <= 1) {
 		return dimples_the_all_zero_output;
@@ -890,14 +893,15 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 	calc->debugmode = false;
 	calc->keycount = keycount;
 
-	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
+	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap), filename);
 }
 
 // Wrap difficulty calculation for all standard rates
 auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   const unsigned keycount,
-		   Calc* calc) -> MinaSD
+		   Calc* calc,
+		   const std::string& filename) -> MinaSD
 {
 	MinaSD allrates;
 	const auto lower_rate = 7; // 0.7x
@@ -909,7 +913,7 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		calc->keycount = keycount;
 		for (auto i = lower_rate; i < upper_rate; i++) {
 			allrates.emplace_back(calc->CalcMain(
-			  NoteInfo, static_cast<float>(i) / 10.F, default_score_goal));
+			  NoteInfo, static_cast<float>(i) / 10.F, default_score_goal, filename));
 		}
 	} else {
 		for (auto i = lower_rate; i < upper_rate; i++) {
@@ -928,7 +932,8 @@ MinaSDCalcDebug(
   const unsigned keycount,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
   std::vector<std::string>& debugstrings,
-  Calc& calc)
+  Calc& calc,
+  const std::string& filename)
 {
 	if (NoteInfo.size() <= 1) {
 		return;
@@ -938,7 +943,7 @@ MinaSDCalcDebug(
 	calc.debugmode = true;
 	calc.ssr = true;
 	calc.keycount = keycount;
-	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
+	calc.CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap), filename);
 	make_debug_strings(calc, debugstrings);
 
 	handInfo.emplace_back(calc.debugValues.at(left_hand));

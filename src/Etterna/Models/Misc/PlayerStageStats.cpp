@@ -346,7 +346,7 @@ PlayerStageStats::CalcSSR(float ssrpercent) const
 	const unsigned columnCount =
 	  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
 	return MinaSDCalc(
-	  serializednd, musicrate, ssrpercent, columnCount, SONGMAN->calc.get());
+	  serializednd, musicrate, ssrpercent, columnCount, SONGMAN->calc.get(), steps->GetFilename());
 }
 
 float
