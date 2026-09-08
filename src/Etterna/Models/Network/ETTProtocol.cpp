@@ -431,8 +431,16 @@ ETTProtocol::LaunchSendingThread()
 					send(str);
 				}
 			}
+			const auto didWork = !bufferedSendMessages.empty();
 			bufferedSendMessages.clear();
-			std::this_thread::sleep_for(std::chrono::milliseconds(10));
+			if (didWork) {
+				// dont sleep
+				// we might need to send a lot of stuff
+			} else {
+				// if nothing is happening
+				// dont burn cpu
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
 		}
 	};
 
@@ -458,12 +466,14 @@ ETTProtocol::LaunchPollingThread()
 		while (!stopPolling) {
 			if (NSMAN == nullptr)
 				return;
+
+			CURLcode result;
 			{
 				std::scoped_lock<std::mutex> lock(curlMutex);
 				size_t rlen = 0;
 				const struct curl_ws_frame* meta = nullptr;
 				do {
-					CURLcode result = curl_ws_recv(
+					result = curl_ws_recv(
 					  curl, buffer.data(), INCOMING_BUFFER_SIZE, &rlen, &meta);
 					if (result == CURLE_AGAIN) {
 						// almost always means nothing to us
@@ -486,8 +496,11 @@ ETTProtocol::LaunchPollingThread()
 					}
 				} while (meta != nullptr && meta->bytesleft > 0);
 			}
+			std::fill(buffer.begin(), buffer.end(), '\0');
 
-			if (message.empty()) {
+			if (message.empty() || result == CURLE_AGAIN) {
+				// did nothing. just sit around for a bit
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				continue;
 			}
 
@@ -505,8 +518,8 @@ ETTProtocol::LaunchPollingThread()
 				this->newMessages.push_back(std::move(d));
 				message.clear();
 			}
-			std::fill(buffer.begin(), buffer.end(), '\0');
 
+			// shorter sleep since we did something
 			std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		}
 	};
@@ -522,7 +535,7 @@ ETTProtocol::newMsg(const ETTClientMessageTypes& msgType)
 	rapidjson::Document::AllocatorType& allocator = d.GetAllocator();
 
 	const auto& typeStr = NetworkConstants::ettClientMessageMap[msgType];
-	Locator::getLogger()->info("NSMAN Sending ETTP message type '{}'",
+	Locator::getLogger()->debug("NSMAN Sending ETTP message type '{}'",
 								typeStr);
 
 	d.SetObject();
@@ -587,7 +600,7 @@ ETTProtocol::Update(NetworkSyncManager* n, float fDeltaTime)
 										   d["type"].GetString());
 				continue;
 			} else {
-				Locator::getLogger()->info(
+				Locator::getLogger()->debug(
 				  "NSMAN Received ETTP message type '{}'", type->first);
 			}
 
