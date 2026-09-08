@@ -1,7 +1,7 @@
 # Release Changelog
 
 
-## [0.75.1] - 2026-09-xx - Hotfix
+## [0.75.1] - 2026-09-07 - Hotfix
 
 ### Added
 
