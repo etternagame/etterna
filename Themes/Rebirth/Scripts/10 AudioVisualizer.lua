@@ -1,3 +1,11 @@
+-- The bundled LuaJIT can repeatedly fail to allocate machine code on macOS
+-- ARM64. Interpret this module's hot audio loops to avoid stalling the game
+-- with compilation retries; other scripts keep their existing JIT settings.
+-- https://github.com/LuaJIT/LuaJIT/issues/1280
+if jit and jit.os == "OSX" and jit.arch == "arm64" then
+    jit.off(true, true)
+end
+
 local log = math.log
 local concat = function(...)
     local arg = {...}
