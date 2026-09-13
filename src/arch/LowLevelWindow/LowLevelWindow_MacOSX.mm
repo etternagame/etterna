@@ -6,6 +6,7 @@
 #import "RageUtil/Graphics/RageDisplay_OGL_Helpers.h"
 #include "Core/Services/Locator.hpp"
 #include "Etterna/Globals/GameLoop.h"
+#include <chrono>
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/OpenGL.h>
@@ -21,9 +22,40 @@ extern "C" {
 static const unsigned int g_iStyleMask = NSTitledWindowMask | NSClosableWindowMask |
 					 NSMiniaturizableWindowMask | NSResizableWindowMask;
 static bool g_bResized;
-static int g_iWidth;
-static int g_iHeight;
 static RageMutex g_ResizeLock( "Window resize lock." );
+
+// AppKit owns window geometry. Wait at a frame boundary so it cannot mutate
+// the OpenGL context while the render thread is still using it.
+static void RunOnMainThreadAndWait(dispatch_block_t block)
+{
+	if ([NSThread isMainThread])
+		block();
+	else
+		dispatch_sync(dispatch_get_main_queue(), block);
+}
+
+static NSSize GetDrawableSize(NSView *view)
+{
+	const NSRect bounds = [view bounds];
+	// Use backing pixels only if the view opted into a Retina GL surface.
+	return [view wantsBestResolutionOpenGLSurface] ?
+		[view convertRectToBacking:bounds].size : bounds.size;
+}
+
+static int GetWindowRefreshRate(NSWindow *window)
+{
+	NSScreen *screen = [window screen] ?: [NSScreen mainScreen];
+	NSNumber *screenNumber = [[screen deviceDescription] objectForKey:@"NSScreenNumber"];
+	CGDisplayModeRef mode = CGDisplayCopyDisplayMode([screenNumber unsignedIntValue]);
+	double rate = mode ? CGDisplayModeGetRefreshRate(mode) : 0.0;
+	if (mode)
+		CGDisplayModeRelease(mode);
+	if (rate <= 0.0) {
+		if (@available(macOS 12.0, *))
+			rate = [screen maximumFramesPerSecond];
+	}
+	return rate > 0.0 ? int(lround(rate)) : 60;
+}
 
 // Simple helper class
 class AutoreleasePool
@@ -49,8 +81,11 @@ public:
 - (void) windowDidResignKey:(NSNotification *)aNotification;
 - (void) windowWillClose:(NSNotification *)aNotification;
 - (void) windowDidResize:(NSNotification *)aNotification;
-// XXX maybe use whichever screen contains the window? Hard for me to test though.
-//- (void) windowDidChangeScreen:(NSNotification *)aNotification;
+- (void) windowDidMove:(NSNotification *)aNotification;
+- (void) windowDidChangeScreen:(NSNotification *)aNotification;
+- (void) windowDidChangeBackingProperties:(NSNotification *)aNotification;
+- (void) windowDidEnterFullScreen:(NSNotification *)aNotification;
+- (void) windowDidExitFullScreen:(NSNotification *)aNotification;
 
 // Helper methods to perform actions on the main thread.
 - (void) setupWindow;
@@ -77,13 +112,33 @@ public:
 
 - (void) windowDidResize:(NSNotification *)aNotification
 {
-	id window = [aNotification object];
-	NSSize size = [NSWindow contentRectForFrameRect:[window frame] styleMask:g_iStyleMask].size;
-	
 	LockMut( g_ResizeLock );
 	g_bResized = true;
-	g_iWidth = int( size.width );
-	g_iHeight = int( size.height );
+}
+
+- (void) windowDidMove:(NSNotification *)notification
+{
+	[self windowDidResize:notification];
+}
+
+- (void) windowDidChangeScreen:(NSNotification *)notification
+{
+	[self windowDidResize:notification];
+}
+
+- (void) windowDidChangeBackingProperties:(NSNotification *)notification
+{
+	[self windowDidResize:notification];
+}
+
+- (void) windowDidEnterFullScreen:(NSNotification *)notification
+{
+	[self windowDidResize:notification];
+}
+
+- (void) windowDidExitFullScreen:(NSNotification *)notification
+{
+	[self windowDidResize:notification];
 }
 
 - (void) setupWindow
@@ -334,6 +389,7 @@ void *LowLevelWindow_MacOSX::GetProcAddress( const std::string &s )
 
 std::string LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool& newDeviceOut )
 {
+	newDeviceOut = false;
 	// Always set these params.
 	m_CurrentParams.bSmoothLines = p.bSmoothLines;
 	m_CurrentParams.bTrilinearFiltering = p.bTrilinearFiltering;
@@ -382,16 +438,22 @@ std::string LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool&
 			}
 		}
 		
-		[m_WindowDelegate performSelectorOnMainThread:@selector(setParams:) withObject:[NSValue valueWithPointer:&p] waitUntilDone:YES];
-
-		dispatch_async(dispatch_get_main_queue(), ^{
-            [m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
-			[m_Context update];
-		});
+		if (bChangeMode) {
+			[m_WindowDelegate performSelectorOnMainThread:@selector(setParams:) withObject:[NSValue valueWithPointer:&p] waitUntilDone:YES];
+			RunOnMainThreadAndWait(^{
+				[m_Context setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+				[m_Context update];
+			});
+		}
 		[m_Context makeCurrentContext];
 		m_CurrentParams.windowed = true;
+		if (bChangeVsync) {
+			GLint swap = p.vsync ? 1 : 0;
+			[m_Context setValues:&swap forParameter:NSOpenGLCPSwapInterval];
+			[m_BGContext setValues:&swap forParameter:NSOpenGLCPSwapInterval];
+		}
+		m_CurrentParams.vsync = p.vsync;
 		SetActualParamsFromMode( CGDisplayCurrentMode(kCGDirectMainDisplay) );
-		m_CurrentParams.vsync = p.vsync; // hack
 
 		return std::string();
 	}
@@ -434,6 +496,7 @@ std::string LowLevelWindow_MacOSX::TryVideoMode( const VideoModeParams& p, bool&
 	{
 		GLint swap = p.vsync ? 1 : 0;
 		[m_Context setValues:&swap forParameter:NSOpenGLCPSwapInterval];
+		[m_BGContext setValues:&swap forParameter:NSOpenGLCPSwapInterval];
 		m_CurrentParams.vsync = p.vsync;
 	}
 	
@@ -547,10 +610,16 @@ void LowLevelWindow_MacOSX::SetActualParamsFromMode( CFDictionaryRef mode )
 	}
 	else
 	{
-		NSSize size = [[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView] frame].size;
-		
+		__block NSSize size;
+		__block int refreshRate;
+		RunOnMainThreadAndWait(^{
+			NSWindow *window = ((SMWindowDelegate *)m_WindowDelegate)->m_Window;
+			size = GetDrawableSize([window contentView]);
+			refreshRate = GetWindowRefreshRate(window);
+		});
 		m_CurrentParams.width = int(size.width);
 		m_CurrentParams.height = int(size.height);
+		m_CurrentParams.rate = refreshRate;
 	}
 
 	m_CurrentParams.bpp = GetDisplayBitsPerPixel( kCGDirectMainDisplay );
@@ -625,24 +694,45 @@ void LowLevelWindow_MacOSX::SwapBuffers()
 
 void LowLevelWindow_MacOSX::Update()
 {
-	// Keep the system from sleeping or the screen saver from activating.
-	UpdateSystemActivity( IdleActivity );
+	// Refresh the idle timer periodically instead of making a system call on
+	// every frame (potentially hundreds or thousands of calls per second).
+	static auto nextActivityUpdate = std::chrono::steady_clock::time_point{};
+	const auto now = std::chrono::steady_clock::now();
+	if (now >= nextActivityUpdate) {
+		UpdateSystemActivity( IdleActivity );
+		nextActivityUpdate = now + std::chrono::seconds(30);
+	}
 	
 	LockMutex lock( g_ResizeLock );
 	if( likely(!g_bResized) )
 		return;
 	g_bResized = false;
-	if( m_CurrentParams.width == g_iWidth && m_CurrentParams.height == g_iHeight )
+	lock.Unlock();
+	if (!m_CurrentParams.windowed)
 		return;
-	m_CurrentParams.width = g_iWidth;
-	m_CurrentParams.height = g_iHeight;
-	m_ActualParams.windowWidth = g_iWidth;
-	m_ActualParams.windowHeight = g_iHeight;
-	lock.Unlock(); // Unlock before calling ResolutionChanged().
-	dispatch_async(dispatch_get_main_queue(), ^{
-	  [m_Context update];
+
+	POOL;
+	NSOpenGLContext *context = [NSOpenGLContext currentContext];
+	__block NSSize size;
+	__block int rate;
+	RunOnMainThreadAndWait(^{
+		NSWindow *window = ((SMWindowDelegate *)m_WindowDelegate)->m_Window;
+		// Native full screen changes the style mask and title-bar insets.
+		// Read the content view instead of subtracting a fixed window border.
+		size = GetDrawableSize([window contentView]);
+		rate = GetWindowRefreshRate(window);
+		[context update];
 	});
-	if (DISPLAY != nullptr)
+	if (size.width <= 0 || size.height <= 0)
+		return;
+
+	const bool sizeChanged = m_ActualParams.windowWidth != int(size.width) ||
+		m_ActualParams.windowHeight != int(size.height);
+	m_CurrentParams.width = int(size.width);
+	m_CurrentParams.height = int(size.height);
+	m_CurrentParams.rate = rate;
+	m_ActualParams = ActualVideoModeParams(m_CurrentParams);
+	if (sizeChanged && DISPLAY != nullptr)
 		DISPLAY->ResolutionChanged();
 }
 
@@ -654,7 +744,10 @@ RenderTarget *LowLevelWindow_MacOSX::CreateRenderTarget()
 void LowLevelWindow_MacOSX::BeginConcurrentRendering()
 {
 	if( m_CurrentParams.windowed )
-		[m_BGContext setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+		RunOnMainThreadAndWait(^{
+			[m_BGContext setView:[((SMWindowDelegate *)m_WindowDelegate)->m_Window contentView]];
+			[m_BGContext update];
+		});
 	else
 		[m_BGContext setFullScreen];
 	[m_BGContext makeCurrentContext];

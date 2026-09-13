@@ -790,11 +790,9 @@ RageDisplay_Legacy::UseOffscreenRenderTarget()
 void
 RageDisplay_Legacy::ResolutionChanged()
 {
-	// LOG->Warn( "RageDisplay_Legacy::ResolutionChanged" );
-
-	/* Clear any junk that's in the framebuffer. */
-	if (BeginFrame())
-		EndFrame();
+	// The next BeginFrame clears the resized drawable. Rendering here would
+	// nest BeginFrame/EndFrame inside the window update and present a blank
+	// frame (including an extra frame-limit/vsync wait) on every resize.
 
 	RageDisplay::ResolutionChanged();
 
@@ -870,6 +868,10 @@ RageDisplay_Legacy::GetMaxTextureSize() const
 bool
 RageDisplay_Legacy::BeginFrame()
 {
+#if defined(__APPLE__)
+	// Apply AppKit drawable updates before setting the viewport or drawing.
+	g_pWind->Update();
+#endif
 	/* We do this in here, rather than ResolutionChanged, or we won't update the
 	 * viewport for the concurrent rendering context. */
 
@@ -923,7 +925,9 @@ RageDisplay_Legacy::EndFrame()
 
 	FrameLimitAfterVsync((*GetActualVideoModeParams()).rate);
 
+#if !defined(__APPLE__)
 	g_pWind->Update();
+#endif
 
 	RageDisplay::EndFrame();
 }
