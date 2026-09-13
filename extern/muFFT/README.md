@@ -19,7 +19,7 @@ It focuses particularly on linear convolution for audio applications and being o
    The complex/real convolution is particularly useful for filtering interleaved stereo audio.
  - Designed and optimized for SIMD architectures,
    with optimizations for SSE, SSE3 and AVX-256 currently implemented.
-   ARMv7 and ARMv8 NEON optimizations are expected to be implemented soon.
+   Etterna also enables AArch64 NEON through the bundled sse2neon library.
  - Radix-2, radix-4 and radix-8 butterfly implementations.
  - Input and output does not have to be reordered, as is sometimes the case with FFT algorithms.
    muFFT implements the Stockham autosort algorithm to avoid any explicit permutation of FFT coefficients.
@@ -29,6 +29,45 @@ It focuses particularly on linear convolution for audio applications and being o
 ## Building
 
 muFFT is built with straight CMake. Use `add_subdirectory` in your project.
+
+### Apple Silicon / AArch64 in Etterna
+
+Native ARM64 builds enable `MUFFT_SIMD_NEON` by default. The SSE3 kernels
+are compiled to NEON with [sse2neon](https://github.com/DLTcollab/sse2neon),
+which is already bundled with Etterna. No x86 instructions or Rosetta are
+used by this path. This accelerates the FFTs used by the playback spectrum
+callback and the high-quality audio speed changer.
+
+The dispatch table retains the SSE3 kernel names and feature bit internally.
+`MUFFT_FLAG_CPU_NO_SIMD` and `MUFFT_FLAG_CPU_NO_SSE3` select the scalar fallback
+on AArch64. Configure with `-DMUFFT_SIMD_NEON=OFF` to omit the NEON kernels
+entirely. The existing x86 SSE/AVX implementation remains available for Intel
+builds. Standalone builds locate the header in the neighboring sse2neon
+directory; other layouts can set `MUFFT_SSE2NEON_INCLUDE_DIR` explicitly.
+
+To verify and benchmark the audio FFTs from the Etterna repository root
+(tested with CMake 3.31 and AppleClang):
+
+```sh
+cmake -S extern/muFFT -B build/fft-arm64 \
+  -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=arm64 \
+  -DMUFFT_BUILD_REGRESSION_TESTS=ON
+cmake --build build/fft-arm64 --parallel
+ctest --test-dir build/fft-arm64 --output-on-failure
+./build/fft-arm64/mufft-regression --benchmark
+```
+
+The regression executable needs no FFTW. It compares SIMD and scalar results
+for real and complex transforms, both directions, zero padding, full spectra,
+2D transforms and frequency-domain convolution. Small complex transforms also
+use an independent double-precision DFT, and real transforms must round-trip.
+The benchmark reports median CPU time over seven alternating scalar/SIMD trials,
+with plan creation and allocation outside the timed region.
+
+For memory and undefined-behavior checks, use a separate build directory with
+`-DCMAKE_C_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"`.
+Benchmark the Release build without sanitizers. These measurements describe
+FFT execution time, not overall game frame rate or audio latency.
 
 muFFT uses the C99 and C++ ABI for complex numbers, interleaved real and imaginary samples, i.e.:
 
@@ -109,4 +148,3 @@ The benchmark for 1D tests various things:
 The FFTW3 library must be present on your system via pkg-config when building this.
 Note that FFTW3 (as of writing) is licensed under GPLv2+.
 The `muFFT-bench` binary falls under licensing requirements of GPLv2 as per FFTW3 license.
-

@@ -25,7 +25,11 @@
 #include <immintrin.h>
 #define MANGLE(x) x ## _avx
 #elif __SSE3__
+#ifdef MUFFT_HAVE_NEON
+#include "sse2neon.h"
+#else
 #include <pmmintrin.h>
+#endif
 #define MANGLE(x) x ## _sse3
 #elif __SSE__
 #include <xmmintrin.h>

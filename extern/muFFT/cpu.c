@@ -113,10 +113,17 @@ unsigned mufft_get_cpu_flags(void)
     return cpu;
 }
 
+#elif defined(MUFFT_HAVE_NEON)
+unsigned mufft_get_cpu_flags(void)
+{
+    // AArch64 has NEON. These are the SSE3 kernels compiled through sse2neon,
+    // so reuse their dispatch bit and preserve MUFFT_FLAG_CPU_NO_SIMD.
+    return MUFFT_FLAG_CPU_SSE3;
+}
+
 #else
 unsigned mufft_get_cpu_flags(void)
 {
     return 0;
 }
 #endif
-
