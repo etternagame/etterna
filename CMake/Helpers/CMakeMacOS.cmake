@@ -8,7 +8,17 @@ if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
  endif()
 set_target_properties(Etterna PROPERTIES COMPILE_DEFINITIONS "${cdefs}")
 
-set_target_properties(Etterna PROPERTIES MACOSX_BUNDLE TRUE)
+# Give the app a stable identity for Launch Services and macOS privacy settings.
+# Input Monitoring must be able to identify the app using the HID keyboard backend.
+set_target_properties(Etterna PROPERTIES
+  MACOSX_BUNDLE TRUE
+  MACOSX_BUNDLE_GUI_IDENTIFIER "org.etterna.Etterna"
+  MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}"
+  MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+  MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+  MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} ${PROJECT_VERSION}"
+  MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} ${PROJECT_VERSION}"
+)
 
 if(NOT CMAKE_HOST_SYSTEM_PROCESSOR STREQUAL "arm64")
   #TODO: Do we even need these on x86_64?
