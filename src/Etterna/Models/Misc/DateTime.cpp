@@ -18,56 +18,6 @@ DateTime::Init()
 	ZERO(*this);
 }
 
-bool
-DateTime::operator<(const DateTime& other) const
-{
-#define COMPARE(v)                                                             \
-	if ((v) != other.v)                                                        \
-		return (v) < other.v;
-	COMPARE(tm_year);
-	COMPARE(tm_mon);
-	COMPARE(tm_mday);
-	COMPARE(tm_hour);
-	COMPARE(tm_min);
-	COMPARE(tm_sec);
-#undef COMPARE
-	// they're equal
-	return false;
-}
-
-bool
-DateTime::operator==(const DateTime& other) const
-{
-#define COMPARE(x)                                                             \
-	if ((x) != other.x)                                                        \
-		return false;
-	COMPARE(tm_year);
-	COMPARE(tm_mon);
-	COMPARE(tm_mday);
-	COMPARE(tm_hour);
-	COMPARE(tm_min);
-	COMPARE(tm_sec);
-#undef COMPARE
-	return true;
-}
-
-bool
-DateTime::operator>(const DateTime& other) const
-{
-#define COMPARE(v)                                                             \
-	if ((v) != other.v)                                                        \
-		return (v) > other.v;
-	COMPARE(tm_year);
-	COMPARE(tm_mon);
-	COMPARE(tm_mday);
-	COMPARE(tm_hour);
-	COMPARE(tm_min);
-	COMPARE(tm_sec);
-#undef COMPARE
-	// they're equal
-	return false;
-}
-
 DateTime
 DateTime::GetNowDateTime()
 {
@@ -114,7 +64,13 @@ DateTime::StripTime()
 std::string
 DateTime::GetString() const
 {
-	auto s = ssprintf("%d-%02d-%02d %02d:%02d:%02d", tm_year + 1900, tm_mon + 1, tm_mday, tm_hour, tm_min, tm_sec);
+	auto s = ssprintf("%d-%02d-%02d %02d:%02d:%02d",
+					  tm_year + 1900,
+					  tm_mon + 1,
+					  tm_mday,
+					  tm_hour,
+					  tm_min,
+					  tm_sec);
 	return s;
 }
 

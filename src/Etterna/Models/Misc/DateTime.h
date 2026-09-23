@@ -2,6 +2,7 @@
 #define DATE_TIME_H
 
 #include "EnumHelper.h"
+#include <compare>
 #include <ctime>
 
 auto
@@ -116,50 +117,29 @@ struct DateTime
 	void Init();
 
 	/**
-	 * @brief Determine if this DateTime is less than some other time.
-	 * @param other the other DateTime to check.
-	 * @return true if this is less than the other time, or false otherwise. */
-	auto operator<(const DateTime& other) const -> bool;
-	/**
-	 * @brief Determine if this DateTime is greater than some other time.
-	 * @param other the other DateTime to check.
-	 * @return true if this is greater than the other time, or false otherwise.
-	 */
-	auto operator>(const DateTime& other) const -> bool;
-	/**
 	 * @brief Determine if this DateTime is equal to some other time.
 	 * @param other the other DateTime to check.
 	 * @return true if this is equal to the other time, or false otherwise. */
-	auto operator==(const DateTime& other) const -> bool;
-	/**
-	 * @brief Determine if this DateTime is not equal to some other time.
-	 * @param other the other DateTime to check.
-	 * @return true if this is not equal to the other time, or false otherwise.
-	 */
-	auto operator!=(const DateTime& other) const -> bool
-	{
-		return !operator==(other);
-	}
-	/**
-	 * @brief Determine if this DateTime is less than or equal to some other
-	 * time.
-	 * @param other the other DateTime to check.
-	 * @return true if this is less than or equal to the other time, or false
-	 * otherwise. */
-	auto operator<=(const DateTime& other) const -> bool
-	{
-		return !operator>(other);
-	}
+	auto operator==(const DateTime& other) const -> bool = default;
 
 	/**
-	 * @brief Determine if this DateTime is greater than or equal to some other
-	 * time.
-	 * @param other the other DateTime to check.
-	 * @return true if this is greater than or equal to the other time, or false
-	 * otherwise. */
-	auto operator>=(const DateTime& other) const -> bool
+	 * @brief Chronologically compares this DateTime with another.
+	 * @param other The DateTime to compare against.
+	 * @return A std::strong_ordering indicating whether this DateTime is
+	 * earlier, equivalent, or later. */
+	auto operator<=>(const DateTime& other) const -> std::strong_ordering
 	{
-		return !operator<(other);
+		if (auto cmp = tm_year <=> other.tm_year; cmp != 0)
+			return cmp;
+		if (auto cmp = tm_mon <=> other.tm_mon; cmp != 0)
+			return cmp;
+		if (auto cmp = tm_mday <=> other.tm_mday; cmp != 0)
+			return cmp;
+		if (auto cmp = tm_hour <=> other.tm_hour; cmp != 0)
+			return cmp;
+		if (auto cmp = tm_min <=> other.tm_min; cmp != 0)
+			return cmp;
+		return tm_sec <=> other.tm_sec;
 	}
 
 	/**
