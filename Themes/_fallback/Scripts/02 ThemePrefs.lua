@@ -33,7 +33,7 @@ local PrefsTable = nil
 -- Gets the name of the current theme using themeInfo
 -- if available and the ThemeManager name otherwise.
 local function GetThemeName()
-	return themeInfo and themeInfo.Name or THEME:GetThemeDisplayName()
+	return ((themeInfo and themeInfo.Name) or (THEMEINFO and THEMEINFO.Name)) or THEME:GetThemeDisplayName()
 end
 
 -- Given a preference name, returns the table it's in. Checks the current
