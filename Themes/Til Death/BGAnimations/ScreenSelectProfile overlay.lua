@@ -56,7 +56,11 @@ local function GetLocalProfiles()
 				end,
 				BeginCommand = function(self)
 					local numSongsPlayed = profile:GetNumTotalSongsPlayed()
-					self:settextf("%i %s", numSongsPlayed, translated_info["SongPlayed"])
+					if numSongsPlayed == 1 then
+						self:settextf("%i %s", numSongsPlayed, translated_info["SongPlayed"])
+					else
+						self:settextf("%i %s", numSongsPlayed, translated_info["SongsPlayed"])
+					end
 				end
 			},
 			Def.Sprite {
