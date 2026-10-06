@@ -5399,6 +5399,7 @@ DownloadManager::RequestTop25(Skillset ss)
 					tmp.chartkey = getJsonString(chart, "key");
 					tmp.scorekey = getJsonString(hs, "key");
 					tmp.rate = getJsonFloat(hs, "rate");
+					tmp.modifiers = getJsonString(hs, "modifiers");
 					tmp.difficulty =
 					  StringToDifficulty(getJsonString(chart, "difficulty"));
 
@@ -6668,6 +6669,8 @@ class LunaDownloadManager : public Luna<DownloadManager>
 		lua_setfield(L, -2, "difficulty");
 		LuaHelpers::Push(L, PlayerStageStats::GetGrade(onlineScore.wifeScore));
 		lua_setfield(L, -2, "grade");
+		lua_pushstring(L, onlineScore.modifiers.c_str());
+		lua_setfield(L, -2, "modifiers");
 		return 1;
 	}
 	static int GetTopChartScoreCount(T* p, lua_State* L)

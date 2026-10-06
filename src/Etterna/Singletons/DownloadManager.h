@@ -423,6 +423,7 @@ class OnlineTopScore
 	std::string scorekey;
 	Difficulty difficulty;
 	std::string steps;
+	std::string modifiers;
 };
 struct OnlineHighScore : HighScore
 {
