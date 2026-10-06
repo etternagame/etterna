@@ -89,7 +89,8 @@ class Calc
 	*/
 	auto CalcMain(const std::vector<NoteInfo>& NoteInfo,
 				  float music_rate,
-				  float score_goal) -> std::vector<float>;
+				  float score_goal,
+				  const std::string& filename) -> std::vector<float>;
 
 	/// For debug output. Should only ever be true at music select. 
 	bool debugmode = false;
@@ -125,7 +126,8 @@ class Calc
 	auto InitializeHands(
 	  const std::vector<NoteInfo>& NoteInfo,
 	  float music_rate,
-	  float offset) -> bool;
+	  float offset,
+	  const std::string& filename) -> bool;
 
 	/** Returns estimate of player skill needed to achieve score goal on chart.
 	* The player_skill parameter gives an initial guess and floor for player
@@ -328,25 +330,31 @@ class Calc
 /// <param name="goal">Given score value percentage - 1.0 is 100%</param>
 /// <param name="calc">Pointer to the Calc instance to use
 /// if using threads or a centralized Calc.</param>
+/// <param name="filename">The filename of the chart, used for displaying
+// error messages if the file is invalid</param>
 /// <returns>A list of the resulting skillset values.</returns>
 MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float musicrate,
 		   float goal,
 		   const unsigned keycount,
-		   Calc* calc) -> std::vector<float>;
+		   Calc* calc,
+		   const std::string& filename) -> std::vector<float>;
 /// <summary>
 /// Calc driving function used for generating skillset values for caching.
 /// </summary>
 /// <param name="NoteInfo">Output from NoteData::SerializeNoteData2</param>
 /// <param name="calc">Pointer to the Calc instance to use
 /// if using threads or a centralized Calc.</param>
+/// <param name="filename">The filename of the chart, used for displaying
+// error messages if the file is invalid</param>
 /// <returns>MinaSD, a list of the resulting skillset values,
 /// for every rate.</returns>
 MINACALC_API auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   const unsigned keycount,
-		   Calc* calc) -> MinaSD;
+		   Calc* calc,
+		   const std::string& filename) -> MinaSD;
 /// <summary>
 /// Calc driving function used for generating skillset values for debugging.
 /// Works the same as the score-based MinaSDCalc, but runs debug mode.
@@ -359,6 +367,8 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 /// representation of the notes in every interval</param>
 /// <param name="calc">Pointer to the calc instance to use
 /// if using threads or a centralized Calc.</param>
+/// <param name="filename">The filename of the chart, used for displaying
+// error messages if the file is invalid</param>
 MINACALC_API void
 MinaSDCalcDebug(
   const std::vector<NoteInfo>& NoteInfo,
@@ -367,7 +377,8 @@ MinaSDCalcDebug(
   const unsigned keycount,
   std::vector<std::vector<std::vector<std::vector<float>>>>& handInfo,
   std::vector<std::string>& debugstrings,
-  Calc& calc);
+  Calc& calc,
+  const std::string& filename);
 /// External access to the internally defined calculator version number.
 MINACALC_API auto
 GetCalcVersion() -> int;
