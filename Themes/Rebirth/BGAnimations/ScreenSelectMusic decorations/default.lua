@@ -8,6 +8,12 @@ local hiddenX = SCREEN_WIDTH
 local widthRatio = 780 / 1920
 local widthActual = widthRatio * SCREEN_WIDTH
 
+-- reset customize gameplay here
+-- couldnt think of a really good place to put it instead
+playerConfig:get_data().CustomizeGameplay = false
+playerConfig:set_dirty()
+playerConfig:save()
+
 t[#t+1] = LoadActor("wheel")
 
 t[#t+1] = Def.ActorFrame {
