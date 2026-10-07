@@ -1416,7 +1416,10 @@ local function createList()
             local txt = self:GetChild("Text")
             local bg = self:GetChild("BG")
 
-            if chosenSkillset == "Overall" or not DLMAN:IsLoggedIn() then
+            -- checks for chosenSkillset = "Recent" or "TopPercent" to prevent this from
+            -- becoming visible when UpdateLoginStatusCommand is run
+            -- because that can run at any point
+            if chosenSkillset == "Overall" or chosenSkillset == "Recent" or chosenSkillset == "TopPercent" or not DLMAN:IsLoggedIn() then
                 self:diffusealpha(0)
             else
                 self:diffusealpha(1)
