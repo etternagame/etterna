@@ -306,13 +306,14 @@ local function createList()
                 -- index -2 is the top percent index
                 isLocal = true
                 SCOREMAN:SortSSRsByPercentForGame()
-                chosenSkillset = "Stream"
+                chosenSkillset = "TopPercent"
                 scores = {}
-                local sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(1, chosenSkillset)
+                local sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(1, "Overall")
                 while sortedScore ~= nil and #scores < upperBoundOfScoreCount do
                     scores[#scores+1] = sortedScore
-                    sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(#scores + 1, chosenSkillset)
+                    sortedScore = SCOREMAN:GetTopSSRHighScoreForGame(#scores + 1, "Overall")
                 end
+                return
             end
 
             if isLocal then
@@ -346,7 +347,7 @@ local function createList()
                 self:GetChild("PageText"):diffusealpha(0)
             else
                 self:GetChild("OverallPage"):smooth(0.2):diffusealpha(0):z(-overallPageZBump)
-                if DLMAN:IsLoggedIn() and chosenSkillset ~= "Recent" then
+                if DLMAN:IsLoggedIn() and chosenSkillset ~= "Recent" and chosenSkillset ~= "TopPercent" then
                     self:GetChild("OnlineOfflineToggle"):smooth(0.2):diffusealpha(1)
                 end
                 self:GetChild("PageText"):smooth(0.2):diffusealpha(1)
@@ -404,7 +405,7 @@ local function createList()
                     if score ~= nil then
                         local ssr = 0
                         if isLocal then
-                            if chosenSkillset == "Recent" then
+                            if chosenSkillset == "Recent" or chosenSkillset == "TopPercent" then
                                 ssr = score:GetSkillsetSSR("Overall")
                             else
                                 ssr = score:GetSkillsetSSR(chosenSkillset)
