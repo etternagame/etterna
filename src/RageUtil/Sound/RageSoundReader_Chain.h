@@ -37,12 +37,12 @@ class RageSoundReader_Chain : public RageSoundReader
 
 	int GetLength() const override;
 	int GetLength_Fast() const override;
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuf, int iFrames) override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	int GetSampleRate() const override { return m_iActualSampleRate; }
 	unsigned GetNumChannels() const override { return m_iChannels; }
 	bool SetProperty(const std::string& sProperty, float fValue) override;
-	int GetNextSourceFrame() const override;
+	int64_t GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override;
 	std::string GetError() const override { return ""; }
 
@@ -75,7 +75,7 @@ class RageSoundReader_Chain : public RageSoundReader
 	std::vector<Sound> m_aSounds;
 
 	/* Read state: */
-	int m_iCurrentFrame;
+	int64_t m_iCurrentFrame;
 	unsigned m_iNextSound;
 	std::vector<Sound*> m_apActiveSounds;
 

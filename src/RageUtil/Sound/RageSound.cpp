@@ -28,6 +28,7 @@
 #include "RageSoundUtil.h"
 #include "Etterna/Models/Lua/LuaReference.h"
 #include "RageUtil/Utils/RageUtil.h"
+
 #include "RageUtil/Graphics/RageDisplay.h"
 #include "RageSoundReader_Extend.h"
 #include "RageSoundReader_FileReader.h"
@@ -161,8 +162,8 @@ class RageSoundReader_Silence : public RageSoundReader
   public:
 	int GetLength() const override { return 0; }
 	int GetLength_Fast() const override { return 0; }
-	int SetPosition(int iFrame) override { return 1; }
-	int Read(float* pBuf, int iFrames) override
+	int SetPosition(int64_t iFrame) override { return 1; }
+	int64_t Read(float* pBuf, int64_t iFrames) override
 	{
 		return RageSoundReader::END_OF_FILE;
 	}
@@ -172,7 +173,7 @@ class RageSoundReader_Silence : public RageSoundReader
 	}
 	int GetSampleRate() const override { return 44100; }
 	unsigned GetNumChannels() const override { return 1; }
-	int GetNextSourceFrame() const override { return 0; }
+	int64_t GetNextSourceFrame() const override { return 0; }
 	float GetStreamToSourceRatio() const override { return 1.0f; }
 	std::string GetError() const override { return ""; }
 };
@@ -293,7 +294,7 @@ RageSound::LoadSoundReader(RageSoundReader* pSound)
  */
 int
 RageSound::GetDataToPlay(float* pBuffer,
-						 int iFrames,
+						 int64_t iFrames,
 						 int64_t& iStreamFrame,
 						 int& iFramesStored)
 {
@@ -309,7 +310,7 @@ RageSound::GetDataToPlay(float* pBuffer,
 
 	while (iFrames > 0) {
 		auto fRate = 1.0f;
-		int iSourceFrame;
+		int64_t iSourceFrame;
 
 		/* Read data from our source. */
 		auto iGotFrames = m_pSource->RetriedRead(
@@ -452,9 +453,9 @@ RageSound::StartPlaying(float fGiven, bool forcedTime)
 
 	// Move to the start position or the given time.
 	if (forcedTime)
-		SetPositionFrames(lround(fGiven * samplerate()));
+		SetPositionFrames(llround(fGiven * samplerate()));
 	else
-		SetPositionFrames(lround(m_Param.m_StartSecond * samplerate()));
+		SetPositionFrames(llround(m_Param.m_StartSecond * samplerate()));
 
 	/* If m_StartTime is in the past, then we probably set a start time but took
 	 * too long loading.  We don't want that; log it, since it can be unobvious.
@@ -536,7 +537,7 @@ RageSound::SoundIsFinishedPlaying()
 	/* Lock the mutex after calling SOUNDMAN->GetPosition().  We must not make
 	 * driver calls with our mutex locked (driver mutex < sound mutex). */
 	if (!m_HardwareToStreamMap.IsEmpty() && !m_StreamToSourceMap.IsEmpty())
-		m_iStoppedSourceFrame = static_cast<int>(
+		m_iStoppedSourceFrame = static_cast<int64_t>(
 		  GetSourceFrameFromHardwareFrame(iCurrentHardwareFrame));
 
 	//	LOG->Trace("set playing false for %p (SoundIsFinishedPlaying) (%s)",
@@ -630,7 +631,7 @@ RageSound::GetLengthSeconds()
 	return iLength / 1000.f; // ms -> secs
 }
 
-int
+int64_t
 RageSound::GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 										   bool* bApproximate) const
 {
@@ -638,13 +639,14 @@ RageSound::GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 		return 0;
 
 	bool bApprox;
-	auto iStreamFrame = m_HardwareToStreamMap.Search(iHardwareFrame, &bApprox);
+
+	int64_t iStreamFrame = m_HardwareToStreamMap.Search(iHardwareFrame, &bApprox);
 	if ((bApproximate != nullptr) && bApprox)
 		*bApproximate = true;
-	auto iSourceFrame = m_StreamToSourceMap.Search(iStreamFrame, &bApprox);
+	int64_t iSourceFrame = m_StreamToSourceMap.Search(iStreamFrame, &bApprox);
 	if ((bApproximate != nullptr) && bApprox)
 		*bApproximate = true;
-	return static_cast<int>(iSourceFrame);
+	return iSourceFrame;
 }
 
 /* If non-NULL, approximate is set to true if the returned time is approximated
@@ -656,7 +658,7 @@ RageSound::GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
  * grabbing the timestamp (to lock SOUNDMAN); we might lose the scheduler after
  * grabbing it, when releasing SOUNDMAN.
  */
-float
+double
 RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 {
 	/* Get our current hardware position. */
@@ -671,23 +673,23 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 
 	/* If we're not playing, just report the static position. */
 	if (!IsPlaying())
-		return m_iStoppedSourceFrame / static_cast<float>(samplerate());
+		return m_iStoppedSourceFrame / static_cast<double>(samplerate());
 
 	/* If we don't yet have any position data, CommitPlayingPosition hasn't yet
 	 * been called at all, so guess what we think the real time is. */
 	if (m_HardwareToStreamMap.IsEmpty() || m_StreamToSourceMap.IsEmpty()) {
 		if (bApproximate != nullptr)
 			*bApproximate = true;
-		return m_iStoppedSourceFrame / static_cast<float>(samplerate());
+		return m_iStoppedSourceFrame / static_cast<double>(samplerate());
 	}
 
-	const auto iSourceFrame =
+	const int64_t iSourceFrame =
 		GetSourceFrameFromHardwareFrame(iCurrentHardwareFrame, bApproximate);
 
-	const auto fSeconds = iSourceFrame / static_cast<float>(samplerate());
+	const auto dSeconds = iSourceFrame / static_cast<double>(samplerate());
 
 	if (m_bPaused || pTimestamp == nullptr) {
-		return fSeconds;
+		return dSeconds;
 	}
 
 	// GetPosition is untrustworthy, so use a high resolution clock to
@@ -732,24 +734,24 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 	RageTimer z1 = tm;
 	tm = *pTimestamp;
 
-	if (hwPosition != fSeconds) {
+	if (hwPosition != dSeconds) {
 		hwTime = tm;
-		hwPosition = fSeconds;
+		hwPosition = dSeconds;
 	}
 
 	const auto rate = m_Param.m_fSpeed;
-	const auto extrapolatedPosition = fSeconds + (tm - hwTime) * rate;
+	const auto extrapolatedPosition = dSeconds + (tm - hwTime) * rate;
 	const auto syncTimeDelta = (tm - syncTime) * rate;
 	const auto syncPositionDelta = extrapolatedPosition - syncPosition;
 	const auto err = syncTimeDelta - syncPositionDelta;
 
 	// For values we expect, exp(-(tm - z1)) ≈ 1 - (tm - z1)
 	acc += err;
-	acc *= expf(-(tm - z1));
+	acc *= exp(-(tm - z1));
 	auto correction = acc;
 	acc -= err;
 
-	if (fabsf(correction) > 0.05f) {
+	if (fabs(correction) > 0.05) {
 		acc = 0;
 		correction = 0;
 		syncTime = hwTime;
@@ -760,12 +762,12 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 	const auto vsyncAdjust = DISPLAY->GetFrameTimingAdjustment(tm.tm);
 
 #if defined(TRACY_ENABLE) && defined(TRACE_BUTTER)
-	TracyPlot("acc ms", 1000.0f * (correction));
+	TracyPlot("acc ms", 1000.0 * (correction));
 	if (syncTime.tm == tm.tm) TracyMessageL("sync reset");
-	TracyPlot("extrapolatedPosition error from rdtsc ms", 1000.0f * err);
-	TracyPlot("correctedPosition error from rdtsc ms", 1000.0f *
+	TracyPlot("extrapolatedPosition error from rdtsc ms", 1000.0 * err);
+	TracyPlot("correctedPosition error from rdtsc ms", 1000.0 *
 		((tm - syncTime) * rate - (correctedPosition - syncPosition)));
-	TracyPlot("vsyncAdjust ms", 1000.0f * vsyncAdjust);
+	TracyPlot("vsyncAdjust ms", 1000.0 * vsyncAdjust);
 #endif
 
 	m_Pasteurizer.tm = tm;
@@ -780,7 +782,7 @@ RageSound::GetPositionSeconds(bool* bApproximate, RageTimer* pTimestamp)
 }
 
 bool
-RageSound::SetPositionFrames(int iFrames)
+RageSound::SetPositionFrames(int64_t iFrames)
 {
 	LockMut(m_Mutex);
 
@@ -790,6 +792,7 @@ RageSound::SetPositionFrames(int iFrames)
 	}
 
 	auto iRet = m_pSource->SetPosition(iFrames);
+
 	if (iRet == -1) {
 		m_sError = m_pSource->GetError();
 		Locator::getLogger()->warn("SetPositionFrames: seek {} failed: {}",

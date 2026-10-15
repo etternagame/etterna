@@ -56,7 +56,7 @@ class TimingData
 	/**
 	 * @brief Sets up initial timing data with a defined offset.
 	 * @param fOffset the offset from the 0th beat. */
-	explicit TimingData(float fOffset = 0.F);
+	explicit TimingData(double fOffset = 0.0);
 	~TimingData();
 
 	void Copy(const TimingData& other);
@@ -94,10 +94,10 @@ class TimingData
 	// -Kyz
 	struct GetBeatArgs
 	{
-		float elapsed_time{ 0 };
-		float beat{ 0 };
-		float bps_out{ 0 };
-		float warp_dest_out{ 0 };
+		double elapsed_time{ 0 };
+		double beat{ 0 };
+		double bps_out{ 0 };
+		double warp_dest_out{ 0 };
 		int warp_begin_out{ -1 };
 		bool freeze_out{ false };
 		bool delay_out{ false };
@@ -110,8 +110,8 @@ class TimingData
 		unsigned int stop{ 0 };
 		unsigned int delay{ 0 };
 		int last_row{ 0 };
-		float last_time{ 0 };
-		float warp_destination{ 0 };
+		double last_time{ 0 };
+		double warp_destination{ 0 };
 		bool is_warping{ false };
 		GetBeatStarts() = default;
 	};
@@ -123,9 +123,9 @@ class TimingData
 	// does a binary search. -Kyz
 	struct lookup_item_t
 	{
-		float first;
+		double first;
 		GetBeatStarts second;
-		lookup_item_t(float f, GetBeatStarts& s)
+		lookup_item_t(double f, GetBeatStarts& s)
 		  : first(f)
 		  , second(s)
 		{
@@ -550,8 +550,8 @@ class TimingData
 
 	void GetBeatAndBPSFromElapsedTime(GetBeatArgs& args) const;
 
-	[[nodiscard]] auto GetBeatFromElapsedTime(float elapsed_time) const
-	  -> float // shortcut for places that care only about the beat
+	[[nodiscard]] auto GetBeatFromElapsedTime(double elapsed_time) const
+	  -> double // shortcut for places that care only about the beat
 	{
 		GetBeatArgs args;
 		args.elapsed_time = elapsed_time;
@@ -559,10 +559,12 @@ class TimingData
 		return args.beat;
 	}
 
+	[[nodiscard]] auto GetElapsedTimeFromBeat(double fBeat) const -> double;
+
 	void GetBeatAndBPSFromElapsedTimeNoOffset(GetBeatArgs& args) const;
 
-	[[nodiscard]] auto GetBeatFromElapsedTimeNoOffset(float elapsed_time) const
-	  -> float // shortcut for places that care only about the beat
+	[[nodiscard]] auto GetBeatFromElapsedTimeNoOffset(double elapsed_time) const
+	  -> double // shortcut for places that care only about the beat
 	{
 		GetBeatArgs args;
 		args.elapsed_time = elapsed_time;
@@ -570,7 +572,9 @@ class TimingData
 		return args.beat;
 	}
 
-	[[nodiscard]] auto GetDisplayedBeat(float fBeat) const -> float;
+	[[nodiscard]] auto GetElapsedTimeFromBeatNoOffset(double fBeat) const
+	  -> double;
+	[[nodiscard]] auto GetDisplayedBeat(double fBeat) const -> double;
 
 	[[nodiscard]] auto HasBpmChanges() const -> bool
 	{
@@ -680,7 +684,7 @@ class TimingData
 	std::string m_sFile;
 
 	/** @brief The initial offset of a song. */
-	float m_fBeat0OffsetInSeconds{};
+	double m_fBeat0OffsetInSeconds{};
 
 	// XXX: this breaks encapsulation. get rid of it ASAP
 	[[nodiscard]] auto ToVectorString(TimingSegmentType tst, int dec = 6) const
@@ -721,10 +725,10 @@ class TimingData
 		ElapsedTimesAtNonEmptyRows.shrink_to_fit();
 	}
 
-	[[nodiscard]] auto GetTimeFromBeatFast(float beat) const -> float;
-	[[nodiscard]] auto GetTimeFromBeatFastNoOffset(float beat) const -> float;
-	[[nodiscard]] auto GetTimeFromRowFast(int row) const -> float;
-	[[nodiscard]] auto GetTimeFromRowFastNoOffset(int row) const -> float;
+	[[nodiscard]] auto GetTimeFromBeatFast(double beat) const -> double;
+	[[nodiscard]] auto GetTimeFromBeatFastNoOffset(double beat) const -> double;
+	[[nodiscard]] auto GetTimeFromRowFast(int row) const -> double;
+	[[nodiscard]] auto GetTimeFromRowFastNoOffset(int row) const -> double;
 
 	auto ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 										   float rate) const
@@ -734,10 +738,6 @@ class TimingData
 	// don't call this directly; use the derived-type overloads.
 	void AddSegment(const TimingSegment* seg);
 
-	[[nodiscard]] auto GetElapsedTimeFromBeat(float fBeat) const -> float;
-	[[nodiscard]] auto GetElapsedTimeFromBeatNoOffset(float fBeat) const
-	  -> float;
-
 	// All of the following vectors must be sorted before gameplay.
 	std::vector<TimingSegment*> m_avpTimingSegments[NUM_TimingSegmentType];
 
@@ -746,8 +746,8 @@ class TimingData
 						 GetBeatArgs& args,
 						 unsigned int max_segment) const;
 	auto GetElapsedTimeInternal(GetBeatStarts& start,
-								float beat,
-								unsigned int max_segment) const -> float;
+								double beat,
+								unsigned int max_segment) const -> double;
 };
 
 #undef COMPARE

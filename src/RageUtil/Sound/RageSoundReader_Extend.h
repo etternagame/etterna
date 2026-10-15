@@ -9,9 +9,9 @@ class RageSoundReader_Extend : public RageSoundReader_Filter
 {
   public:
 	RageSoundReader_Extend(RageSoundReader* pSource);
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuffer, int iFrames) override;
-	int GetNextSourceFrame() const override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuffer, int64_t iFrames) override;
+	int64_t GetNextSourceFrame() const override;
 	bool SetProperty(const std::string& sProperty, float fValue) override;
 
 	RageSoundReader_Extend* Copy() const override
@@ -21,10 +21,10 @@ class RageSoundReader_Extend : public RageSoundReader_Filter
 	~RageSoundReader_Extend() override = default;
 
   private:
-	int GetEndFrame() const;
-	int GetData(float* pBuffer, int iFrames);
+	int64_t GetEndFrame() const;
+	int64_t GetData(float* pBuffer, int64_t iFrames);
 
-	int m_iPositionFrames;
+	int64_t m_iPositionFrames;
 
 	enum StopMode
 	{

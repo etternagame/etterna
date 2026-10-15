@@ -272,8 +272,8 @@ RageSoundReader_SpeedChange::GetCursorAvail() const
 	return iCursorAvail;
 }
 
-int
-RageSoundReader_SpeedChange::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_SpeedChange::Read(float* pBuf, int64_t iFrames)
 {
 	for (;;) {
 		if (m_iDataBufferAvailFrames == 0 &&
@@ -284,7 +284,7 @@ RageSoundReader_SpeedChange::Read(float* pBuf, int iFrames)
 			return m_pSource->Read(pBuf, iFrames);
 		}
 
-		int iCursorAvail = GetCursorAvail();
+		int64_t iCursorAvail = GetCursorAvail();
 
 		if (iCursorAvail == 0) {
 			int iRet = Step();
@@ -298,11 +298,11 @@ RageSoundReader_SpeedChange::Read(float* pBuf, int iFrames)
 		}
 
 		/* copy GetWindowSizeFrames() from iCorrelatedPos */
-		int iFramesLen = iFrames;
-		int iFramesAvail = std::min(iCursorAvail, iFramesLen);
+		int64_t iFramesLen = iFrames;
+		int64_t iFramesAvail = std::min(iCursorAvail, iFramesLen);
 
 		iFrames -= iFramesAvail;
-		int iFramesRead = iFramesAvail;
+		int64_t iFramesRead = iFramesAvail;
 
 		int iWindowSizeFrames = GetWindowSizeFrames();
 		float *pBufLeftRight = pBuf;
@@ -346,7 +346,7 @@ RageSoundReader_SpeedChange::Read(float* pBuf, int iFrames)
  * can't do that, because the exact selection of slices is dependent on the
  * previous selection. */
 int
-RageSoundReader_SpeedChange::SetPosition(int iFrame)
+RageSoundReader_SpeedChange::SetPosition(int64_t iFrame)
 {
 	Reset();
 	return RageSoundReader_Filter::SetPosition(iFrame);
@@ -364,13 +364,13 @@ RageSoundReader_SpeedChange::SetProperty(const std::string& sProperty,
 	return RageSoundReader_Filter::SetProperty(sProperty, fValue);
 }
 
-int
+int64_t
 RageSoundReader_SpeedChange::GetNextSourceFrame() const
 {
 	float fRatio = m_fTrailingSpeedRatio;
 
-	int iSourceFrame = RageSoundReader_Filter::GetNextSourceFrame();
-	int iPos = lround(m_iPos * fRatio);
+	int64_t iSourceFrame = RageSoundReader_Filter::GetNextSourceFrame();
+	int64_t iPos = lround(m_iPos * fRatio);
 
 	iSourceFrame -= m_iDataBufferAvailFrames;
 	iSourceFrame += m_iUncorrelatedPos + iPos;

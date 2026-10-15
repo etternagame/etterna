@@ -38,6 +38,7 @@
 #include "RageUtil/Utils/RageUtil.h"
 
 #include <climits>
+#include <limits>
 #include <set>
 #include <algorithm>
 
@@ -98,7 +99,7 @@ RageSoundReader_Split::GetNumChannels() const
 {
 	return m_iNumOutputChannels;
 }
-int
+int64_t
 RageSoundReader_Split::GetNextSourceFrame() const
 {
 	return m_iPositionFrame;
@@ -143,7 +144,7 @@ RageSoundReader_Split::~RageSoundReader_Split()
 }
 
 int
-RageSoundReader_Split::SetPosition(int iFrame)
+RageSoundReader_Split::SetPosition(int64_t iFrame)
 {
 	m_iPositionFrame = iFrame;
 
@@ -161,23 +162,23 @@ RageSoundReader_Split::SetProperty(const std::string& sProperty, float fValue)
 	return m_pImpl->m_pSource->SetProperty(sProperty, fValue);
 }
 
-int
-RageSoundReader_Split::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_Split::Read(float* pBuf, int64_t iFrames)
 {
 	m_iRequestFrames = iFrames;
 	int iRet = m_pImpl->ReadBuffer();
 
-	int iSamplesAvailable = m_pImpl->m_sBuffer.size();
+	int64_t iSamplesAvailable = static_cast<int64_t>(m_pImpl->m_sBuffer.size());
 	const float* pSrc = &m_pImpl->m_sBuffer[0];
 	if (m_pImpl->m_iBufferPositionFrames < m_iPositionFrame) {
-		int iSkipFrames = m_iPositionFrame - m_pImpl->m_iBufferPositionFrames;
-		int iSkipSamples = iSkipFrames * m_pImpl->m_pSource->GetNumChannels();
+		int64_t iSkipFrames = m_iPositionFrame - m_pImpl->m_iBufferPositionFrames;
+		int64_t iSkipSamples = iSkipFrames * m_pImpl->m_pSource->GetNumChannels();
 		pSrc += iSkipSamples;
 		iSamplesAvailable -= iSkipSamples;
 	}
 
-	int iFramesWanted = iFrames;
-	int iFramesAvailable =
+	int64_t iFramesWanted = iFrames;
+	int64_t iFramesAvailable =
 	  iSamplesAvailable / (m_pImpl->m_pSource->GetNumChannels());
 
 	/* Report any errors from Read() if we don't have any data buffered to
@@ -214,8 +215,8 @@ int
 RageSoundSplitterImpl::ReadBuffer()
 {
 	/* Discard any bytes that are no longer requested by any sound. */
-	int iMinFrameRequested = INT_MAX;
-	int iMaxFrameRequested = INT_MIN;
+	int64_t iMinFrameRequested = std::numeric_limits<int64_t>::max();
+	int64_t iMaxFrameRequested = std::numeric_limits<int64_t>::min();
 	for (auto& snd : m_apSounds) {
 		iMinFrameRequested =
 		  std::min(iMinFrameRequested, snd->m_iPositionFrame);
@@ -224,9 +225,9 @@ RageSoundSplitterImpl::ReadBuffer()
 	}
 
 	if (iMinFrameRequested > m_iBufferPositionFrames) {
-		int iEraseFrames = iMinFrameRequested - m_iBufferPositionFrames;
+		int64_t iEraseFrames = iMinFrameRequested - m_iBufferPositionFrames;
 		iEraseFrames =
-		  std::min(iEraseFrames, static_cast<int>(m_sBuffer.size()));
+		  std::min(iEraseFrames, static_cast<int64_t>(m_sBuffer.size()));
 		m_sBuffer.erase(m_sBuffer.begin(),
 						m_sBuffer.begin() +
 						  iEraseFrames * m_pSource->GetNumChannels());
@@ -239,25 +240,25 @@ RageSoundSplitterImpl::ReadBuffer()
 		m_sBuffer.clear();
 	}
 
-	int iFramesBuffered = m_sBuffer.size() / m_pSource->GetNumChannels();
+	int64_t iFramesBuffered = static_cast<int64_t>(m_sBuffer.size()) / m_pSource->GetNumChannels();
 
-	int iFramesToRead =
+	int64_t iFramesToRead =
 	  iMaxFrameRequested - (m_iBufferPositionFrames + iFramesBuffered);
 	if (iFramesToRead <= 0)
 		return 1; // requested data already buffered
 
-	int iSamplesToRead = iFramesToRead * m_pSource->GetNumChannels();
-	int iOldSizeSamples = m_sBuffer.size();
-	m_sBuffer.resize(iOldSizeSamples + iSamplesToRead);
-	int iGotFrames =
+	int64_t iSamplesToRead = iFramesToRead * m_pSource->GetNumChannels();
+	int64_t iOldSizeSamples = static_cast<int64_t>(m_sBuffer.size());
+	m_sBuffer.resize(static_cast<size_t>(iOldSizeSamples + iSamplesToRead));
+	int64_t iGotFrames =
 	  m_pSource->Read(&m_sBuffer[0] + iOldSizeSamples, iFramesToRead);
 	if (iGotFrames < 0) {
 		m_sBuffer.resize(iOldSizeSamples);
 		return iGotFrames;
 	}
 
-	int iGotSamples = iGotFrames * m_pSource->GetNumChannels();
-	m_sBuffer.resize(iOldSizeSamples + iGotSamples);
+	int64_t iGotSamples = iGotFrames * m_pSource->GetNumChannels();
+	m_sBuffer.resize(static_cast<size_t>(iOldSizeSamples + iGotSamples));
 	return 1;
 }
 

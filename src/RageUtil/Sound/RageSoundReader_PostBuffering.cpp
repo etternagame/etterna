@@ -64,8 +64,8 @@ RageSoundReader_PostBuffering::GetActionVolume() const
 	return 1.F;
 }
 
-int
-RageSoundReader_PostBuffering::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_PostBuffering::Read(float* pBuf, int64_t iFrames)
 {
 	iFrames = m_pSource->Read(pBuf, iFrames);
 	if (iFrames < 0)

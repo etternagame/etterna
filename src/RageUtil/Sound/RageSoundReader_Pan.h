@@ -14,7 +14,7 @@ class RageSoundReader_Pan : public RageSoundReader_Filter
 		return new RageSoundReader_Pan(*this);
 	}
 	unsigned GetNumChannels() const override;
-	int Read(float* pBuf, int iFrames) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	bool SetProperty(const std::string& sProperty, float fValue) override;
 
   private:

@@ -254,7 +254,7 @@ class Player : public ActorFrame
 	TimingData* m_Timing;
 	float m_fNoteFieldHeight;
 
-	std::vector<float> lastHoldHeadsSeconds;
+	std::vector<double> lastHoldHeadsSeconds;
 	std::vector<TapNote*> activeHoldTaps;
 
 	bool m_bPaused;

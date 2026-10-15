@@ -1,5 +1,6 @@
 /* MAD is available from: http://www.underbit.com/products/mad/ */
 
+#include "Core/Services/Locator.hpp"
 #include "Etterna/Globals/global.h"
 #include "RageSoundReader_MP3.h"
 #include "RageUtil/Utils/RageUtil.h"
@@ -687,18 +688,18 @@ RageSoundReader_MP3::Copy() const
 	return ret;
 }
 
-int
-RageSoundReader_MP3::Read(float* buf, int iFrames)
+int64_t
+RageSoundReader_MP3::Read(float* buf, int64_t iFrames)
 {
 	using std::min;
-	auto iFramesWritten = 0;
+	int64_t iFramesWritten = 0;
 
 	while (iFrames > 0) {
 		if (mad->outleft > 0) {
 			auto iFramesToCopy =
-			  min(iFrames, static_cast<int>(mad->outleft / GetNumChannels()));
-			const int iSamplesToCopy = iFramesToCopy * GetNumChannels();
-			const int iBytesToCopy = iSamplesToCopy * sizeof(float);
+			  min(iFrames, static_cast<int64_t>(mad->outleft / GetNumChannels()));
+			const int64_t iSamplesToCopy = iFramesToCopy * GetNumChannels();
+			const int64_t iBytesToCopy = iSamplesToCopy * sizeof(float);
 
 			memcpy(buf, mad->outbuf + mad->outpos, iBytesToCopy);
 
@@ -771,7 +772,7 @@ RageSoundReader_MP3::MADLIB_rewind()
 
 /* Returns actual position on success, 0 if past EOF, -1 on error. */
 int
-RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
+RageSoundReader_MP3::SetPosition_toc(int64_t iFrame, bool Xing)
 {
 	ASSERT(!Xing || mad->has_xing);
 	ASSERT(mad->length != -1);
@@ -830,11 +831,10 @@ RageSoundReader_MP3::SetPosition_toc(int iFrame, bool Xing)
 }
 
 int
-RageSoundReader_MP3::SetPosition_hard(int iFrame)
+RageSoundReader_MP3::SetPosition_hard(int64_t iFrame)
 {
 	mad_timer_t desired;
 	mad_timer_set(&desired, 0, iFrame, mad->Frame.header.samplerate);
-
 	/* This seek doesn't change the accuracy of our timer. */
 
 	/* If we're already exactly at the requested position, OK. */
@@ -903,7 +903,7 @@ RageSoundReader_MP3::SetPosition_hard(int iFrame)
 
 /* Do a seek based on the bitrate. */
 int
-RageSoundReader_MP3::SetPosition_estimate(int iFrame)
+RageSoundReader_MP3::SetPosition_estimate(int64_t iFrame)
 {
 	/* This doesn't leave us accurate. */
 	mad->timer_accurate = 0;
@@ -946,7 +946,7 @@ RageSoundReader_MP3::SetPosition_estimate(int iFrame)
 }
 
 int
-RageSoundReader_MP3::SetPosition(int iFrame)
+RageSoundReader_MP3::SetPosition(int64_t iFrame)
 {
 	// If the frame is 0, rewind to 0.
 	if (!iFrame) {
@@ -989,10 +989,10 @@ RageSoundReader_MP3::SetProperty(const std::string& sProperty, float fValue)
 	return RageSoundReader_FileReader::SetProperty(sProperty, fValue);
 }
 
-int
+int64_t
 RageSoundReader_MP3::GetNextSourceFrame() const
 {
-	int iFrame =
+	int64_t iFrame =
 	  mad_timer_count(mad->Timer, mad_units(mad->Frame.header.samplerate));
 	iFrame += mad->outpos / this->Channels;
 	return iFrame;

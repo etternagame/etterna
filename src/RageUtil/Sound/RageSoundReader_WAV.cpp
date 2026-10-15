@@ -90,11 +90,11 @@ struct WavReader
 	{
 	}
 	virtual ~WavReader() = default;
-	virtual int Read(float* pBuf, int iFrames) = 0;
+	virtual int64_t Read(float* pBuf, int64_t iFrames) = 0;
 	virtual int GetLength() const = 0;
 	virtual bool Init() = 0;
-	virtual int SetPosition(int iFrame) = 0;
-	virtual int GetNextSourceFrame() const = 0;
+	virtual int SetPosition(int64_t iFrame) = 0;
+	virtual int64_t GetNextSourceFrame() const = 0;
 	std::string GetError() const { return m_sError; }
 
   protected:
@@ -129,22 +129,22 @@ struct WavReaderPCM : public WavReader
 		return true;
 	}
 
-	int Read(float* buf, int iFrames) override
+	int64_t Read(float* buf, int64_t iFrames) override
 	{
-		int iBytesPerSample = QuantizeUp(m_WavData.m_iBitsPerSample, 8) / 8;
-		int len = iFrames * m_WavData.m_iChannels;
+		int64_t iBytesPerSample = QuantizeUp(m_WavData.m_iBitsPerSample, 8) / 8;
+		int64_t len = iFrames * m_WavData.m_iChannels;
 		len *= iBytesPerSample;
 
-		const int iBytesLeftInDataChunk =
+		const int64_t iBytesLeftInDataChunk =
 		  m_WavData.m_iDataChunkSize -
 		  (m_File.Tell() - m_WavData.m_iDataChunkPos);
 		if (!iBytesLeftInDataChunk)
 			return RageSoundReader::END_OF_FILE;
 
 		len = std::min(len, iBytesLeftInDataChunk);
-		int iGot = m_File.Read(buf, len);
+		int64_t iGot = m_File.Read(buf, len);
 
-		int iGotSamples = iGot / iBytesPerSample;
+		int64_t iGotSamples = iGot / iBytesPerSample;
 		if (m_WavData.m_iFormatTag == 1) {
 			switch (iBytesPerSample) {
 				case 1:
@@ -175,9 +175,9 @@ struct WavReaderPCM : public WavReader
 		return static_cast<int>(iMS);
 	}
 
-	int SetPosition(int iFrame) override
+	int SetPosition(int64_t iFrame) override
 	{
-		int iByte = static_cast<int>(int64_t(iFrame) * m_WavData.m_iChannels *
+		int64_t iByte = static_cast<int64_t>(int64_t(iFrame) * m_WavData.m_iChannels *
 									 m_WavData.m_iBitsPerSample / 8);
 		if (iByte > m_WavData.m_iDataChunkSize) {
 			m_File.Seek(m_WavData.m_iDataChunkSize + m_WavData.m_iDataChunkPos);
@@ -189,10 +189,10 @@ struct WavReaderPCM : public WavReader
 	}
 
 	// XXX: untested
-	int GetNextSourceFrame() const override
+	int64_t GetNextSourceFrame() const override
 	{
-		int iByte = m_File.Tell() - m_WavData.m_iDataChunkPos;
-		int iFrame =
+		int64_t iByte = m_File.Tell() - m_WavData.m_iDataChunkPos;
+		int64_t iFrame =
 		  iByte / (m_WavData.m_iChannels * m_WavData.m_iBitsPerSample / 8);
 		return iFrame;
 	}
@@ -370,11 +370,11 @@ struct WavReaderADPCM : public WavReader
 		return true;
 	}
 
-	int Read(float* buf, int iFrames) override
+	int64_t Read(float* buf, int64_t iFrames) override
 	{
-		int iGotFrames = 0;
+		int64_t iGotFrames = 0;
 
-		int iSample = 0;
+		int64_t iSample = 0;
 
 		while (iGotFrames < iFrames) {
 			if (m_iBufferUsed == m_iBufferAvail) {
@@ -397,36 +397,36 @@ struct WavReaderADPCM : public WavReader
 
 	int GetLength() const override
 	{
-		const int iNumWholeBlocks =
+		const int64_t iNumWholeBlocks =
 		  m_WavData.m_iDataChunkSize / m_WavData.m_iBlockAlign;
-		const int iExtraBytes = m_WavData.m_iDataChunkSize -
+		const int64_t iExtraBytes = m_WavData.m_iDataChunkSize -
 								(iNumWholeBlocks * m_WavData.m_iBlockAlign);
 
-		int iFrames = iNumWholeBlocks * m_iFramesPerBlock;
+		int64_t iFrames = iNumWholeBlocks * m_iFramesPerBlock;
 
 		const int iBlockHeaderSize = 7 * m_WavData.m_iChannels;
 		if (iExtraBytes > iBlockHeaderSize) {
-			const int iExtraADPCMNibbles =
-			  std::max(0, iExtraBytes - iBlockHeaderSize) * 2;
-			const int iExtraADPCMFrames =
+			const int64_t iExtraADPCMNibbles =
+			  std::max(static_cast<int64_t>(0), iExtraBytes - iBlockHeaderSize) * 2;
+			const int64_t iExtraADPCMFrames =
 			  iExtraADPCMNibbles / m_WavData.m_iChannels;
 
 			iFrames += 2 + iExtraADPCMFrames;
 		}
 
 		int iMS =
-		  static_cast<int>((int64_t(iFrames) * 1000) / m_WavData.m_iSampleRate);
+		  static_cast<int>((iFrames * 1000) / m_WavData.m_iSampleRate);
 		return iMS;
 	}
 
-	int SetPosition(int iFrame) override
+	int SetPosition(int64_t iFrame) override
 	{
-		const int iBlock = iFrame / m_iFramesPerBlock;
+		const int64_t iBlock = iFrame / m_iFramesPerBlock;
 
 		m_iBufferUsed = m_iBufferAvail = 0;
 
 		{
-			const int iByte = iBlock * m_WavData.m_iBlockAlign;
+			const int64_t iByte = iBlock * m_WavData.m_iBlockAlign;
 			if (iByte >= m_WavData.m_iDataChunkSize) {
 				/* Past EOF. */
 				SetEOF();
@@ -438,7 +438,7 @@ struct WavReaderADPCM : public WavReader
 		if (!DecodeADPCMBlock())
 			return -1;
 
-		const int iRemainingFrames = iFrame - iBlock * m_iFramesPerBlock;
+		const int64_t iRemainingFrames = iFrame - iBlock * m_iFramesPerBlock;
 		m_iBufferUsed = iRemainingFrames * m_WavData.m_iChannels;
 		if (m_iBufferUsed > m_iBufferAvail) {
 			SetEOF();
@@ -449,14 +449,14 @@ struct WavReaderADPCM : public WavReader
 	}
 
 	// XXX: untested
-	int GetNextSourceFrame() const override
+	int64_t GetNextSourceFrame() const override
 	{
-		int iByte = m_File.Tell() - m_WavData.m_iDataChunkPos;
-		int iBlock = iByte / m_WavData.m_iBlockAlign;
-		int iFrame = iBlock * m_iFramesPerBlock;
+		int64_t iByte = m_File.Tell() - m_WavData.m_iDataChunkPos;
+		int64_t iBlock = iByte / m_WavData.m_iBlockAlign;
+		int64_t iFrame = iBlock * m_iFramesPerBlock;
 
-		int iBufferRemainingBytes = m_iBufferAvail - m_iBufferUsed;
-		int iBufferRemainingFrames =
+		int64_t iBufferRemainingBytes = m_iBufferAvail - m_iBufferUsed;
+		int64_t iBufferRemainingFrames =
 		  iBufferRemainingBytes / (m_WavData.m_iChannels * sizeof(int16_t));
 		iFrame -= iBufferRemainingFrames;
 
@@ -607,21 +607,21 @@ RageSoundReader_WAV::GetLength() const
 }
 
 int
-RageSoundReader_WAV::SetPosition(int iFrame)
+RageSoundReader_WAV::SetPosition(int64_t iFrame)
 {
 	ASSERT(m_pImpl != NULL);
 	return m_pImpl->SetPosition(iFrame);
 }
 
-int
+int64_t
 RageSoundReader_WAV::GetNextSourceFrame() const
 {
 	ASSERT(m_pImpl != NULL);
 	return m_pImpl->GetNextSourceFrame();
 }
 
-int
-RageSoundReader_WAV::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_WAV::Read(float* pBuf, int64_t iFrames)
 {
 	ASSERT(m_pImpl != NULL);
 	return m_pImpl->Read(pBuf, iFrames);

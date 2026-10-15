@@ -5,7 +5,7 @@
 static Preference<float> g_fVisualDelaySeconds("VisualDelaySeconds", 0.0f);
 
 void
-SongPosition::UpdateSongPosition(float fPositionSeconds,
+SongPosition::UpdateSongPosition(double fPositionSeconds,
 								 const TimingData& timing,
 								 const RageTimer& timestamp)
 {
