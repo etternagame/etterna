@@ -16,7 +16,7 @@ class RageSoundReader_PitchChange : public RageSoundReader_Filter
 	RageSoundReader_PitchChange(RageSoundReader* pSource);
 	RageSoundReader_PitchChange(const RageSoundReader_PitchChange& cpy);
 
-	int Read(float* pBuf, int iFrames) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	bool SetProperty(const std::string& sProperty, float fValue) override;
 
 	void SetSpeedRatio(float fRatio) { m_fSpeedRatio = fRatio; }

@@ -316,8 +316,8 @@ RageSoundReader_SpeedChange_Good::SetSpeedRatio(float fRatio)
 	m_Window = Window::Make(GetSampleRate(), (double)fRatio);
 }
 
-int
-RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_SpeedChange_Good::Read(float* pBuf, int64_t iFrames)
 {
 	if ((m_fRate == 1.0f) && (m_Mixed.Frames() == 0)) {
 		return m_pSource->Read(pBuf, iFrames);
@@ -381,7 +381,7 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 		}
 
 		while (iSourceFramesToRead > 0) {
-			int iRead = m_pSource->RetriedRead(m_ReadAhead.Samples.data() + m_ReadAhead.iWritePosition*iNumChannels, iSourceFramesToRead);
+			int64_t iRead = m_pSource->RetriedRead(m_ReadAhead.Samples.data() + m_ReadAhead.iWritePosition*iNumChannels, iSourceFramesToRead);
 
 			if (iRead > 0) {
 				iSourceFramesToRead -= iRead;
@@ -508,7 +508,7 @@ RageSoundReader_SpeedChange_Good::Read(float* pBuf, int iFrames)
 }
 
 int
-RageSoundReader_SpeedChange_Good::SetPosition(int iFrame)
+RageSoundReader_SpeedChange_Good::SetPosition(int64_t iFrame)
 {
 	m_ReadAhead = { GetNumChannels() };
 	m_Mixed = { GetNumChannels() };
@@ -531,7 +531,7 @@ RageSoundReader_SpeedChange_Good::SetProperty(const std::string& sProperty,
 	return RageSoundReader_Filter::SetProperty(sProperty, fValue);
 }
 
-int
+int64_t
 RageSoundReader_SpeedChange_Good::GetNextSourceFrame() const
 {
 	if (m_Mixed.Frames() == 0) {

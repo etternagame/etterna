@@ -22,7 +22,7 @@ class RageTimer
 	}
 
 	/* Time ago this RageTimer represents. */
-	[[nodiscard]] auto Ago() const -> float;
+	[[nodiscard]] auto Ago() const -> double;
 	void Touch() { tm = std::chrono::steady_clock::now(); }
 	[[nodiscard]] auto IsZero() const -> bool
 	{
@@ -31,32 +31,32 @@ class RageTimer
 	void SetZero() { tm = std::chrono::steady_clock::time_point(); }
 
 	/* Time between last call to GetDeltaTime() (Ago() + Touch()): */
-	auto GetDeltaTime() -> float;
+	auto GetDeltaTime() -> double;
 	/* Alias for Ago */
-	[[nodiscard]] auto PeekDeltaTime() const -> float { return Ago(); }
+	[[nodiscard]] auto PeekDeltaTime() const -> double { return Ago(); }
 
 	static auto GetTimeSinceStart()
-	  -> float; // seconds since the program was started
+	  -> double; // seconds since the program was started
 
 	static auto GetTimeSinceStart64() -> double;
 
 	/* Add (or subtract) a duration from a timestamp.  The result is another
 	 * timestamp. */
-	auto operator+(float tm) const -> RageTimer;
-	auto operator-(float tm) const -> RageTimer { return *this + -tm; }
-	void operator+=(float tm) { *this = *this + tm; }
-	void operator-=(float tm) { *this = *this + -tm; }
+	auto operator+(double tm) const -> RageTimer;
+	auto operator-(double tm) const -> RageTimer { return *this + -tm; }
+	void operator+=(double tm) { *this = *this + tm; }
+	void operator-=(double tm) { *this = *this + -tm; }
 
 	/* Find the amount of time between two timestamps.  The result is a
 	 * duration. */
-	auto operator-(const RageTimer& rhs) const -> float;
+	auto operator-(const RageTimer& rhs) const -> double;
 
 	auto operator<(const RageTimer& rhs) const -> bool;
 	std::chrono::steady_clock::time_point tm;
 
   private:
-	static auto Sum(const RageTimer& lhs, float tm) -> RageTimer;
-	static auto Difference(const RageTimer& lhs, const RageTimer& rhs) -> float;
+	static auto Sum(const RageTimer& lhs, double tm) -> RageTimer;
+	static auto Difference(const RageTimer& lhs, const RageTimer& rhs) -> double;
 };
 
 extern const RageTimer RageZeroTimer;

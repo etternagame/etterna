@@ -14,14 +14,14 @@ class RageSoundReader_SpeedChange : public RageSoundReader_Filter
   public:
 	RageSoundReader_SpeedChange(RageSoundReader* pSource, bool bStepMania);
 
-	virtual int SetPosition(int iFrame);
-	virtual int Read(float* pBuf, int iFrames);
+	virtual int SetPosition(int64_t iFrame);
+	virtual int64_t Read(float* pBuf, int64_t iFrames);
 	virtual RageSoundReader_SpeedChange* Copy() const
 	{
 		return new RageSoundReader_SpeedChange(*this);
 	}
 	virtual bool SetProperty(const std::string& sProperty, float fValue);
-	virtual int GetNextSourceFrame() const;
+	virtual int64_t GetNextSourceFrame() const;
 	virtual float GetStreamToSourceRatio() const;
 
 	void SetSpeedRatio(float fRatio);

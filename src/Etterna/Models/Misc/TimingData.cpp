@@ -21,7 +21,7 @@ static const int INVALID_INDEX = -1;
 TimingSegment*
 GetSegmentAtRow(int iNoteRow, TimingSegmentType tst);
 
-TimingData::TimingData(float fOffset)
+TimingData::TimingData(double fOffset)
   : m_fBeat0OffsetInSeconds(fOffset)
 {
 }
@@ -90,7 +90,7 @@ TimingData::PrepareLookup()
 		GetBeatStarts beat_start;
 		beat_start.last_time = -m_fBeat0OffsetInSeconds;
 		GetBeatArgs args;
-		args.elapsed_time = FLT_MAX;
+		args.elapsed_time = DBL_MAX;
 		GetBeatInternal(beat_start, args, curr_segment);
 		m_beat_start_lookup.push_back(
 		  lookup_item_t(args.elapsed_time, beat_start));
@@ -131,7 +131,7 @@ SegInfoStr(const std::vector<TimingSegment*>& segs,
 }
 
 TimingData::beat_start_lookup_t::const_iterator
-FindEntryInLookup(const TimingData::beat_start_lookup_t& lookup, float entry)
+FindEntryInLookup(const TimingData::beat_start_lookup_t& lookup, double entry)
 {
 	if (lookup.empty()) {
 		return lookup.end();
@@ -691,7 +691,7 @@ void
 FindEvent(int& event_row,
 		  int& event_type,
 		  TimingData::GetBeatStarts& start,
-		  float beat,
+		  double beat,
 		  bool find_marker,
 		  const std::vector<TimingSegment*>& bpms,
 		  const std::vector<TimingSegment*>& warps,
@@ -744,7 +744,7 @@ TimingData::GetBeatInternal(GetBeatStarts& start,
 	const auto& delays = segs[SEGMENT_DELAY];
 	auto curr_segment = start.bpm + start.warp + start.stop + start.delay;
 
-	auto bps = GetBPMAtRow(start.last_row) / 60.0f;
+	auto bps = static_cast<double>(GetBPMAtRow(start.last_row)) / 60.0;
 #define INC_INDEX(index)                                                       \
 	++curr_segment;                                                            \
 	++(index);
@@ -824,7 +824,7 @@ TimingData::GetBeatInternal(GetBeatStarts& start,
 		start.last_row = event_row;
 	}
 #undef INC_INDEX
-	if (args.elapsed_time == FLT_MAX) {
+	if (args.elapsed_time == DBL_MAX) {
 		args.elapsed_time = start.last_time;
 	}
 	args.beat = NoteRowToBeat(start.last_row) +
@@ -845,9 +845,9 @@ TimingData::GetBeatAndBPSFromElapsedTimeNoOffset(GetBeatArgs& args) const
 	GetBeatInternal(start, args, INT_MAX);
 }
 
-float
+double
 TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
-								   float beat,
+								   double beat,
 								   unsigned int max_segment) const
 {
 	const auto *segs = m_avpTimingSegments;
@@ -857,11 +857,11 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 	const auto& delays = segs[SEGMENT_DELAY];
 	auto curr_segment = start.bpm + start.warp + start.stop + start.delay;
 
-	auto bps = GetBPMAtRow(start.last_row) / 60.0f;
+	auto bps = static_cast<double>(GetBPMAtRow(start.last_row)) / 60.0;
 #define INC_INDEX(index)                                                       \
 	++curr_segment;                                                            \
 	++(index);
-	const auto find_marker = beat < FLT_MAX;
+	const auto find_marker = beat < DBL_MAX;
 
 	while (curr_segment < max_segment) {
 		auto event_row = INT_MAX;
@@ -922,16 +922,16 @@ TimingData::GetElapsedTimeInternal(GetBeatStarts& start,
 	return start.last_time;
 }
 
-float
-TimingData::GetElapsedTimeFromBeat(float fBeat) const
+double
+TimingData::GetElapsedTimeFromBeat(double fBeat) const
 {
 	return GetElapsedTimeFromBeatNoOffset(fBeat) -
 		   GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate *
 			 PREFSMAN->m_fGlobalOffsetSeconds;
 }
 
-float
-TimingData::GetElapsedTimeFromBeatNoOffset(float fBeat) const
+double
+TimingData::GetElapsedTimeFromBeatNoOffset(double fBeat) const
 {
 	GetBeatStarts start;
 	start.last_time = -m_fBeat0OffsetInSeconds;
@@ -943,10 +943,10 @@ TimingData::GetElapsedTimeFromBeatNoOffset(float fBeat) const
 	return start.last_time;
 }
 
-float
-TimingData::GetDisplayedBeat(float fBeat) const
+double
+TimingData::GetDisplayedBeat(double fBeat) const
 {
-	float fOutBeat = 0;
+	double fOutBeat = 0;
 	unsigned i = 0;
 	const auto& scrolls = m_avpTimingSegments[SEGMENT_SCROLL];
 	for (i = 0; i < scrolls.size() - 1; i++) {
@@ -1277,8 +1277,8 @@ TimingSegmentSetToLuaTable(TimingData* td, TimingSegmentType tst, lua_State* L)
 	}
 }
 
-float
-TimingData::GetTimeFromBeatFast(float beat) const
+double
+TimingData::GetTimeFromBeatFast(double beat) const
 {
 	if (beat < 0)
 		return 0;
@@ -1293,7 +1293,7 @@ TimingData::GetTimeFromBeatFast(float beat) const
 	return GetElapsedTimeFromBeat(beat);
 }
 
-float
+double
 TimingData::GetTimeFromRowFast(int row) const
 {
 	if (row < 0)
@@ -1308,8 +1308,8 @@ TimingData::GetTimeFromRowFast(int row) const
 	return GetElapsedTimeFromBeat(NoteRowToBeat(row));
 }
 
-float
-TimingData::GetTimeFromBeatFastNoOffset(float beat) const
+double
+TimingData::GetTimeFromBeatFastNoOffset(double beat) const
 {
 	if (beat < 0)
 		return 0;
@@ -1321,7 +1321,7 @@ TimingData::GetTimeFromBeatFastNoOffset(float beat) const
 	return GetElapsedTimeFromBeatNoOffset(beat);
 }
 
-float
+double
 TimingData::GetTimeFromRowFastNoOffset(int row) const
 {
 	if (row < 0)
@@ -1340,7 +1340,8 @@ TimingData::ConvertReplayNoteRowsToTimestamps(const std::vector<int>& nrv,
 	std::vector<float> o;
 	o.reserve(nrv.size());
 	for (auto nr : nrv)
-		o.emplace_back(GetTimeFromRowFast(nr) / rate);
+		o.emplace_back(
+		  static_cast<float>(GetTimeFromRowFast(nr) / static_cast<double>(rate)));
 	return o;
 }
 

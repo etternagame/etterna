@@ -29,10 +29,10 @@
 const RageTimer RageZeroTimer(0);
 static auto g_iStartTime = std::chrono::steady_clock::now();
 
-float
+double
 RageTimer::GetTimeSinceStart()
 {
-	std::chrono::duration<float> t = std::chrono::steady_clock::now() - g_iStartTime;
+	std::chrono::duration<double> t = std::chrono::steady_clock::now() - g_iStartTime;
 	return t.count();
 }
 
@@ -43,29 +43,29 @@ RageTimer::GetTimeSinceStart64()
 	return t.count();
 }
 
-float
+double
 RageTimer::Ago() const
 {
 	const RageTimer Now;
 	return Now - *this;
 }
 
-float
+double
 RageTimer::GetDeltaTime()
 {
 	const RageTimer Now;
-	const float diff = Difference(Now, *this);
+	const double diff = Difference(Now, *this);
 	*this = Now;
 	return diff;
 }
 
 RageTimer
-RageTimer::operator+(float tm) const
+RageTimer::operator+(double tm) const
 {
 	return Sum(*this, tm);
 }
 
-float
+double
 RageTimer::operator-(const RageTimer& rhs) const
 {
 	return Difference(*this, rhs);
@@ -78,17 +78,17 @@ RageTimer::operator<(const RageTimer& rhs) const
 }
 
 RageTimer
-RageTimer::Sum(const RageTimer& lhs, float tm)
+RageTimer::Sum(const RageTimer& lhs, double tm)
 {
 	const std::chrono::steady_clock::time_point ret =
-		lhs.tm + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<float>(tm));
+		lhs.tm + std::chrono::duration_cast<std::chrono::steady_clock::duration>(std::chrono::duration<double>(tm));
 	return RageTimer(ret);
 }
 
-float
+double
 RageTimer::Difference(const RageTimer& lhs, const RageTimer& rhs)
 {
-	const std::chrono::duration<float> diff = lhs.tm - rhs.tm;
+	const std::chrono::duration<double> diff = lhs.tm - rhs.tm;
 	return diff.count();
 }
 
