@@ -81,7 +81,7 @@ elseif(MSVC)
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
   list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
 
-elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64") # Unix
+elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64" AND WITH_FFMPEG) # Unix
     list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_SRC "MovieTexture/MovieTexture_FFMpeg.cpp")
     list(APPEND SMDATA_ARCH_MOVIE_TEXTURE_HPP "MovieTexture/MovieTexture_FFMpeg.h")
   

@@ -34,10 +34,6 @@
 
 #include <algorithm>
 
-#if !(defined(__linux__) && defined(__aarch64__)) && !defined(SUPPORT_DISCORD_SDK)
-#error Something went wrong - Discord Social SDK should be supported on "all" platforms except for Linux arm64
-#endif
-
 #ifdef SUPPORT_DISCORD_SDK
 #define DISCORDPP_IMPLEMENTATION
 #include "discordpp.h"
