@@ -132,6 +132,7 @@ itv_idx_to_time(const int& idx) -> float
 /// some garbage joke file and we can throw it out, setting values to 0
 inline auto
 fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
+							 const std::vector<Tappy>& tappies,
 							 const float& rate,
 							 Calc& calc,
 							 const float& offset = 0.F) -> bool
@@ -193,14 +194,16 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 	auto last_itv = 0;
 	auto row_counter = 0;
 	auto scaled_time = 0.F;
-	for (auto i : ni) {
+	for (size_t idx = 0; idx < ni.size(); ++idx) {
+		auto& i = ni[idx];
+		auto tappy = tappies.empty() ? Tappy{} : tappies[idx];
 
 		// it's at least 25 nps per finger, throw it out
 		if (row_counter >= max_rows_for_single_interval) {
 			return true;
 		}
 
-		const auto& ri = i;
+		auto ri = i;
 
 		// either not a 4k file or malformed
 		if (ri.notes < 0 || ri.notes > max_keycount_notes) {
@@ -213,7 +216,30 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 			assert(zoop > scaled_time);
 		}*/
 
-		scaled_time = (i.rowTime + offset) / rate;
+		float average_offset = 0.0f;
+		float n_hit = 0.0f;
+		for (uint32_t c = 0; c < 4; ++c) {
+			uint32_t bit = 1u << c;
+			if (ri.notes & bit) {
+				if (std::isfinite(tappy.offsets[c])) {
+					average_offset += tappy.offsets[c];
+					n_hit += 1.0f;
+				} else {
+					// miss, clear this note
+					ri.notes -= bit;
+				}
+			}
+		}
+
+		if (i.notes != 0 && ri.notes == 0) {
+			// all notes cleared, don't add to interval
+			continue;
+		}
+		if (n_hit) {
+			average_offset /= n_hit;
+		}
+
+		float scaled_time = (i.rowTime + offset) / rate;
 
 		// set current interval and current scaled time
 		itv = time_to_itv_idx(scaled_time);
@@ -231,15 +257,33 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 
 			calc.itv_size.at(last_itv) = row_counter;
 
+			if (!tappies.empty()) {
+				std::sort(&calc.adj_ni[itv][0], &calc.adj_ni[itv][row_counter], [](const auto& a, const  auto& b) {
+					return a.row_time < b.row_time;
+				});
+			}
+
 			last_itv = itv;
 			row_counter = 0;
 		}
+
+		float row_time = scaled_time + average_offset;
 
 		auto& nri = calc.adj_ni.at(itv).at(row_counter);
 
 		nri.row_notes = ri.notes;
 		nri.row_count = column_count(ri.notes);
-		nri.row_time = scaled_time;
+		nri.row_time = row_time;
+
+		for (uint32_t c = 0; c < 4; ++c) {
+			uint32_t bit = 1u << c;
+			nri.tap_times[c] = row_time;
+			if (std::isfinite(tappy.offsets[c])) {
+				nri.tap_times[c] = row_time + tappy.offsets[c];
+				nri.wife += wife3(tappy.offsets[c], 1.0f);
+			}
+			nri.wife /= nri.row_count;
+		}
 
 		// how many columns have a note on them per hand
 		nri.hand_counts[left_hand] = std::popcount(ri.notes & left_hand_mask);

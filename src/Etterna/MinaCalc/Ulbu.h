@@ -655,7 +655,7 @@ struct TheGreatBazoinkazoinkInTheSky : public Bazoinkazoink
 
 					// basically a time master, keeps track of different
 					// timings, update first
-					_seq.advance_sequencing(ct, row_time, any_ms);
+					_seq.advance_sequencing(ct, row_time, ri.tap_times + hand*2, any_ms);
 
 					// update metahandinfo, it constructs basic and advanced
 					// patterns from where we are now + recent pattern
