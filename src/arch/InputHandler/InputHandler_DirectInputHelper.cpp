@@ -122,9 +122,17 @@ DIDevice::Open(bool checkPreference)
 			}
 			break;
 		case MOUSE:
-			Device->EnumObjects(DIMouse_EnumDevObjectsProc,
-								this,
-								DIDFT_BUTTON | DIDFT_AXIS | DIDFT_ANYINSTANCE);
+			hr = Device->EnumObjects(DIMouse_EnumDevObjectsProc,
+									 this,
+									 DIDFT_BUTTON | DIDFT_AXIS);
+			if (hr != DI_OK) {
+				Locator::getLogger()->warn(
+				  "{}",
+				  hr_ssprintf(hr,
+							  "OpenDevice(%s): IDirectInputDevice2::EnumObjects",
+							  m_sName.c_str())
+					.c_str());
+			}
 			break;
 	}
 
@@ -507,7 +515,7 @@ DIMouse_EnumDevObjectsProc(LPCDIDEVICEOBJECTINSTANCE dev, LPVOID data)
 	// HRESULT hr;
 
 	input_t in;
-	const int SupportedMask = DIDFT_BUTTON | DIDFT_AXIS | DIDFT_ANYINSTANCE;
+	const int SupportedMask = DIDFT_BUTTON | DIDFT_AXIS;
 	if (!(dev->dwType & SupportedMask))
 		return DIENUM_CONTINUE; // unsupported
 
