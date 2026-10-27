@@ -97,10 +97,12 @@ struct nps
 			}
 			
 			// note time deltas per finger in this interval
+			float wife = 0.0f;
 			for (auto row = 0; row < calc.itv_size.at(itv); ++row) {
 				const auto& cur = calc.adj_ni.at(itv).at(row);
 				auto cur_notes = cur.row_notes & calc.hand_col_masks[hand];
 				notes += cur.hand_counts.at(hand);
+				wife += cur.wife;
 
 				const auto& crt = cur.row_time;
 				for (size_t col_index = 0; col_index < calc.col_masks.size(); ++col_index) {
@@ -114,6 +116,8 @@ struct nps
 					}
 				}
 			}
+			wife = 0.5f * (wife / calc.itv_size.at(itv));
+			CLAMP(wife, 0.0f, 1.0f);
 
 			// per finger deltas to ms estimates. for 4k estimates.size() == 2
 			estimates.clear();
@@ -142,10 +146,11 @@ struct nps
 
 			// ms base for this interval
 			const auto msbase = finalscaler * msdiff;
-			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;			
+			calc.init_base_diff_vals.at(hand).at(MSBase).at(itv) = msbase;
 
 			// set points for this interval
 			calc.itv_points.at(hand).at(itv) = notes * 2;
+			calc.wife_points.at(hand).at(itv) = wife;
 		}
 	}
 
