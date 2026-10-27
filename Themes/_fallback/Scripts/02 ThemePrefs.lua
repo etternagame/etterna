@@ -270,7 +270,7 @@ end
 function RateList()
     local ratelist = {}
     do
-        local startrate = MIN_MUSIC_RATE -- 0.05
+        local startrate = notShit.round(MIN_MUSIC_RATE, 2) -- 0.05
         local upperrate = MAX_MUSIC_RATE -- 3.0
         local increment = 0.05
         while startrate <= upperrate do
