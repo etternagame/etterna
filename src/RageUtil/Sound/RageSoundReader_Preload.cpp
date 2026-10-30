@@ -43,10 +43,10 @@ RageSoundReader_Preload::RageSoundReader_Preload()
 	m_bBufferIs16Bit = g_bSoundPreload16bit.Get();
 }
 
-int
+int64_t
 RageSoundReader_Preload::GetTotalFrames() const
 {
-	return m_Buffer->size() / framesize;
+	return static_cast<int64_t>(m_Buffer->size()) / framesize;
 }
 
 bool
@@ -67,12 +67,12 @@ RageSoundReader_Preload::Open(RageSoundReader* pSource)
 	if (iLen != -1) {
 		float fSecs = iLen / 1000.f;
 
-		int iFrames = lround(fSecs * m_iSampleRate);	/* seconds -> frames */
-		int iSamples = unsigned(iFrames * m_iChannels); /* frames -> samples */
+		int64_t iFrames = lround(fSecs * m_iSampleRate);	/* seconds -> frames */
+		int64_t iSamples = int64_t(iFrames) * m_iChannels; /* frames -> samples */
 		if (iSamples > iMaxSamples)
 			return false; /* Don't bother trying to preload it. */
 
-		int iBytes = unsigned(iSamples * samplesize); /* samples -> bytes */
+		int64_t iBytes = iSamples * samplesize; /* samples -> bytes */
 		m_Buffer->reserve(iBytes);
 	}
 
@@ -82,7 +82,7 @@ RageSoundReader_Preload::Open(RageSoundReader* pSource)
 			return false; /* Don't bother trying to preload it. */
 		}
 		float buffer[1024];
-		int iCnt = pSource->Read(buffer, ARRAYLEN(buffer) / m_iChannels);
+		int64_t iCnt = pSource->Read(buffer, ARRAYLEN(buffer) / m_iChannels);
 
 		if (iCnt == END_OF_FILE) {
 			break;
@@ -125,30 +125,30 @@ RageSoundReader_Preload::GetLength_Fast() const
 }
 
 int
-RageSoundReader_Preload::SetPosition(int iFrame)
+RageSoundReader_Preload::SetPosition(int64_t iFrame)
 {
 	m_iPosition = iFrame;
-	m_iPosition = lround(m_iPosition / m_fRate);
+	m_iPosition = llround(static_cast<double>(m_iPosition) / m_fRate);
 
-	if (m_iPosition >= int(m_Buffer->size() / framesize)) {
-		m_iPosition = m_Buffer->size() / framesize;
+	if (m_iPosition >= static_cast<int64_t>(m_Buffer->size()) / framesize) {
+		m_iPosition = static_cast<int64_t>(m_Buffer->size()) / framesize;
 		return 0;
 	}
 
 	return 1;
 }
 
-int
+int64_t
 RageSoundReader_Preload::GetNextSourceFrame() const
 {
-	return lround(m_iPosition * m_fRate);
+	return llround(static_cast<double>(m_iPosition) * m_fRate);
 }
 
-int
-RageSoundReader_Preload::Read(float* pBuffer, int iFrames)
+int64_t
+RageSoundReader_Preload::Read(float* pBuffer, int64_t iFrames)
 {
-	const int iSizeFrames = m_Buffer->size() / framesize;
-	const int iFramesAvail = iSizeFrames - m_iPosition;
+	const int64_t iSizeFrames = m_Buffer->size() / framesize;
+	const int64_t iFramesAvail = iSizeFrames - m_iPosition;
 
 	iFrames = std::min(iFrames, iFramesAvail);
 	if (iFrames == 0)

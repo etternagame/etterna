@@ -327,7 +327,7 @@ PlayerReplay::SetPlaybackEvents(std::map<int, std::vector<PlaybackEvent>> v)
 
 			// discrepancy in notedata/timing from actual replay
 			// must update row and time to match current chart
-			if (fabsf(rowpos - supposedTime) > 0.01F) {
+			if (std::abs(rowpos - supposedTime) > 0.01) {
 				// haha oh my god
 				auto tapPosition =
 				  m_Timing->GetTimeFromRowFast(evt.noterowJudged) +

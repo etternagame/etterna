@@ -267,9 +267,10 @@ GameSoundManager::StartMusic(MusicToPlay& ToPlay)
 		const float fSecondToStartOn =
 		  g_Playing->m_Timing.GetTimeFromBeatFastNoOffset(fCurBeatToStartOn);
 		const float fMaximumDistance = 2;
-		const float fDistance =
-		  std::min(fSecondToStartOn - GAMESTATE->m_Position.m_fMusicSeconds,
-				   fMaximumDistance);
+		const double fDistance =
+		  std::min(static_cast<double>(fSecondToStartOn) -
+			     GAMESTATE->m_Position.m_fMusicSeconds,
+			   static_cast<double>(fMaximumDistance));
 
 		when = GAMESTATE->m_Position.m_LastBeatUpdate + fDistance;
 	}
@@ -623,23 +624,23 @@ GameSoundManager::Update(float fDeltaTime)
 	 * sound has actually started playing. */
 	bool m_bApproximate;
 	RageTimer tm = RageZeroTimer;
-	const float fSeconds =
+	const double fSeconds =
 	  g_Playing->m_Music->GetPositionSeconds(&m_bApproximate, &tm);
 
 	// Check for song timing skips.
 	if (PREFSMAN->m_bLogSkips && !g_Playing->m_bTimingDelayed) {
-		const float fExpectedTimePassed =
+		const double fExpectedTimePassed =
 		  (tm - GAMESTATE->m_Position.m_LastBeatUpdate) * fRate;
-		const float fSoundTimePassed =
+		const double fSoundTimePassed =
 		  fSeconds - GAMESTATE->m_Position.m_fMusicSeconds;
-		const float fDiff = fExpectedTimePassed - fSoundTimePassed;
+		const double fDiff = fExpectedTimePassed - fSoundTimePassed;
 
 		static std::string sLastFile = "";
 		const std::string ThisFile = g_Playing->m_Music->GetLoadedFilePath();
 
 		/* If fSoundTimePassed < 0, the sound has probably looped. */
 		if (sLastFile == ThisFile && fSoundTimePassed >= 0 &&
-			fabsf(fDiff) > 0.003f)
+			std::fabs(fDiff) > 0.003)
 			Locator::getLogger()->trace("Song position skip in {}: expected {:.3f}, got {:.3f} (cur "
 					   "{}, prev {}) ({:.3f} difference)",
 					   Basename(ThisFile).c_str(), fExpectedTimePassed, fSoundTimePassed,

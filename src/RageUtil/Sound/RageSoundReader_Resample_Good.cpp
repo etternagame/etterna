@@ -585,7 +585,7 @@ class RageSoundResampler_Polyphase
 	int m_iDownFactor;
 };
 
-int
+int64_t
 RageSoundReader_Resample_Good::GetNextSourceFrame() const
 {
 	int64_t iPosition = m_pSource->GetNextSourceFrame();
@@ -593,7 +593,7 @@ RageSoundReader_Resample_Good::GetNextSourceFrame() const
 
 	iPosition *= m_iSampleRate;
 	iPosition /= m_pSource->GetSampleRate();
-	return (int)iPosition;
+	return iPosition;
 }
 
 bool
@@ -695,10 +695,10 @@ RageSoundReader_Resample_Good::~RageSoundReader_Resample_Good()
 /* iFrame is in the destination rate.  Seek the source in its own sample rate.
  */
 int
-RageSoundReader_Resample_Good::SetPosition(int iFrame)
+RageSoundReader_Resample_Good::SetPosition(int64_t iFrame)
 {
 	Reset();
-	iFrame = (int)SCALE(iFrame,
+	iFrame = (int64_t)SCALE(iFrame,
 						0,
 						(int64_t)m_iSampleRate,
 						0,
@@ -706,12 +706,12 @@ RageSoundReader_Resample_Good::SetPosition(int iFrame)
 	return m_pSource->SetPosition(iFrame);
 }
 
-int
-RageSoundReader_Resample_Good::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_Resample_Good::Read(float* pBuf, int64_t iFrames)
 {
 	int iChannels = m_apResamplers.size();
 
-	int iFramesRead = 0;
+	int64_t iFramesRead = 0;
 
 	/* If the ratio is 1:1, then we're effectively disabled, and we can read
 	 * directly into the buffer. */
@@ -723,16 +723,16 @@ RageSoundReader_Resample_Good::Read(float* pBuf, int iFrames)
 		return m_pSource->Read(pBuf, iFrames);
 
 	{
-		int iFramesNeeded =
+		int64_t iFramesNeeded =
 		  m_apResamplers[0]->NumInputsForOutputSamples(iFrames);
 		float* pTmpBuf =
 		  (float*)alloca(iFramesNeeded * sizeof(float) * iChannels);
-		int iFramesIn = m_pSource->Read(pTmpBuf, iFramesNeeded);
+		int64_t iFramesIn = m_pSource->Read(pTmpBuf, iFramesNeeded);
 		if (iFramesIn < 0)
 			return iFramesIn;
 
 		for (int iChannel = 0; iChannel < iChannels; ++iChannel) {
-			int iGotFrames = m_apResamplers[iChannel]->Run(pTmpBuf + iChannel,
+			int64_t iGotFrames = m_apResamplers[iChannel]->Run(pTmpBuf + iChannel,
 														   iFramesIn,
 														   pBuf + iChannel,
 														   iFrames,

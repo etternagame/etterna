@@ -14,11 +14,11 @@ class RageSoundReader_Preload : public RageSoundReader
 	bool Open(RageSoundReader* pSource);
 	int GetLength() const override;
 	int GetLength_Fast() const override;
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuffer, int iLength) override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuffer, int64_t iLength) override;
 	int GetSampleRate() const override { return m_iSampleRate; }
 	unsigned GetNumChannels() const override { return m_iChannels; }
-	int GetNextSourceFrame() const override;
+	int64_t GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override { return m_fRate; }
 	std::string GetError() const override { return ""; }
 
@@ -37,9 +37,9 @@ class RageSoundReader_Preload : public RageSoundReader
 	bool m_bBufferIs16Bit{ false };
 
 	/* Bytes: */
-	int m_iPosition{ 0 };
+	int64_t m_iPosition{ 0 };
 
-	int GetTotalFrames() const;
+	int64_t GetTotalFrames() const;
 
 	int m_iSampleRate{ 0 };
 	unsigned m_iChannels{ 0 };

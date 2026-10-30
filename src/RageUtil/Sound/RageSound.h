@@ -17,9 +17,9 @@ struct Butter
 	RageTimer tm;
 	RageTimer hwTime;
 	RageTimer syncTime;
-	float hwPosition;
-	float syncPosition;
-	float acc;
+	double hwPosition;
+	double syncPosition;
+	double acc;
 };
 
 /* Driver interface for sounds: this is what drivers see. */
@@ -29,7 +29,7 @@ class RageSoundBase
 	virtual ~RageSoundBase() = default;
 	virtual void SoundIsFinishedPlaying() = 0;
 	virtual auto GetDataToPlay(float* buffer,
-							   int size,
+							   int64_t size,
 							   int64_t& iStreamFrame,
 							   int& got_bytes) -> int = 0;
 	virtual void CommitPlayingPosition(int64_t iFrameno,
@@ -190,12 +190,13 @@ class RageSound : public RageSoundBase
 
 	auto GetLengthSeconds() -> float;
 	auto GetPositionSeconds(bool* approximate = nullptr,
-							RageTimer* Timestamp = nullptr) -> float;
+							RageTimer* Timestamp = nullptr) -> double;
 	auto GetLoadedFilePath() const -> std::string override
 	{
 		return m_sFilePath;
 	}
 	auto IsPlaying() const -> bool { return m_bPlaying; }
+	auto IsPaused() const -> bool { return m_bPaused; }
 
 	auto GetPlaybackRate() const -> float;
 	auto GetStartTime() const -> RageTimer override;
@@ -258,9 +259,9 @@ class RageSound : public RageSoundBase
 
 	auto GetSourceFrameFromHardwareFrame(int64_t iHardwareFrame,
 										 bool* bApproximate = nullptr) const
-	  -> int;
+	  -> int64_t;
 
-	auto SetPositionFrames(int frames = -1) -> bool;
+	auto SetPositionFrames(int64_t frames = -1) -> bool;
 	auto GetStopMode() const -> RageSoundParams::StopMode_t; // resolves M_AUTO
 
 	void SoundIsFinishedPlaying() override; // called by sound drivers
@@ -273,7 +274,7 @@ class RageSound : public RageSoundBase
 	 * called. Until then, SOUNDMAN->GetPosition can still be called; the sound
 	 * is still playing. */
 	auto GetDataToPlay(float* pBuffer,
-					   int iSize,
+					   int64_t iSize,
 					   int64_t& iStreamFrame,
 					   int& iBytesRead) -> int override;
 	void CommitPlayingPosition(int64_t iHardwareFrame,

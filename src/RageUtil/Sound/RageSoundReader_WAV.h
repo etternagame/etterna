@@ -17,11 +17,11 @@ class RageSoundReader_WAV : public RageSoundReader_FileReader
 	OpenResult Open(RageFileBasic* pFile) override;
 	void Close();
 	int GetLength() const override;
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuf, int iFrames) override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	int GetSampleRate() const override { return m_WavData.m_iSampleRate; }
 	unsigned GetNumChannels() const override { return m_WavData.m_iChannels; }
-	int GetNextSourceFrame() const override;
+	int64_t GetNextSourceFrame() const override;
 	RageSoundReader_WAV();
 	~RageSoundReader_WAV() override;
 	RageSoundReader_WAV(

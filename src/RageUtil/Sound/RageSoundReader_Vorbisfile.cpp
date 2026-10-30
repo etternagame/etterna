@@ -130,7 +130,7 @@ RageSoundReader_Vorbisfile::Open(RageFileBasic* pFile)
 	}
 
 	eof = false;
-	read_offset = static_cast<int>(ov_pcm_tell(vf));
+	read_offset = static_cast<int64_t>(ov_pcm_tell(vf));
 
 	auto vi = ov_info(vf, -1);
 	channels = vi->channels;
@@ -154,7 +154,7 @@ RageSoundReader_Vorbisfile::GetLength() const
 }
 
 int
-RageSoundReader_Vorbisfile::SetPosition(int iFrame)
+RageSoundReader_Vorbisfile::SetPosition(int64_t iFrame)
 {
 	eof = false;
 
@@ -170,23 +170,23 @@ RageSoundReader_Vorbisfile::SetPosition(int iFrame)
 		SetError(ov_ssprintf(ret, "ogg: SetPosition failed"));
 		return -1;
 	}
-	read_offset = static_cast<int>(ov_pcm_tell(vf));
+	read_offset = static_cast<int64_t>(ov_pcm_tell(vf));
 
 	return 1;
 }
 
-int
-RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
+int64_t
+RageSoundReader_Vorbisfile::Read(float* buf, int64_t iFrames)
 {
 	auto frames_read = 0;
 
 	while ((iFrames != 0) && !eof) {
 		const int bytes_per_frame = sizeof(float) * channels;
 
-		auto iFramesRead = 0;
+		int64_t iFramesRead = 0;
 
 		{
-			auto curofs = static_cast<int>(ov_pcm_tell(vf));
+			auto curofs = static_cast<int64_t>(ov_pcm_tell(vf));
 			if (curofs < read_offset) {
 				/* The timestamps moved backwards.  Ignore it.  This file
 				 * probably won't sync correctly. */
@@ -203,9 +203,9 @@ RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
 				 * won't casue desyncs. */
 
 				/* In bytes: */
-				auto iSilentFrames = curofs - read_offset;
+				int64_t iSilentFrames = curofs - read_offset;
 				iSilentFrames =
-				  std::min(iSilentFrames, static_cast<int>(iFrames));
+				  std::min(iSilentFrames, static_cast<int64_t>(iFrames));
 				auto silence = iSilentFrames * bytes_per_frame;
 				Locator::getLogger()->trace("p {},{}: {} frames of silence needed",
 									  curofs, read_offset, silence);
@@ -222,7 +222,7 @@ RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
 			  vf, (char*)buf, iFrames * channels * sizeof(int16_t), &bstream);
 #else // float vorbis decoder
 			float** pcm;
-			int ret = ov_read_float(vf, &pcm, iFrames, &bstream);
+			int64_t ret = ov_read_float(vf, &pcm, iFrames, &bstream);
 #endif
 
 			{
@@ -251,13 +251,13 @@ RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
 
 #if defined(INTEGER_VORBIS)
 			if (ret > 0) {
-				int iSamplesRead = ret / sizeof(int16_t);
+				int64_t iSamplesRead = ret / sizeof(int16_t);
 				iFramesRead = iSamplesRead / channels;
 
 				/* Convert in reverse, so we can do it in-place. */
 				const int16_t* pIn = (int16_t*)buf;
 				float* pOut = (float*)buf;
-				for (int i = iSamplesRead - 1; i >= 0; --i)
+				for (int64_t i = iSamplesRead - 1; i >= 0; --i)
 					pOut[i] = pIn[i] / 32768.0f;
 			}
 #else
@@ -268,7 +268,7 @@ RageSoundReader_Vorbisfile::Read(float* buf, int iFrames)
 				for (auto iChannel = 0; iChannel < iNumChannels; ++iChannel) {
 					const float* pChannelIn = pcm[iChannel];
 					auto pChannelOut = &buf[iChannel];
-					for (auto i = 0; i < iFramesRead; ++i) {
+					for (int64_t i = 0; i < iFramesRead; ++i) {
 						*pChannelOut = *pChannelIn;
 						++pChannelIn;
 						pChannelOut += iNumChannels;
@@ -302,12 +302,12 @@ RageSoundReader_Vorbisfile::GetSampleRate() const
 	return vi->rate;
 }
 
-int
+int64_t
 RageSoundReader_Vorbisfile::GetNextSourceFrame() const
 {
 	ASSERT(vf != NULL);
 
-	auto iFrame = static_cast<int>(ov_pcm_tell(vf));
+	auto iFrame = static_cast<int64_t>(ov_pcm_tell(vf));
 	return iFrame;
 }
 

@@ -14,11 +14,11 @@ class RageSoundReader_Vorbisfile : public RageSoundReader_FileReader
 	OpenResult Open(RageFileBasic* pFile) override;
 
 	int GetLength() const override;
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuf, int iFrames) override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	int GetSampleRate() const override;
 	unsigned GetNumChannels() const override { return channels; }
-	int GetNextSourceFrame() const override;
+	int64_t GetNextSourceFrame() const override;
 	RageSoundReader_Vorbisfile();
 	~RageSoundReader_Vorbisfile() override;
 	RageSoundReader_Vorbisfile* Copy() const override;
@@ -28,7 +28,7 @@ class RageSoundReader_Vorbisfile : public RageSoundReader_FileReader
 	bool eof = false;
 	bool FillBuf();
 	std::string filename;
-	int read_offset = 0;
+	int64_t read_offset = 0;
 	unsigned channels = 0;
 };
 
