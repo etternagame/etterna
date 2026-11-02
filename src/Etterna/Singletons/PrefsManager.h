@@ -79,6 +79,27 @@ enum BackgroundFitMode
 	BackgroundFitMode_Invalid
 };
 
+enum VulkanFeatureHint
+{
+	VFH_UseIfSupported,
+	VFH_Require,
+	VFH_Disable,
+	NUM_VulkanFeatureHint,
+	VulkanFeatureHint_Invalid
+};
+
+enum VulkanFeatureName
+{
+	VFN_ExtendedDynamicState3BlendingExt,
+	VFN_MeshShadersExt,
+	VFN_ShaderImageInt64AtomicsExt,
+	VFN_MemoryBudgetExt,
+	VFN_NvidiaLowLatency2,
+	VFN_PresentTimingExt,
+	NUM_VulkanFeatureName,
+	VulkanFeatureName_Invalid
+};
+
 /** @brief Holds user-chosen preferences that are saved between sessions. */
 class PrefsManager
 {
