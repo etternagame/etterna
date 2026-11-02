@@ -71,6 +71,7 @@ class RendererVK : public DisplayAdapter::Renderer
 
   private:
 	constexpr static size_t FramesInFlight = 3;
+	constexpr static uint64_t Timeout = 2000'000'000;
 
 	vk::raii::Context m_Context;
 	vk::raii::Instance m_Instance = nullptr;
