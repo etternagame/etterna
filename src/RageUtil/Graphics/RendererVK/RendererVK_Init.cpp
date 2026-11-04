@@ -238,6 +238,11 @@ RendererVK::InitVulkanState()
 			  veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures);
 	}
 
+	if (m_ResolvedSettings.MemoryBudget == VFH_Require) {
+		selector =
+		  selector.add_required_extension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+	}
+
 	auto physicalDeviceResult = selector.select();
 	if (!physicalDeviceResult) {
 		Locator::getLogger()->fatal(
@@ -272,6 +277,14 @@ RendererVK::InitVulkanState()
 			VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME) &&
 			  physicalDeviceResult->enable_extension_features_if_present(
 				veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures)
+			? VFH_Require
+			: VFH_Disable;
+	}
+
+	if (m_ResolvedSettings.MemoryBudget == VFH_UseIfSupported) {
+		m_ResolvedSettings.MemoryBudget =
+		  physicalDeviceResult->enable_extension_if_present(
+			VK_EXT_MEMORY_BUDGET_EXTENSION_NAME)
 			? VFH_Require
 			: VFH_Disable;
 	}
@@ -316,7 +329,12 @@ RendererVK::InitVulkanState()
 	  static_cast<vk::PhysicalDevice>(m_PhysicalDevice);
 	allocatorInfo.device = static_cast<vk::Device>(m_Device);
 	allocatorInfo.instance = static_cast<vk::Instance>(m_Instance);
+
 	allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+	if (m_ResolvedSettings.MemoryBudget == VFH_Require) {
+		allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+	}
+
 	allocatorInfo.pVulkanFunctions = &vulkanFunctions;
 	allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 

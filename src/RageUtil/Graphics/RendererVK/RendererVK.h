@@ -114,7 +114,10 @@ class RendererVK : public DisplayAdapter::Renderer
 	uint32_t m_GraphicsQueueFamily = 0;
 	vk::raii::Queue m_PresentQueue = nullptr;
 	uint32_t m_PresentQueueFamily = 0;
+
+	uint32_t m_FrameCounterForAllocator = 0;
 	VmaAllocator m_Allocator = nullptr;
+
 	vk::Format m_DepthFormat = {};
 	vk::SampleCountFlagBits m_MsaaSamples = {};
 	void InitVulkanState();

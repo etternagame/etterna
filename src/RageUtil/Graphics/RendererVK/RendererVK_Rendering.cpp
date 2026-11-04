@@ -56,6 +56,12 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 
 	UpdateBatchBuffers(batcher);
 
+	if (m_ResolvedSettings.MemoryBudget == VFH_Require) {
+		// no this is not the same thing as the imageIndex in acquireNextImage
+		// should overflow in like 5 days @ 10K FPS
+		vmaSetCurrentFrameIndex(m_Allocator, m_FrameCounterForAllocator++);
+	}
+
 	auto [result, imageIndex] = m_Swapchain.acquireNextImage(
 	  Timeout, *m_PresentCompleteSemaphore[m_CurrentFrame], nullptr);
 	m_CurrentImage = imageIndex;
