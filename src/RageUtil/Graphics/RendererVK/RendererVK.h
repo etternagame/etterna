@@ -176,6 +176,8 @@ class RendererVK : public DisplayAdapter::Renderer
 
 	std::vector<vk::raii::Semaphore> m_PresentCompleteSemaphore;
 	std::vector<vk::raii::Semaphore> m_RenderFinishedSemaphore;
+	vk::raii::Semaphore m_NvidiaLatencySemaphore = nullptr;
+
 	std::vector<vk::raii::Fence> m_InFlightFence;
 	uint32_t m_CurrentFrame = 0;
 	int m_CurrentImage = 0;

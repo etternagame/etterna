@@ -243,6 +243,11 @@ RendererVK::InitVulkanState()
 		  selector.add_required_extension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	}
 
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+		selector =
+		  selector.add_required_extension(VK_NV_LOW_LATENCY_2_EXTENSION_NAME);
+	}
+
 	auto physicalDeviceResult = selector.select();
 	if (!physicalDeviceResult) {
 		Locator::getLogger()->fatal(
@@ -285,6 +290,14 @@ RendererVK::InitVulkanState()
 		m_ResolvedSettings.MemoryBudget =
 		  physicalDeviceResult->enable_extension_if_present(
 			VK_EXT_MEMORY_BUDGET_EXTENSION_NAME)
+			? VFH_Require
+			: VFH_Disable;
+	}
+
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_UseIfSupported) {
+		m_ResolvedSettings.NvidiaLowLatency2 =
+		  physicalDeviceResult->enable_extension_if_present(
+			VK_NV_LOW_LATENCY_2_EXTENSION_NAME)
 			? VFH_Require
 			: VFH_Disable;
 	}
@@ -749,6 +762,17 @@ RendererVK::InitSyncStructures()
 	for (size_t i = 0; i < m_SwapchainImages.size(); i++) {
 		m_RenderFinishedSemaphore.emplace_back(m_Device,
 											   vk::SemaphoreCreateInfo());
+	}
+
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+		vk::SemaphoreCreateInfo createInfo{};
+		vk::SemaphoreTypeCreateInfoKHR typeCreateInfo{};
+
+		typeCreateInfo.semaphoreType = vk::SemaphoreType::eTimelineKHR;
+		typeCreateInfo.initialValue = 0;
+		createInfo.pNext = &typeCreateInfo;
+
+		m_NvidiaLatencySemaphore = vk::raii::Semaphore(m_Device, createInfo);
 	}
 }
 
