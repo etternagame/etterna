@@ -222,6 +222,22 @@ RendererVK::InitVulkanState()
 			.add_required_extension_features(meshShaderFeatures);
 	}
 
+	VkPhysicalDeviceShaderImageAtomicInt64FeaturesEXT
+	  veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures{};
+	veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures.sType =
+	  VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_IMAGE_ATOMIC_INT64_FEATURES_EXT;
+	veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures
+	  .shaderImageInt64Atomics = VK_TRUE;
+
+	if (m_ResolvedSettings.ImageInt64Atomics == VFH_Require) {
+		selector =
+		  selector
+			.add_required_extension(
+			  VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME)
+			.add_required_extension_features(
+			  veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures);
+	}
+
 	auto physicalDeviceResult = selector.select();
 	if (!physicalDeviceResult) {
 		Locator::getLogger()->fatal(
@@ -246,6 +262,16 @@ RendererVK::InitVulkanState()
 			VK_EXT_MESH_SHADER_EXTENSION_NAME) &&
 			  physicalDeviceResult->enable_extension_features_if_present(
 				meshShaderFeatures)
+			? VFH_Require
+			: VFH_Disable;
+	}
+
+	if (m_ResolvedSettings.ImageInt64Atomics == VFH_UseIfSupported) {
+		m_ResolvedSettings.ImageInt64Atomics =
+		  physicalDeviceResult->enable_extension_if_present(
+			VK_EXT_SHADER_IMAGE_ATOMIC_INT64_EXTENSION_NAME) &&
+			  physicalDeviceResult->enable_extension_features_if_present(
+				veryLongAndScaryExtensionNameOhMyGodHelpImSpookedFeatures)
 			? VFH_Require
 			: VFH_Disable;
 	}

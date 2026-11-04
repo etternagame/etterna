@@ -57,6 +57,9 @@ CompileShader(const std::string& sourceName,
 	shaderc::Compiler compiler;
 	shaderc::CompileOptions options;
 
+	options.SetTargetEnvironment(shaderc_target_env_vulkan,
+								 shaderc_env_version_vulkan_1_3);
+
 	auto result = compiler.CompileGlslToSpv(
 	  source, shaderKind, sourceName.c_str(), options);
 
