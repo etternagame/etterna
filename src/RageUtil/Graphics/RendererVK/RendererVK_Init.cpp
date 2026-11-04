@@ -211,6 +211,17 @@ RendererVK::InitVulkanState()
 					 .add_required_extension_features(dynamicState3Features);
 	}
 
+	VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures{};
+	meshShaderFeatures.sType =
+	  VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT;
+	meshShaderFeatures.meshShader = VK_TRUE;
+
+	if (m_ResolvedSettings.MeshShaders == VFH_Require) {
+		selector =
+		  selector.add_required_extension(VK_EXT_MESH_SHADER_EXTENSION_NAME)
+			.add_required_extension_features(meshShaderFeatures);
+	}
+
 	auto physicalDeviceResult = selector.select();
 	if (!physicalDeviceResult) {
 		Locator::getLogger()->fatal(
@@ -225,6 +236,16 @@ RendererVK::InitVulkanState()
 			VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME) &&
 			  physicalDeviceResult->enable_extension_features_if_present(
 				dynamicState3Features)
+			? VFH_Require
+			: VFH_Disable;
+	}
+
+	if (m_ResolvedSettings.MeshShaders == VFH_UseIfSupported) {
+		m_ResolvedSettings.MeshShaders =
+		  physicalDeviceResult->enable_extension_if_present(
+			VK_EXT_MESH_SHADER_EXTENSION_NAME) &&
+			  physicalDeviceResult->enable_extension_features_if_present(
+				meshShaderFeatures)
 			? VFH_Require
 			: VFH_Disable;
 	}
