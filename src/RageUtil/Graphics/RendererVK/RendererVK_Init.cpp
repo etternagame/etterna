@@ -19,6 +19,7 @@
 #include "RenderTargetVK.h"
 #include "PlatformUtils.h"
 #include <RageUtil/Graphics/Display/Display.h>
+#include <Etterna/Singletons/PrefsManager.h>
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE
 
@@ -86,6 +87,8 @@ RendererVK::InitializeRenderer(const VideoModeParams& p)
 	InitTextures();
 }
 
+#pragma region init utils
+
 static VkBool32
 VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 					VkDebugUtilsMessageTypeFlagsEXT messageTypes,
@@ -118,9 +121,30 @@ VulkanDebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 	return VK_FALSE;
 }
 
+static const char* VulkanFeatureHintNames[] = { "UseIfSupported",
+												"Require",
+												"Disable" };
+StringToX(VulkanFeatureHint);
+
+static const char* VulkanFeatureNameNames[] = {
+	"ExtendedDynamicState3BlendingExt",
+	"MeshShadersExt",
+	"ShaderImageInt64AtomicsExt",
+	"MemoryBudgetExt",
+	"NvidiaLowLatency2",
+	"PresentTimingExt"
+};
+StringToX(VulkanFeatureName);
+
+#pragma endregion
+
 void
 RendererVK::InitVulkanState()
 {
+	// init changes all UseIfSupported to Require/Disable after checking if
+	// they are present with vkbootstrap
+	m_ResolvedSettings = GetFeatureSettings();
+
 	VULKAN_HPP_DEFAULT_DISPATCHER.init();
 
 	auto instanceResult = CreateInstance(VulkanDebugCallback);
@@ -164,17 +188,30 @@ RendererVK::InitVulkanState()
 	vkFeatures.shaderInt64 = vk::True;
 
 	vkb::PhysicalDeviceSelector selector(*instanceResult);
-	auto physicalDeviceResult =
-	  selector.set_minimum_version(1, 3)
-		.set_required_features_13(vk13Features)
-		.set_required_features_12(vk12Features)
-		.set_required_features(vkFeatures)
-		.set_surface(static_cast<vk::SurfaceKHR>(m_Surface))
-		.add_required_extension(VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)
+	selector = selector.set_minimum_version(1, 3)
+				 .set_required_features_13(vk13Features)
+				 .set_required_features_12(vk12Features)
+				 .set_required_features(vkFeatures)
+				 .set_surface(static_cast<vk::SurfaceKHR>(m_Surface));
 #ifdef __APPLE__
-		.add_required_extension(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME)
+	selector =
+	  selector.add_required_extension(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
 #endif
-		.select();
+	VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features{};
+	dynamicState3Features.sType =
+	  VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
+	dynamicState3Features.extendedDynamicState3ColorBlendEnable = VK_TRUE;
+	dynamicState3Features.extendedDynamicState3ColorBlendEquation = VK_TRUE;
+	dynamicState3Features.extendedDynamicState3ColorWriteMask = VK_TRUE;
+
+	if (m_ResolvedSettings.EDS3Blending == VFH_Require) {
+		selector = selector
+					 .add_required_extension(
+					   VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME)
+					 .add_required_extension_features(dynamicState3Features);
+	}
+
+	auto physicalDeviceResult = selector.select();
 	if (!physicalDeviceResult) {
 		Locator::getLogger()->fatal(
 		  "RendererVK: physical device creation failed - {}",
@@ -182,16 +219,19 @@ RendererVK::InitVulkanState()
 		Fail();
 	}
 
-	VkPhysicalDeviceExtendedDynamicState3FeaturesEXT dynamicState3Features{};
-	dynamicState3Features.sType =
-	  VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_3_FEATURES_EXT;
-	dynamicState3Features.extendedDynamicState3ColorBlendEnable = VK_TRUE;
-	dynamicState3Features.extendedDynamicState3ColorBlendEquation = VK_TRUE;
-	dynamicState3Features.extendedDynamicState3ColorWriteMask = VK_TRUE;
-	dynamicState3Features.extendedDynamicState3RasterizationSamples = VK_TRUE;
+	if (m_ResolvedSettings.EDS3Blending == VFH_UseIfSupported) {
+		m_ResolvedSettings.EDS3Blending =
+		  physicalDeviceResult->enable_extension_if_present(
+			VK_EXT_EXTENDED_DYNAMIC_STATE_3_EXTENSION_NAME) &&
+			  physicalDeviceResult->enable_extension_features_if_present(
+				dynamicState3Features)
+			? VFH_Require
+			: VFH_Disable;
+	}
 
 	vkb::DeviceBuilder deviceBuilder(*physicalDeviceResult);
-	auto deviceResult = deviceBuilder.add_pNext(&dynamicState3Features).build();
+
+	auto deviceResult = deviceBuilder.build();
 	if (!deviceResult) {
 		Locator::getLogger()->fatal(
 		  "RendererVK: device creation failed - {}",
@@ -259,6 +299,95 @@ RendererVK::InitVulkanState()
 	}
 }
 
+RendererVKFeatureSettings
+RendererVK::GetFeatureSettings()
+{
+	std::string hints = PREFSMAN->m_VulkanExtHints;
+
+	RendererVKFeatureSettings defaults = {
+		VFH_UseIfSupported, VFH_UseIfSupported, VFH_UseIfSupported,
+		VFH_UseIfSupported, VFH_Disable,		VFH_Disable,
+	};
+
+	if (hints.empty()) {
+		return defaults;
+	}
+
+	std::vector<std::string> hintStrings;
+	split(hints, ",", hintStrings);
+
+	std::vector<std::string> parts;
+	for (const auto& hintString : hintStrings) {
+		parts.clear();
+		split(hintString, ":", parts, false);
+
+		if (parts.size() != 2) {
+			Locator::getLogger()->fatal(
+			  "Invalid Vulkan renderer feature hint \'{}\' (expected in the "
+			  "form \'FeatureName:(UseIfSupported|Require|Disable)\')",
+			  hintString);
+			Fail();
+		}
+
+		VulkanFeatureName name = StringToVulkanFeatureName(parts[0]);
+		VulkanFeatureHint hint = StringToVulkanFeatureHint(parts[1]);
+
+		if (name == VulkanFeatureName_Invalid) {
+			Locator::getLogger()->fatal("Invalid feature name \'{}\' in Vulkan "
+										"renderer feature hint \'{}\'",
+										parts[0],
+										hintString);
+			Fail();
+		}
+
+		if (hint == VulkanFeatureName_Invalid) {
+			Locator::getLogger()->fatal(
+			  "Invalid feature hint type \'{}\' in Vulkan "
+			  "renderer feature hint \'{}\'",
+			  parts[1],
+			  hintString);
+			Fail();
+		}
+
+		switch (name) {
+			case VFN_ExtendedDynamicState3BlendingExt: {
+				defaults.EDS3Blending = hint;
+				break;
+			}
+			case VFN_MeshShadersExt: {
+				defaults.MeshShaders = hint;
+				break;
+			}
+			case VFN_ShaderImageInt64AtomicsExt: {
+				defaults.ImageInt64Atomics = hint;
+				break;
+			}
+			case VFN_MemoryBudgetExt: {
+				defaults.MemoryBudget = hint;
+				break;
+			}
+			case VFN_NvidiaLowLatency2: {
+				defaults.NvidiaLowLatency2 = hint;
+				break;
+			}
+			case VFN_PresentTimingExt: {
+				defaults.PresentTiming = hint;
+				break;
+			}
+			default: {
+				Locator::getLogger()->fatal(
+				  "Invalid feature name \'{}\' in Vulkan "
+				  "renderer feature hint \'{}\'",
+				  parts[0],
+				  hintString);
+				Fail();
+			}
+		}
+	}
+
+	return defaults;
+}
+
 void
 RendererVK::InitSwapchain(uint32_t width,
 						  uint32_t height,
@@ -269,6 +398,10 @@ RendererVK::InitSwapchain(uint32_t width,
 	m_SwapchainVSync = vSync;
 	m_SwapchainBorderless = borderlessWindow;
 	m_SmoothLines = smoothLines;
+
+	if (!m_SmoothLines) {
+		m_MsaaSamples = vk::SampleCountFlagBits::e1;
+	}
 
 	vkb::SwapchainBuilder swapchainBuilder(
 	  *m_PhysicalDevice, *m_Device, *m_Surface);
@@ -479,7 +612,7 @@ RendererVK::InitGraphicsPipeline()
 	m_Cache->m_TextureLayout = m_TextureLayout;
 	m_Cache->m_DepthFormat = m_DepthFormat;
 	m_Cache->m_ImageFormat = m_ImageFormat;
-	m_Cache->Init(m_Device);
+	m_Cache->Init(m_Device, m_ResolvedSettings.EDS3Blending == VFH_Require);
 
 	CreateGraphicsPipeline("Data/Shaders/Vulkan/vertex.glsl",
 						   "Data/Shaders/Vulkan/fragment.glsl");
@@ -553,7 +686,6 @@ RendererVK::InitSyncStructures()
 											   vk::SemaphoreCreateInfo());
 	}
 }
-
 
 void
 RendererVK::InitBatchDescriptors()

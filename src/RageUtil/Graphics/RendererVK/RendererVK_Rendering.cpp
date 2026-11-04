@@ -393,11 +393,11 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	  m_IndexBuffer[m_CurrentFrame].Get(), 0, vk::IndexType::eUint32);
 
 	intptr_t currentPipeline = -1;
+	BlendMode currentBlendMode = BLEND_NORMAL;
 
 	for (auto& node : batcher.m_RenderNodes) {
 		bool swapchain = node.RenderTarget == 0;
-		bool useMsaa = swapchain && m_SmoothLines &&
-					   !(m_MsaaSamples & vk::SampleCountFlagBits::e1);
+		bool useMsaa = !(m_MsaaSamples & vk::SampleCountFlagBits::e1);
 
 		auto image = swapchain ? m_SwapchainImages[imageIndex]
 							   : m_Textures[node.RenderTarget].image;
@@ -484,9 +484,6 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 										0.0f,
 										1.0f));
 
-		buffer.setRasterizationSamplesEXT(
-		  useMsaa ? m_MsaaSamples : vk::SampleCountFlagBits::e1);
-
 		buffer.beginRendering(renderInfo);
 
 		for (auto& call : node.DrawCalls) {
@@ -538,13 +535,22 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 			}
 			buffer.setCullMode(cullMode);
 
-			SetBlendMode(call.BlendingMode, buffer);
+			if (m_ResolvedSettings.EDS3Blending == VFH_Require) {
+				SetBlendMode(call.BlendingMode, buffer);
+			}
 
-			if (call.Settings.GraphicsPipeline != currentPipeline) {
+			if (call.Settings.GraphicsPipeline != currentPipeline ||
+				(m_ResolvedSettings.EDS3Blending != VFH_Require &&
+				 call.BlendingMode != currentBlendMode)) {
 				currentPipeline = call.Settings.GraphicsPipeline;
+				currentBlendMode = call.BlendingMode;
+
 				buffer.bindPipeline(
 				  vk::PipelineBindPoint::eGraphics,
-				  m_Cache->m_Pipelines[currentPipeline].GraphicsPipeline);
+				  m_Cache->m_Pipelines[currentPipeline]
+					.Pipelines[m_ResolvedSettings.EDS3Blending == VFH_Require
+								 ? 0
+								 : currentBlendMode]);
 			}
 
 			uint64_t vertexArg =

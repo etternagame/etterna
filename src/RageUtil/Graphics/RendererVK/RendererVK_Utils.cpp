@@ -37,11 +37,11 @@ RendererVK::CreateGraphicsPipeline(const std::string& vertexShaderPath,
 {
 	assert(m_Cache.has_value());
 	return m_Cache->CreateGraphicsPipeline(
-	  m_Device, vertexShaderPath, fragmentShaderPath);
+	  m_Device, vertexShaderPath, fragmentShaderPath, m_MsaaSamples);
 }
 
 void
 RendererVK::ReloadPipelines()
 {
-	m_Cache->ReloadPipelines(m_Device);
+	m_Cache->ReloadPipelines(m_Device, m_MsaaSamples);
 }

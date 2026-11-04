@@ -11,24 +11,25 @@
 struct PipelineInfo
 {
 	vk::raii::PipelineLayout PipelineLayout = nullptr;
-	vk::raii::Pipeline GraphicsPipeline = nullptr;
+	std::vector<vk::raii::Pipeline> Pipelines;
 	std::string VertexShaderPath;
 	std::string FragmentShaderPath;
 };
-
 
 struct PipelineCache
 {
 	constexpr static std::string_view CacheName = "Cache/pipelineCache.bin";
 
-	void Init(vk::raii::Device& device);
+	void Init(vk::raii::Device& device, bool hasDynamicBlending);
 	void WriteToDisk();
-	void ReloadPipelines(vk::raii::Device& device);
+	void ReloadPipelines(vk::raii::Device& device,
+						 vk::SampleCountFlagBits msaaSamples);
 	DisplayAdapter::PipelineHandle CreateGraphicsPipeline(
 	  vk::raii::Device& device,
-									const std::string& vertexShaderPath,
-									const std::string& fragmentShaderPath,
-									bool reload = false);
+	  const std::string& vertexShaderPath,
+	  const std::string& fragmentShaderPath,
+	  vk::SampleCountFlagBits msaaSamples,
+	  bool reload = false);
 
 	std::vector<PipelineInfo> m_Pipelines;
 	std::map<std::pair<std::string, std::string>, intptr_t> m_PipelineLookup;
@@ -38,6 +39,7 @@ struct PipelineCache
 	vk::Format m_DepthFormat = {};
 	vk::Format m_ImageFormat = {};
 	vk::raii::PipelineCache m_DriverCache = nullptr;
+	bool m_HasDynamicBlending = false;
 };
 
 #endif

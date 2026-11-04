@@ -190,6 +190,7 @@ PrefsManager::PrefsManager()
   , m_sLastSeenVideoDriver("LastSeenVideoDriver", "")
   , m_sVideoRenderers("VideoRenderers", "")
   , m_bVideoRendererDebugMode("VideoRendererDebugMode", false)
+  , m_VulkanExtHints("VulkanExtHints", "")
 
   , m_bSmoothLines("SmoothLines", false)
   , m_iSoundWriteAhead("SoundWriteAhead", 0)

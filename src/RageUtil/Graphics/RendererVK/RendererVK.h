@@ -37,6 +37,37 @@
 #include <bitset>
 #include "PipelineCache.h"
 
+enum VulkanFeatureHint
+{
+	VFH_UseIfSupported,
+	VFH_Require,
+	VFH_Disable,
+	NUM_VulkanFeatureHint,
+	VulkanFeatureHint_Invalid
+};
+
+enum VulkanFeatureName
+{
+	VFN_ExtendedDynamicState3BlendingExt,
+	VFN_MeshShadersExt,
+	VFN_ShaderImageInt64AtomicsExt,
+	VFN_MemoryBudgetExt,
+	VFN_NvidiaLowLatency2,
+	VFN_PresentTimingExt,
+	NUM_VulkanFeatureName,
+	VulkanFeatureName_Invalid
+};
+
+struct RendererVKFeatureSettings
+{
+	VulkanFeatureHint EDS3Blending;
+	VulkanFeatureHint MeshShaders;
+	VulkanFeatureHint ImageInt64Atomics;
+	VulkanFeatureHint MemoryBudget;
+	VulkanFeatureHint NvidiaLowLatency2;
+	VulkanFeatureHint PresentTiming;
+};
+
 class RendererVK : public DisplayAdapter::Renderer
 {
   public:
@@ -87,6 +118,8 @@ class RendererVK : public DisplayAdapter::Renderer
 	vk::Format m_DepthFormat = {};
 	vk::SampleCountFlagBits m_MsaaSamples = {};
 	void InitVulkanState();
+	RendererVKFeatureSettings GetFeatureSettings();
+	RendererVKFeatureSettings m_ResolvedSettings;
 
 	vk::raii::SwapchainKHR m_Swapchain = nullptr;
 	vk::Extent2D m_SwapchainExtent;
