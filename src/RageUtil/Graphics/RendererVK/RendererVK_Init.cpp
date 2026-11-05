@@ -75,7 +75,8 @@ RendererVK::InitializeRenderer(const VideoModeParams& p)
 				  p.height,
 				  p.vsync,
 				  p.bWindowIsFullscreenBorderless,
-				  p.bSmoothLines);
+				  p.bSmoothLines,
+				  p.rate ? p.rate : DISPLAY->GetFrameLimitGameplay());
 	InitImageViews();
 	InitBatchDescriptors();
 	InitBatchBuffers(1);
@@ -471,11 +472,13 @@ RendererVK::InitSwapchain(uint32_t width,
 						  uint32_t height,
 						  bool vSync,
 						  bool borderlessWindow,
-						  bool smoothLines)
+						  bool smoothLines,
+						  int refreshRate)
 {
 	m_SwapchainVSync = vSync;
 	m_SwapchainBorderless = borderlessWindow;
 	m_SmoothLines = smoothLines;
+	m_RefreshRate = refreshRate;
 
 	if (!m_SmoothLines) {
 		m_MsaaSamples = vk::SampleCountFlagBits::e1;
@@ -519,6 +522,14 @@ RendererVK::InitSwapchain(uint32_t width,
 					   : VK_FULL_SCREEN_EXCLUSIVE_ALLOWED_EXT;
 	swapchainBuilder.add_pNext(&fullScreenInfo);
 #endif
+
+	VkSwapchainLatencyCreateInfoNV latencyInfo{};
+	latencyInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_LATENCY_CREATE_INFO_NV;
+	latencyInfo.latencyModeEnable = VK_TRUE;
+
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+		swapchainBuilder.add_pNext(&latencyInfo);
+	}
 
 	auto swapchain_ret = swapchainBuilder.build();
 	if (!swapchain_ret) {
@@ -585,6 +596,16 @@ RendererVK::InitSwapchain(uint32_t width,
 		i++;
 	}
 
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require && refreshRate != 0) {
+		VkLatencySleepModeInfoNV sleepModeInfo{};
+		sleepModeInfo.sType = VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV;
+		sleepModeInfo.lowLatencyMode = VK_TRUE;
+		sleepModeInfo.lowLatencyBoost = VK_TRUE;
+		sleepModeInfo.minimumIntervalUs = 1'000'000 / refreshRate;
+
+		m_Swapchain.setLatencySleepModeNV(sleepModeInfo);
+	}
+
 	if (!smoothLines || m_MsaaSamples & vk::SampleCountFlagBits::e1) {
 		return;
 	}
@@ -645,7 +666,8 @@ RendererVK::RecreateSwapchain()
 				  m_SwapchainExtent.height,
 				  m_SwapchainVSync,
 				  m_SwapchainBorderless,
-				  m_SmoothLines);
+				  m_SmoothLines,
+				  m_RefreshRate);
 	InitImageViews();
 	InitSyncStructures();
 }
@@ -768,7 +790,7 @@ RendererVK::InitSyncStructures()
 		vk::SemaphoreCreateInfo createInfo{};
 		vk::SemaphoreTypeCreateInfoKHR typeCreateInfo{};
 
-		typeCreateInfo.semaphoreType = vk::SemaphoreType::eTimelineKHR;
+		typeCreateInfo.semaphoreType = vk::SemaphoreType::eTimeline;
 		typeCreateInfo.initialValue = 0;
 		createInfo.pNext = &typeCreateInfo;
 
@@ -958,7 +980,8 @@ RendererVK::TryVideoMode(const VideoModeParams& params)
 				  params.height,
 				  params.vsync,
 				  params.bWindowIsFullscreenBorderless,
-				  params.bSmoothLines);
+				  params.bSmoothLines,
+				  params.rate ? params.rate : DISPLAY->GetFrameLimitGameplay());
 	InitImageViews();
 	InitSyncStructures();
 }

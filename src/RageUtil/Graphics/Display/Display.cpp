@@ -62,7 +62,11 @@ DisplayAdapter::Display::BeginFrame()
 	static std::vector<uint8_t> dummyBuffer = {};
 	m_Batcher.InsertPipelineChangeCommand(0, dummyBuffer, dummyBuffer, false);
 
-	return m_IsInitDone && RageDisplay::BeginFrame();
+	if (m_IsInitDone) {
+		m_Renderer->MarkFrameStart();
+		return RageDisplay::BeginFrame();
+	}
+	return false;
 }
 
 void

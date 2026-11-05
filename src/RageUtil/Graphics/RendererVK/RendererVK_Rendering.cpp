@@ -51,16 +51,16 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 		return;
 	}
 
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+		vk::SetLatencyMarkerInfoNV marker{};
+		marker.presentID = m_PresentId;
+		marker.marker = vk::LatencyMarkerNV::eSimulationEnd;
+
+		m_Swapchain.setLatencyMarkerNV(marker);
+	}
+
 	ThrowIfFail(m_Device.waitForFences(
 	  *m_InFlightFence[m_CurrentFrame], vk::True, Timeout));
-
-	UpdateBatchBuffers(batcher);
-
-	if (m_ResolvedSettings.MemoryBudget == VFH_Require) {
-		// no this is not the same thing as the imageIndex in acquireNextImage
-		// should overflow in like 5 days @ 10K FPS
-		vmaSetCurrentFrameIndex(m_Allocator, m_FrameCounterForAllocator++);
-	}
 
 	auto [result, imageIndex] = m_Swapchain.acquireNextImage(
 	  Timeout, *m_PresentCompleteSemaphore[m_CurrentFrame], nullptr);
@@ -72,6 +72,22 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 		return;
 	}
 	ThrowIfFail(result);
+
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+		vk::SetLatencyMarkerInfoNV marker{};
+		marker.presentID = m_PresentId;
+		marker.marker = vk::LatencyMarkerNV::eRendersubmitStart;
+
+		m_Swapchain.setLatencyMarkerNV(marker);
+	}
+
+	UpdateBatchBuffers(batcher);
+
+	if (m_ResolvedSettings.MemoryBudget == VFH_Require) {
+		// no this is not the same thing as the imageIndex in acquireNextImage
+		// should overflow in like 5 days @ 10K FPS
+		vmaSetCurrentFrameIndex(m_Allocator, m_FrameCounterForAllocator++);
+	}
 
 	m_Device.resetFences(*m_InFlightFence[m_CurrentFrame]);
 	m_CommandBuffers[m_CurrentFrame].reset();
@@ -88,7 +104,20 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 	submitInfo.pCommandBuffers = &*m_CommandBuffers[m_CurrentFrame];
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = &*m_RenderFinishedSemaphore[imageIndex];
+
+	vk::LatencySubmissionPresentIdNV latencyId{};
+	latencyId.presentID = m_PresentId;
+	submitInfo.pNext = &latencyId;
+
 	m_GraphicsQueue.submit(submitInfo, *m_InFlightFence[m_CurrentFrame]);
+
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+		vk::SetLatencyMarkerInfoNV marker{};
+		marker.presentID = m_PresentId;
+		marker.marker = vk::LatencyMarkerNV::eRendersubmitEnd;
+
+		m_Swapchain.setLatencyMarkerNV(marker);
+	}
 
 	vk::PresentInfoKHR presentInfoKHR{};
 	presentInfoKHR.waitSemaphoreCount = 1;
@@ -102,7 +131,27 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 		// kinda fresh at the time of writing so eh
 
 		const auto beforePresent = std::chrono::steady_clock::now();
+
+		if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+			vk::SetLatencyMarkerInfoNV marker{};
+			marker.presentID = m_PresentId;
+			marker.marker = vk::LatencyMarkerNV::ePresentStart;
+
+			m_Swapchain.setLatencyMarkerNV(marker);
+		}
+
 		result = m_PresentQueue.presentKHR(presentInfoKHR);
+
+		if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
+			vk::SetLatencyMarkerInfoNV marker{};
+			marker.presentID = m_PresentId;
+			marker.marker = vk::LatencyMarkerNV::ePresentEnd;
+
+			m_Swapchain.setLatencyMarkerNV(marker);
+		}
+
+		m_PresentId++;
+
 		const auto afterPresent = std::chrono::steady_clock::now();
 		DISPLAY->SetPresentTime(afterPresent - beforePresent);
 	} catch (vk::OutOfDateKHRError error) {
@@ -116,6 +165,36 @@ RendererVK::OnRender(const ActualVideoModeParams* p,
 	}
 
 	m_CurrentFrame = (m_CurrentFrame + 1) % FramesInFlight;
+}
+
+void
+RendererVK::MarkFrameStart()
+{
+	if (m_ResolvedSettings.NvidiaLowLatency2 != VFH_Require) {
+		return;
+	}
+
+	vk::LatencySleepInfoNV sleepInfo{};
+	sleepInfo.signalSemaphore = *m_NvidiaLatencySemaphore;
+	sleepInfo.value = ++m_NvidiaLatencySleepValue;
+	m_Swapchain.latencySleepNV(sleepInfo);
+
+	vk::SemaphoreWaitInfo waitInfo{};
+	waitInfo.setSemaphores(*m_NvidiaLatencySemaphore);
+	waitInfo.setValues(m_NvidiaLatencySleepValue);
+
+	ThrowIfFail(m_Device.waitSemaphores(waitInfo, Timeout));
+
+	vk::SetLatencyMarkerInfoNV marker{};
+	marker.presentID = m_PresentId;
+	marker.marker = vk::LatencyMarkerNV::eSimulationStart;
+
+	m_Swapchain.setLatencyMarkerNV(marker);
+
+	// hacky?
+	marker.marker = vk::LatencyMarkerNV::eInputSample;
+
+	m_Swapchain.setLatencyMarkerNV(marker);
 }
 
 void

@@ -77,6 +77,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	bool IsReadyForRender() override;
 	void OnRender(const ActualVideoModeParams* p,
 				  const DisplayAdapter::CommandBatcher& batcher) override;
+	void MarkFrameStart() override;
 	bool IsD3DInternal() override;
 	intptr_t CreateTexture(RageSurface* img, bool RGBA8) override;
 	void UpdateTexture(intptr_t textureHandle,
@@ -135,12 +136,14 @@ class RendererVK : public DisplayAdapter::Renderer
 	bool m_SwapchainBorderless = false;
 	bool m_SwapchainIsInvalid = false;
 	bool m_SmoothLines = false;
+	int m_RefreshRate = 0;
 
 	void InitSwapchain(uint32_t width,
 					   uint32_t height,
 					   bool vSync,
 					   bool borderlessWindow,
-					   bool smoothLines);
+					   bool smoothLines,
+					   int refreshRate);
 	void RecreateSwapchain();
 	void CleanupSwapchain();
 
@@ -177,6 +180,8 @@ class RendererVK : public DisplayAdapter::Renderer
 	std::vector<vk::raii::Semaphore> m_PresentCompleteSemaphore;
 	std::vector<vk::raii::Semaphore> m_RenderFinishedSemaphore;
 	vk::raii::Semaphore m_NvidiaLatencySemaphore = nullptr;
+	uint64_t m_PresentId = 0;
+	uint64_t m_NvidiaLatencySleepValue = 0;
 
 	std::vector<vk::raii::Fence> m_InFlightFence;
 	uint32_t m_CurrentFrame = 0;
