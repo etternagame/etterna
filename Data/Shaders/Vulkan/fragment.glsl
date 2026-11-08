@@ -13,6 +13,9 @@ layout(location = 3) in vec2 vertexUV;
 layout(location = 0) out vec4 fragmentColor;
 
 void main() {
+    if (vertexColor.a <= 1.0 / 256.0) {
+        discard;
+    }
     if(textureIndex == 0){
         fragmentColor = vertexColor;
         return;
@@ -20,4 +23,7 @@ void main() {
 
     vec4 textureColor = texture(sampler2D(textures[nonuniformEXT(textureIndex)], samplers[nonuniformEXT(samplerIndex)]), vertexUV);
     fragmentColor = vertexColor * textureColor;
+    if (fragmentColor.a <= 1.0 / 256.0) {
+        discard;
+    }
 }

@@ -449,6 +449,7 @@ DisplayAdapter::Display::SetZBias(float f)
 void
 DisplayAdapter::Display::SetAlphaTest(bool b)
 {
+	// usually now done as a discard in the fragment shader
 }
 
 void

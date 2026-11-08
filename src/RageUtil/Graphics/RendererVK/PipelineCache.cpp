@@ -287,10 +287,8 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 		// BLEND_INVERT_DEST
 		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
 		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
-		colorBlendAttachment.colorBlendOp = vk::BlendOp::eSubtract;
 		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
 		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOne;
-		colorBlendAttachment.alphaBlendOp = vk::BlendOp::eSubtract;
 
 		info.Pipelines.push_back(
 		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
@@ -300,7 +298,6 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
 		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eZero;
 		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOne;
-		colorBlendAttachment.colorWriteMask = vk::ColorComponentFlags(0);
 
 		info.Pipelines.push_back(
 		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));

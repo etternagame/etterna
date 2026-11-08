@@ -576,8 +576,7 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 				continue;
 			}
 
-			buffer.setDepthTestEnable(
-			  call.DepthTestMode != ZTEST_OFF ? VK_TRUE : VK_FALSE);
+			buffer.setDepthTestEnable(VK_TRUE);
 			buffer.setDepthWriteEnable(call.DepthWriteEnabled ? VK_TRUE
 															  : VK_FALSE);
 
@@ -587,11 +586,11 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 					break;
 				}
 				case ZTEST_WRITE_ON_PASS: {
-					depthCompareOp = vk::CompareOp::eLessOrEqual;
+					depthCompareOp = vk::CompareOp::eLess;
 					break;
 				}
 				case ZTEST_WRITE_ON_FAIL: {
-					depthCompareOp = vk::CompareOp::eGreater;
+					depthCompareOp = vk::CompareOp::eGreaterOrEqual;
 					break;
 				}
 				default: {
@@ -783,10 +782,8 @@ RendererVK::SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer)
 		case BLEND_INVERT_DEST: {
 			blendEquation.srcColorBlendFactor = vk::BlendFactor::eOne;
 			blendEquation.dstColorBlendFactor = vk::BlendFactor::eOne;
-			blendEquation.colorBlendOp = vk::BlendOp::eSubtract;
 			blendEquation.srcAlphaBlendFactor = vk::BlendFactor::eOne;
 			blendEquation.dstAlphaBlendFactor = vk::BlendFactor::eOne;
-			blendEquation.alphaBlendOp = vk::BlendOp::eSubtract;
 			break;
 		}
 
@@ -795,7 +792,6 @@ RendererVK::SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer)
 			blendEquation.dstColorBlendFactor = vk::BlendFactor::eOne;
 			blendEquation.srcAlphaBlendFactor = vk::BlendFactor::eZero;
 			blendEquation.dstAlphaBlendFactor = vk::BlendFactor::eOne;
-			colorWriteMask = vk::ColorComponentFlags(0);
 			break;
 		}
 
