@@ -126,6 +126,7 @@ static const char* VulkanFeatureHintNames[] = { "UseIfSupported",
 												"Require",
 												"Disable" };
 StringToX(VulkanFeatureHint);
+XToString(VulkanFeatureHint);
 
 static const char* VulkanFeatureNameNames[] = {
 	"ExtendedDynamicState3BlendingExt",
@@ -136,6 +137,7 @@ static const char* VulkanFeatureNameNames[] = {
 	"PresentTimingExt"
 };
 StringToX(VulkanFeatureName);
+XToString(VulkanFeatureName);
 
 #pragma endregion
 
@@ -182,11 +184,16 @@ RendererVK::InitVulkanState()
 	vk12Features.scalarBlockLayout = vk::True;
 	vk12Features.descriptorBindingSampledImageUpdateAfterBind = vk::True;
 	vk12Features.descriptorBindingPartiallyBound = vk::True;
+	vk12Features.drawIndirectCount = vk::True;
+	vk12Features.timelineSemaphore = vk::True;
 
 	VkPhysicalDeviceFeatures vkFeatures = {};
 	vkFeatures.samplerAnisotropy = vk::True;
 	vkFeatures.logicOp = vk::True;
 	vkFeatures.shaderInt64 = vk::True;
+	vkFeatures.drawIndirectFirstInstance = vk::True;
+	vkFeatures.multiDrawIndirect = vk::True;
+	vkFeatures.fragmentStoresAndAtomics = vk::True;
 
 	vkb::PhysicalDeviceSelector selector(*instanceResult);
 	selector = selector.set_minimum_version(1, 3)
@@ -244,9 +251,16 @@ RendererVK::InitVulkanState()
 		  selector.add_required_extension(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 	}
 
+	VkPhysicalDevicePresentId2FeaturesKHR presentId2Features{};
+	presentId2Features.sType =
+	  VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PRESENT_ID_2_FEATURES_KHR;
+	presentId2Features.presentId2 = VK_TRUE;
+
 	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require) {
 		selector =
-		  selector.add_required_extension(VK_NV_LOW_LATENCY_2_EXTENSION_NAME);
+		  selector.add_required_extension(VK_NV_LOW_LATENCY_2_EXTENSION_NAME)
+			.add_required_extension(VK_KHR_PRESENT_ID_2_EXTENSION_NAME)
+			.add_required_extension_features(presentId2Features);
 	}
 
 	auto physicalDeviceResult = selector.select();
@@ -298,10 +312,32 @@ RendererVK::InitVulkanState()
 	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_UseIfSupported) {
 		m_ResolvedSettings.NvidiaLowLatency2 =
 		  physicalDeviceResult->enable_extension_if_present(
-			VK_NV_LOW_LATENCY_2_EXTENSION_NAME)
+			VK_NV_LOW_LATENCY_2_EXTENSION_NAME) &&
+			  physicalDeviceResult->enable_extension_if_present(
+				VK_KHR_PRESENT_ID_2_EXTENSION_NAME) &&
+			  physicalDeviceResult->enable_extension_features_if_present(
+				presentId2Features)
 			? VFH_Require
 			: VFH_Disable;
 	}
+
+	// the log blob
+	Locator::getLogger()->info(
+	  "Enabled/disabled Vulkan features based on hints (feature was enabled if "
+	  "resolved as \'Require\'):\n{} - {}\n{} - {}\n{} "
+	  "- {}\n{} - {}\n{} - {}\n{} - {}",
+	  VulkanFeatureNameToString(VFN_ExtendedDynamicState3BlendingExt),
+	  VulkanFeatureHintToString(m_ResolvedSettings.EDS3Blending),
+	  VulkanFeatureNameToString(VFN_MeshShadersExt),
+	  VulkanFeatureHintToString(m_ResolvedSettings.MeshShaders),
+	  VulkanFeatureNameToString(VFN_ShaderImageInt64AtomicsExt),
+	  VulkanFeatureHintToString(m_ResolvedSettings.ImageInt64Atomics),
+	  VulkanFeatureNameToString(VFN_MemoryBudgetExt),
+	  VulkanFeatureHintToString(m_ResolvedSettings.MemoryBudget),
+	  VulkanFeatureNameToString(VFN_NvidiaLowLatency2),
+	  VulkanFeatureHintToString(m_ResolvedSettings.NvidiaLowLatency2),
+	  VulkanFeatureNameToString(VFN_PresentTimingExt),
+	  VulkanFeatureHintToString(m_ResolvedSettings.PresentTiming));
 
 	vkb::DeviceBuilder deviceBuilder(*physicalDeviceResult);
 
@@ -596,7 +632,8 @@ RendererVK::InitSwapchain(uint32_t width,
 		i++;
 	}
 
-	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require && refreshRate != 0) {
+	if (m_ResolvedSettings.NvidiaLowLatency2 == VFH_Require &&
+		refreshRate != 0) {
 		VkLatencySleepModeInfoNV sleepModeInfo{};
 		sleepModeInfo.sType = VK_STRUCTURE_TYPE_LATENCY_SLEEP_MODE_INFO_NV;
 		sleepModeInfo.lowLatencyMode = VK_TRUE;
