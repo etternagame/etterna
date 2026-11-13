@@ -22,12 +22,12 @@ class RageSoundReader_Split : public RageSoundReader
 
 	int GetLength() const override;
 	int GetLength_Fast() const override;
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuf, int iFrames) override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	int GetSampleRate() const override;
 	unsigned GetNumChannels() const override;
 	bool SetProperty(const std::string& sProperty, float fValue) override;
-	int GetNextSourceFrame() const override;
+	int64_t GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override;
 	std::string GetError() const override;
 
@@ -52,8 +52,8 @@ class RageSoundReader_Split : public RageSoundReader
 	};
 	std::vector<ChannelMap> m_aChannels;
 
-	int m_iPositionFrame;
-	int m_iRequestFrames;
+	int64_t m_iPositionFrame;
+	int64_t m_iRequestFrames;
 	int m_iNumOutputChannels;
 };
 

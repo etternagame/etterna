@@ -434,7 +434,7 @@ Player::Init(const std::string& sType,
 		// the song doesn't get judged
 		// and also it gets changed back to a realistic number after a hold is
 		// hit -poco
-		lastHoldHeadsSeconds[i] = -1000.F;
+		lastHoldHeadsSeconds[i] = -1000.0;
 		activeHoldTaps[i] = nullptr;
 	}
 
@@ -1888,13 +1888,17 @@ Player::Step(int col,
 {
 	const auto fMusicRate =
 		GAMESTATE->m_SongOptions.GetCurrent().m_fMusicRate;
-	const auto fHitUpdateDelta =
+	// compute in double so long-duration songs do not quantize hits 
+    // the offset itself is small, so casting back to f32 works
+	const auto dHitUpdateDelta =
 		(GAMESTATE->m_Position.m_LastBeatUpdate - RageTimer(tm)) - padStickSeconds;
-	const auto fMusicSeconds =
-		GAMESTATE->m_Position.m_fMusicSeconds - (fHitUpdateDelta * fMusicRate);
+	const auto dMusicSeconds =
+		GAMESTATE->m_Position.m_fMusicSeconds - (dHitUpdateDelta * fMusicRate);
+	const auto fMusicSeconds = static_cast<float>(dMusicSeconds);
 	const auto fSongBeat =
-		GAMESTATE->m_pCurSteps ? m_Timing->GetBeatFromElapsedTime(fMusicSeconds)
-							   : GAMESTATE->m_Position.m_fSongBeat;
+		GAMESTATE->m_pCurSteps
+		  ? m_Timing->GetBeatFromElapsedTime(dMusicSeconds)
+		  : GAMESTATE->m_Position.m_fSongBeat;
 
 	const auto iSongRow = row == -1 ? BeatToNoteRow(fSongBeat) : row;
 
@@ -2086,7 +2090,8 @@ Player::Step(int col,
 		pTN = &iter->second;
 
 		if (row == -1) {
-			fNoteOffset = (fStepSeconds - fMusicSeconds) / fMusicRate;
+			fNoteOffset = static_cast<float>(
+			  (static_cast<double>(fStepSeconds) - dMusicSeconds) / fMusicRate);
 			// input data (a real tap mapped to a note any distance away)
 			// this also skips things like mines hit by CrossedRows (holding)
 			m_pPlayerStageStats->InputData.emplace_back(
@@ -2147,7 +2152,7 @@ Player::Step(int col,
 						// Fall through to default.
 					default:
 						if (pTN->type != TapNoteType_HoldHead &&
-							lastHoldHeadsSeconds[col] > fMusicSeconds) {
+							lastHoldHeadsSeconds[col] > dMusicSeconds) {
 							if (fSecondsFromExact > TAP_IN_HOLD_REQ_SEC) {
 								break;
 							}
@@ -3481,7 +3486,7 @@ Player::RenderAllNotesIgnoreScores()
 		 i < GAMESTATE->GetCurrentStyle(GetPlayerState()->m_PlayerNumber)
 			   ->m_iColsPerPlayer;
 		 ++i) {
-		lastHoldHeadsSeconds[i] = -1000.F;
+		lastHoldHeadsSeconds[i] = -1000.0;
 	}
 
 	// Might as well regenerate every single iterator for judging.

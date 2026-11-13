@@ -14,7 +14,7 @@ class pos_map_queue
 
 	/* Insert a mapping from iSourceFrame to iDestFrame, containing iFrames. */
 	void Insert(int64_t iSourceFrame,
-				int iFrames,
+				int64_t iFrames,
 				int64_t iDestFrame,
 				float fSourceToDestRatio = 1.0F);
 

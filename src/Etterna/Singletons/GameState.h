@@ -236,13 +236,13 @@ class GameState
 	// if re-adding noteskin changes in courses, add functions and such here -aj
 	void GetAllUsedNoteSkins(std::vector<std::string>& out) const;
 
-	static const float MUSIC_SECONDS_INVALID;
+	static const double MUSIC_SECONDS_INVALID;
 
 	void ResetMusicStatistics(); // Call this when it's time to play a new song.
 								 // Clears the values above.
 	void SetPaused(bool p) { m_paused = p; }
 	[[nodiscard]] auto GetPaused() const -> bool { return m_paused; }
-	void UpdateSongPosition(float fPositionSeconds,
+	void UpdateSongPosition(double fPositionSeconds,
 							const TimingData& timing,
 							const RageTimer& timestamp = RageZeroTimer);
 	[[nodiscard]] auto GetSongPercent(float beat) const -> float;

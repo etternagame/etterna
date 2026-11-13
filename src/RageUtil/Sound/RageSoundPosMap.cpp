@@ -9,13 +9,13 @@
 
 /* The number of frames we should keep pos_map data for.  This being too high
  * is mostly harmless; the data is small. */
-const int pos_map_backlog_frames = 100000;
+const int64_t pos_map_backlog_frames = 100000;
 
 struct pos_map_t
 {
 	int64_t m_iSourceFrame;
 	int64_t m_iDestFrame;
-	int m_iFrames;
+	int64_t m_iFrames;
 	float m_fSourceToDestRatio;
 
 	pos_map_t()
@@ -60,7 +60,7 @@ pos_map_queue::operator=(const pos_map_queue& rhs)
 
 void
 pos_map_queue::Insert(int64_t iSourceFrame,
-					  int iFrames,
+					  int64_t iFrames,
 					  int64_t iDestFrame,
 					  float fSourceToDestRatio)
 {
@@ -71,7 +71,7 @@ pos_map_queue::Insert(int64_t iSourceFrame,
 		if (last.m_iSourceFrame + last.m_iFrames == iSourceFrame &&
 			last.m_fSourceToDestRatio == fSourceToDestRatio &&
 			llabs(last.m_iDestFrame +
-				  lround(last.m_iFrames * last.m_fSourceToDestRatio) -
+				  llround(last.m_iFrames * last.m_fSourceToDestRatio) -
 				  iDestFrame) <= 1) {
 			last.m_iFrames += iFrames;
 
@@ -96,7 +96,7 @@ pos_map_queue::Insert(int64_t iSourceFrame,
 				next.m_iSourceFrame += iDeleteFrames;
 				next.m_iFrames -= iDeleteFrames;
 				next.m_iDestFrame +=
-				  lround(iDeleteFrames * next.m_fSourceToDestRatio);
+				  llround(iDeleteFrames * next.m_fSourceToDestRatio);
 
 				m_pImpl->m_Queue.push_back(next);
 			}
@@ -122,7 +122,7 @@ pos_map_impl::Cleanup()
 {
 	/* Scan backwards until we have at least pos_map_backlog_frames. */
 	auto it = m_Queue.end();
-	int iTotalFrames = 0;
+	int64_t iTotalFrames = 0;
 	while (iTotalFrames < pos_map_backlog_frames) {
 		if (it == m_Queue.begin())
 			break;
@@ -144,10 +144,10 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 			*bApproximate = true;
 		return 0;
 	}
-
+    
 	/* iSourceFrame is probably in pos_map.  Search to figure out what position
 	 * it maps to. */
-	int64_t iClosestPosition = 0, iClosestPositionDist = INT_MAX;
+	int64_t iClosestPosition = 0, iClosestPositionDist = INT64_MAX;
 	const pos_map_t* pClosestBlock =
 	  &*m_pImpl->m_Queue.begin(); /* print only */
 	for (auto& pm : m_pImpl->m_Queue) {
@@ -155,8 +155,8 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 			iSourceFrame < pm.m_iSourceFrame + pm.m_iFrames) {
 			/* iSourceFrame lies in this block; it's an exact match.  Figure
 			 * out the exact position. */
-			int iDiff = int(iSourceFrame - pm.m_iSourceFrame);
-			iDiff = lround(iDiff * pm.m_fSourceToDestRatio);
+			int64_t iDiff = iSourceFrame - pm.m_iSourceFrame;
+			iDiff = llround(iDiff * pm.m_fSourceToDestRatio);
 			return pm.m_iDestFrame + iDiff;
 		}
 
@@ -175,7 +175,7 @@ pos_map_queue::Search(int64_t iSourceFrame, bool* bApproximate) const
 			iClosestPositionDist = dist;
 			pClosestBlock = &pm;
 			iClosestPosition =
-			  pm.m_iDestFrame + lround(pm.m_iFrames * pm.m_fSourceToDestRatio);
+			  pm.m_iDestFrame + llround(pm.m_iFrames * pm.m_fSourceToDestRatio);
 		}
 	}
 

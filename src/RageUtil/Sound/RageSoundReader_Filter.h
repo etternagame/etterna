@@ -19,11 +19,11 @@ class RageSoundReader_Filter : public RageSoundReader
 
 	int GetLength() const override { return m_pSource->GetLength(); }
 	int GetLength_Fast() const override { return m_pSource->GetLength_Fast(); }
-	int SetPosition(int iFrame) override
+	int SetPosition(int64_t iFrame) override
 	{
 		return m_pSource->SetPosition(iFrame);
 	}
-	int Read(float* pBuf, int iFrames) override
+	int64_t Read(float* pBuf, int64_t iFrames) override
 	{
 		return m_pSource->Read(pBuf, iFrames);
 	}
@@ -36,7 +36,7 @@ class RageSoundReader_Filter : public RageSoundReader
 	{
 		return m_pSource->SetProperty(sProperty, fValue);
 	}
-	int GetNextSourceFrame() const override
+	int64_t GetNextSourceFrame() const override
 	{
 		return m_pSource->GetNextSourceFrame();
 	}

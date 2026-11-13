@@ -115,7 +115,7 @@ RageSoundReader_Merge::Finish(int iPreferredSampleRate)
 }
 
 int
-RageSoundReader_Merge::SetPosition(int iFrame)
+RageSoundReader_Merge::SetPosition(int64_t iFrame)
 {
 	m_iNextSourceFrame = iFrame;
 
@@ -180,8 +180,8 @@ static const int ERROR_CORRECTION_THRESHOLD = 16;
 /* As we iterate through the sound tree, we'll find that we need data
  * from different sounds; a sound may be needed by more than one other
  * sound. */
-int
-RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
+int64_t
+RageSoundReader_Merge::Read(float* pBuffer, int64_t iFrames)
 {
 	if (m_aSounds.empty())
 		return END_OF_FILE;
@@ -230,8 +230,8 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 			/* A sound is being delayed to resync it; clamp the number
 			 * of frames we read now, so we don't advance past it. */
 			auto iMaxSourceFramesToRead = aNextSourceFrames[i] - iMinPosition;
-			int iMaxStreamFramesToRead =
-			  lround(iMaxSourceFramesToRead / m_fCurrentStreamToSourceRatio);
+			int64_t iMaxStreamFramesToRead =
+			  llround(iMaxSourceFramesToRead / m_fCurrentStreamToSourceRatio);
 			iFrames = std::min(iFrames, iMaxStreamFramesToRead);
 			//			LOG->Warn( "RageSoundReader_Merge: sound
 			// positions
@@ -254,14 +254,14 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 	RageSoundMixBuffer mix;
 	float Buffer[2048];
 	iFrames =
-	  std::min(iFrames, static_cast<int>((ARRAYLEN(Buffer) / m_iChannels)));
+	  std::min(iFrames, static_cast<int64_t>((ARRAYLEN(Buffer) / m_iChannels)));
 
 	/* Read iFrames from each sound. */
 	for (unsigned i = 0; i < m_aSounds.size(); ++i) {
 		auto pSound = m_aSounds[i];
 		ASSERT(pSound->GetNumChannels() == m_iChannels);
 
-		auto iFramesRead = 0;
+		int64_t iFramesRead = 0;
 		while (iFramesRead < iFrames) {
 			//			if( i == 0 )
 			// LOG->Trace( "*** %i", Difference(aNextSourceFrames[i],
@@ -278,9 +278,9 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 				break;
 			}
 
-			auto iGotFrames = pSound->Read(Buffer, iFrames - iFramesRead);
+			int64_t iGotFrames = pSound->Read(Buffer, iFrames - iFramesRead);
 			if (0 && /*i == 1 && */ iGotFrames > 0) {
-				int iAt =
+				int64_t iAt =
 				  aNextSourceFrames[i] + lround(iGotFrames * aRatios[i]);
 				if (iAt != m_aSounds[i]->GetNextSourceFrame())
 					Locator::getLogger()->trace("{}: at {}, expected {}",
@@ -309,7 +309,7 @@ RageSoundReader_Merge::Read(float* pBuffer, int iFrames)
 	}
 
 	/* Read mixed frames into the output buffer. */
-	int iMaxFramesRead = mix.size() / m_iChannels;
+	int64_t iMaxFramesRead = mix.size() / m_iChannels;
 	mix.read(pBuffer);
 
 	m_iNextSourceFrame +=

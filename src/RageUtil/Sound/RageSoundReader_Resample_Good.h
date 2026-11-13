@@ -15,12 +15,12 @@ class RageSoundReader_Resample_Good : public RageSoundReader_Filter
 	/* We own source. */
 	RageSoundReader_Resample_Good(RageSoundReader* pSource, int iSampleRate);
 	RageSoundReader_Resample_Good(const RageSoundReader_Resample_Good& cpy);
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuf, int iFrames) override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuf, int64_t iFrames) override;
 	~RageSoundReader_Resample_Good() override;
 	RageSoundReader_Resample_Good* Copy() const override;
 	bool SetProperty(const std::string& sProperty, float fValue) override;
-	int GetNextSourceFrame() const override;
+	int64_t GetNextSourceFrame() const override;
 	float GetStreamToSourceRatio() const override;
 
 	/**

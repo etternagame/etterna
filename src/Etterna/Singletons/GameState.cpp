@@ -795,7 +795,7 @@ GameState::SetCurGame(const Game* pGame)
 	PREFSMAN->SetCurrentGame(sGame);
 }
 
-const float GameState::MUSIC_SECONDS_INVALID = -5000.0f;
+const double GameState::MUSIC_SECONDS_INVALID = -5000.0;
 
 void
 GameState::ResetMusicStatistics()
@@ -820,7 +820,7 @@ GameState::ResetStageStatistics()
 }
 
 void
-GameState::UpdateSongPosition(float fPositionSeconds,
+GameState::UpdateSongPosition(double fPositionSeconds,
 							  const TimingData& timing,
 							  const RageTimer& timestamp)
 {

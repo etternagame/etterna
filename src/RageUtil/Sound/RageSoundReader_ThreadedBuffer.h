@@ -20,9 +20,9 @@ class RageSoundReader_ThreadedBuffer : public RageSoundReader_Filter
 		return new RageSoundReader_ThreadedBuffer(*this);
 	}
 
-	int SetPosition(int iFrame) override;
-	int Read(float* pBuffer, int iLength) override;
-	int GetNextSourceFrame() const override;
+	int SetPosition(int64_t iFrame) override;
+	int64_t Read(float* pBuffer, int64_t iLength) override;
+	int64_t GetNextSourceFrame() const override;
 
 	int GetLength() const override;
 	int GetLength_Fast() const override;
@@ -52,7 +52,7 @@ class RageSoundReader_ThreadedBuffer : public RageSoundReader_Filter
 	int FillBlock();
 	int GetFilledFrames() const;
 	int GetEmptyFrames() const;
-	void WaitUntilFrames(int iWaitUntilFrames);
+	void WaitUntilFrames(int64_t iWaitUntilFrames);
 
 	int m_iSampleRate;
 	int m_iChannels;
@@ -61,8 +61,8 @@ class RageSoundReader_ThreadedBuffer : public RageSoundReader_Filter
 
 	struct Mapping
 	{
-		int iFramesBuffered{ 0 };
-		int iPositionOfFirstFrame{ 0 };
+		int64_t iFramesBuffered{ 0 };
+		int64_t iPositionOfFirstFrame{ 0 };
 		float fRate{ 1.0f };
 		Mapping() = default;
 	};

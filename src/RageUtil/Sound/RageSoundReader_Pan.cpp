@@ -10,14 +10,14 @@ RageSoundReader_Pan::RageSoundReader_Pan(RageSoundReader* pSource)
 	m_fPan = 0;
 }
 
-int
-RageSoundReader_Pan::Read(float* pBuf, int iFrames)
+int64_t
+RageSoundReader_Pan::Read(float* pBuf, int64_t iFrames)
 {
 	iFrames = m_pSource->Read(pBuf, iFrames);
 	if (iFrames < 0)
 		return iFrames;
 
-	int iSamples = iFrames * m_pSource->GetNumChannels();
+	int64_t iSamples = iFrames * m_pSource->GetNumChannels();
 
 	if (m_pSource->GetNumChannels() == 1) {
 		RageSoundUtil::ConvertMonoToStereoInPlace(pBuf, iSamples);

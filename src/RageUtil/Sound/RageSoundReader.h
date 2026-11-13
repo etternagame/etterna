@@ -8,8 +8,8 @@ class RageSoundReader
   public:
 	virtual int GetLength() const = 0;						   /* ms */
 	virtual int GetLength_Fast() const { return GetLength(); } /* ms */
-	virtual int SetPosition(int iFrame) = 0;
-	virtual int Read(float* pBuf, int iFrames) = 0;
+	virtual int SetPosition(int64_t iFrame) = 0;
+	virtual int64_t Read(float* pBuf, int64_t iFrames) = 0;
 	virtual ~RageSoundReader() = default;
 	virtual RageSoundReader* Copy() const = 0;
 	virtual int GetSampleRate() const = 0;
@@ -40,13 +40,13 @@ class RageSoundReader
 	 * ratio for extrapolating the source frames of the remainder of the block.
 	 * These values are valid so long as no parameters are changed before the
 	 * next Read(). */
-	virtual int GetNextSourceFrame() const = 0;
+	virtual int64_t GetNextSourceFrame() const = 0;
 	virtual float GetStreamToSourceRatio() const = 0;
 
 	virtual std::string GetError() const = 0;
-	int RetriedRead(float* pBuffer,
-					int iFrames,
-					int* iSourceFrame = NULL,
+	int64_t RetriedRead(float* pBuffer,
+					int64_t iFrames,
+					int64_t* iSourceFrame = NULL,
 					float* fRate = NULL);
 };
 
