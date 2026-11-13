@@ -470,6 +470,11 @@ Screen::PassInputToLua(const InputEventPlus& input)
 	lua_pop(L, 1);
 	LUA->Release(L);
 	m_CallingInputCallbacks = false;
+	if (!m_DelayedCallbackReorders.empty()) {
+		for (auto& cb : m_DelayedCallbackReorders) {
+			InternalMoveCallbackToEnd(cb);
+		}
+	}
 	if (!m_DelayedCallbackRemovals.empty()) {
 		for (auto& m_DelayedCallbackRemoval : m_DelayedCallbackRemovals) {
 			InternalRemoveCallback(m_DelayedCallbackRemoval);
@@ -518,6 +523,32 @@ Screen::InternalRemoveCallback(callback_key_t key)
 	  m_InputCallbacks.find(key);
 	if (iter != m_InputCallbacks.end()) {
 		m_InputCallbacks.erase(iter);
+	}
+}
+
+void
+Screen::MoveInputCallbackToEnd(lua_State* L)
+{
+	callback_key_t key = lua_topointer(L, 1);
+	if (m_CallingInputCallbacks) {
+		m_DelayedCallbackReorders.push_back(key);
+	} else {
+		InternalMoveCallbackToEnd(key);
+	}
+}
+
+void
+Screen::InternalMoveCallbackToEnd(callback_key_t key)
+{
+	if (orderedcallbacks.size() <= 1)
+		return;
+
+	auto it = std::find(orderedcallbacks.begin(), orderedcallbacks.end(), key);
+	if (it != orderedcallbacks.end()) {
+		std::rotate(it, it + 1, orderedcallbacks.end());
+	} else {
+		Locator::getLogger()->warn(
+		  "When trying to move callback to end, didn't find desired callback.");
 	}
 }
 
@@ -580,6 +611,16 @@ class LunaScreen : public Luna<Screen>
 		p->RemoveInputCallback(L);
 		COMMON_RETURN_SELF;
 	}
+
+	static int MoveInputCallbackToEnd(T* p, lua_State* L)
+	{
+		if (!lua_isfunction(L, 1)) {
+			luaL_error(L, "Input callback must be a function.");
+		}
+		p->MoveInputCallbackToEnd(L);
+		COMMON_RETURN_SELF;
+	}
+
 	static int setTimeout(T* p, lua_State* L)
 	{
 		auto f = GetFuncArg(1, L);
@@ -652,6 +693,7 @@ class LunaScreen : public Luna<Screen>
 		ADD_METHOD(GetScreenType);
 		ADD_METHOD(AddInputCallback);
 		ADD_METHOD(RemoveInputCallback);
+		ADD_METHOD(MoveInputCallbackToEnd);
 		ADD_METHOD(IsPreviewNoteFieldActive);
 	}
 };
