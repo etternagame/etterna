@@ -9,6 +9,11 @@ struct NoteInfo
 	float rowTime;
 };
 
+struct Tappy
+{
+	float offsets[4];
+};
+
 enum Skillset
 {
 	Skill_Overall,

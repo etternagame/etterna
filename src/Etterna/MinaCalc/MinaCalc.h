@@ -75,6 +75,8 @@ struct RowInfo
 
 	/// Rate-scaled time of this row.
 	float row_time = 0.F;
+	float tap_times[4] = {};
+	float wife;
 };
 
 /// Main driver class for the difficulty calculator as a whole.
@@ -88,6 +90,11 @@ class Calc
 	* significantly underrated
 	*/
 	auto CalcMain(const std::vector<NoteInfo>& NoteInfo,
+				  float music_rate,
+				  float score_goal) -> std::vector<float>;
+
+	auto CalcMain(const std::vector<NoteInfo>& NoteInfo,
+				  const std::vector<Tappy>& Tappies,
 				  float music_rate,
 				  float score_goal) -> std::vector<float>;
 
@@ -124,6 +131,7 @@ class Calc
 	*/
 	auto InitializeHands(
 	  const std::vector<NoteInfo>& NoteInfo,
+	  const std::vector<Tappy>& Tappies,
 	  float music_rate,
 	  float offset) -> bool;
 
@@ -169,6 +177,9 @@ class Calc
 	* Set up by nps::actual_cancer
 	*/
 	std::array<std::vector<int>, num_hands> itv_points{};
+
+	/** wifery */
+	std::array<std::vector<float>, num_hands> wife_points{};
 
 	/** Holds pattern mod information, one float per interval per mod per hand.
 	* In most cases, these are multiplying values, so neutral is 1.
@@ -304,6 +315,8 @@ class Calc
 		itv_size.resize(amt);
 		for (auto& v : itv_points)
 			v.resize(amt);
+		for (auto& a : wife_points)
+			a.resize(amt);
 		for (auto& a : pmod_vals)
 			for (auto& v : a)
 				v.resize(amt);
@@ -335,6 +348,15 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 		   float goal,
 		   const unsigned keycount,
 		   Calc* calc) -> std::vector<float>;
+
+MINACALC_API auto
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   const std::vector<Tappy>& Tappies,
+		   float musicrate,
+		   float goal,
+		   const unsigned keycount,
+		   Calc* calc) -> std::vector<float>;
+
 /// <summary>
 /// Calc driving function used for generating skillset values for caching.
 /// </summary>

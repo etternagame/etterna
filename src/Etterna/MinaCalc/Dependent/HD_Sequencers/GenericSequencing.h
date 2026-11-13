@@ -339,13 +339,14 @@ struct AnchorSequencer
 	}
 
 	// derives sc_ms, which sequencer general will pull for its moving window
-	void operator()(const col_type ct, const float& row_time)
+	void operator()(const col_type ct, const float tap_times[2])
 	{
 		// update the one
 		if (ct == col_left || ct == col_right) {
 			auto opposite_col = ct == col_left ? col_right : col_left;
-			(*anch.at(ct))(ct, row_time);
-			(*jack.at(ct))(ct, row_time);
+			float col_time = tap_times[ct];
+			(*anch.at(ct))(ct, col_time);
+			(*jack.at(ct))(ct, col_time);
 
 			// set max seen for this col for this interval
 			max_seen.at(ct) = anch.at(ct)->_len > max_seen.at(ct)
@@ -355,7 +356,7 @@ struct AnchorSequencer
 			// reset the other column if necessary
 			// this is particularly for jacks -- not resetting this breaks
 			// difficulty
-			if (ms_from(row_time, anch.at(opposite_col)->_last) >
+			if (ms_from(col_time, anch.at(opposite_col)->_last) >
 				guaranteed_reset_buffer_ms) {
 				anch.at(opposite_col)->full_reset();
 				jack.at(opposite_col)->full_reset();
@@ -364,8 +365,9 @@ struct AnchorSequencer
 
 			// update both
 			for (const auto& c : ct_loop_no_jumps) {
-				(*anch.at(c))(c, row_time);
-				(*jack.at(c))(c, row_time);
+				float col_time = tap_times[c];
+				(*anch.at(c))(c, col_time);
+				(*jack.at(c))(c, col_time);
 
 				// set max seen
 				max_seen.at(c) = anch.at(c)->_len > max_seen.at(c)
@@ -461,11 +463,11 @@ struct SequencerGeneral
 	// column, for this we need to take the last row_time on the cross column,
 	// (anchor sequencer has it as _last) and derive a new ms value from it and
 	// the current row_time
-	void set_cc_ms(const col_type& ct, const float& row_time)
+	void set_cc_ms(const col_type& ct, const float tap_times[2])
 	{
 		// single notes are simple, grab the _last of ct inverted
 		if (ct == col_left || ct == col_right) {
-			_mw_cc_ms(ms_from(row_time, _as.anch.at(invert_col(ct))->_last));
+			_mw_cc_ms(ms_from(tap_times[ct], _as.anch.at(invert_col(ct))->_last));
 		}
 
 		/* jumps are tricky, technically we have 2 cc_ms values, but also
@@ -486,6 +488,7 @@ struct SequencerGeneral
 	// stuff
 	void advance_sequencing(const col_type& ct,
 							const float& row_time,
+							const float tap_times[2],
 							const float& ms_now)
 	{
 		if (ct != col_ohjump) {
@@ -501,14 +504,14 @@ struct SequencerGeneral
 		}
 
 		// update sequencers
-		_as(ct, row_time);
+		_as(ct, tap_times);
 
 		// i guess we keep track of ms sequencing here instead of mhi, or
 		// somewhere new?
 
 		// sc ms needs to be set first, cc ms will reference it for ohjumps
 		set_sc_ms(ct);
-		set_cc_ms(ct, row_time);
+		set_cc_ms(ct, tap_times);
 		_mw_any_ms(ms_now);
 	}
 

@@ -581,6 +581,7 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 		  ThreadData* data) {
 			const auto per_thread_calc = std::make_unique<Calc>();
 			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
+			std::vector<Tappy> tappies;
 
 			auto* pair =
 			  static_cast<std::pair<int, LoadingWindow*>*>(data->data);
@@ -667,12 +668,40 @@ ScoreManager::RecalculateSSRs(LoadingWindow* ld)
 
 				const auto& serializednd = *serializednd_ptr;
 				std::vector<float> dakine;
+				tappies.clear();
+				if (auto *r = hs->GetReplay()) {
+					if (!remarried) {
+						steps->GetNoteData(nd);
+					}
+					const auto& nerv = nd.BuildAndGetNerv(td);
+					if (!nerv.empty()) {
+						r->LoadReplayData();
+						const auto& dvt = r->GetOffsetVector();
+						const auto& nrt = r->GetNoteRowVector();
+						const auto& ctt = r->GetTrackVector();
+						const auto& tnt = r->GetTapNoteTypeVector();
+						if (!ctt.empty()) {
+							std::unordered_map<int, int> lel(nerv.size());
+							for (size_t i = 0; i < nerv.size(); ++i)
+								lel[nerv[i]] = i;
+							tappies.assign(nerv.size(), {{ INFINITY, INFINITY, INFINITY, INFINITY }});
+							for (size_t i = 0; i < nrt.size(); ++i) {
+								auto row = nrt[i];
+								if (ctt[i] < 4 && (tnt[i] == TapNoteType_Tap || tnt[i] == TapNoteType_HoldHead) && lel.contains(row)) {
+									int nd_index = lel.at(row);
+									tappies[nd_index].offsets[ctt[i]] = dvt[i];
+								}
+							}
+						}
+					}
+				}
 
 				// dakine = MinaSDCalc(serializednd, musicrate,
 				// ssrpercent);
 				const unsigned columnCount =
 				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
 				dakine = MinaSDCalc(serializednd,
+									tappies,
 									musicrate,
 									ssrpercent,
 									columnCount,
@@ -801,6 +830,7 @@ ScoreManager::RecalculateSSRs(const std::string& profileID)
 		  ThreadData* data) {
 			const auto per_thread_calc = std::make_unique<Calc>();
 			per_thread_calc->loadparams = PREFSMAN->m_bAlwaysLoadCalcParams;
+			std::vector<Tappy> tappies;
 
 			auto scoreIndex = 0;
 			for (auto it = workload.first; it != workload.second; ++it) {
@@ -835,9 +865,36 @@ ScoreManager::RecalculateSSRs(const std::string& profileID)
 				auto serializednd = nd.SerializeNoteData2(td);
 				std::vector<float> dakine;
 
+				tappies.clear();
+				std::unordered_map<int, int> lel;
+				if (auto *r = hs->GetReplay()) {
+					steps->GetNoteData(nd);
+					const auto& nerv = nd.BuildAndGetNerv(td);
+					if (!nerv.empty()) {
+						r->LoadReplayData();
+						const auto& dvt = r->GetOffsetVector();
+						const auto& nrt = r->GetNoteRowVector();
+						const auto& ctt = r->GetTrackVector();
+						const auto& tnt = r->GetTapNoteTypeVector();
+						if (!ctt.empty()) {
+							std::unordered_map<int, int> lel(nerv.size());
+							for (size_t i = 0; i < nerv.size(); ++i)
+								lel[nerv[i]] = i;
+							tappies.assign(nerv.size(), {{ INFINITY, INFINITY, INFINITY, INFINITY }});
+							for (size_t i = 0; i < nrt.size(); ++i) {
+								auto row = nrt[i];
+								if (ctt[i] < 4 && (tnt[i] == TapNoteType_Tap || tnt[i] == TapNoteType_HoldHead) && lel.contains(row)) {
+									int nd_index = lel.at(row);
+									tappies[nd_index].offsets[ctt[i]] = dvt[i];
+								}
+							}
+						}
+					}
+				}
 					const unsigned columnCount =
 				  GAMEMAN->GetStepsTypeInfo(steps->m_StepsType).iNumTracks;
 				dakine = MinaSDCalc(serializednd,
+									tappies,
 									musicrate,
 									ssrpercent,
 									columnCount,

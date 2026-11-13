@@ -53,7 +53,16 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 			   const float music_rate,
 			   const float score_goal) -> std::vector<float>
 {
+	std::vector<Tappy> empty_tappies;
+	return CalcMain(NoteInfo, empty_tappies, music_rate, score_goal);
+}
 
+auto
+Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
+			   const std::vector<Tappy>& Tappies,
+			   const float music_rate,
+			   const float score_goal) -> std::vector<float>
+{
 	InitializeKeycountLogic();
 	const auto& basescalers = ulbu_in_charge->get_basescalers();
 
@@ -66,7 +75,7 @@ Calc::CalcMain(const std::vector<NoteInfo>& NoteInfo,
 		 ++cur_iteration) {
 
 		const auto skip = InitializeHands(
-		  NoteInfo, music_rate, 0.1F * static_cast<float>(cur_iteration));
+		  NoteInfo, Tappies, music_rate, 0.1F * static_cast<float>(cur_iteration));
 
 		// if we exceed max_rows_for_single_interval during processing
 		if (skip) {
@@ -536,11 +545,12 @@ Calc::InitializeKeycountLogic() -> void
 
 auto
 Calc::InitializeHands(const std::vector<NoteInfo>& NoteInfo,
+					  const std::vector<Tappy>& Tappies,
 					  const float music_rate,
 					  const float offset) -> bool
 {
 	// do we skip this file?
-	if (fast_walk_and_check_for_skip(NoteInfo, music_rate, *this, offset))
+	if (fast_walk_and_check_for_skip(NoteInfo, Tappies, music_rate, *this, offset))
 		return true;
 
 	// if debug, force params to load and reset pmods and base diffs
@@ -834,6 +844,7 @@ Calc::InitAdjDiff(Calc& calc, const int& hand)
 
 			// nps adjusted by pmods
 			const auto adj_npsbase =
+			  calc.wife_points.at(hand).at(i) *
 			  calc.init_base_diff_vals.at(hand).at(NPSBase).at(i) *
 			  pmod_product_cur_interval.at(ss) * basescalers.at(ss);
 
@@ -892,7 +903,23 @@ MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
 
 	return calc->CalcMain(NoteInfo, musicrate, min(goal, ssr_goal_cap));
 }
+auto
+MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
+		   const std::vector<Tappy>& Tappies,
+		   float musicrate,
+		   float goal,
+		   const unsigned keycount,
+		   Calc* calc) -> std::vector<float>
+{
+	if (NoteInfo.size() <= 1) {
+		return dimples_the_all_zero_output;
+	}
+	calc->ssr = true;
+	calc->debugmode = false;
+	calc->keycount = keycount;
 
+	return calc->CalcMain(NoteInfo, Tappies, musicrate, min(goal, ssr_goal_cap));
+}
 // Wrap difficulty calculation for all standard rates
 auto
 MinaSDCalc(const std::vector<NoteInfo>& NoteInfo,
@@ -957,7 +984,7 @@ MinaSDCalcDebug(
 #endif
 }
 
-int mina_calc_version = 527;
+int mina_calc_version = 528;
 auto
 GetCalcVersion() -> int
 {
