@@ -1214,6 +1214,7 @@ local function actorLoader(tabExpected, filename)
                     result:playcommand("Begin") -- just in case
                     result:playcommand("On") -- for buttons
                     result:playcommand("PlayerInfoFrameTabSet", params)
+                    SCREENMAN:GetTopScreen():MoveInputCallbackToEnd(BUTTON.InputCallback)
                 end
             end
         end,
