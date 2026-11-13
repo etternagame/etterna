@@ -13,7 +13,7 @@
 #include <Etterna/Globals/global.h>
 #include <shaderc/shaderc.hpp>
 #include <RageUtil/File/RageFile.h>
-#include <spirv_cross/spirv_cross_c.h>
+#include <spirv_reflect.h>
 #include <RageUtil/Graphics/RageDisplay.h>
 
 void
@@ -39,17 +39,17 @@ ThrowIfFail(vk::Result result, const std::source_location location)
 	ThrowIfFail(static_cast<VkResult>(result), location);
 }
 
-void
+static void
 ThrowIfFail(
-  spvc_result result,
+  SpvReflectResult result,
   const std::source_location location = std::source_location::current())
 {
-	if (result == spvc_result::SPVC_SUCCESS) {
+	if (result == SpvReflectResult::SPV_REFLECT_RESULT_SUCCESS) {
 		return;
 	}
 
 	const std::string message = fmt::format(
-	  "RendererVK failed: SPIRV compiler result {} at {}:{} in function {}",
+	  "RendererVK failed: SPIRV-Reflect result {} at {}:{} in function {}",
 	  static_cast<int>(result),
 	  location.file_name(),
 	  location.line(),
@@ -103,163 +103,120 @@ void
 SpirvErrorCallback(void* userdata, const char* error)
 {
 	auto message =
-	  fmt::format("Vulkan: SPIRV reflection failed with message: {}", error);
+	  fmt::format("Vulkan: SPIRV-Reflect failed with message: {}", error);
 	Locator::getLogger()->error("{}", message);
+}
+
+void
+PrintBlockReflectionInfo(const SpvReflectBlockVariable& variable,
+						 std::string inside)
+{
+	Locator::getLogger()->info("Vulkan SPIRV-Reflect: found member {} (inside "
+							   "{}): type {} size {} offset {}",
+							   variable.name ? variable.name : "!unknown!",
+							   inside,
+							   variable.type_description->type_name
+								 ? variable.type_description->type_name
+								 : "!unknown!",
+							   variable.size,
+							   variable.offset);
+
+	for (size_t i = 0; i < variable.member_count; i++) {
+		PrintBlockReflectionInfo(variable.members[i],
+								 variable.name ? variable.name : "!unknown!");
+	}
 }
 
 void
 GetShaderReflectionInfo(std::vector<uint32_t> spirvBlob)
 {
-	// turns out some versions of Vulkan SDK actually include spirv-cross, but..
+	// turns out some versions of Vulkan SDK actually include
+	// spirv-cross/spirv-reflect, but...
 	// CMake can't find them (unless some things are hacked around)
-	// aaaand even if spirv-cross is vendored, there might be conflicts which
-	// surface only at runtime so let's use the C API instead (can't be bothered
-	// to fix whatever instability the C++ has)
+	//
+	// can't be bothered to patch the rest and deal
+	// with OS specific SDK file layouts so here we go
 
-	spvc_context context = nullptr;
+	SpvReflectShaderModule module{};
 
 	try {
-		ThrowIfFail(spvc_context_create(&context));
-		spvc_context_set_error_callback(context, SpirvErrorCallback, nullptr);
+		ThrowIfFail(spvReflectCreateShaderModule(
+		  spirvBlob.size() * sizeof(uint32_t), spirvBlob.data(), &module));
 
-		spvc_parsed_ir ir = nullptr;
-		ThrowIfFail(spvc_context_parse_spirv(
-		  context, spirvBlob.data(), spirvBlob.size(), &ir));
+		uint32_t pushConstantCount = 0;
+		ThrowIfFail(spvReflectEnumeratePushConstants(
+		  &module, &pushConstantCount, nullptr));
 
-		spvc_compiler glslCompiler = nullptr;
-		ThrowIfFail(
-		  spvc_context_create_compiler(context,
-									   SPVC_BACKEND_GLSL,
-									   ir,
-									   SPVC_CAPTURE_MODE_TAKE_OWNERSHIP,
-									   &glslCompiler));
+		std::vector<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
+		ThrowIfFail(spvReflectEnumeratePushConstants(
+		  &module, &pushConstantCount, &pushConstants[0]));
 
-		spvc_resources resources = nullptr;
-		ThrowIfFail(
-		  spvc_compiler_create_shader_resources(glslCompiler, &resources));
-
-		const spvc_reflected_resource* resourceList = nullptr;
-		size_t resourceListSize = 0;
-		ThrowIfFail(spvc_resources_get_resource_list_for_type(
-		  resources,
-		  spvc_resource_type::SPVC_RESOURCE_TYPE_PUSH_CONSTANT,
-		  &resourceList,
-		  &resourceListSize));
-
-		const spvc_reflected_resource* shaderArgsResource = nullptr;
-		for (size_t i = 0; i < resourceListSize; i++) {
-			if (std::string(resourceList[i].name) == "__shaderArgs") {
-				shaderArgsResource = &resourceList[i];
+		SpvReflectBlockVariable* shaderArgsVariable = nullptr;
+		for (const auto& variable : pushConstants) {
+			if (variable->name == std::string("__shaderArgs")) {
+				shaderArgsVariable = variable;
 			}
 		}
 
-		if (shaderArgsResource == nullptr) {
-			Locator::getLogger()->error(
-			  "Vulkan SPIRV: failed to find the required __shaderArgs push "
-			  "constant field");
+		if (shaderArgsVariable == nullptr) {
+			Locator::getLogger()->error("Vulkan SPIRV-Reflect: failed to find "
+										"the required __shaderArgs push "
+										"constant field");
 			Fail();
 		}
 
-		spvc_type shaderArgsBaseTypeHandle = spvc_compiler_get_type_handle(
-		  glslCompiler, shaderArgsResource->base_type_id);
+		SpvReflectBlockVariable* vertexArgsVariable = nullptr;
+		SpvReflectBlockVariable* fragmentArgsVariable = nullptr;
 
-		spvc_basetype shaderArgsBaseType =
-		  spvc_type_get_basetype(shaderArgsBaseTypeHandle);
-
-		if (shaderArgsBaseType != SPVC_BASETYPE_STRUCT) {
-			Locator::getLogger()->error(
-			  "Vulkan SPIRV: __shaderArgs must be a struct");
-			Fail();
-		}
-
-		spvc_type shaderArgsTypeHandle = spvc_compiler_get_type_handle(
-		  glslCompiler, shaderArgsResource->base_type_id);
-
-		size_t memberCount =
-		  spvc_type_get_num_member_types(shaderArgsTypeHandle);
-
-		spvc_type vertexArgsType = nullptr;
-		spvc_type fragmentArgsType = nullptr;
-
-		for (size_t i = 0; i < memberCount; i++) {
-			spvc_type_id memberId =
-			  spvc_type_get_member_type(shaderArgsTypeHandle, i);
-			spvc_type memberTypeHandle =
-			  spvc_compiler_get_type_handle(glslCompiler, memberId);
-
-			std::string memberName = spvc_compiler_get_member_name(
-			  glslCompiler, shaderArgsResource->base_type_id, i);
-			SpvStorageClass memberStorageClass =
-			  spvc_type_get_storage_class(memberTypeHandle);
-
-			if (memberStorageClass !=
-				SpvStorageClass::SpvStorageClassPhysicalStorageBuffer) {
-				Locator::getLogger()->error("Vulkan SPIRV: __shaderArgs member "
-											"{} is not a buffer reference",
-											memberName);
-				Fail();
-			}
-
-			if (memberName == "vertexArgs") {
-				vertexArgsType = memberTypeHandle;
-			} else if (memberName == "fragmentArgs") {
-				fragmentArgsType = memberTypeHandle;
+		for (size_t i = 0; i < shaderArgsVariable->member_count; i++) {
+			if (shaderArgsVariable->members[i].name ==
+				std::string("vertexArgs")) {
+				vertexArgsVariable = &shaderArgsVariable->members[i];
+			} else if (shaderArgsVariable->members[i].name ==
+					   std::string("fragmentArgs")) {
+				fragmentArgsVariable = &shaderArgsVariable->members[i];
 			} else {
 				Locator::getLogger()->error(
-				  "Vulkan SPIRV: __shaderArgs contains a stray member {}",
-				  memberName);
+				  "Vulkan SPIRV-Reflect: __shaderArgs contains a stray member "
+				  "{}",
+				  shaderArgsVariable->members[i].name);
 				Fail();
 			}
 		}
 
-		if (vertexArgsType == nullptr || fragmentArgsType == nullptr) {
+		if (vertexArgsVariable == nullptr || fragmentArgsVariable == nullptr) {
+			Locator::getLogger()->error("Vulkan SPIRV-Reflect: __shaderArgs "
+										"must have two buffer references "
+										"(vertexArgs and fragmentArgs)");
+			Fail();
+		}
+
+		if (!(vertexArgsVariable->type_description->type_flags &
+			  (SpvReflectTypeFlagBits::SPV_REFLECT_TYPE_FLAG_REF |
+			   SpvReflectTypeFlagBits::SPV_REFLECT_TYPE_FLAG_STRUCT |
+			   SpvReflectTypeFlagBits::SPV_REFLECT_TYPE_FLAG_EXTERNAL_BLOCK))) {
 			Locator::getLogger()->error(
-			  "Vulkan SPIRV: __shaderArgs must have two buffer references "
-			  "(vertexArgs and fragmentArgs)");
+			  "Vulkan SPIRV-Reflect: vertexArgs should be a buffer reference");
 			Fail();
 		}
 
-		spvc_basetype vertexArgsBaseType =
-		  spvc_type_get_basetype(vertexArgsType);
-
-		if (vertexArgsBaseType != SPVC_BASETYPE_STRUCT) {
-			Locator::getLogger()->error("Vulkan SPIRV: vertexArgs must be a "
-										"buffer reference of basetype struct");
+		if (!(fragmentArgsVariable->type_description->type_flags &
+			  (SpvReflectTypeFlagBits::SPV_REFLECT_TYPE_FLAG_REF |
+			   SpvReflectTypeFlagBits::SPV_REFLECT_TYPE_FLAG_STRUCT |
+			   SpvReflectTypeFlagBits::SPV_REFLECT_TYPE_FLAG_EXTERNAL_BLOCK))) {
+			Locator::getLogger()->error(
+			  "Vulkan SPIRV-Reflect: fragmentArgs should be a buffer reference");
 			Fail();
 		}
 
-		spvc_basetype fragmentArgsBaseType =
-		  spvc_type_get_basetype(fragmentArgsType);
-
-		if (fragmentArgsBaseType != SPVC_BASETYPE_STRUCT) {
-			Locator::getLogger()->error("Vulkan SPIRV: fragmentArgs must be a "
-										"buffer reference of basetype struct");
-			Fail();
-		}
-
-		size_t vertexArgsCount = spvc_type_get_num_member_types(vertexArgsType);
-		for (size_t i = 0; i < vertexArgsCount; i++) {
-			std::string memberName = spvc_compiler_get_member_name(
-			  glslCompiler, spvc_type_get_base_type_id(vertexArgsType), i);
-			Locator::getLogger()->debug(
-			  "Vulkan SPIRV: vertexArgs has member {}", memberName);
-		}
-
-		size_t fragmentArgsCount =
-		  spvc_type_get_num_member_types(fragmentArgsType);
-		for (size_t i = 0; i < fragmentArgsCount; i++) {
-			std::string memberName = spvc_compiler_get_member_name(
-			  glslCompiler, spvc_type_get_base_type_id(fragmentArgsType), i);
-			Locator::getLogger()->debug(
-			  "Vulkan SPIRV: fragmentArgs has member {}", memberName);
-		}
+		PrintBlockReflectionInfo(*vertexArgsVariable, "__shaderArgs");
+		PrintBlockReflectionInfo(*fragmentArgsVariable, "__shaderArgs");
 	} catch (...) {
-		if (context != nullptr) {
-			spvc_context_destroy(context);
-			context = nullptr;
-		}
+		spvReflectDestroyShaderModule(&module);
 		throw;
 	}
+
+	spvReflectDestroyShaderModule(&module);
 }
 
 vk::raii::ShaderModule
@@ -291,8 +248,8 @@ LoadShaderFromFile(std::string path,
 	}
 
 	auto shaderBlob = CompileShader("meow", shaderKind, contents, false);
-	GetShaderReflectionInfo(CompileShader(
-	  "reflection_meow", shaderKind, contents, true));
+	GetShaderReflectionInfo(
+	  CompileShader("reflection_meow", shaderKind, contents, true));
 
 	vk::ShaderModuleCreateInfo createInfo = {};
 	createInfo.codeSize = shaderBlob.size() * sizeof(uint32_t);
