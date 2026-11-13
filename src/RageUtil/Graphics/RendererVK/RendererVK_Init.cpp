@@ -173,6 +173,7 @@ RendererVK::InitVulkanState()
 	};
 	vk13Features.dynamicRendering = vk::True;
 	vk13Features.synchronization2 = vk::True;
+	vk13Features.shaderDemoteToHelperInvocation = vk::True;
 
 	VkPhysicalDeviceVulkan12Features vk12Features = {
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES
