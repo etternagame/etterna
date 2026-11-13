@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include <bit>
+#include <bitset>
+#include <iostream>
 
 /* PRAISE ULBU FOR IT IS ITS GLORY THAT GIVES OUR LIVES MEANING */
 
@@ -134,7 +136,8 @@ inline auto
 fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 							 const float& rate,
 							 Calc& calc,
-							 const float& offset = 0.F) -> bool
+							 const float& offset = 0.F,
+							 const std::string& filename = "") -> bool
 {
 	// an inf rowtime means 0 bpm or some other odd gimmick that may break things
 	// skip this file
@@ -247,8 +250,25 @@ fast_walk_and_check_for_skip(const std::vector<NoteInfo>& ni,
 
 		// make sure row_count adds up...
 		// this validates that the mask is correct
-		assert(nri.hand_counts[left_hand] + nri.hand_counts[right_hand] ==
-			   nri.row_count);
+		if (nri.hand_counts[left_hand] + nri.hand_counts[right_hand] != nri.row_count) {
+			// Print detailed debugging information
+			std::cerr << "[FATAL]: Hand count mismatch detected!\n";
+			if (!filename.empty()) {
+				std::cerr << "  File: " << filename << "\n";
+			}
+			std::cerr << "  Keycount: " << calc.keycount << "\n";
+			std::cerr << "  Row notes (binary): " << std::bitset<32>(ri.notes) << "\n";
+			std::cerr << "  Row count: " << nri.row_count << "\n";
+			std::cerr << "  Left hand count: " << nri.hand_counts[left_hand] << "\n";
+			std::cerr << "  Right hand count: " << nri.hand_counts[right_hand] << "\n";
+			std::cerr << "  Left hand mask: " << std::bitset<32>(left_hand_mask) << "\n";
+			std::cerr << "  Right hand mask: " << std::bitset<32>(right_hand_mask) << "\n";
+			std::cerr << "  All columns without middle: " << std::bitset<32>(all_columns_without_middle) << "\n";
+			std::cerr << "  Row time: " << scaled_time << "\n";
+			std::cerr << "  Interval: " << itv << ", Row: " << row_counter << "\n";
+			std::cerr << "  Expected: " << nri.hand_counts[left_hand] + nri.hand_counts[right_hand] << " == " << nri.row_count << "\n";
+			assert(false);
+		}
 
 		++row_counter;
 	}
