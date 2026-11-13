@@ -136,7 +136,7 @@ if(WITH_VULKAN)
     add_compile_definitions(Etterna PRIVATE WITH_VULKAN)
     target_link_libraries(Etterna PRIVATE vk-bootstrap::vk-bootstrap)
     target_link_libraries(Etterna PRIVATE VulkanMemoryAllocator)
-    target_link_libraries(Etterna PRIVATE spirv-cross-c)
+    target_link_libraries(Etterna PRIVATE spirv-reflect-static)
 
     find_package(Vulkan REQUIRED COMPONENTS shaderc_combined)
     target_link_libraries(Etterna PRIVATE
