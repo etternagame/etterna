@@ -449,30 +449,10 @@ NetworkSyncManager::CreatingRoom()
 	return ettp->CreatingRoom();
 }
 
-static bool
-ConnectToServer(const std::string& t)
-{
-	NSMAN->PostStartUp(t);
-	return true;
-}
-
-LuaFunction(ConnectToServer,
-			ConnectToServer((std::string(SArg(1)).length() == 0)
-							  ? std::string(g_sLastServer)
-							  : std::string(SArg(1))))
-
-static bool
-CloseNetworkConnection()
-{
-	NSMAN->CloseConnection();
-	return true;
-}
-
 LuaFunction(IsSMOnlineLoggedIn, NSMAN->loggedIn)
 LuaFunction(IsNetConnected, NSMAN->useSMserver)
 LuaFunction(IsNetSMOnline, NSMAN->isSMOnline)
 LuaFunction(GetServerName, NSMAN->GetServerName())
-LuaFunction(CloseConnection, CloseNetworkConnection())
 
 // lua start
 #include "Etterna/Models/Lua/LuaBinding.h"
