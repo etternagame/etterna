@@ -1,5 +1,8 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_scalar_block_layout : enable
+#extension GL_EXT_buffer_reference2 : require
+#extension GL_EXT_shader_explicit_arithmetic_types_int64 : require
 
 struct Vertex {
     float pos[3];
@@ -28,6 +31,19 @@ layout(location = 0) out vec4 vertexColor;
 layout(location = 1) out uint textureIndex;
 layout(location = 2) out uint samplerIndex;
 layout(location = 3) out vec2 vertexUV;
+
+layout(buffer_reference, scalar, buffer_reference_align = 8) readonly buffer VertexShaderArgs {
+    int coolInt;
+};
+
+layout(buffer_reference, scalar, buffer_reference_align = 8) readonly buffer FragmentShaderArgs {
+    float coolFloat;
+};
+
+layout(push_constant) uniform PushConstants {
+    VertexShaderArgs vertexArgs;
+    FragmentShaderArgs fragmentArgs;
+} __shaderArgs;
 
 vec2 unpackVec2(float array[2]){
     return vec2(array[0], array[1]);

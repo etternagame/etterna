@@ -59,10 +59,20 @@ DisplayAdapter::Display::BeginFrame()
 	m_RenderState.cullMode = CULL_BACK;
 	m_CurrentRenderTarget = 0;
 
+	m_CurrentTextureMode = TextureMode_Add;
+	m_AlphaTestEnabled = false;
+	m_CurrentZBias = 0.0f;
+	m_MaterialColors = {};
+	m_MaterialShininess = 0.0f;
+
 	static std::vector<uint8_t> dummyBuffer = {};
 	m_Batcher.InsertPipelineChangeCommand(0, dummyBuffer, dummyBuffer, false);
 
-	return m_IsInitDone && RageDisplay::BeginFrame();
+	if (m_IsInitDone) {
+		m_Renderer->MarkFrameStart();
+		return RageDisplay::BeginFrame();
+	}
+	return false;
 }
 
 void
@@ -430,26 +440,23 @@ DisplayAdapter::Display::SetCullMode(CullMode mode)
 	m_RenderState.cullMode = mode;
 }
 
-#pragma region Unsupported / old graphics API functions
-
 void
 DisplayAdapter::Display::SetTextureMode(TextureUnit tu, TextureMode tm)
 {
+	assert(tu == TextureUnit_1 && "Multiple texture units are not supported");
+	m_CurrentTextureMode = tm;
 }
 
 void
 DisplayAdapter::Display::SetZBias(float f)
 {
+	m_CurrentZBias = f;
 }
 
 void
 DisplayAdapter::Display::SetAlphaTest(bool b)
 {
-}
-
-void
-DisplayAdapter::Display::ClearZBuffer()
-{
+	m_AlphaTestEnabled = b;
 }
 
 void
@@ -459,16 +466,35 @@ DisplayAdapter::Display::SetMaterial(const RageColor& emissive,
 									 const RageColor& specular,
 									 float shininess)
 {
+	m_MaterialColors = { emissive, ambient, diffuse, specular };
+	m_MaterialShininess = shininess;
+}
+
+#pragma region deprecated stuffs
+
+void
+DisplayAdapter::Display::ClearZBuffer()
+{
+	// not sure how to implement because this is called quite often... mayhaps
+	// vkCmdClearAttachments? but currently we always clear the depth buffer
+	//
+	// A Smart Possum says:
+	//
+	// It is generally preferable to clear attachments by using the
+	// VK_ATTACHMENT_LOAD_OP_CLEAR load operation at the start of rendering, as
+	// it is more efficient on some implementations.
 }
 
 void
 DisplayAdapter::Display::SetLighting(bool b)
 {
+	assert(!b && "SetLighting is deprecated");
 }
 
 void
 DisplayAdapter::Display::SetLightOff(int index)
 {
+	assert(false && "SetLightOff is deprecated");
 }
 
 void
@@ -478,16 +504,20 @@ DisplayAdapter::Display::SetLightDirectional(int index,
 											 const RageColor& specular,
 											 const RageVector3& dir)
 {
+	assert(false && "SetLightDirectional is deprecated");
 }
 
 void
 DisplayAdapter::Display::SetSphereEnvironmentMapping(TextureUnit tu, bool b)
 {
+	assert(tu == TextureUnit_1 && b == false &&
+		   "SetSphereEnvironmentMapping is deprecated");
 }
 
 void
 DisplayAdapter::Display::SetCelShaded(int stage)
 {
+	assert(false && "SetCelShaded is deprecated");
 }
 
 #pragma endregion

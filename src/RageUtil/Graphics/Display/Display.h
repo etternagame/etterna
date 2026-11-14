@@ -7,6 +7,7 @@
 #include "Renderer.h"
 #include "RenderState.h"
 #include <functional>
+#include <array>
 #include "arch/LowLevelWindowVK/LowLevelWindowVK.h"
 
 namespace DisplayAdapter {
@@ -129,6 +130,12 @@ class Display : public RageDisplay
 	RenderState m_RenderState;
 	intptr_t m_CurrentRenderTarget = 0;
 	size_t CurrentBufferScale = 1;
+
+	TextureMode m_CurrentTextureMode = TextureMode_Add;
+	bool m_AlphaTestEnabled = false;
+	float m_CurrentZBias = 0.0f;
+	std::array<RageColor, 4> m_MaterialColors;
+	float m_MaterialShininess = 0.0f;
 
 	LowLevelWindowVK* m_Window = nullptr;
 };

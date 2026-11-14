@@ -37,6 +37,37 @@
 #include <bitset>
 #include "PipelineCache.h"
 
+enum VulkanFeatureHint
+{
+	VFH_UseIfSupported,
+	VFH_Require,
+	VFH_Disable,
+	NUM_VulkanFeatureHint,
+	VulkanFeatureHint_Invalid
+};
+
+enum VulkanFeatureName
+{
+	VFN_ExtendedDynamicState3BlendingExt,
+	VFN_MeshShadersExt,
+	VFN_ShaderImageInt64AtomicsExt,
+	VFN_MemoryBudgetExt,
+	VFN_NvidiaLowLatency2,
+	VFN_PresentTimingExt,
+	NUM_VulkanFeatureName,
+	VulkanFeatureName_Invalid
+};
+
+struct RendererVKFeatureSettings
+{
+	VulkanFeatureHint EDS3Blending;
+	VulkanFeatureHint MeshShaders;
+	VulkanFeatureHint ImageInt64Atomics;
+	VulkanFeatureHint MemoryBudget;
+	VulkanFeatureHint NvidiaLowLatency2;
+	VulkanFeatureHint PresentTiming;
+};
+
 class RendererVK : public DisplayAdapter::Renderer
 {
   public:
@@ -46,6 +77,7 @@ class RendererVK : public DisplayAdapter::Renderer
 	bool IsReadyForRender() override;
 	void OnRender(const ActualVideoModeParams* p,
 				  const DisplayAdapter::CommandBatcher& batcher) override;
+	void MarkFrameStart() override;
 	bool IsD3DInternal() override;
 	intptr_t CreateTexture(RageSurface* img, bool RGBA8) override;
 	void UpdateTexture(intptr_t textureHandle,
@@ -71,6 +103,7 @@ class RendererVK : public DisplayAdapter::Renderer
 
   private:
 	constexpr static size_t FramesInFlight = 3;
+	constexpr static uint64_t Timeout = 2000'000'000;
 
 	vk::raii::Context m_Context;
 	vk::raii::Instance m_Instance = nullptr;
@@ -82,10 +115,15 @@ class RendererVK : public DisplayAdapter::Renderer
 	uint32_t m_GraphicsQueueFamily = 0;
 	vk::raii::Queue m_PresentQueue = nullptr;
 	uint32_t m_PresentQueueFamily = 0;
+
+	uint32_t m_FrameCounterForAllocator = 0;
 	VmaAllocator m_Allocator = nullptr;
+
 	vk::Format m_DepthFormat = {};
 	vk::SampleCountFlagBits m_MsaaSamples = {};
 	void InitVulkanState();
+	RendererVKFeatureSettings GetFeatureSettings();
+	RendererVKFeatureSettings m_ResolvedSettings;
 
 	vk::raii::SwapchainKHR m_Swapchain = nullptr;
 	vk::Extent2D m_SwapchainExtent;
@@ -98,12 +136,14 @@ class RendererVK : public DisplayAdapter::Renderer
 	bool m_SwapchainBorderless = false;
 	bool m_SwapchainIsInvalid = false;
 	bool m_SmoothLines = false;
+	int m_RefreshRate = 0;
 
 	void InitSwapchain(uint32_t width,
 					   uint32_t height,
 					   bool vSync,
 					   bool borderlessWindow,
-					   bool smoothLines);
+					   bool smoothLines,
+					   int refreshRate);
 	void RecreateSwapchain();
 	void CleanupSwapchain();
 
@@ -139,12 +179,24 @@ class RendererVK : public DisplayAdapter::Renderer
 
 	std::vector<vk::raii::Semaphore> m_PresentCompleteSemaphore;
 	std::vector<vk::raii::Semaphore> m_RenderFinishedSemaphore;
+	vk::raii::Semaphore m_NvidiaLatencySemaphore = nullptr;
+	uint64_t m_PresentId = 0;
+	uint64_t m_NvidiaLatencySleepValue = 0;
+
 	std::vector<vk::raii::Fence> m_InFlightFence;
 	uint32_t m_CurrentFrame = 0;
 	int m_CurrentImage = 0;
 	void InitSyncStructures();
 	void RecordCommands(uint32_t imageIndex,
 						const DisplayAdapter::CommandBatcher& batcher);
+	void RecordTextureUpdateCommands(vk::raii::CommandBuffer& buffer);
+	void RecordBufferUpdateCommands(
+	  vk::raii::CommandBuffer& buffer,
+	  const DisplayAdapter::CommandBatcher& batcher);
+	void RecordGraphicsCommands(uint32_t imageIndex,
+								vk::raii::CommandBuffer& buffer,
+								const DisplayAdapter::CommandBatcher& batcher);
+
 	void SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer);
 
 	std::array<PersistentBuffer, FramesInFlight> m_VertexBuffer;

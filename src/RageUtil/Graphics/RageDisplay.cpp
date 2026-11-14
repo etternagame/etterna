@@ -1294,6 +1294,12 @@ RageDisplay::FrameLimitAfterVsync(int iFPS)
 	g_FrameRenderTime = std::chrono::steady_clock::now();
 }
 
+int
+RageDisplay::GetFrameLimitGameplay()
+{
+	return g_fFrameLimitGameplay;
+}
+
 void
 RageDisplay::SetPresentTime(std::chrono::nanoseconds presentTime)
 {

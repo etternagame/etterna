@@ -16,6 +16,7 @@ class Renderer
 	virtual bool IsReadyForRender() = 0;
 	virtual void OnRender(const ActualVideoModeParams* p,
 						  const CommandBatcher& batcher) = 0;
+	virtual void MarkFrameStart() = 0;
 	virtual bool IsD3DInternal() = 0;
 	virtual intptr_t CreateTexture(RageSurface* img, bool RGBA8) = 0;
 	virtual void UpdateTexture(intptr_t textureHandle,

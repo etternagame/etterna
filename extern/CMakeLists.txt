@@ -72,6 +72,10 @@ target_link_libraries(vorbis ogg)
 if(WITH_VULKAN)
     add_subdirectory(vk-bootstrap)
     add_subdirectory(VulkanMemoryAllocator)
+
+    set(SPIRV_REFLECT_EXECUTABLE OFF)
+    set(SPIRV_REFLECT_STATIC_LIB ON)
+    add_subdirectory(SPIRV-Reflect)
     list(APPEND EXT_TARGETS vk-bootstrap VulkanMemoryAllocator)
 endif()
 

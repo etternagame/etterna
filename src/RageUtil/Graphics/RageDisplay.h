@@ -291,6 +291,7 @@ class RageDisplay
 
 	[[nodiscard]] virtual auto GetApiDescription() const -> std::string = 0;
 	virtual void GetDisplaySpecs(DisplaySpecs& out) const = 0;
+	int GetFrameLimitGameplay();
 
 	void SetPresentTime(std::chrono::nanoseconds presentTime);
 

@@ -3,7 +3,7 @@
 #include "RageUtil/File/RageFile.h"
 
 void
-PipelineCache::Init(vk::raii::Device& device)
+PipelineCache::Init(vk::raii::Device& device, bool hasDynamicBlending)
 {
 	assert(m_TextureLayout != nullptr);
 	assert(m_DescriptorSetLayout != nullptr);
@@ -20,6 +20,7 @@ PipelineCache::Init(vk::raii::Device& device)
 	}
 
 	m_DriverCache = vk::raii::PipelineCache(device, createInfo);
+	m_HasDynamicBlending = hasDynamicBlending;
 }
 
 void
@@ -38,13 +39,17 @@ PipelineCache::WriteToDisk()
 }
 
 void
-PipelineCache::ReloadPipelines(vk::raii::Device& device)
+PipelineCache::ReloadPipelines(vk::raii::Device& device,
+							   vk::SampleCountFlagBits msaaSamples)
 {
 	device.waitIdle();
 
 	for (auto& pipeline : m_Pipelines) {
-		CreateGraphicsPipeline(
-		  device, pipeline.VertexShaderPath, pipeline.FragmentShaderPath, true);
+		CreateGraphicsPipeline(device,
+							   pipeline.VertexShaderPath,
+							   pipeline.FragmentShaderPath,
+							   msaaSamples,
+							   true);
 	}
 }
 
@@ -52,6 +57,7 @@ DisplayAdapter::PipelineHandle
 PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 									  const std::string& vertexShaderPath,
 									  const std::string& fragmentShaderPath,
+									  vk::SampleCountFlagBits msaaSamples,
 									  bool reload)
 {
 	assert(m_TextureLayout != nullptr);
@@ -92,16 +98,17 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 		vertexShaderStageInfo, fragmentShaderStageInfo
 	};
 
-	std::vector dynamicStates = { vk::DynamicState::eViewport,
-								  vk::DynamicState::eScissor,
-								  vk::DynamicState::eCullMode,
-								  vk::DynamicState::eDepthWriteEnable,
-								  vk::DynamicState::eDepthTestEnable,
-								  vk::DynamicState::eDepthCompareOp,
-								  vk::DynamicState::eColorBlendEnableEXT,
-								  vk::DynamicState::eColorBlendEquationEXT,
-								  vk::DynamicState::eColorWriteMaskEXT,
-								  vk::DynamicState::eRasterizationSamplesEXT };
+	std::vector<vk::DynamicState> dynamicStates = {
+		vk::DynamicState::eViewport,		vk::DynamicState::eScissor,
+		vk::DynamicState::eCullMode,		vk::DynamicState::eDepthWriteEnable,
+		vk::DynamicState::eDepthTestEnable, vk::DynamicState::eDepthCompareOp
+	};
+
+	if (m_HasDynamicBlending) {
+		dynamicStates.push_back(vk::DynamicState::eColorBlendEnableEXT);
+		dynamicStates.push_back(vk::DynamicState::eColorBlendEquationEXT);
+		dynamicStates.push_back(vk::DynamicState::eColorWriteMaskEXT);
+	}
 
 	vk::PipelineDynamicStateCreateInfo dynamicState{};
 	dynamicState.dynamicStateCount =
@@ -123,7 +130,7 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 	rasterizer.lineWidth = 1.0f;
 
 	vk::PipelineMultisampleStateCreateInfo multisampling{};
-	multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+	multisampling.rasterizationSamples = msaaSamples;
 	multisampling.sampleShadingEnable = vk::False;
 
 	std::array<vk::PushConstantRange, 1> pushConstants = {};
@@ -180,8 +187,122 @@ PipelineCache::CreateGraphicsPipeline(vk::raii::Device& device,
 	pipelineInfo.pDepthStencilState = &depthStencil;
 	pipelineInfo.pColorBlendState = &colorBlending;
 
-	info.GraphicsPipeline =
-	  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo);
+	if (m_HasDynamicBlending) {
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+	} else {
+		#pragma region :velcro:
+
+		colorBlendAttachment.blendEnable = vk::True;
+		colorBlendAttachment.colorWriteMask =
+		  vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+		  vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+		colorBlendAttachment.alphaBlendOp = vk::BlendOp::eAdd;
+		colorBlendAttachment.colorBlendOp = vk::BlendOp::eAdd;
+
+		// BLEND_NORMAL
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstColorBlendFactor =
+		  vk::BlendFactor::eOneMinusSrcAlpha;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstAlphaBlendFactor =
+		  vk::BlendFactor::eOneMinusSrcAlpha;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_ADD
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOne;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_SUBTRACT
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_MODULATE
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eSrcColor;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eSrcColor;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_COPY_SRC
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_ALPHA_MASK
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_ALPHA_KNOCK_OUT
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstAlphaBlendFactor =
+		  vk::BlendFactor::eOneMinusSrcAlpha;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_ALPHA_MULTIPLY
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eSrcAlpha;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eZero;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_WEIGHTED_MULTIPLY
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eDstColor;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eSrcColor;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eDstColor;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eSrcColor;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_INVERT_DEST
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOne;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+
+		// BLEND_NO_EFFECT
+		colorBlendAttachment.srcColorBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstColorBlendFactor = vk::BlendFactor::eOne;
+		colorBlendAttachment.srcAlphaBlendFactor = vk::BlendFactor::eZero;
+		colorBlendAttachment.dstAlphaBlendFactor = vk::BlendFactor::eOne;
+
+		info.Pipelines.push_back(
+		  vk::raii::Pipeline(device, m_DriverCache, pipelineInfo));
+		#pragma endregion
+	}
 
 	if (reload) {
 		int index = -1;
