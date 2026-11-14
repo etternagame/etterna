@@ -222,6 +222,16 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	buffer.begin(vk::CommandBufferBeginInfo(
 	  vk::CommandBufferUsageFlagBits::eOneTimeSubmit));
 
+	RecordTextureUpdateCommands(buffer);
+	RecordBufferUpdateCommands(buffer, batcher);
+	RecordGraphicsCommands(imageIndex, buffer, batcher);
+
+	buffer.end();
+}
+
+void
+RendererVK::RecordTextureUpdateCommands(vk::raii::CommandBuffer& buffer)
+{
 	m_DirtyPreBarriers.reserve(m_DirtyTextures.size());
 	m_DirtyPostBarriers.reserve(m_DirtyTextures.size());
 
@@ -396,7 +406,13 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 
 		m_MsaaTexturesAreDirty = false;
 	}
+}
 
+void
+RendererVK::RecordBufferUpdateCommands(
+  vk::raii::CommandBuffer& buffer,
+  const DisplayAdapter::CommandBatcher& batcher)
+{
 	vk::BufferCopy stagingCopy{};
 	stagingCopy.srcOffset = 0;
 	stagingCopy.dstOffset = 0;
@@ -467,7 +483,14 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 	dependencyInfo.dependencyFlags = {};
 	dependencyInfo.setBufferMemoryBarriers(bufferBarriers);
 	buffer.pipelineBarrier2(dependencyInfo);
+}
 
+void
+RendererVK::RecordGraphicsCommands(
+  uint32_t imageIndex,
+  vk::raii::CommandBuffer& buffer,
+  const DisplayAdapter::CommandBatcher& batcher)
+{
 	buffer.bindDescriptorSets(
 	  vk::PipelineBindPoint::eGraphics,
 	  *m_Cache->m_Pipelines[0].PipelineLayout,
@@ -687,8 +710,6 @@ RendererVK::RecordCommands(uint32_t imageIndex,
 			  vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 	}
-
-	buffer.end();
 }
 
 void

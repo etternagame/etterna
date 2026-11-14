@@ -189,6 +189,14 @@ class RendererVK : public DisplayAdapter::Renderer
 	void InitSyncStructures();
 	void RecordCommands(uint32_t imageIndex,
 						const DisplayAdapter::CommandBatcher& batcher);
+	void RecordTextureUpdateCommands(vk::raii::CommandBuffer& buffer);
+	void RecordBufferUpdateCommands(
+	  vk::raii::CommandBuffer& buffer,
+	  const DisplayAdapter::CommandBatcher& batcher);
+	void RecordGraphicsCommands(uint32_t imageIndex,
+								vk::raii::CommandBuffer& buffer,
+								const DisplayAdapter::CommandBatcher& batcher);
+
 	void SetBlendMode(BlendMode mode, vk::raii::CommandBuffer& buffer);
 
 	std::array<PersistentBuffer, FramesInFlight> m_VertexBuffer;
